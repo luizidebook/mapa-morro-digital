@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morro Digital - Início</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <meta name="description" content="Guia turístico completo de Morro de São Paulo. Dicas de viagem, roteiros e muito mais.">
+    <meta name="keywords" content="Morro de São Paulo, turismo, viagens, roteiros">
+    <meta name="author" content="Morro Digital">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body onload="startTutorial()">
+    <div id="map" class="map"></div>
+    <div id="welcome-message" class="container bg-light p-4 rounded shadow-lg">
+        <h2>Bem-vindo ao Morro Digital!</h2>
+        <p>Eu sou o guia turístico virtual mais completo e confiável de Morro de SP. Utilizo IA para fornecer dicas de viagem com base nas preferências do usuário!</p>
+        <button class="btn btn-primary" onclick="startTutorial()">Começar</button>
+    </div>
+    <div id="tutorial" class="container bg-light p-4 rounded shadow-lg" style="display:none;">
+        <div id="tutorial-step-1" class="tutorial-step active">
+            <h2>Bem-vindo ao Morro Digital!</h2>
+            <p>Eu sou o guia turístico virtual mais completo e confiável de Morro de SP. Utilizo IA para fornecer dicas de viagem com base nas preferências do usuário!</p>
+            <div class="tutorial-nav">
+                <button class="btn btn-primary" onclick="nextTutorialStep(2)">Próximo</button>
+            </div>
+        </div>
+        <div id="tutorial-step-2" class="tutorial-step">
+            <h2>Objetivo Geral</h2>
+            <p>Nosso objetivo é ajudar você a planejar a viagem perfeita para Morro de São Paulo, oferecendo informações detalhadas sobre roteiros, hospedagens, atrações turísticas, passeios, restaurantes, festas, lojas e transportes.</p>
+            <div class="tutorial-nav">
+                <button class="btn btn-secondary" onclick="nextTutorialStep(1)">Anterior</button>
+                <button class="btn btn-primary" onclick="nextTutorialStep(3)">Próximo</button>
+            </div>
+        </div>
+        <div id="tutorial-step-3" class="tutorial-step">
+            <h2>Vamos começar?</h2>
+            <p>Gostaria de criar um novo roteiro personalizado?</p>
+            <button class="btn btn-primary" onclick="startQuestionnaire()">Sim</button>
+            <button class="btn btn-secondary" onclick="showSearchBox()">Não</button>
+        </div>
+    </div>
+    <div id="questionnaire" class="container bg-light p-4 rounded shadow-lg" style="display:none;">
+        <form id="questionnaire-form">
+            <div id="question-step-1" class="question-step active">
+                <h2>Qual é o seu Nome?</h2>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="nome" required>
+                    <div class="invalid-feedback">Por favor, insira seu nome.</div>
+                    <div class="example">Ex.: João</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(2)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-2" class="question-step">
+                <h2>Qual é a sua nacionalidade?</h2>
+                <div class="form-group">
+                    <select class="form-control" name="nacionalidade" required>
+                        <option value="">Selecione...</option>
+                        <option value="brasileiro">Brasileiro</option>
+                        <option value="estrangeiro">Estrangeiro</option>
+                    </select>
+                    <div class="invalid-feedback">Por favor, selecione sua nacionalidade.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(1)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(3)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-3" class="question-step">
+                <h2>Você mora em qual estado?</h2>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="estado" required>
+                    <div class="invalid-feedback">Por favor, insira seu estado.</div>
+                    <div class="example">Ex.: São Paulo</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(2)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(4)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-4" class="question-step">
+                <h2>Você mora em qual cidade?</h2>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="cidade" required>
+                    <div class="invalid-feedback">Por favor, insira sua cidade.</div>
+                    <div class="example">Ex.: São Paulo</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(3)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(5)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-5" class="question-step">
+                <h2>Você já está ou ainda vai chegar em Morro de São Paulo?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="chegada" value="já estou" required> Já estou
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="chegada" value="vou chegar" required> Vou chegar
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(4)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(6)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-6" class="question-step">
+                <h2>É a sua primeira vez em Morro de São Paulo?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="primeira_vez" value="sim" required> Sim
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="primeira_vez" value="não" required> Não
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(5)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(7)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-7" class="question-step">
+                <h2>Qual dia você chegou ou chega na ilha?</h2>
+                <div class="form-group">
+                    <input type="date" class="form-control" name="data_chegada" required>
+                    <div class="invalid-feedback">Por favor, insira uma data válida.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(6)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(8)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-8" class="question-step">
+                <h2>Até qual dia você fica na ilha?</h2>
+                <div class="form-group">
+                    <input type="date" class="form-control" name="data_saida" required>
+                    <div class="invalid-feedback">Por favor, insira uma data válida.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(7)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(9)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-9" class="question-step">
+                <h2>Quantas pessoas próximas (Amigos, Familiares, namorado, etc.) estão na ilha com você?</h2>
+                <div class="form-group">
+                    <input type="number" class="form-control" name="pessoas" required>
+                    <div class="invalid-feedback">Por favor, insira um número válido.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(8)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(10)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-10" class="question-step">
+                <h2>Você já tem local para se hospedar?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="accommodation" value="sim" required> Sim
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="accommodation" value="não" required> Não
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(9)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(11)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-11" class="question-step">
+                <h2>Quais atividades você gostaria de fazer em Morro?</h2>
+                <div class="form-group">
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Visitar Pontos Turísticos"> Visitar Pontos Turísticos
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Caminhar pelas Praias"> Caminhar pelas Praias
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Conhecer a Toca do Morcego"> Conhecer a Toca do Morcego
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Comer em Restaurantes"> Comer em Restaurantes
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Realizar Passeios"> Realizar Passeios
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Curtir Festas"> Curtir Festas
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Praticar Esportes"> Praticar Esportes
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Relaxar na Natureza"> Relaxar na Natureza
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Atividades em Família"> Atividades em Família
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Atividades com Amigos"> Atividades com Amigos
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="activities" value="Atividades para Casal"> Atividades para Casal
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione ao menos uma atividade.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(10)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(12)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-12" class="question-step">
+                <h2>Você já conhece a famosa Toca do Morcego?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="conhece_toca" value="sim" required> Sim
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="conhece_toca" value="não" required> Não
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(11)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(13)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-13" class="question-step">
+                <h2>Você já realizou algum passeio na ilha?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="realizou_passeio" value="sim" required> Sim
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="realizou_passeio" value="não" required> Não
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(12)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(14)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-14" class="question-step">
+                <h2>Você tem interesse em realizar quais passeios?</h2>
+                <div class="form-group">
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="interesse_passeios" value="Passeios com Lancha"> Passeios com Lancha
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="interesse_passeios" value="Passeios com Camionetes 4X4"> Passeios com Camionetes 4X4
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="interesse_passeios" value="Passeios com Quadriciclos"> Passeios com Quadriciclos
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="interesse_passeios" value="Passeios de Bicicleta"> Passeios de Bicicleta
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="checkbox" name="interesse_passeios" value="Passeios Caminhando"> Passeios Caminhando
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione ao menos um passeio.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(13)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAndNext(15)">Enviar</button>
+                </div>
+            </div>
+            <div id="question-step-15" class="question-step">
+                <h2>Você tem interesse em saber mais sobre eventos e festas?</h2>
+                <div class="form-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="interesse_eventos" value="sim" required> Sim
+                    </label>
+                    <label class="btn btn-secondary">
+                        <input type="radio" name="interesse_eventos" value="não" required> Não
+                    </label>
+                    <div class="invalid-feedback">Por favor, selecione uma opção.</div>
+                </div>
+                <div class="tutorial-nav">
+                    <button type="button" class="btn btn-secondary" onclick="previousQuestionStep(14)">Anterior</button>
+                    <button type="button" class="btn btn-primary" onclick="submitQuestionnaire()">Enviar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="route-summary" class="container bg-light p-4 rounded shadow-lg" style="display:none;">
+        <h2>Resumo do Roteiro Personalizado</h2>
+        <div id="route-content"></div>
+        <div class="tutorial-nav">
+            <button class="btn btn-primary" onclick="startMapTour()">Fazer Tour Guiado</button>
+        </div>
+    </div>
+    <div id="map-tour" class="container bg-light p-4 rounded shadow-lg" style="display:none;">
+        <h2>Tour Guiado</h2>
+        <div id="tour-content"></div>
+        <div class="tutorial-nav">
+            <button class="btn btn-secondary" onclick="previousTourStep()">Anterior</button>
+            <button class="btn btn-primary" onclick="nextTourStep()">Próximo</button>
+            <button class="btn btn-danger" onclick="endTour()">Encerrar Tour</button>
+        </div>
+    </div>
+    <div id="search-box" class="container bg-light p-4 rounded shadow-lg" style="display:none;">
+        <h2>O que você procura em Morro de São Paulo?</h2>
+        <div class="form-group">
+            <input type="text" class="form-control" id="search-input" placeholder="Digite aqui...">
+        </div>
+        <button class="btn btn-primary" onclick="searchMap()">Pesquisar</button>
+        <div id="search-results"></div>
+    </div>
+    <div id="floating-menu" class="floating-menu">
+        <button class="btn btn-primary" onclick="toggleMenu()">Menu</button>
+        <div id="menu-items" class="menu-items" style="display:none;">
+            <button class="btn btn-secondary" onclick="startQuestionnaire()">Criar Roteiro</button>
+            <button class="btn btn-secondary" onclick="showHospedagem()">Hospedagem</button>
+            <button class="btn btn-secondary" onclick="showPontosTuristicos()">Pontos Turísticos</button>
+            <button class="btn btn-secondary" onclick="showRestaurantes()">Restaurantes</button>
+            <button class="btn btn-secondary" onclick="showPasseios()">Passeios</button>
+            <button class="btn btn-secondary" onclick="showEventos()">Eventos e Festas</button>
+            <button class="btn btn-secondary" onclick="showIngressos()">Comprar Ingressos</button>
+            <button class="btn btn-secondary" onclick="showSuporte()">Suporte</button>
+            <button class="btn btn-secondary" onclick="showConfiguracoes()">Configurações</button>
+        </div>
+    </div>
+    <div id="points-display" class="points-display">Pontos: 0</div>
+    <div id="badges-display" class="badges-display"></div>
+    <div id="daily-challenge" class="daily-challenge"></div>
+    <div id="leaderboard" class="leaderboard"></div>
+    <script src="scripts.js"></script>
+</body>
+</html>
