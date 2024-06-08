@@ -1,5 +1,3 @@
-// scripts.js
-
 let map;
 const searchCache = {};
 
@@ -13,6 +11,15 @@ function initialize() {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+            map.setView([userLat, userLon], 13);
+            L.marker([userLat, userLon]).addTo(map).bindPopup('Sua localização').openPopup();
+        });
+    }
 }
 
 function toggleMenu() {
@@ -179,7 +186,7 @@ function generateRestaurants() {
         <h3>Restaurantes</h3>
         <ul>
             <li onclick="showRestaurantDetails('Sambass Café')">Sambass Café</li>
-            <li onclick="showRestaurantDetails('Budda Beach')">Budda Beach</li>
+            <li onclick="showRestaurantDetails('Budda Beach')">Budda Beach</
             <li onclick="showRestaurantDetails('Funny')">Funny</li>
         </ul>
     `;
@@ -317,7 +324,6 @@ function showTipDetails(tip) {
 }
 
 function getLocationDetails(location) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Toca do Morcego': '<h3>Toca do Morcego</h3><p>Detalhes sobre a Toca do Morcego...</p>',
         'Igreja Nossa Senhora da Luz': '<h3>Igreja Nossa Senhora da Luz</h3><p>Detalhes sobre a Igreja Nossa Senhora da Luz...</p>',
@@ -330,7 +336,6 @@ function getLocationDetails(location) {
 }
 
 function getTourDetails(tour) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Volta à Ilha': '<h3>Volta à Ilha</h3><p>Detalhes sobre o passeio Volta à Ilha...</p>',
         'Quadriciclo para Garapuá': '<h3>Quadriciclo para Garapuá</h3><p>Detalhes sobre o passeio de Quadriciclo para Garapuá...</p>',
@@ -341,7 +346,6 @@ function getTourDetails(tour) {
 }
 
 function getBeachDetails(beach) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Primeira Praia': '<h3>Primeira Praia</h3><p>Detalhes sobre a Primeira Praia...</p>',
         'Segunda Praia': '<h3>Segunda Praia</h3><p>Detalhes sobre a Segunda Praia...</p>',
@@ -353,7 +357,6 @@ function getBeachDetails(beach) {
 }
 
 function getEventDetails(event) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Pôr do Sol na Toca do Morcego': '<h3>Pôr do Sol na Toca do Morcego</h3><p>Detalhes sobre o evento Pôr do Sol na Toca do Morcego...</p>',
         'Samba na Toca do Morcego': '<h3>Samba na Toca do Morcego</h3><p>Detalhes sobre o evento Samba na Toca do Morcego...</p>',
@@ -363,7 +366,6 @@ function getEventDetails(event) {
 }
 
 function getRestaurantDetails(restaurant) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Sambass Café': '<h3>Sambass Café</h3><p>Detalhes sobre o Sambass Café...</p>',
         'Budda Beach': '<h3>Budda Beach</h3><p>Detalhes sobre o Budda Beach...</p>',
@@ -373,7 +375,6 @@ function getRestaurantDetails(restaurant) {
 }
 
 function getAccommodationDetails(accommodation) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Pousada X': '<h3>Pousada X</h3><p>Detalhes sobre a Pousada X...</p>',
         'Hotel Y': '<h3>Hotel Y</h3><p>Detalhes sobre o Hotel Y...</p>',
@@ -383,7 +384,6 @@ function getAccommodationDetails(accommodation) {
 }
 
 function getShopDetails(shop) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Eco Store': '<h3>Eco Store</h3><p>Detalhes sobre a Eco Store...</p>',
     };
@@ -391,7 +391,6 @@ function getShopDetails(shop) {
 }
 
 function getTipDetails(tip) {
-    // Detalhes fictícios, substituir por dados reais
     const details = {
         'Segurança': '<h3>Segurança</h3><p>Dicas de segurança em Morro de São Paulo...</p>',
         'Saúde': '<h3>Saúde</h3><p>Dicas de saúde em Morro de São Paulo...</p>',
