@@ -1,5 +1,36 @@
 let map;
 const searchCache = {};
+let tutorialStep = 0;
+const tutorialSteps = [
+    {
+        title: "Bem-vindo ao Morro Digital",
+        content: "Este é o seu guia turístico para Morro de São Paulo. Vamos explorar todas as funcionalidades disponíveis."
+    },
+    {
+        title: "Mapa Interativo",
+        content: "Aqui está o mapa interativo de Morro de São Paulo. Você pode clicar em qualquer ponto de interesse para obter mais informações."
+    },
+    {
+        title: "Menu Principal",
+        content: "Use o botão de menu para acessar diversas opções como criar roteiros personalizados, buscar no mapa, ver pontos de interesse e muito mais."
+    },
+    {
+        title: "Criar Roteiros Personalizados",
+        content: "Clique em 'Criar Roteiros Personalizados' para montar seu roteiro de viagem com base em suas preferências e orçamento."
+    },
+    {
+        title: "Buscar no Mapa",
+        content: "Use a opção 'Buscar no Mapa' para encontrar locais específicos em Morro de São Paulo."
+    },
+    {
+        title: "Pontos de Interesse",
+        content: "Veja pontos de interesse como praias, eventos, restaurantes e muito mais clicando nas respectivas opções no menu."
+    },
+    {
+        title: "Encerrando o Tutorial",
+        content: "Isso conclui o nosso tutorial. Aproveite sua navegação pelo Morro Digital!"
+    }
+];
 
 document.addEventListener('DOMContentLoaded', function () {
     initialize();
@@ -18,7 +49,10 @@ function initialize() {
             const userLon = position.coords.longitude;
             map.setView([userLat, userLon], 13);
             L.marker([userLat, userLon]).addTo(map).bindPopup('Sua localização').openPopup();
+            startTutorial();
         });
+    } else {
+        startTutorial();
     }
 }
 
@@ -186,7 +220,7 @@ function generateRestaurants() {
         <h3>Restaurantes</h3>
         <ul>
             <li onclick="showRestaurantDetails('Sambass Café')">Sambass Café</li>
-            <li onclick="showRestaurantDetails('Budda Beach')">Budda Beach</
+            <li onclick="showRestaurantDetails('Budda Beach')">Budda Beach</li>
             <li onclick="showRestaurantDetails('Funny')">Funny</li>
         </ul>
     `;
@@ -430,4 +464,33 @@ function displayItinerary(itinerary) {
     `;
     document.getElementById('route-content').innerHTML = content;
     toggleRouteSummary();
+}
+
+function startTutorial() {
+    tutorialStep = 0;
+    updateTutorialContent();
+    toggleTutorialPanel();
+}
+
+function navigateTutorialStep(direction) {
+    if (direction === 'next') {
+        tutorialStep++;
+    } else if (direction === 'previous') {
+        tutorialStep--;
+    }
+    if (tutorialStep < 0) {
+        tutorialStep = 0;
+    } else if (tutorialStep >= tutorialSteps.length) {
+        tutorialStep = tutorialSteps.length - 1;
+        toggleTutorialPanel();
+    }
+    updateTutorialContent();
+}
+
+function updateTutorialContent() {
+    const tutorialContent = document.getElementById('tutorial-content');
+    tutorialContent.innerHTML = `
+        <h3>${tutorialSteps[tutorialStep].title}</h3>
+        <p>${tutorialSteps[tutorialStep].content}</p>
+    `;
 }
