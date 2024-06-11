@@ -1,496 +1,212 @@
-let map;
-const searchCache = {};
-let tutorialStep = 0;
-const tutorialSteps = [
-    {
-        title: "Bem-vindo ao Morro Digital",
-        content: "Este é o seu guia turístico para Morro de São Paulo. Vamos explorar todas as funcionalidades disponíveis."
-    },
-    {
-        title: "Mapa Interativo",
-        content: "Aqui está o mapa interativo de Morro de São Paulo. Você pode clicar em qualquer ponto de interesse para obter mais informações."
-    },
-    {
-        title: "Menu Principal",
-        content: "Use o botão de menu para acessar diversas opções como criar roteiros personalizados, buscar no mapa, ver pontos de interesse e muito mais."
-    },
-    {
-        title: "Criar Roteiros Personalizados",
-        content: "Clique em 'Criar Roteiros Personalizados' para montar seu roteiro de viagem com base em suas preferências e orçamento."
-    },
-    {
-        title: "Buscar no Mapa",
-        content: "Use a opção 'Buscar no Mapa' para encontrar locais específicos em Morro de São Paulo."
-    },
-    {
-        title: "Pontos de Interesse",
-        content: "Veja pontos de interesse como praias, eventos, restaurantes e muito mais clicando nas respectivas opções no menu."
-    },
-    {
-        title: "Encerrando o Tutorial",
-        content: "Isso conclui o nosso tutorial. Aproveite sua navegação pelo Morro Digital!"
-    }
-];
-
-document.addEventListener('DOMContentLoaded', function () {
-    initialize();
-});
-
-function initialize() {
-    map = L.map('map').setView([-13.385, -38.916], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const userLat = position.coords.latitude;
-            const userLon = position.coords.longitude;
-            map.setView([userLat, userLon], 13);
-            L.marker([userLat, userLon]).addTo(map).bindPopup('Sua localização').openPopup();
-            startTutorial();
-        });
-    } else {
-        startTutorial();
-    }
-}
+                        let map;
+let currentLocation;
+let routingControl;
 
 function toggleMenu() {
     const menu = document.getElementById('menu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
 
-function toggleInfoPanel() {
-    const infoPanel = document.getElementById('info-panel');
-    infoPanel.style.display = infoPanel.style.display === 'none' ? 'block' : 'none';
+function handleMenuClick(subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
 }
 
-function toggleRouteSummary() {
-    const routeSummary = document.getElementById('route-summary');
-    routeSummary.style.display = routeSummary.style.display === 'none' ? 'block' : 'none';
-}
+function showMessage(option, coordinates) {
+    const messageBox = document.getElementById('message-box');
+    messageBox.style.display = 'block';
 
-function toggleTutorialPanel() {
-    const tutorialPanel = document.getElementById('tutorial-panel');
-    tutorialPanel.style.display = tutorialPanel.style.display === 'none' ? 'block' : 'none';
-}
-
-function showPanel(panel) {
-    const infoContent = document.getElementById('info-content');
-    let content = '';
-    switch (panel) {
-        case 'create-itinerary':
-            content = generateItineraryForm();
+    let message = '';
+    switch (option) {
+        case 'historia':
+            message = `<p>Conheça a rica história de Morro de São Paulo, desde seus tempos coloniais até se tornar um dos destinos turísticos mais populares do Brasil. Morro de São Paulo é um dos locais mais históricos e fascinantes da Bahia, com uma mistura de influências culturais de portugueses, africanos e indígenas.</p>`;
             break;
-        case 'search-map':
-            content = generateSearchMapForm();
+        case 'tocaMorcego':
+            message = `<p>A Toca do Morcego oferece uma experiência inesquecível com uma vista única para o pôr do sol mais bonito do Brasil. Localizado na subida para o Farol do Morro de São Paulo, a Toca do Morcego combina as melhores características de um bar, balada e restaurante.</p>
+                       <p>Você pode desfrutar de coquetéis refrescantes enquanto aprecia a paisagem deslumbrante. A Toca do Morcego também é conhecida por suas festas temáticas e eventos especiais, tornando-se um ponto de encontro popular para turistas e locais.</p>`;
             break;
-        case 'points-of-interest':
-            content = generatePointsOfInterest();
+        case 'igrejaLuz':
+            message = `<p>A Igreja Nossa Senhora da Luz é um marco histórico de Morro de São Paulo. Sua construção teve início em 1628 e é um exemplo significativo da arquitetura colonial portuguesa. A igreja abriga várias imagens sacras e é um local de peregrinação para muitos devotos. Além disso, a igreja oferece uma vista panorâmica deslumbrante da vila e do mar, tornando-se um local popular para fotos.</p>`;
             break;
-        case 'tours':
-            content = generateTours();
+        case 'pracaAureliano':
+            message = `<p>A Praça Aureliano Lima é o coração da vila de Morro de São Paulo. Além de ser um ponto de encontro para os locais, a praça é cercada por lojas de artesanato, restaurantes e bares. À noite, a praça ganha vida com a feirinha de artesanato, onde você pode comprar lembranças únicas e apreciar apresentações de artistas locais.</p>`;
             break;
-        case 'beaches':
-            content = generateBeaches();
+        case 'farolMorro':
+            message = `<p>O Farol do Morro é um dos pontos mais icônicos de Morro de São Paulo. Construído em 1855, o farol oferece uma vista panorâmica espetacular das praias e do oceano. É um ótimo lugar para observar o pôr do sol e tirar fotos incríveis. A subida até o farol é uma pequena aventura, mas vale a pena pela vista.</p>`;
             break;
-        case 'events':
-            content = generateEvents();
+        case 'miranteTirolesa':
+            message = `<p>O Mirante da Tirolesa é um ponto turístico imperdível em Morro de São Paulo. Oferece uma vista deslumbrante do alto, permitindo aos visitantes ver a beleza natural da região de uma perspectiva única. Para os mais aventureiros, a tirolesa é uma atividade emocionante que proporciona uma experiência inesquecível.</p>`;
             break;
-        case 'restaurants':
-            content = generateRestaurants();
+        case 'fortalezaTapirandu':
+            message = `<p>A Fortaleza de Tapirandú é uma construção histórica importante em Morro de São Paulo. Construída no século XVII, a fortaleza serviu para proteger a ilha de invasões. Hoje, suas ruínas são um local fascinante para explorar, com vistas panorâmicas do mar e da ilha.</p>`;
             break;
-        case 'accommodations':
-            content = generateAccommodations();
+        case 'paredaoArgila':
+            message = `<p>O Paredão da Argila é conhecido por suas propriedades terapêuticas e beleza natural. Localizado na Praia da Gamboa, o paredão oferece banhos de argila que, segundo os moradores, têm propriedades rejuvenescedoras para a pele. É um passeio ideal para quem quer relaxar e se conectar com a natureza.</p>`;
             break;
-        case 'shops':
-            content = generateShops();
+        case 'voltaIlha':
+            message = `<p>O passeio Volta à Ilha é uma das atividades mais populares em Morro de São Paulo. Inclui várias paradas em piscinas naturais e ilhas, como Garapuá e Moreré, onde você pode nadar em águas cristalinas e observar a vida marinha. É uma ótima maneira de explorar a beleza natural da região.</p>`;
             break;
-        case 'tips':
-            content = generateTips();
+        case 'quadricicloGarapua':
+            message = `<p>O passeio de quadriciclo para Garapuá é uma aventura emocionante que leva você por trilhas e praias deslumbrantes. É uma ótima opção para quem gosta de adrenalina e quer explorar lugares mais isolados e tranquilos.</p>`;
             break;
-        case 'emergencies':
-            content = generateEmergencies();
+        case '4x4Garapua':
+            message = `<p>O passeio 4x4 para Garapuá é ideal para quem busca aventura e conforto ao mesmo tempo. A bordo de veículos robustos, você explorará praias e trilhas incríveis, com paradas estratégicas para fotos e relaxamento. É uma experiência inesquecível para amantes de aventura.</p>`;
+            break;
+        case 'lanchaGamboa':
+            message = `<p>A viagem de lancha para Gamboa é uma das atividades mais relaxantes e cênicas em Morro de São Paulo. Com paradas em locais paradisíacos, como a Ilha do Caitá e a Praia da Argila, você poderá desfrutar de um dia cheio de natureza e tranquilidade.</p>`;
+            break;
+        case 'primeiraPraia':
+            message = `<p>A Primeira Praia é a menor e mais movimentada de Morro de São Paulo. Popular entre os surfistas por suas boas ondas, é o lugar perfeito para quem gosta de esportes aquáticos e atividades mais agitadas.</p>`;
+            break;
+        case 'segundaPraia':
+            message = `<p>A Segunda Praia é conhecida por sua vida noturna vibrante e festas à beira-mar. Durante o dia, é um ótimo lugar para relaxar, tomar sol e nadar em suas águas calmas e cristalinas.</p>`;
+            break;
+        case 'terceiraPraia':
+            message = `<p>A Terceira Praia é tranquila e ideal para quem busca paz e sossego. Suas águas calmas são perfeitas para snorkel e mergulho, oferecendo uma rica vida marinha para explorar.</p>`;
+            break;
+        case 'quartaPraia':
+            message = `<p>A Quarta Praia é famosa por suas piscinas naturais formadas durante a maré baixa. É o lugar ideal para famílias e para quem quer relaxar em um ambiente mais tranquilo e isolado.</p>`;
+            break;
+        case 'quintaPraia':
+            message = `<p>A Quinta Praia, também conhecida como Praia do Encanto, é um verdadeiro paraíso escondido. Com poucas estruturas turísticas, oferece uma experiência mais selvagem e intocada, perfeita para quem busca tranquilidade absoluta.</p>`;
+            break;
+        case 'tocaMorcegoFesta':
+            message = `<p>Se você busca diversão, muita gente bonita e energia contagiante, a Festa Sextou na Toca do Morcego é o lugar perfeito. Com uma combinação de música eletrônica, brasilidades e uma vista deslumbrante, é a melhor opção para uma noite inesquecível.</p>`;
+            break;
+        case 'restauranteAromas':
+            message = `<p>O Restaurante Aromas oferece uma culinária deliciosa e ambiente aconchegante, perfeito para refeições em família ou a dois. É conhecido por seus pratos regionais e atendimento impecável.</p>`;
+            break;
+     case 'restauranteCasaVila':
+            message = `<p>O Restaurante Casa da Vila é famoso por seu ambiente acolhedor e pratos saborosos, proporcionando uma experiência gastronômica única. Ideal para quem deseja experimentar a culinária local.</p>`;
+            break;
+        case 'sambassCafe':
+            message = `<p>O Sambass Café é um lugar vibrante e animado, ideal para quem busca boa comida e música ao vivo. Localizado na Segunda Praia, é perfeito para jantar e curtir a noite.</p>`;
+            break;
+        case 'buddaBeach':
+            message = `<p>Budda Beach oferece um ambiente relaxante com vista para o mar, perfeito para refeições descontraídas. É uma ótima escolha para quem quer desfrutar de uma refeição deliciosa com uma bela paisagem.</p>`;
+            break;
+        case 'funny':
+            message = `<p>Funny é o lugar perfeito para quem busca diversão e boa comida, com uma atmosfera descontraída e amigável. Ideal para grupos de amigos e famílias.</p>`;
+            break;
+        case 'pousada1':
+            message = `<p>A Pousada Minha Louca Paixão oferece um ambiente acolhedor e serviços de qualidade para uma estadia confortável em Morro de São Paulo. Possui uma localização privilegiada perto das praias.</p>`;
+            break;
+        case 'pousada2':
+            message = `<p>A Pousada Natureza é conhecida pelo seu serviço excelente e localização privilegiada, ideal para relaxar e explorar a região. Oferece acomodações confortáveis e um ambiente tranquilo.</p>`;
+            break;
+        case 'pousada3':
+            message = `<p>A Pousada Caeira oferece vistas deslumbrantes e acomodações confortáveis, perfeita para uma estadia tranquila. É ideal para casais e famílias que buscam conforto e privacidade.</p>`;
+            break;
+        case 'pousada4':
+            message = `<p>A Pousada Bahia 10 é ideal para famílias e casais, com instalações modernas e atendimento de qualidade. Oferece uma experiência de hospedagem única em Morro de São Paulo.</p>`;
+            break;
+        case 'lojas':
+            message = `<p>Descubra as lojas e comércios locais onde você pode encontrar lembranças únicas e produtos regionais. Uma maneira de explorar essas opções é andar pela vila e verificar as lojas especializadas em suvenires ecológicos, artesanato local, roupas, acessórios e muito mais.</p>`;
+            break;
+        case 'dicas':
+            message = `<p>Confira dicas úteis para aproveitar ao máximo sua estadia em Morro de São Paulo:</p>
+                       <p>1. A ilha é bastante segura, curta tranquilo dia e noite.</p>
+                       <p>2. À noite, leve uma lanterninha ou garanta a bateria do celular para caminhar com mais segurança nas praias.</p>
+                       <p>3. As piscinas naturais são incríveis, visite-as durante a maré baixa.</p>
+                       <p>4. Há médicos particulares, um posto de saúde público e duas farmácias em Morro de São Paulo. O hospital mais próximo fica em Valença.</p>
+                       <p>5. Não perca o pôr do sol na Toca do Morcego, eleito como o melhor do Brasil.</p>`;
+            break;
+        case 'emergencias':
+            message = `<p>Encontre aqui informações importantes de contatos de emergência:</p>
+                       <p>AMBULÂNCIA: 75-99894-5017</p>
+                       <p>UNIDADE BÁSICA DE SAÚDE: 75-3652-1798</p>
+                       <p>POLÍCIA CIVIL EM MORRO DE SP: 75-3652-1645</p>
+                       <p>POLICIA MILITAR EM MORRO DE SP: 75-99925-0856</p>`;
+            break;
+        case 'sobre':
+            message = `<p>Saiba mais sobre a Morro Digital e como estamos transformando a experiência turística em Morro de São Paulo com tecnologia e inovação.</p>
+                       <p>Morro Digital é uma empresa que criou um guia turístico virtual utilizando inteligência artificial para oferecer uma experiência turística excepcional em Morro de São Paulo, na Bahia.</p>
+                       <p>Nosso objetivo é proporcionar aos turistas e moradores locais acesso fácil e rápido a informações sobre a cidade, sua história, atrações, gastronomia, compras e serviços de emergência.</p>
+                       <p>Com tecnologia avançada e uma ampla base de dados, Morro Digital se torna um guia confiável e personalizado para todos.</p>
+                       <p>Além de um assistente virtual, somos parceiros estratégicos para contribuir com o turismo, melhorar a experiência do usuário e fortalecer a economia local e regional.</p>`;
+            break;
+        default:
+            message = '<p>Opção não encontrada. Por favor, selecione outra opção no menu.</p>';
             break;
     }
-    infoContent.innerHTML = content;
-    toggleInfoPanel();
-}
 
-function generateItineraryForm() {
-    return `
-        <h3>Criar Roteiros Personalizados</h3>
-        <form id="itinerary-form">
-            <div class="form-group">
-                <label for="name">Nome</label>
-                <input type="text" class="form-control" id="name" required>
-            </div>
-            <div class="form-group">
-                <label for="location">De onde você é?</label>
-                <input type="text" class="form-control" id="location" required>
-            </div>
-            <div class="form-group">
-                <label for="visit">Primeira vez em Morro de São Paulo?</label>
-                <select class="form-control" id="visit" required>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="activities">Quais atividades você já realizou em Morro?</label>
-                <input type="text" class="form-control" id="activities">
-            </div>
-            <div class="form-group">
-                <label for="preferences">Preferências de atividades</label>
-                <input type="text" class="form-control" id="preferences">
-            </div>
-            <div class="form-group">
-                <label for="budget">Orçamento disponível</label>
-                <input type="number" class="form-control" id="budget" required>
-            </div>
-            <button type="button" class="btn btn-primary" onclick="createItinerary()">Criar Roteiro</button>
-        </form>
-    `;
-}
+    messageBox.innerHTML = message;
 
-function generateSearchMapForm() {
-    return `
-        <h3>Buscar no Mapa</h3>
-        <div class="form-group">
-            <input type="text" class="form-control" id="search-input" placeholder="Digite aqui...">
-        </div>
-        <button class="btn btn-primary" onclick="searchMap()">Pesquisar</button>
-        <div id="search-results" class="mt-3"></div>
-    `;
-}
-
-function generatePointsOfInterest() {
-    return `
-        <h3>Pontos de Interesse</h3>
-        <ul>
-            <li onclick="showLocationDetails('Toca do Morcego')">Toca do Morcego</li>
-            <li onclick="showLocationDetails('Igreja Nossa Senhora da Luz')">Igreja Nossa Senhora da Luz</li>
-            <li onclick="showLocationDetails('Praça Aureliano')">Praça Aureliano</li>
-            <li onclick="showLocationDetails('Farol do Morro')">Farol do Morro</li>
-            <li onclick="showLocationDetails('Fortaleza de Tapirandú')">Fortaleza de Tapirandú</li>
-            <li onclick="showLocationDetails('Paredão da Argila')">Paredão da Argila</li>
-        </ul>
-    `;
-}
-
-function generateTours() {
-    return `
-        <h3>Passeios</h3>
-        <ul>
-            <li onclick="showTourDetails('Volta à Ilha')">Volta à Ilha</li>
-            <li onclick="showTourDetails('Quadriciclo para Garapuá')">Quadriciclo para Garapuá</li>
-            <li onclick="showTourDetails('4X4 para Garapuá')">4X4 para Garapuá</li>
-            <li onclick="showTourDetails('Lancha para Gamboa')">Lancha para Gamboa</li>
-        </ul>
-    `;
-}
-
-function generateBeaches() {
-    return `
-        <h3>Praias</h3>
-        <ul>
-            <li onclick="showBeachDetails('Primeira Praia')">Primeira Praia</li>
-            <li onclick="showBeachDetails('Segunda Praia')">Segunda Praia</li>
-            <li onclick="showBeachDetails('Terceira Praia')">Terceira Praia</li>
-            <li onclick="showBeachDetails('Quarta Praia')">Quarta Praia</li>
-            <li onclick="showBeachDetails('Praia da Gamboa')">Praia da Gamboa</li>
-        </ul>
-    `;
-}
-
-function generateEvents() {
-    return `
-        <h3>Eventos</h3>
-        <ul>
-            <li onclick="showEventDetails('Pôr do Sol na Toca do Morcego')">Pôr do Sol na Toca do Morcego</li>
-            <li onclick="showEventDetails('Samba na Toca do Morcego')">Samba na Toca do Morcego</li>
-            <li onclick="showEventDetails('Festa Sextou na Toca')">Festa Sextou na Toca</li>
-        </ul>
-    `;
-}
-
-function generateRestaurants() {
-    return `
-        <h3>Restaurantes</h3>
-        <ul>
-            <li onclick="showRestaurantDetails('Sambass Café')">Sambass Café</li>
-            <li onclick="showRestaurantDetails('Budda Beach')">Budda Beach</li>
-            <li onclick="showRestaurantDetails('Funny')">Funny</li>
-        </ul>
-    `;
-}
-
-function generateAccommodations() {
-    return `
-        <h3>Hospedagem</h3>
-        <ul>
-            <li onclick="showAccommodationDetails('Pousada X')">Pousada X</li>
-            <li onclick="showAccommodationDetails('Hotel Y')">Hotel Y</li>
-            <li onclick="showAccommodationDetails('Hostel Z')">Hostel Z</li>
-        </ul>
-    `;
-}
-
-function generateShops() {
-    return `
-        <h3>Lojas</h3>
-        <ul>
-            <li onclick="showShopDetails('Eco Store')">Eco Store</li>
-        </ul>
-    `;
-}
-
-function generateTips() {
-    return `
-        <h3>Dicas</h3>
-        <ul>
-            <li onclick="showTipDetails('Segurança')">Segurança</li>
-            <li onclick="showTipDetails('Saúde')">Saúde</li>
-            <li onclick="showTipDetails('Lazer')">Lazer</li>
-        </ul>
-    `;
-}
-
-function generateEmergencies() {
-    return `
-        <h3>Emergências</h3>
-        <ul>
-            <li>Ambulância: 75-99894-5017</li>
-            <li>Unidade Básica de Saúde: 75-3652-1798</li>
-            <li>Polícia Civil: 75-3652-1645</li>
-            <li>Polícia Militar: 75-99925-0856</li>
-        </ul>
-    `;
-}
-
-function searchMap() {
-    const query = document.getElementById('search-input').value;
-    if (searchCache[query]) {
-        displaySearchResults(searchCache[query]);
-    } else {
-        axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1`)
-            .then(response => {
-                const results = response.data;
-                searchCache[query] = results;
-                displaySearchResults(results);
-            });
+    if (coordinates) {
+        showRoute(coordinates);
     }
 }
 
-function displaySearchResults(results) {
-    const searchResults = document.getElementById('search-results');
-    searchResults.innerHTML = '';
-    results.forEach(result => {
-        const li = document.createElement('li');
-        li.textContent = result.display_name;
-        li.onclick = () => {
-            map.setView([result.lat, result.lon], 15);
-            addMarker(result.lat, result.lon, result.display_name);
-        };
-        searchResults.appendChild(li);
+function showRoute(destination) {
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(currentLocation.latitude, currentLocation.longitude),
+            L.latLng(destination[0], destination[1])
+        ],
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1'
+        }),
+        geocoder: L.Control.Geocoder.nominatim(),
+        createMarker: function() { return null; },
+        routeWhileDragging: true
+    }).addTo(map);
+}
+
+navigator.geolocation.getCurrentPosition(async function(position) {
+    currentLocation = position.coords;
+
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading').style.display = 'none';
+
+    initMenuOptions();
+}, function() {
+    document.getElementById('loading').innerHTML = 'Não foi possível obter sua localização.';
+});
+
+async function fetchOSMData(query) {
+    const url = `https://overpass-api.de/api/interpreter?data=${query}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
+function displayOSMData(data, subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    data.elements.forEach(element => {
+        if (element.type === 'node') {
+            const btn = document.createElement('button');
+            btn.className = 'submenu-btn';
+            btn.textContent = element.tags.name || 'Local sem nome';
+            btn.onclick = () => showMessage(btn.textContent, [element.lat, element.lon]);
+            subMenu.appendChild(btn);
+        }
     });
 }
 
-function addMarker(lat, lon, description) {
-    L.marker([lat, lon]).addTo(map).bindPopup(description).openPopup();
-}
-
-function showLocationDetails(location) {
-    const details = getLocationDetails(location);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showTourDetails(tour) {
-    const details = getTourDetails(tour);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showBeachDetails(beach) {
-    const details = getBeachDetails(beach);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showEventDetails(event) {
-    const details = getEventDetails(event);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showRestaurantDetails(restaurant) {
-    const details = getRestaurantDetails(restaurant);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showAccommodationDetails(accommodation) {
-    const details = getAccommodationDetails(accommodation);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showShopDetails(shop) {
-    const details = getShopDetails(shop);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function showTipDetails(tip) {
-    const details = getTipDetails(tip);
-    const infoContent = document.getElementById('info-content');
-    infoContent.innerHTML = details;
-    toggleInfoPanel();
-}
-
-function getLocationDetails(location) {
-    const details = {
-        'Toca do Morcego': '<h3>Toca do Morcego</h3><p>Detalhes sobre a Toca do Morcego...</p>',
-        'Igreja Nossa Senhora da Luz': '<h3>Igreja Nossa Senhora da Luz</h3><p>Detalhes sobre a Igreja Nossa Senhora da Luz...</p>',
-        'Praça Aureliano': '<h3>Praça Aureliano</h3><p>Detalhes sobre a Praça Aureliano...</p>',
-        'Farol do Morro': '<h3>Farol do Morro</h3><p>Detalhes sobre o Farol do Morro...</p>',
-        'Fortaleza de Tapirandú': '<h3>Fortaleza de Tapirandú</h3><p>Detalhes sobre a Fortaleza de Tapirandú...</p>',
-        'Paredão da Argila': '<h3>Paredão da Argila</h3><p>Detalhes sobre o Paredão da Argila...</p>',
-    };
-    return details[location] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getTourDetails(tour) {
-    const details = {
-        'Volta à Ilha': '<h3>Volta à Ilha</h3><p>Detalhes sobre o passeio Volta à Ilha...</p>',
-        'Quadriciclo para Garapuá': '<h3>Quadriciclo para Garapuá</h3><p>Detalhes sobre o passeio de Quadriciclo para Garapuá...</p>',
-        '4X4 para Garapuá': '<h3>4X4 para Garapuá</h3><p>Detalhes sobre o passeio de 4X4 para Garapuá...</p>',
-        'Lancha para Gamboa': '<h3>Lancha para Gamboa</h3><p>Detalhes sobre o passeio de Lancha para Gamboa...</p>',
-    };
-    return details[tour] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getBeachDetails(beach) {
-    const details = {
-        'Primeira Praia': '<h3>Primeira Praia</h3><p>Detalhes sobre a Primeira Praia...</p>',
-        'Segunda Praia': '<h3>Segunda Praia</h3><p>Detalhes sobre a Segunda Praia...</p>',
-        'Terceira Praia': '<h3>Terceira Praia</h3><p>Detalhes sobre a Terceira Praia...</p>',
-        'Quarta Praia': '<h3>Quarta Praia</h3><p>Detalhes sobre a Quarta Praia...</p>',
-        'Praia da Gamboa': '<h3>Praia da Gamboa</h3><p>Detalhes sobre a Praia da Gamboa...</p>',
-    };
-    return details[beach] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getEventDetails(event) {
-    const details = {
-        'Pôr do Sol na Toca do Morcego': '<h3>Pôr do Sol na Toca do Morcego</h3><p>Detalhes sobre o evento Pôr do Sol na Toca do Morcego...</p>',
-        'Samba na Toca do Morcego': '<h3>Samba na Toca do Morcego</h3><p>Detalhes sobre o evento Samba na Toca do Morcego...</p>',
-        'Festa Sextou na Toca': '<h3>Festa Sextou na Toca</h3><p>Detalhes sobre a Festa Sextou na Toca...</p>',
-    };
-    return details[event] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getRestaurantDetails(restaurant) {
-    const details = {
-        'Sambass Café': '<h3>Sambass Café</h3><p>Detalhes sobre o Sambass Café...</p>',
-        'Budda Beach': '<h3>Budda Beach</h3><p>Detalhes sobre o Budda Beach...</p>',
-        'Funny': '<h3>Funny</h3><p>Detalhes sobre o Funny...</p>',
-    };
-    return details[restaurant] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getAccommodationDetails(accommodation) {
-    const details = {
-        'Pousada X': '<h3>Pousada X</h3><p>Detalhes sobre a Pousada X...</p>',
-        'Hotel Y': '<h3>Hotel Y</h3><p>Detalhes sobre o Hotel Y...</p>',
-        'Hostel Z': '<h3>Hostel Z</h3><p>Detalhes sobre o Hostel Z...</p>',
-    };
-    return details[accommodation] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getShopDetails(shop) {
-    const details = {
-        'Eco Store': '<h3>Eco Store</h3><p>Detalhes sobre a Eco Store...</p>',
-    };
-    return details[shop] || '<p>Detalhes não encontrados.</p>';
-}
-
-function getTipDetails(tip) {
-    const details = {
-        'Segurança': '<h3>Segurança</h3><p>Dicas de segurança em Morro de São Paulo...</p>',
-        'Saúde': '<h3>Saúde</h3><p>Dicas de saúde em Morro de São Paulo...</p>',
-        'Lazer': '<h3>Lazer</h3><p>Dicas de lazer em Morro de São Paulo...</p>',
-    };
-    return details[tip] || '<p>Detalhes não encontrados.</p>';
-}
-
-function createItinerary() {
-    const name = document.getElementById('name').value;
-    const location = document.getElementById('location').value;
-    const visit = document.getElementById('visit').value;
-    const activities = document.getElementById('activities').value;
-    const preferences = document.getElementById('preferences').value;
-    const budget = document.getElementById('budget').value;
-
-    const itinerary = {
-        name,
-        location,
-        visit,
-        activities,
-        preferences,
-        budget
+function initMenuOptions() {
+    const queries = {
+        pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:5000,-13.376,-38.913);out body;`,
+        passeiosSubMenu: `[out:json];node["tourism"="information"](around:5000,-13.376,-38.913);out body;`,
+        praiasSubMenu: `[out:json];node["natural"="beach"](around:5000,-13.376,-38.913);out body;`,
+        vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:5000,-13.376,-38.913);out body;`,
+        restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:5000,-13.376,-38.913);out body;`,
+        pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:5000,-13.376,-38.913);out body;`
     };
 
-    displayItinerary(itinerary);
-}
-
-function displayItinerary(itinerary) {
-    const content = `
-        <h3>Roteiro Personalizado para ${itinerary.name}</h3>
-        <p>Local de Origem: ${itinerary.location}</p>
-        <p>Primeira vez em Morro de São Paulo: ${itinerary.visit}</p>
-        <p>Atividades já realizadas: ${itinerary.activities}</p>
-        <p>Preferências: ${itinerary.preferences}</p>
-        <p>Orçamento disponível: R$${itinerary.budget}</p>
-    `;
-    document.getElementById('route-content').innerHTML = content;
-    toggleRouteSummary();
-}
-
-function startTutorial() {
-    tutorialStep = 0;
-    updateTutorialContent();
-    toggleTutorialPanel();
-}
-
-function navigateTutorialStep(direction) {
-    if (direction === 'next') {
-        tutorialStep++;
-    } else if (direction === 'previous') {
-        tutorialStep--;
+    for (const [subMenuId, query] of Object.entries(queries)) {
+        fetchOSMData(query).then(data => displayOSMData(data, subMenuId));
     }
-    if (tutorialStep < 0) {
-        tutorialStep = 0;
-    } else if (tutorialStep >= tutorialSteps.length) {
-        tutorialStep = tutorialSteps.length - 1;
-        toggleTutorialPanel();
-    }
-    updateTutorialContent();
-}
-
-function updateTutorialContent() {
-    const tutorialContent = document.getElementById('tutorial-content');
-    tutorialContent.innerHTML = `
-        <h3>${tutorialSteps[tutorialStep].title}</h3>
-        <p>${tutorialSteps[tutorialStep].content}</p>
-    `;
 }

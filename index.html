@@ -3,70 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morro Digital - Seu Guia Turístico em Morro de São Paulo</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Morro Digital</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <meta name="description" content="Guia turístico completo de Morro de São Paulo. Dicas de viagem, roteiros e muito mais.">
-    <meta name="keywords" content="Morro de São Paulo, turismo, viagens, roteiros">
-    <meta name="author" content="Morro Digital">
     <link rel="manifest" href="manifest.json">
-    <meta property="og:title" content="Morro Digital - Seu Guia Turístico">
-    <meta property="og:description" content="Guia turístico completo de Morro de São Paulo. Dicas de viagem, roteiros e muito mais.">
-    <meta property="og:image" content="link_to_image.jpg">
-    <meta property="og:url" content="https://morrodigital.com">
-    <meta property="og:type" content="website">
 </head>
-<body onload="initialize()" class="light-mode">
-    <div id="map" class="map" aria-label="Mapa interativo de Morro de São Paulo"></div>
-    
-    <div class="floating-button">
-        <button class="btn btn-primary" onclick="toggleMenu()">Menu</button>
+<body>
+    <button id="menu-toggle-btn" onclick="toggleMenu()">☰ Menu</button>
+    <div id="loading">
+        <h2>Por favor, ative a geolocalização para usar o mapa.</h2>
     </div>
-    
-    <div id="menu" class="floating-menu">
-        <div class="menu-header">
-            <h3>Menu Principal</h3>
-            <button class="btn btn-sm btn-danger" onclick="toggleMenu()">X</button>
-        </div>
-        <div class="menu-content">
-            <button class="btn btn-secondary" onclick="showPanel('create-itinerary')">Criar Roteiros Personalizados</button>
-            <button class="btn btn-secondary" onclick="showPanel('search-map')">Buscar no Mapa</button>
-            <button class="btn btn-secondary" onclick="showPanel('points-of-interest')">Pontos de Interesse</button>
-            <button class="btn btn-secondary" onclick="showPanel('tours')">Passeios</button>
-            <button class="btn btn-secondary" onclick="showPanel('beaches')">Praias</button>
-            <button class="btn btn-secondary" onclick="showPanel('events')">Eventos</button>
-            <button class="btn btn-secondary" onclick="showPanel('restaurants')">Restaurantes</button>
-            <button class="btn btn-secondary" onclick="showPanel('accommodations')">Hospedagem</button>
-            <button class="btn btn-secondary" onclick="showPanel('shops')">Lojas</button>
-            <button class="btn btn-secondary" onclick="showPanel('tips')">Dicas</button>
-            <button class="btn btn-secondary" onclick="showPanel('emergencies')">Emergências</button>
-        </div>
+    <div id="map"></div>
+    <div id="message-box"></div>
+    <div id="menu">
+        <button class="menu-btn" onclick="showMessage('historia')">História de Morro</button>
+        <button class="menu-btn" onclick="handleMenuClick('pontosTuristicosSubMenu')">Pontos Turísticos</button>
+        <div id="pontosTuristicosSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="handleMenuClick('passeiosSubMenu')">Passeios</button>
+        <div id="passeiosSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="handleMenuClick('praiasSubMenu')">Praias</button>
+        <div id="praiasSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="handleMenuClick('vidaNoturnaSubMenu')">Vida Noturna</button>
+        <div id="vidaNoturnaSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="handleMenuClick('restaurantesSubMenu')">Restaurantes</button>
+        <div id="restaurantesSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="handleMenuClick('pousadasSubMenu')">Pousadas</button>
+        <div id="pousadasSubMenu" class="submenu"></div>
+        <button class="menu-btn" onclick="showMessage('lojas')">Lojas</button>
+        <button class="menu-btn" onclick="showMessage('dicas')">Dicas</button>
+        <button class="menu-btn" onclick="showMessage('emergencias')">Emergências</button>
+        <button class="menu-btn" onclick="showMessage('sobre')">Sobre</button>
     </div>
-    
-    <div id="info-panel" class="floating-panel" style="display: none;">
-        <div id="info-content"></div>
-        <button class="btn btn-secondary mt-3" onclick="toggleInfoPanel()">Fechar</button>
-    </div>
-    
-    <div id="route-summary" class="floating-panel" style="display: none;">
-        <div id="route-content"></div>
-        <div class="tutorial-nav">
-            <button class="btn btn-primary" onclick="startMapTour()">Fazer Tour Guiado</button>
-        </div>
-    </div>
-    
-    <div id="tutorial-panel" class="floating-panel" style="display: none;">
-        <div id="tutorial-content"></div>
-        <div class="tutorial-nav">
-            <button class="btn btn-secondary" onclick="navigateTutorialStep('previous')">Anterior</button>
-            <button class="btn btn-primary" onclick="navigateTutorialStep('next')">Próximo</button>
-        </div>
-    </div>
-
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="scripts.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }).catch(error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        }
+    </script>
 </body>
 </html>
