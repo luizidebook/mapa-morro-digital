@@ -34,11 +34,70 @@
         <button class="menu-btn" onclick="showMessage('dicas')">Dicas</button>
         <button class="menu-btn" onclick="showMessage('emergencias')">Emergências</button>
         <button class="menu-btn" onclick="showMessage('sobre')">Sobre</button>
+        <button class="menu-btn" onclick="createPersonalizedRoute()">Roteiro Personalizado</button>
+        <button class="menu-btn" onclick="openGuide()">Guia Interativo</button>
+        <button class="menu-btn" onclick="openTranslation()">Tradução</button>
+        <button class="menu-btn" onclick="openReservations()">Reservas</button>
+        <button class="menu-btn" onclick="startVoiceRecognition()">Comandos de Voz</button>
+    </div>
+    <div id="search-box">
+        <input type="text" id="search-input" placeholder="Buscar no mapa...">
+        <button onclick="searchMap()">Buscar</button>
+    </div>
+    <div id="searchResults" class="submenu"></div>
+    <div id="guide-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('guide-modal')">&times;</span>
+            <h2>Guia Interativo</h2>
+            <p>Faça perguntas sobre Morro de São Paulo:</p>
+            <input type="text" id="guide-input" placeholder="Digite sua pergunta...">
+            <button onclick="askGuide()">Perguntar</button>
+            <div id="guide-response"></div>
+        </div>
+    </div>
+    <div id="translation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('translation-modal')">&times;</span>
+            <h2>Tradução</h2>
+            <p>Selecione o idioma:</p>
+            <select id="language-select" onchange="translatePage()">
+                <option value="pt">Português</option>
+                <option value="en">Inglês</option>
+                <option value="es">Espanhol</option>
+                <option value="fr">Francês</option>
+                <option value="de">Alemão</option>
+            </select>
+        </div>
+    </div>
+    <div id="reservation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('reservation-modal')">&times;</span>
+            <h2>Reservas</h2>
+            <form id="reservation-form">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="date">Data da Reserva:</label>
+                <input type="date" id="date" name="date" required>
+                <label for="time">Hora da Reserva:</label>
+                <input type="time" id="time" name="time" required>
+                <label for="type">Tipo de Reserva:</label>
+                <select id="type" name="type" required>
+                    <option value="restaurante">Restaurante</option>
+                    <option value="pousada">Pousada</option>
+                    <option value="passeio">Passeio</option>
+                </select>
+                <button type="button" onclick="makeReservation()">Reservar</button>
+            </form>
+            <div id="reservation-response"></div>
+        </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web-speech-cognition"></script>
     <script src="scripts.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
