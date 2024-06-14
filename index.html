@@ -13,137 +13,113 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div id="locationPermissionModal" class="modal">
-        <div class="modal-content">
-            <p>Por favor, permita o acesso à sua localização para garantir interatividade em tempo real com o mapa.</p>
-            <button id="allowLocation">Permitir Localização</button>
+    <div id="loading">
+        <h2>Por favor, ative a geolocalização para usar o mapa.</h2>
+    </div>
+    <div id="map"></div>
+    <div id="floating-ui">
+        <button id="menu-toggle-btn" onclick="toggleMenu()" aria-controls="menu" aria-expanded="false">☰ Menu</button>
+        <div id="message-box"></div>
+        <div id="menu" role="navigation" aria-labelledby="menu-toggle-btn">
+            <button class="menu-btn" onclick="handleMenuClick('guiaSubMenu')"><i class="fas fa-map-marked-alt"></i> Guia Interativo</button>
+            <div id="guiaSubMenu" class="submenu">
+                <button class="submenu-btn" onclick="openTranslation()"><i class="fas fa-language"></i> Tradução</button>
+                <button class="submenu-btn" onclick="createPersonalizedRoute()"><i class="fas fa-route"></i> Roteiro Personalizado</button>
+                <button class="submenu-btn" onclick="showInfo('dicas')"><i class="fas fa-lightbulb"></i> Dicas</button>
+                <button class="submenu-btn" onclick="openReservations()"><i class="fas fa-calendar-alt"></i> Reservas</button>
+                <button class="submenu-btn" onclick="startVoiceRecognition()"><i class="fas fa-microphone"></i> Comandos de Voz</button>
+            </div>
+            <button class="menu-btn" onclick="handleMenuClick('historiaSubMenu')"><i class="fas fa-history"></i> História de Morro</button>
+            <div id="historiaSubMenu" class="submenu"></div>
+            <button class="menu-btn" onclick="handleMenuClick('pontosTuristicosSubMenu')"><i class="fas fa-landmark"></i> Pontos Turísticos</button>
+            <div id="pontosTuristicosSubMenu" class="submenu"></div>
+            <button class="menu-btn" onclick="handleMenuClick('passeiosSubMenu')"><i class="fas fa-walking"></i> Passeios</button>
+            <div id="passeiosSubMenu" class="submenu">
+                <button class="submenu-btn" onclick="showInfo('Passeios de Lancha')">Passeios de Lancha</button>
+                <button class="submenu-btn" onclick="showInfo('Passeios de Quadriciclo')">Passeios de Quadriciclo</button>
+                <button class="submenu-btn" onclick="showInfo('Passeios de camionetes 4X4')">Passeios de camionetes 4X4</button>
+                <button class="submenu-btn" onclick="showInfo('Passeios de Bug')">Passeios de Bug</button>
+            </div>
+            <button class="menu-btn" onclick="handleMenuClick('praiasSubMenu')"><i class="fas fa-umbrella-beach"></i> Praias</button>
+            <div id="praiasSubMenu" class="submenu">
+                <button class="submenu-btn" onclick="showInfo('Primeira Praia')">Primeira Praia</button>
+                <button class="submenu-btn" onclick="showInfo('Segunda Praia')">Segunda Praia</button>
+                <button class="submenu-btn" onclick="showInfo('Terceira Praia')">Terceira Praia</button>
+                <button class="submenu-btn" onclick="showInfo('Quarta Praia')">Quarta Praia</button>
+                <button class="submenu-btn" onclick="showInfo('Quinta Praia')">Quinta Praia</button>
+                <button class="submenu-btn" onclick="showInfo('Praia da Gamboa')">Praia da Gamboa</button>
+                <button class="submenu-btn" onclick="showInfo('Praia de Garapuá')">Praia de Garapuá</button>
+            </div>
+            <button class="menu-btn" onclick="handleMenuClick('vidaNoturnaSubMenu')"><i class="fas fa-music"></i> Vida Noturna</button>
+            <div id="vidaNoturnaSubMenu" class="submenu"></div>
+            <button class="menu-btn" onclick="handleMenuClick('restaurantesSubMenu')"><i class="fas fa-utensils"></i> Restaurantes</button>
+            <div id="restaurantesSubMenu" class="submenu"></div>
+            <button class="menu-btn" onclick="handleMenuClick('pousadasSubMenu')"><i class="fas fa-bed"></i> Pousadas</button>
+            <div id="pousadasSubMenu" class="submenu"></div>
+            <button class="menu-btn" onclick="handleMenuClick('lojasSubMenu')"><i class="fas fa-store"></i> Lojas</button>
+            <div id="lojasSubMenu" class="submenu"></div>
         </div>
-    </div>
-
-    <div id="audioPermissionModal" class="modal">
-        <div class="modal-content">
-            <p>Por favor, permita o acesso ao seu microfone e áudio para garantir uma melhor experiência ao interagir com o Guia Turístico Virtual.</p>
-            <button id="allowAudio">Permitir Microfone e Áudio</button>
+        <div id="search-box">
+            <input type="text" id="search-input" placeholder="Buscar no mapa..." oninput="autocompleteSearch()">
+            <button onclick="searchMap()">Buscar</button>
         </div>
-    </div>
-
-    <div id="map" class="hidden"></div>
-
-    <div id="assistantChoiceModal" class="modal hidden">
-        <div class="modal-content">
-            <p>Escolha como deseja ser atendido pelo Guia Turístico Virtual:</p>
-            <button id="chooseText">Mensagem</button>
-            <button id="chooseAudio">Áudio</button>
+        <div id="searchResults" class="submenu"></div>
+        <div id="guide-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('guide-modal')">&times;</span>
+                <h2>Guia Interativo</h2>
+                <p>Faça perguntas sobre Morro de São Paulo:</p>
+                <input type="text" id="guide-input" placeholder="Digite sua pergunta...">
+                <button onclick="askGuide()">Perguntar</button>
+                <div id="guide-response"></div>
+            </div>
         </div>
-    </div>
-
-    <div id="assistant" class="hidden">
-        <div id="messages" class="hidden"></div>
-        <input type="text" id="userInput" class="hidden" placeholder="Digite sua mensagem...">
-        <button id="sendBtn" class="hidden">Enviar</button>
-        <button id="startVoice" class="hidden">Falar</button>
-    </div>
-
-    <div id="menu" role="navigation" aria-labelledby="menu-toggle-btn">
-        <button class="menu-btn" onclick="handleMenuClick('historiaSubMenu')"><i class="fas fa-history"></i> História de Morro</button>
-        <div id="historiaSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('pontosTuristicosSubMenu')"><i class="fas fa-landmark"></i> Pontos Turísticos</button>
-        <div id="pontosTuristicosSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('passeiosSubMenu')"><i class="fas fa-walking"></i> Passeios</button>
-        <div id="passeiosSubMenu" class="submenu">
-            <button class="submenu-btn" onclick="showInfo('Pico do Papagaio')">Pico do Papagaio</button>
-            <button class="submenu-btn" onclick="showInfo('Fonte Grande')">Fonte Grande</button>
-            <button class="submenu-btn" onclick="showInfo('Igreja Nossa Senhora da Luz')">Igreja Nossa Senhora da Luz</button>
-            <button class="submenu-btn" onclick="showInfo('Farol do Morro')">Farol do Morro</button>
-        </div>
-        <button class="menu-btn" onclick="handleMenuClick('praiasSubMenu')"><i class="fas fa-umbrella-beach"></i> Praias</button>
-        <div id="praiasSubMenu" class="submenu">
-            <button class="submenu-btn" onclick="showInfo('Primeira Praia')">Primeira Praia</button>
-            <button class="submenu-btn" onclick="showInfo('Segunda Praia')">Segunda Praia</button>
-            <button class="submenu-btn" onclick="showInfo('Terceira Praia')">Terceira Praia</button>
-            <button class="submenu-btn" onclick="showInfo('Quarta Praia')">Quarta Praia</button>
-            <button class="submenu-btn" onclick="showInfo('Quinta Praia')">Quinta Praia</button>
-            <button class="submenu-btn" onclick="showInfo('Praia da Gamboa')">Praia da Gamboa</button>
-            <button class="submenu-btn" onclick="showInfo('Praia de Garapuá')">Praia de Garapuá</button>
-        </div>
-        <button class="menu-btn" onclick="handleMenuClick('vidaNoturnaSubMenu')"><i class="fas fa-music"></i> Vida Noturna</button>
-        <div id="vidaNoturnaSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('restaurantesSubMenu')"><i class="fas fa-utensils"></i> Restaurantes</button>
-        <div id="restaurantesSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('pousadasSubMenu')"><i class="fas fa-bed"></i> Pousadas</button>
-        <div id="pousadasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('lojasSubMenu')"><i class="fas fa-store"></i> Lojas</button>
-        <div id="lojasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="showInfo('dicas')"><i class="fas fa-lightbulb"></i> Dicas</button>
-        <button class="menu-btn" onclick="showInfo('emergencias')"><i class="fas fa-exclamation-triangle"></i> Emergências</button>
-        <button class="menu-btn" onclick="showInfo('sobre')"><i class="fas fa-info-circle"></i> Sobre</button>
-        <button class="menu-btn" onclick="createPersonalizedRoute()"><i class="fas fa-route"></i> Roteiro Personalizado</button>
-        <button class="menu-btn" onclick="openGuide()"><i class="fas fa-map-marked-alt"></i> Guia Interativo</button>
-        <button class="menu-btn" onclick="openTranslation()"><i class="fas fa-language"></i> Tradução</button>
-        <button class="menu-btn" onclick="openReservations()"><i class="fas fa-calendar-alt"></i> Reservas</button>
-        <button class="menu-btn" onclick="startVoiceRecognition()"><i class="fas fa-microphone"></i> Comandos de Voz</button>
-    </div>
-
-    <div id="search-box">
-        <input type="text" id="search-input" placeholder="Buscar no mapa..." oninput="autocompleteSearch()">
-        <button onclick="searchMap()">Buscar</button>
-    </div>
-    <div id="searchResults" class="submenu"></div>
-    <div id="guide-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('guide-modal')">&times;</span>
-            <h2>Guia Interativo</h2>
-            <p>Faça perguntas sobre Morro de São Paulo:</p>
-            <input type="text" id="guide-input" placeholder="Digite sua pergunta...">
-            <button onclick="askGuide()">Perguntar</button>
-            <div id="guide-response"></div>
-        </div>
-    </div>
-    <div id="translation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('translation-modal')">&times;</span>
-            <h2>Tradução</h2>
-            <p>Selecione o idioma:</p>
-            <select id="language-select" onchange="translatePage()">
-                <option value="pt">Português</option>
-                <option value="en">Inglês</option>
-                <option value="es">Espanhol</option>
-                <option value="fr">Francês</option>
-                <option value="de">Alemão</option>
-            </select>
-        </div>
-    </div>
-    <div id="reservation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('reservation-modal')">&times;</span>
-            <h2>Reservas</h2>
-            <form id="reservation-form">
-                <label for="name">Nome:</label>
-                <input type="text" id="name" name="name" required>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-                <label for="date">Data da Reserva:</label>
-                <input type="date" id="date" name="date" required>
-                <label for="time">Hora da Reserva:</label>
-                <input type="time" id="time" name="time" required>
-                <label for="type">Tipo de Reserva:</label>
-                <select id="type" name="type" required>
-                    <option value="restaurante">Restaurante</option>
-                    <option value="pousada">Pousada</option>
-                    <option value="passeio">Passeio</option>
+        <div id="translation-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('translation-modal')">&times;</span>
+                <h2>Tradução</h2>
+                <p>Selecione o idioma:</p>
+                <select id="language-select" onchange="translatePage()">
+                    <option value="pt">Português</option>
+                    <option value="en">Inglês</option>
+                    <option value="es">Espanhol</option>
+                    <option value="fr">Francês</option>
+                    <option value="de">Alemão</option>
                 </select>
-                <button type="button" onclick="makeReservation()">Reservar</button>
-            </form>
-            <div id="reservation-response"></div>
+            </div>
         </div>
+        <div id="reservation-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('reservation-modal')">&times;</span>
+                <h2>Reservas</h2>
+                <form id="reservation-form">
+                    <label for="name">Nome:</label>
+                    <input type="text" id="name" name="name" required>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="date">Data da Reserva:</label>
+                    <input type="date" id="date" name="date" required>
+                    <label for="time">Hora da Reserva:</label>
+                    <input type="time" id="time" name="time" required>
+                    <label for="type">Tipo de Reserva:</label>
+                    <select id="type" name="type" required>
+                        <option value="restaurante">Restaurante</option>
+                        <option value="pousada">Pousada</option>
+                        <option value="passeio">Passeio</option>
+                    </select>
+                    <button type="button" onclick="makeReservation()">Reservar</button>
+                </form>
+                <div id="reservation-response"></div>
+            </div>
+        </div>
+        <div id="share-buttons">
+            <button onclick="shareOnFacebook()"><i class="fab fa-facebook"></i> Compartilhar no Facebook</button>
+            <button onclick="shareOnTwitter()"><i class="fab fa-twitter"></i> Compartilhar no Twitter</button>
+        </div>
+        <div id="points-display">Pontos: 0</div>
+        <div id="tutorial"></div>
+        <div id="attraction-details"></div>
     </div>
-    <div id="share-buttons">
-        <button onclick="shareOnFacebook()"><i class="fab fa-facebook"></i> Compartilhar no Facebook</button>
-        <button onclick="shareOnTwitter()"><i class="fab fa-twitter"></i> Compartilhar no Twitter</button>
-    </div>
-    <div id="points-display">Pontos: 0</div>
-    <div id="tutorial"></div>
-    <div id="attraction-details"></div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
