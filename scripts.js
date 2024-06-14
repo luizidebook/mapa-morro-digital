@@ -1,53 +1,45 @@
-// scripts.js
-let map;
-let currentLocation;
-let routingControl;
+let map, currentLocation, routingControl, markers = [];
 let tutorialStep = 0;
 const tutorialSteps = [
-    'Bem-vindo ao Morro Digital! Este tutorial irá guiá-lo através das funcionalidades do site.',
-    'Primeiro, veja o mapa interativo que mostra sua localização atual e permite explorar a área ao redor.',
-    'Use o botão ☰ Menu para abrir e fechar o menu.',
-    'No menu, você pode acessar informações sobre História de Morro, Pontos Turísticos, Passeios, Praias, Vida Noturna, Restaurantes, Pousadas, Lojas, Dicas, Emergências e Sobre.',
-    'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.',
-    'História de Morro: Clique para aprender sobre a rica história de Morro de São Paulo.',
-    'Pontos Turísticos: Clique para explorar os pontos turísticos populares.',
-    'Passeios: Clique para ver as opções de passeios disponíveis.',
-    'Praias: Clique para descobrir as belas praias da região.',
-    'Vida Noturna: Clique para conhecer os melhores locais para curtir a noite.',
-    'Restaurantes: Clique para ver os melhores restaurantes da área.',
-    'Pousadas: Clique para encontrar opções de hospedagem.',
-    'Lojas: Clique para encontrar lojas e locais para comprar lembranças.',
-    'Dicas: Clique para obter dicas úteis sobre Morro de São Paulo.',
-    'Emergências: Clique para ver contatos de emergência importantes.',
-    'Sobre: Clique para saber mais sobre Morro Digital.'
+    "Bem-vindo ao Morro Digital! Vamos começar com um tour pelo site.",
+    "Este é o menu onde você pode acessar diversas opções.",
+    "Você pode clicar em qualquer item do menu para mais informações.",
+    "Use a busca para encontrar locais específicos no mapa."
 ];
-
-const infoTexts = {
-    historia: 'Conheça a rica história de Morro de São Paulo...',
-    pontosTuristicos: 'Descubra os pontos turísticos imperdíveis de Morro de São Paulo...',
-    passeios: 'Aproveite os melhores passeios em Morro de São Paulo...',
-    praias: 'Morro de São Paulo é famoso por suas praias paradisíacas...',
-    vidaNoturna: 'A vida noturna em Morro de São Paulo é vibrante e diversificada...',
-    restaurantes: 'Experimente a gastronomia de Morro de São Paulo...',
-    pousadas: 'Encontre as melhores opções de hospedagem em Morro de São Paulo...',
-    lojas: 'Explore as lojas de Morro de São Paulo...',
-    dicas: 'Confira dicas úteis para aproveitar ao máximo sua estadia...',
-    emergencias: 'Encontre informações importantes de contatos de emergência...',
-    sobre: 'Saiba mais sobre a Morro Digital...'
-};
 
 function toggleMenu() {
     const menu = document.getElementById('menu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    const toggleBtn = document.getElementById('menu-toggle-btn');
+    const isMenuVisible = menu.style.display === 'block';
+    menu.style.display = isMenuVisible ? 'none' : 'block';
+    toggleBtn.setAttribute('aria-expanded', !isMenuVisible);
 }
 
 function handleMenuClick(subMenuId) {
+    const subMenus = document.querySelectorAll('.submenu');
+    subMenus.forEach(subMenu => {
+        if (subMenu.id !== subMenuId) {
+            subMenu.style.display = 'none';
+        }
+    });
+
     const subMenu = document.getElementById(subMenuId);
     subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
+    displayCategoryInfo(subMenuId);
 }
 
+// Solicitação de permissões e inicialização do mapa
 navigator.geolocation.getCurrentPosition(async function(position) {
     currentLocation = position.coords;
+
+navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+            document.getElementById('loading').style.display = 'none';
+            showInitialPopup();
+        })
+        .catch(() => {
+            document.getElementById('loading').innerHTML = 'Não foi possível acessar seu microfone.';
+        });
 
     map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
 
@@ -67,6 +59,45 @@ navigator.geolocation.getCurrentPosition(async function(position) {
     document.getElementById('loading').innerHTML = 'Não foi possível obter sua localização.';
 });
 
+function displayCategoryInfo(category) {
+    const messageBox = document.getElementById('message-box');
+    messageBox.style.display = 'block';
+    const info = categoryInfoTexts[category] || `Informações detalhadas sobre ${category}`;
+    messageBox.innerHTML = `<p>${info}</p>`;
+    speakText(info);
+    markCategoryLocations(category);
+}
+
+function markCategoryLocations(category) {
+    if (map && markers) {
+        markers.forEach(marker => map.removeLayer(marker));
+    }
+
+    markers = [];
+
+    const queries = {
+        pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:5000,-13.376,-38.913);out body;`,
+        passeiosSubMenu: `[out:json];node["tourism"="information"](around:5000,-13.376,-38.913);out body;`,
+        praiasSubMenu: `[out:json];node["natural"="beach"](around:5000,-13.376,-38.913);out body;`,
+        vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:5000,-13.376,-38.913);out body;`,
+        restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:5000,-13.376,-38.913);out body;`,
+        pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:5000,-13.376,-38.913);out body;`,
+        lojasSubMenu: `[out:json];node["shop"](around:5000,-13.376,-38.913);out body;`
+    };
+
+    if (queries[category]) {
+        fetchOSMData(queries[category]).then(data => {
+            data.elements.forEach(element => {
+                if (element.type === 'node' && element.tags.name) {
+                    const marker = L.marker([element.lat, element.lon]).addTo(map)
+                        .bindPopup(`<b>${element.tags.name}</b><br>${categoryInfoTexts[element.tags.name] || 'Informações indisponíveis'}`);
+                    markers.push(marker);
+                }
+            });
+        });
+    }
+}
+
 async function fetchOSMData(query) {
     const url = `https://overpass-api.de/api/interpreter?data=${query}`;
     const response = await fetch(url);
@@ -76,9 +107,9 @@ async function fetchOSMData(query) {
 
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
-    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
+    subMenu.innerHTML = '';
     data.elements.forEach(element => {
-        if (element.type === 'node' && element.tags.name) { // Adiciona apenas se houver um nome
+        if (element.type === 'node' && element.tags.name) {
             const btn = document.createElement('button');
             btn.className = 'submenu-btn';
             btn.textContent = element.tags.name;
@@ -91,11 +122,10 @@ function displayOSMData(data, subMenuId) {
 function initMenuOptions() {
     const queries = {
         pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:5000,-13.376,-38.913);out body;`,
-        passeiosSubMenu: `[out:json];node["tourism"="information"](around:5000,-13.376,-38.913);out body;`,
-        praiasSubMenu: `[out:json];node["natural"="beach"](around:5000,-13.376,-38.913);out body;`,
+        praiasSubMenu: `[out:json];node["natural"="beach"](around:50000,-13.376,-38.913);out body;`,
         vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:5000,-13.376,-38.913);out body;`,
         restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:5000,-13.376,-38.913);out body;`,
-                pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:5000,-13.376,-38.913);out body;`,
+        pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:5000,-13.376,-38.913);out body;`,
         lojasSubMenu: `[out:json];node["shop"](around:5000,-13.376,-38.913);out body;`
     };
 
@@ -105,7 +135,7 @@ function initMenuOptions() {
 }
 
 function showInitialTutorialOptions() {
-    const messageBox = document.getElementById('message-box');
+    const messageBox = document.getElementById('tutorial');
     messageBox.style.display = 'block';
     messageBox.innerHTML = `
         <p>Bem-vindo ao Morro Digital! Você gostaria de iniciar o tutorial que te ensinará todas as funcionalidades do site?</p>
@@ -120,7 +150,7 @@ function startTutorial() {
 }
 
 function nextTutorialStep() {
-    const messageBox = document.getElementById('message-box');
+    const messageBox = document.getElementById('tutorial');
     if (tutorialStep < tutorialSteps.length) {
         messageBox.innerHTML = `<p>${tutorialSteps[tutorialStep]}</p><button onclick="nextTutorialStep()">Próximo</button>`;
         speakText(tutorialSteps[tutorialStep]);
@@ -131,7 +161,7 @@ function nextTutorialStep() {
 }
 
 function closeTutorial() {
-    const messageBox = document.getElementById('message-box');
+    const messageBox = document.getElementById('tutorial');
     messageBox.style.display = 'none';
 }
 
@@ -140,7 +170,7 @@ function showInfo(name, coordinates) {
     messageBox.style.display = 'block';
 
     const info = infoTexts[name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}`;
-    messageBox.innerHTML = `<p>${info}</p>`;
+    messageBox.innerHTML = `<p>${info}</p><button onclick="initiateRoute('${name}', [${coordinates}])">Iniciar o trajeto</button>`;
     speakText(info);
 
     if (coordinates) {
@@ -148,27 +178,57 @@ function showInfo(name, coordinates) {
     }
 }
 
+function initiateRoute(name, coordinates) {
+    showRoute(coordinates);
+    alert(`Iniciando orientação para ${name}`);
+}
+
+function fetchPedestrianPaths() {
+    const query = `
+    [out:json];
+    (
+      way["highway"="footway"](around:5000,-13.376,-38.913);
+      way["highway"="path"](around:5000,-13.376,-38.913);
+    );
+    out body;
+    >;
+    out skel qt;
+    `;
+    return fetchOSMData(query);
+}
+
 function showRoute(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
 
-    routingControl = L.Routing.control({
-        waypoints: [
+    fetchPedestrianPaths().then(pedestrianPathsData => {
+        const waypoints = [
             L.latLng(currentLocation.latitude, currentLocation.longitude),
             L.latLng(destination[0], destination[1])
-        ],
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'foot'
-        }),
-        geocoder: L.Control.Geocoder.nominatim(),
-        createMarker: function() { return null; },
-        routeWhileDragging: true,
-        lineOptions: {
-            styles: [{ color: 'blue', opacity: 1, weight: 5 }]
-        }
-    }).addTo(map);
+        ];
+
+        pedestrianPathsData.elements.forEach(element => {
+            if (element.type === 'way') {
+                const coords = element.geometry.map(point => L.latLng(point.lat, point.lon));
+                waypoints.push(...coords);
+            }
+        });
+
+        routingControl = L.Routing.control({
+            waypoints: waypoints,
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'foot'
+            }),
+            geocoder: L.Control.Geocoder.nominatim(),
+            createMarker: function() { return null; },
+            routeWhileDragging: true,
+            lineOptions: {
+                styles: [{ color: 'blue', opacity: 1, weight: 5 }]
+            }
+        }).addTo(map);
+    });
 }
 
 function createPersonalizedRoute() {
@@ -256,7 +316,7 @@ function searchMap() {
 
 function displaySearchResults(results) {
     const subMenu = document.getElementById('searchResults');
-    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
+    subMenu.innerHTML = '';
     results.forEach(result => {
         const btn = document.createElement('button');
         btn.className = 'submenu-btn';
@@ -264,33 +324,6 @@ function displaySearchResults(results) {
         btn.onclick = () => showInfo(result.name, [result.lat, result.lon]);
         subMenu.appendChild(btn);
     });
-}
-
-function savePreferences() {
-    const selectedPreferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
-        .map(input => input.value);
-    localStorage.setItem('preferences', JSON.stringify(selectedPreferences));
-}
-
-function loadPreferences() {
-    const savedPreferences = JSON.parse(localStorage.getItem('preferences'));
-    if (savedPreferences) {
-        savedPreferences.forEach(pref => {
-            document.querySelector(`input[name="preferences"][value="${pref}"]`).checked = true;
-        });
-    }
-}
-
-window.addEventListener('load', loadPreferences);
-document.getElementById('route-form').addEventListener('change', savePreferences);
-
-function sendRecommendation() {
-    const preferences = JSON.parse(localStorage.getItem('preferences')) || [];
-    // Simulate sending preferences to server for recommendations
-    console.log('Enviando preferências para recomendações:', preferences);
-    const messageBox = document.getElementById('message-box');
-    messageBox.style.display = 'block';
-    messageBox.innerHTML = '<p>Suas preferências foram enviadas para recomendação!</p>';
 }
 
 function speakText(text) {
@@ -310,13 +343,23 @@ function startVoiceRecognition() {
         recognition.continuous = false;
         recognition.interimResults = false;
 
-        recognition.onresult = function(event) {
+        recognition.onstart = function() {
+            document.getElementById('response').innerText = 'Estou ouvindo...';
+        };
+
+        recognition.onresult = async function(event) {
             const transcript = event.results[0][0].transcript;
-            handleVoiceCommand(transcript);
+            document.getElementById('response').innerText = `Você: ${transcript}`;
+
+            const assistantResponse = await fetchResponse(transcript);
+            document.getElementById('response').innerText += `\nAssistente: ${assistantResponse}`;
+
+            speakText(assistantResponse);
         };
 
         recognition.onerror = function(event) {
             console.error('Erro no reconhecimento de voz:', event.error);
+            document.getElementById('response').innerText = 'Erro no reconhecimento de voz. Tente novamente.';
         };
 
         recognition.onend = function() {
@@ -329,19 +372,24 @@ function startVoiceRecognition() {
     }
 }
 
-function handleVoiceCommand(command) {
-    const lowerCommand = command.toLowerCase();
-    if (lowerCommand.includes('mapa')) {
-        toggleMenu();
-    } else if (lowerCommand.includes('história')) {
-        showMessage('historia');
-    } else if (lowerCommand.includes('praias')) {
-        handleMenuClick('praiasSubMenu');
-    } else if (lowerCommand.includes('pontos turísticos')) {
-        handleMenuClick('pontosTuristicosSubMenu');
-    } else {
-        alert(`Comando de voz não reconhecido: ${command}`);
-    }
+async function fetchResponse(prompt) {
+    const apiKey = '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';
+    const url = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            prompt: prompt,
+            max_tokens: 150
+        })
+    });
+
+    const data = await response.json();
+    return data.choices[0].text.trim();
 }
 
 function openGuide() {
@@ -363,7 +411,6 @@ function closeModal(modalId) {
 function askGuide() {
     const question = document.getElementById('guide-input').value;
     const responseBox = document.getElementById('guide-response');
-    // Simulate a guide response
     const response = `Aqui está a resposta para sua pergunta sobre "${question}" em Morro de São Paulo.`;
     responseBox.innerHTML = `<p>${response}</p>`;
     speakText(response);
@@ -429,22 +476,32 @@ async function makeReservation() {
         type: formData.get('type')
     };
 
-    // Simulate sending reservation data to the server
     console.log('Enviando dados da reserva:', reservationData);
 
-    // Simulate reservation confirmation
     const responseBox = document.getElementById('reservation-response');
     responseBox.innerHTML = `<p>Reserva confirmada para ${reservationData.name} em ${reservationData.date} às ${reservationData.time} para ${reservationData.type}.</p>`;
     speakText('Reserva confirmada com sucesso.');
 
-    // Integrate with payment system (simulation)
+    sendReservationEmail(reservationData);
+
     await processPayment(reservationData);
 }
 
+function sendReservationEmail(reservationData) {
+    const emailBody = `
+        Nome: ${reservationData.name}\n
+        Email: ${reservationData.email}\n
+        Data: ${reservationData.date}\n
+        Hora: ${reservationData.time}\n
+        Tipo: ${reservationData.type}\n
+    `;
+    const mailtoLink = `mailto:${reservationData.email}?subject=Confirmação de Reserva&body=${encodeURIComponent(emailBody)}`;
+    window.open(mailtoLink, '_blank');
+}
+
 async function processPayment(reservationData) {
-    // Simulate payment processing
     console.log('Processando pagamento para:', reservationData);
-    const paymentSuccess = true; // Simulating a successful payment
+    const paymentSuccess = true;
 
     if (paymentSuccess) {
         console.log('Pagamento confirmado para:', reservationData);
@@ -459,3 +516,167 @@ async function processPayment(reservationData) {
     }
 }
 
+function autocompleteSearch() {
+    const query = document.getElementById('search-input').value;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=-38.92,-13.37,-38.89,-13.38&bounded=1`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const suggestions = data.map(place => place.display_name);
+        });
+}
+
+function shareOnFacebook() {
+    const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href);
+    window.open(url, '_blank');
+}
+
+function shareOnTwitter() {
+    const url = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href);
+    window.open(url, '_blank');
+}
+
+function saveRoute() {
+    const route = { /* dados do roteiro */ };
+    localStorage.setItem('savedRoute', JSON.stringify(route));
+    alert('Roteiro salvo com sucesso!');
+}
+
+function shareRoute() {
+    const route = JSON.parse(localStorage.getItem('savedRoute'));
+    const url = `mailto:?subject=Meu Roteiro Personalizado&body=Confira meu roteiro: ${JSON.stringify(route)}`;
+    window.open(url, '_blank');
+}
+
+function loadSavedRoute() {
+    const route = JSON.parse(localStorage.getItem('savedRoute'));
+    if (route) {
+    }
+}
+
+function addEventToCalendar() {
+    const event = {
+        title: 'Evento em Morro de São Paulo',
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        description: 'Detalhes do evento'
+    };
+
+    const icsFile = `
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${event.title}
+DTSTART:${event.startDate.replace(/-|:|\.\d+/g, '')}
+DTEND:${event.endDate.replace(/-|:|\.\d+/g, '')}
+DESCRIPTION:${event.description}
+END:VEVENT
+END:VCALENDAR
+`;
+
+    const blob = new Blob([icsFile], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'evento.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    alert('Evento adicionado ao calendário!');
+}
+
+function showFeedback(message) {
+    const feedbackBox = document.createElement('div');
+    feedbackBox.className = 'feedback';
+    feedbackBox.innerText = message;
+    document.body.appendChild(feedbackBox);
+
+    setTimeout(() => {
+        feedbackBox.style.opacity = 0;
+        setTimeout(() => document.body.removeChild(feedbackBox), 300);
+    }, 3000);
+}
+
+const faqResponses = {
+    'horário de funcionamento': 'Nosso horário de funcionamento é das 9h às 18h de segunda a sexta.',
+    'localização': 'Estamos localizados em Morro de São Paulo, Bahia.'
+};
+
+function integrateWithVoiceAssistants() {
+}
+
+let userPoints = 0;
+
+function addPoints(points) {
+    userPoints += points;
+    document.getElementById('points-display').innerText = `Pontos: ${userPoints}`;
+    checkRewards();
+}
+
+function checkRewards() {
+    if (userPoints >= 100) {
+        alert('Parabéns! Você ganhou um desconto em sua próxima reserva.');
+    }
+}
+
+function applyFilters() {
+    const type = document.getElementById('filter-type').value;
+    const price = document.getElementById('filter-price').value;
+    const distance = document.getElementById('filter-distance').value;
+
+    console.log('Aplicando filtros:', { type, price, distance });
+}
+
+document.getElementById('high-contrast-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('high-contrast');
+});
+
+document.getElementById('increase-font-size').addEventListener('click', () => {
+    document.body.style.fontSize = '1.2em';
+});
+
+function personalizeContent() {
+    const userPreferences = JSON.parse(localStorage.getItem('userPreferences')) || [];
+    const recommendedContent = getRecommendedContent(userPreferences);
+    displayRecommendedContent(recommendedContent);
+}
+
+function getRecommendedContent(preferences) {
+    return [];
+}
+
+function displayRecommendedContent(content) {
+    const container = document.getElementById('recommended-content');
+    container.innerHTML = content.map(item => `<p>${item}</p>`).join('');
+}
+
+function submitFeedback() {
+    const feedbackText = document.getElementById('feedback-text').value;
+    alert('Obrigado pelo seu feedback!');
+}
+
+function loadAttractionDetails(attractionId) {
+    const details = {
+        name: 'Praia do Morro',
+        image: 'path/to/image.jpg',
+        description: 'Descrição detalhada da Praia do Morro...'
+    };
+    displayAttractionDetails(details);
+}
+
+function displayAttractionDetails(details) {
+    const container = document.getElementById('attraction-details');
+    container.innerHTML = `
+        <h2>${details.name}</h2>
+        <img src="${details.image}" alt="Imagem da ${details.name}">
+        <p>${details.description}</p>
+    `;
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loading').innerHTML = 'Por favor, ative a geolocalização para usar o mapa.';
+    requestGeolocation();
+});
