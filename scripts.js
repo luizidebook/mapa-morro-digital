@@ -7,6 +7,42 @@ const tutorialSteps = [
     "Use a busca para encontrar locais específicos no mapa."
 ];
 
+// Solicitação de permissões e inicialização do mapa
+function requestGeolocation() {
+    navigator.geolocation.getCurrentPosition(position => {
+        currentLocation = position.coords;
+        initMap();
+    }, () => {
+        document.getElementById('loading').innerHTML = 'Não foi possível obter sua localização.';
+    });
+}
+
+function requestMicrophoneAccess() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+            document.getElementById('loading').style.display = 'none';
+            showInitialPopup();
+        })
+        .catch(() => {
+            document.getElementById('loading').innerHTML = 'Não foi possível acessar seu microfone.';
+        });
+}
+
+function initMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    initMenuOptions();
+    showInitialTutorialOptions();
+}
+
 function toggleMenu() {
     const menu = document.getElementById('menu');
     const toggleBtn = document.getElementById('menu-toggle-btn');
@@ -27,37 +63,6 @@ function handleMenuClick(subMenuId) {
     subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
     displayCategoryInfo(subMenuId);
 }
-
-// Solicitação de permissões e inicialização do mapa
-navigator.geolocation.getCurrentPosition(async function(position) {
-    currentLocation = position.coords;
-
-navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-            document.getElementById('loading').style.display = 'none';
-            showInitialPopup();
-        })
-        .catch(() => {
-            document.getElementById('loading').innerHTML = 'Não foi possível acessar seu microfone.';
-        });
-
-    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
-        .bindPopup('Você está aqui!')
-        .openPopup();
-
-    document.getElementById('loading').style.display = 'none';
-
-    initMenuOptions();
-    showInitialTutorialOptions();
-}, function() {
-    document.getElementById('loading').innerHTML = 'Não foi possível obter sua localização.';
-});
 
 function displayCategoryInfo(category) {
     const messageBox = document.getElementById('message-box');
@@ -98,11 +103,9 @@ function markCategoryLocations(category) {
     }
 }
 
-async function fetchOSMData(query) {
+function fetchOSMData(query) {
     const url = `https://overpass-api.de/api/interpreter?data=${query}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
+    return fetch(url).then(response => response.json());
 }
 
 function displayOSMData(data, subMenuId) {
@@ -122,7 +125,8 @@ function displayOSMData(data, subMenuId) {
 function initMenuOptions() {
     const queries = {
         pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:5000,-13.376,-38.913);out body;`,
-        praiasSubMenu: `[out:json];node["natural"="beach"](around:50000,-13.376,-38.913);out body;`,
+        passeiosSubMenu: `[out:json];node["tourism"="information"](around:5000,-13.376,-38.913);out body;`,
+        praiasSubMenu: `[out:json];node["natural"="beach"](around:5000,-13.376,-38.913);out body;`,
         vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:5000,-13.376,-38.913);out body;`,
         restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:5000,-13.376,-38.913);out body;`,
         pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:5000,-13.376,-38.913);out body;`,
