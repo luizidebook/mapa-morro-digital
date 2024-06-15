@@ -1,18 +1,7 @@
-:root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --background-color: #f8f9fa;
-    --text-color: #343a40;
-    --font-family: 'Roboto', sans-serif;
-    --submenu-color: #cccccc;
-}
-
 body, html {
     height: 100%;
     margin: 0;
-    font-family: var(--font-family);
-    color: var(--text-color);
-    background-color: var(--background-color);
+    font-family: Arial, sans-serif;
 }
 
 #map {
@@ -20,26 +9,16 @@ body, html {
     width: 100%;
 }
 
-button {
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
 #menu-toggle-btn {
     position: fixed;
     top: 10px;
     right: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
     z-index: 1001;
 }
 
@@ -71,31 +50,18 @@ button:active {
     to { right: 0; }
 }
 
-#menu .menu-btn {
+#menu .menu-btn, #menu .submenu-btn {
     width: 100%;
     padding: 15px;
-    background: var(--primary-color);
+    background: #f4f4f4;
+    border: none;
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    color: white;
-}
-
-#menu .submenu-btn {
-    width: 100%;
-    padding: 15px;
-    background: var(--submenu-color);
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    color: black;
 }
 
 #menu .menu-btn:hover, #menu .submenu-btn:hover {
-    background-color: #0056b3;
-    color: white;
+    background: #ddd;
 }
 
 #menu .submenu {
@@ -186,355 +152,36 @@ button:active {
     display: none;
 }
 
-#share-buttons {
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    z-index: 1000;
-}
-
-.feedback {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1001;
-}
-
-#filter-box {
-    position: fixed;
-    top: 50px;
-    right: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1000;
-}
-
-#feedback {
-    position: fixed;
-    bottom: 80px;
-    right: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1000;
-}
-
-.breadcrumbs {
-    list-style: none;
-    display: flex;
-    margin: 10px;
-    padding: 0;
-}
-
-.breadcrumbs li {
-    margin-right: 10px;
-}
-
-.breadcrumbs li a {
-    text-decoration: none;
-    color: var(--primary-color);
-}
-
-.high-contrast {
-    background-color: black;
-    color: white;
-}
-
-#historia {
-    background-image: url('path/to/image.jpg');
-    background-size: cover;
-    background-position: center;
-    color: #fff;
-    padding: 50px 0;
-    text-align: center;
-}
-
 @media (max-width: 768px) {
-    #menu {
-        width: 80%;
-    }
-    #search-box, #share-buttons, #filter-box, #feedback {
+    #message-box, #search-box, #searchResults {
         width: 80%;
         left: 10%;
     }
-}
-
-.slider {
-    width: 80%;
-    margin: 20px auto;
-}
-
-.slider img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-.animate__animated {
-    animation-duration: 1s;
-    animation-fill-mode: both;
-}
-
-/* Estilo dos elementos do menu com ícones */
-.menu-btn i {
-    margin-right: 10px;
-}
-
-/* Estilo do formulário de reservas */
-#reservation-form label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-#reservation-form input,
-#reservation-form select {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-#reservation-response {
-    margin-top: 20px;
-    color: green;
-    font-weight: bold;
-}
-
-/* Estilo dos botões de compartilhamento */
-#share-buttons button {
-    display: inline-block;
-    margin-right: 10px;
-    font-size: 14px;
-}
-
-/* Estilo do formulário de feedback */
-#feedback-form textarea {
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    resize: none;
-}
-
-/* Breadcrumbs */
-.breadcrumbs {
-    background: var(--background-color);
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.breadcrumbs li a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.breadcrumbs li a:hover {
-    color: #0056b3;
-}
-
-/* Ajustes de responsividade */
-@media (max-width: 768px) {
     #menu {
         width: 80%;
     }
-    #search-box, #share-buttons, #filter-box, #feedback {
-        width: 80%;
-        left: 10%;
+    .modal-content {
+        width: 90%;
     }
 }
 
-/* Posição dos pontos de recompensas */
-#points-display {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: var(--primary-color);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    z-index: 1001;
-}
-
-#tutorial {
-    position: fixed;
-    top: 50px;
-    left: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1000;
-    max-width: 300px;
-    display: none;
-}
-
-/* Estilo dos detalhes das atrações */
-#attraction-details {
-    padding: 20px;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    max-width: 600px;
-    margin: 20px auto;
-}
-
-#attraction-details img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-#attraction-details h2 {
-    margin-top: 0;
-}
-
-/* Estilo dos elementos flutuantes */
-#floating-ui {
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1001;
-}
-
-/* Estilo do box de resposta do assistente virtual */
-#guide-response {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-/* Estilo para os modais */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Estilo do formulário de feedback */
-#feedback-form textarea {
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    resize: none;
-}
-
-/* Botões de ação */
-#feedback-form button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#feedback-form button:hover {
-    background-color: #0056b3;
-}
-
-/* Botões de ação no modal de reservas */
-#reservation-modal button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#reservation-modal button:hover {
-    background-color: #0056b3;
-}
-
-/* Estilo de feedback visual */
-.feedback {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    z-index: 1001;
-}
-
-/* Estilos adicionais para melhor acessibilidade */
-.high-contrast {
-    background-color: black;
-    color: white;
-}
-
-#high-contrast-toggle {
-    position: fixed;
-    top: 10px;
-    right: 50px;
-    z-index: 1001;
-    background-color: var(--primary-color);
+/* Adicionando estilos para os novos modais */
+.modal-content button {
+    background-color: #007bff;
     color: white;
     border: none;
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
-#high-contrast-toggle:hover {
+.modal-content button:hover {
     background-color: #0056b3;
 }
 
-#increase-font-size {
-    position: fixed;
-    top: 50px;
-    right: 50px;
-    z-index: 1001;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#increase-font-size:hover {
-    background-color: #0056b3;
+/* Estilo para os ícones no menu */
+.menu-btn::before {
+    content: url('path/to/icon.png'); /* Ajuste o caminho para os ícones apropriados */
+    margin-right: 10px;
 }
