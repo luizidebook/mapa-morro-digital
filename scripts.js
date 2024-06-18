@@ -1,319 +1,359 @@
 let map;
+let currentLocation;
 let routingControl;
 let tutorialStep = 0;
-const tutorialSteps = [
-    'Bem-vindo ao Morro Digital! Este tutorial irá guiá-lo através das funcionalidades do site.',
-    'Primeiro, veja o mapa interativo que mostra sua localização atual e permite explorar a área ao redor.',
-    'Use o botão ☰ Menu para abrir e fechar o menu.',
-    'No menu, você pode acessar informações sobre História de Morro, Pontos Turísticos, Passeios, Praias, Vida Noturna, Restaurantes, Pousadas, Lojas, Dicas, Emergências e Sobre.',
-    'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.',
-    'História de Morro: Clique para aprender sobre a rica história de Morro de São Paulo.',
-    'Pontos Turísticos: Clique para explorar os pontos turísticos populares.',
-    'Passeios: Clique para ver as opções de passeios disponíveis.',
-    'Praias: Clique para descobrir as belas praias da região.',
-    'Vida Noturna: Clique para conhecer os melhores locais para curtir a noite.',
-    'Restaurantes: Clique para ver os melhores restaurantes da área.',
-    'Pousadas: Clique para encontrar opções de hospedagem.',
-    'Lojas: Clique para encontrar lojas e locais para comprar lembranças.',
-    'Dicas: Clique para obter dicas úteis sobre Morro de São Paulo.',
-    'Emergências: Clique para ver contatos de emergência importantes.',
-    'Sobre: Clique para saber mais sobre a Morro Digital.'
-];
+let selectedLanguage = 'pt';
 
-const infoTexts = {
-    historia: 'Conheça a rica história de Morro de São Paulo...',
-    pontosTuristicos: 'Descubra os pontos turísticos imperdíveis de Morro de São Paulo...',
-    passeios: 'Aproveite os melhores passeios em Morro de São Paulo...',
-    praias: 'Morro de São Paulo é famoso por suas praias paradisíacas...',
-    vidaNoturna: 'A vida noturna em Morro de São Paulo é vibrante e diversificada...',
-    restaurantes: 'Experimente a gastronomia de Morro de São Paulo...',
-    pousadas: 'Encontre as melhores opções de hospedagem em Morro de São Paulo...',
-    lojas: 'Explore as lojas de Morro de São Paulo...',
-    dicas: 'Confira dicas úteis para aproveitar ao máximo sua estadia...',
-    emergencias: 'Encontre informações importantes de contatos de emergência...',
-    sobre: 'Saiba mais sobre a Morro Digital...'
+// Passos do tutorial em diferentes idiomas
+const tutorialSteps = {
+    pt: [
+        'Bem-vindo ao Morro Digital! Este tutorial irá guiá-lo através das funcionalidades do site.',
+        'Primeiro, veja o mapa interativo que mostra sua localização atual e permite explorar a área ao redor.',
+        'Use o botão ☰ Menu para abrir e fechar o menu.',
+        'No menu, você pode acessar informações sobre História de Morro, Pontos Turísticos, Passeios, Praias, Vida Noturna, Restaurantes, Pousadas.',
+        'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.'
+    ],
+    en: [
+        'Welcome to Morro Digital! This tutorial will guide you through the site features.',
+        'First, see the interactive map that shows your current location and allows you to explore the surrounding area.',
+        'Use the ☰ Menu button to open and close the menu.',
+        'In the menu, you can access information about the History of Morro, Tourist Spots, Tours, Beaches, Nightlife, Restaurants, Inns.',
+        'Click on any menu item to get more information in the message box.'
+    ],
+    es: [
+        '¡Bienvenido a Morro Digital! Este tutorial le guiará a través de las funciones del sitio.',
+        'Primero, vea el mapa interactivo que muestra su ubicación actual y le permite explorar el área circundante.',
+        'Use el botón ☰ Menú para abrir y cerrar el menú.',
+        'En el menú, puede acceder a información sobre la Historia de Morro, Lugares Turísticos, Excursiones, Playas, Vida Nocturna, Restaurantes, Posadas.',
+        'Haga clic en cualquier elemento del menú para obtener más información en la caja de mensajes.'
+    ],
+    he: [
+        'ברוך הבא ל-Morro Digital! מדריך זה ידריך אותך בתכונות האתר.',
+        'ראשית, ראה את המפה האינטראקטיבית שמראה את המיקום הנוכחי שלך ומאפשרת לך לחקור את האזור שמסביב.',
+        'השתמש בכפתור ☰ Menu לפתיחת וסגירת התפריט.',
+        'בתפריט, תוכל לגשת למידע על ההיסטוריה של מורו, מקומות תיירותיים, סיורים, חופים, חיי לילה, מסעדות, בתי מלון.',
+        'לחץ על כל פריט בתפריט כדי לקבל מידע נוסף בתיבת ההודעות.'
+    ]
 };
 
-const queries = {
-    pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;`,
-    passeiosSubMenu: `[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;`,
-    praiasSubMenu: `[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;`,
-    vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;`,
-    restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;`,
-    pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;`,
-    lojasSubMenu: `[out:json];node["shop"](around:10000,-13.376,-38.913);out body;`
-};
-
-function initMap() {
-    map = L.map('map').setView([-13.377778, -38.9125], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-    }).addTo(map);
-    L.marker([-13.377778, -38.9125]).addTo(map)
-        .bindPopup('<b>Morro de São Paulo</b><br>Um lugar incrível!')
-        .openPopup();
-}
-
-function toggleMenu() {
-    const menu = document.getElementById('menu');
-    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-}
-
-function toggleSubMenu(subMenuId) {
-    const subMenu = document.getElementById(subMenuId);
-    subMenu.style.display = (subMenu.style.display === 'block') ? 'none' : 'block';
-}
-
-function startVoiceRecognition() {
-    if ('webkitSpeechRecognition' in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'pt-BR';
-        recognition.onstart = () => showNotification('Reconhecimento de voz iniciado!');
-        recognition.onresult = (event) => {
-            const result = event.results[0][0].transcript;
-            showNotification('Você disse: ' + result);
-            document.getElementById('search-input').value = result;
-            searchMap();
-        };
-        recognition.start();
-    } else {
-        showNotification('Seu navegador não suporta reconhecimento de voz.');
-    }
-}
-
-function toggleMessage() {
-    const messageBox = document.getElementById('message-box');
-    messageBox.style.display = (messageBox.style.display === 'block') ? 'none' : 'block';
-}
-
-function toggleSearch() {
-    const searchBox = document.getElementById('search-box');
-    searchBox.style.display = (searchBox.style.display === 'block') ? 'none' : 'block';
-}
-
-function searchMap() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const searchResults = document.getElementById('searchResults');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    
-    searchResults.style.display = 'none';
-    loadingIndicator.style.display = 'block';
-
-    const pointsOfInterest = [
-        { name: 'Farol do Morro', lat: -13.375, lng: -38.917 },
-        { name: 'Praia de Gamboa', lat: -13.367, lng: -38.911 },
-        { name: 'Igreja Nossa Senhora da Luz', lat: -13.379, lng: -38.914 },
-        { name: 'Forte de Morro de São Paulo', lat: -13.379, lng: -38.914 },
-        { name: 'Fonte Grande', lat: -13.379, lng: -38.914 }
-    ];
-
-    setTimeout(() => {
-        searchResults.innerHTML = '';
-        pointsOfInterest.forEach(point => {
-            if (point.name.toLowerCase().includes(searchTerm)) {
-                const resultItem = document.createElement('div');
-                resultItem.textContent = point.name;
-                resultItem.onclick = () => {
-                    map.setView([point.lat, point.lng], 15);
-                    L.popup()
-                        .setLatLng([point.lat, point.lng])
-                        .setContent(point.name)
-                        .openOn(map);
-                    showDetailModal(point.name, 'Detalhes sobre ' + point.name);
-                };
-                searchResults.appendChild(resultItem);
-            }
-        });
-
-        if (searchResults.innerHTML === '') {
-            searchResults.innerHTML = 'Nenhum resultado encontrado.';
-        }
-
-        loadingIndicator.style.display = 'none';
-        searchResults.style.display = 'block';
-    }, 1000); // Simulação de tempo de carregamento
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'none';
-}
-
-function showDetailModal(title, content) {
-    const detailContent = document.getElementById('detail-content');
-    detailContent.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
-    const detailModal = document.getElementById('detail-modal');
-    detailModal.style.display = 'block';
-}
-
-function translatePage(language) {
-    const elements = document.querySelectorAll('[data-translate]');
-    elements.forEach(element => {
-        const key = element.getAttribute('data-translate');
-        element.textContent = translations[language][key];
-    });
-}
-
+// Tradução dos textos
 const translations = {
-    pt: {
-        welcome: 'Bem-vindo ao Morro Digital! Selecione um idioma:',
-        searchPlaceholder: 'Pesquisar...',
-        searchButton: 'Pesquisar',
-        menuToggle: '☰ Menu',
-        voiceRec: '🎤',
-        messageToggle: '💬',
-        searchToggle: '🔍'
-    },
     en: {
-        welcome: 'Welcome to Morro Digital! Select a language:',
-        searchPlaceholder: 'Search...',
-        searchButton: 'Search',
-        menuToggle: '☰ Menu',
-        voiceRec: '🎤',
-        messageToggle: '💬',
-        searchToggle: '🔍'
+        'Bem-vindo ao Morro Digital!': 'Welcome to Morro Digital!',
+        'Selecione um idioma:': 'Select a language:',
+        'Permissão de Localização': 'Location Permission',
+        'Precisamos de sua permissão para acessar sua localização:': 'We need your permission to access your location:',
+        'Permissão de Microfone': 'Microphone Permission',
+        'Precisamos de sua permissão para acessar seu microfone:': 'We need your permission to access your microphone:',
+        'História de Morro de São Paulo': 'History of Morro de São Paulo',
+        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'Learn about the rich history of Morro de São Paulo, an island full of culture and traditions...',
+        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.': 'Founded in the 16th century, Morro de São Paulo has a fascinating history that includes pirate invasions, colonial buildings, and much more.'
     },
     es: {
-        welcome: '¡Bienvenido a Morro Digital! Seleccione un idioma:',
-        searchPlaceholder: 'Buscar...',
-        searchButton: 'Buscar',
-        menuToggle: '☰ Menú',
-        voiceRec: '🎤',
-        messageToggle: '💬',
-        searchToggle: '🔍'
+        'Bem-vindo ao Morro Digital!': '¡Bienvenido a Morro Digital!',
+        'Selecione um idioma:': 'Seleccione un idioma:',
+        'Permissão de Localização': 'Permiso de Ubicación',
+        'Precisamos de sua permissão para acessar sua localização:': 'Necesitamos su permiso para acceder a su ubicación:',
+        'Permissão de Microfone': 'Permiso de Micrófono',
+        'Precisamos de sua permissão para acessar seu microfone:': 'Necesitamos su permiso para acceder a su micrófono:',
+        'História de Morro de São Paulo': 'Historia de Morro de São Paulo',
+        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'Conozca la rica historia de Morro de São Paulo, una isla llena de cultura y tradiciones...',
+        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.': 'Fundada en el siglo XVI, Morro de São Paulo tiene una historia fascinante que incluye invasiones de piratas, construcciones coloniales y mucho más.'
     },
     he: {
-        welcome: 'ברוכים הבאים ל-Morro Digital! בחר שפה:',
-        searchPlaceholder: 'חפש...',
-        searchButton: 'חפש',
-        menuToggle: '☰ תפריט',
-        voiceRec: '🎤',
-        messageToggle: '💬',
-        searchToggle: '🔍'
+        'Bem-vindo ao Morro Digital!': 'ברוך הבא ל-Morro Digital!',
+        'Selecione um idioma:': 'בחר שפה:',
+        'Permissão de Localização': 'הרשאת מיקום',
+        'Precisamos de sua permissão para acessar sua localização:': 'אנו זקוקים להרשאתך כדי לגשת למיקומך:',
+        'Permissão de Microfone': 'הרשאת מיקרופון',
+        'Precisamos de sua permissão para acessar seu microfone:': 'אנו זקוקים להרשאתך כדי לגשת למיקרופון שלך:',
+        'História de Morro de São Paulo': 'ההיסטוריה של מורו דה סאו פאולו',
+        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'למד על ההיסטוריה העשירה של מורו דה סאו פאולו, אי מלא בתרבות ומסורות...',
+        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.': 'נוסדה במאה ה-16, למורו דה סאו פאולו יש היסטוריה מרתקת הכוללת פלישות פיראטים, מבנים קולוניאליים ועוד הרבה יותר.'
     }
 };
 
-function handleMenuClick(subMenuId) {
-    const subMenus = document.querySelectorAll('.submenu');
-    subMenus.forEach(subMenu => subMenu.style.display = 'none');
-    const subMenu = document.getElementById(subMenuId);
-    if (subMenu) {
-        subMenu.style.display = 'block';
-        document.getElementById('message-box').innerText = infoTexts[subMenuId.replace('SubMenu', '')];
-        toggleMessage();
-    }
+// Função para traduzir o conteúdo do site
+function selectLanguage(lang) {
+    selectedLanguage = lang;
+    document.querySelectorAll('[data-translate]').forEach(el => {
+        el.innerText = translations[lang][el.getAttribute('data-translate')] || el.innerText;
+    });
+    closeModal('welcome-modal');
+    openModal('location-permission-modal');
 }
 
-function loadSubMenu(subMenuId) {
-    const subMenus = document.querySelectorAll('.submenu');
-    subMenus.forEach(subMenu => subMenu.style.display = 'none');
-    const subMenu = document.getElementById(subMenuId);
-    const contentDiv = document.getElementById(subMenuId.replace('SubMenu', 'Content'));
-
-    if (contentDiv.innerHTML === '') {
-        fetchOSMData(queries[subMenuId], contentDiv);
-    }
-
-    if (subMenu) {
-        subMenu.style.display = 'block';
-    }
-}
-
-function fetchOSMData(query, container) {
-    fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        body: query
-    })
-    .then(response => response.json())
-    .then(data => {
-        displayOSMData(data, container);
-    })
-    .catch(error => console.error('Error fetching OSM data:', error));
-}
-
-function displayOSMData(data, container) {
-    container.innerHTML = '';
-
-    data.elements.forEach(element => {
-        const name = element.tags.name || 'Unnamed';
-        const btn = document.createElement('button');
-        btn.className = 'submenu-item';
-        btn.textContent = name;
-        btn.onclick = () => {
-            if (element.type === 'node') {
-                map.setView([element.lat, element.lon], 15);
-                routeTo([element.lat, element.lon]);
-            } else if (element.type === 'way' && element.bounds) {
-                map.fitBounds([
-                    [element.bounds.minlat, element.bounds.minlon],
-                    [element.bounds.maxlat, element.bounds.maxlon]
-                ]);
-                const center = [
-                    (element.bounds.minlat + element.bounds.maxlat) / 2,
-                    (element.bounds.minlon + element.bounds.maxlon) / 2
-                ];
-                routeTo(center);
-            }
-            showDetailModal(name, `Detalhes sobre ${name}`);
-        };
-        container.appendChild(btn);
+// Função para solicitar permissão de localização
+function requestLocationPermission() {
+    navigator.geolocation.getCurrentPosition(position => {
+        currentLocation = position.coords;
+        initializeMap();
+        closeModal('location-permission-modal');
+        openModal('microphone-permission-modal');
+    }, error => {
+        alert('Não foi possível obter sua localização.');
     });
 }
 
-function routeTo(destination) {
+// Função para solicitar permissão de microfone
+function requestMicrophonePermission() {
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = function() {
+            closeModal('microphone-permission-modal');
+            alert('Permissão de microfone concedida.');
+            startTutorial();
+        };
+
+        recognition.onerror = function(event) {
+            if (event.error === 'not-allowed') {
+                alert('Permissão de microfone negada.');
+            }
+        };
+
+        recognition.onend = function() {
+            console.log('Reconhecimento de voz encerrado.');
+        };
+
+        recognition.start();
+    } else {
+        alert('API de reconhecimento de voz não suportada neste navegador.');
+    }
+}
+
+// Inicializa o mapa com a localização do usuário
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+}
+
+// Inicia o tutorial interativo
+function startTutorial() {
+    tutorialStep = 0;
+    nextTutorialStep();
+}
+
+// Mostra o próximo passo do tutorial
+function nextTutorialStep() {
+    const messageBox = document.getElementById('message-box');
+    if (tutorialStep < tutorialSteps[selectedLanguage].length) {
+        messageBox.innerHTML = `<p>${tutorialSteps[selectedLanguage][tutorialStep]}</p><button onclick="nextTutorialStep()">Próximo</button>`;
+        speakText(tutorialSteps[selectedLanguage][tutorialStep]);
+        tutorialStep++;
+    } else {
+        messageBox.style.display = 'none';
+    }
+}
+
+// Fecha o tutorial
+function closeTutorial() {
+    const messageBox = document.getElementById('message-box');
+    messageBox.style.display = 'none';
+}
+
+// Função para exibir o submenu e carregar dados da OSM
+function loadSubMenu(subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.style.display = 'block';
+
+    const queries = {
+        pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;`,
+        passeiosSubMenu: `[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;`,
+        praiasSubMenu: `[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;`,
+        vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;`,
+        restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;`,
+        pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;`
+    };
+
+    fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
+}
+
+// Busca dados da OpenStreetMap
+async function fetchOSMData(query) {
+    const url = `https://overpass-api.de/api/interpreter?data=${query}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
+// Exibe os dados da OpenStreetMap
+function displayOSMData(data, subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
+    data.elements.forEach(element => {
+        if (element.type === 'node' && element.tags.name) { // Adiciona apenas se houver um nome
+            const btn = document.createElement('button');
+            btn.className = 'submenu-btn';
+            btn.textContent = element.tags.name;
+            btn.onclick = () => showInfo(element.tags.name, [element.lat, element.lon]);
+            subMenu.appendChild(btn);
+        }
+    });
+}
+
+// Exibe informações sobre o local selecionado
+function showInfo(name, coordinates) {
+    const messageBox = document.getElementById('message-box');
+    messageBox.style.display = 'block';
+
+    const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}`;
+    messageBox.innerHTML = `<p>${info}</p>`;
+    speakText(info);
+
+    if (coordinates) {
+        showRoute(coordinates);
+    }
+}
+
+// Exibe a rota até o destino selecionado
+function showRoute(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
+
     routingControl = L.Routing.control({
         waypoints: [
-            L.latLng(map.getCenter()),
-            L.latLng(destination)
+            L.latLng(currentLocation.latitude, currentLocation.longitude),
+            L.latLng(destination[0], destination[1])
         ],
-        routeWhileDragging: true
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'foot'
+        }),
+        geocoder: L.Control.Geocoder.nominatim(),
+        createMarker: function() { return null; },
+        routeWhileDragging: true,
+        lineOptions: {
+            styles: [{ color: 'blue', opacity: 1, weight: 5 }]
+        }
     }).addTo(map);
 }
 
-function startTutorial() {
-    showNotification(tutorialSteps[tutorialStep]);
-    tutorialStep++;
-    if (tutorialStep < tutorialSteps.length) {
-        setTimeout(startTutorial, 5000);
+// Função para iniciar o reconhecimento de voz
+function startVoiceRecognition() {
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            handleVoiceCommand(transcript);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Erro no reconhecimento de voz:', event.error);
+        };
+
+        recognition.onend = function() {
+            console.log('Reconhecimento de voz encerrado.');
+        };
+
+        recognition.start();
+    } else {
+        alert('API de reconhecimento de voz não suportada neste navegador.');
     }
 }
 
-function showNotification(message) {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.style.display = 'block';
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
+// Função para lidar com comandos de voz
+function handleVoiceCommand(command) {
+    const lowerCommand = command.toLowerCase();
+    if (lowerCommand.includes('mapa')) {
+        toggleMenu();
+    } else if (lowerCommand.includes('história')) {
+        showInfo('História de Morro de São Paulo');
+    } else if (lowerCommand.includes('praias')) {
+        loadSubMenu('praiasSubMenu');
+    } else if (lowerCommand.includes('pontos turísticos')) {
+        loadSubMenu('pontosTuristicosSubMenu');
+    } else {
+        alert(`Comando de voz não reconhecido: ${command}`);
+    }
 }
 
-function shareOnFacebook() {
-    window.open('https://www.facebook.com/sharer/sharer.php?u=' + window.location.href, '_blank');
+// Função para alternar a visibilidade do menu
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
 
-function shareOnTwitter() {
-    window.open('https://twitter.com/intent/tweet?url=' + window.location.href, '_blank');
+// Função para alternar a visibilidade dos submenus
+function toggleSubMenu(subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
 }
 
-function shareOnInstagram() {
-    showNotification('Compartilhar no Instagram não é suportado diretamente. Por favor, copie o link e cole no seu Instagram.');
+// Função para exibir e ocultar modais
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
 }
 
-function trackUsage(action) {
-    console.log('Ação rastreada:', action);
-    // Implementar lógica para enviar dados de rastreamento para um servidor
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    initMap();
-    startTutorial();
-    trackUsage('page_load');
-    document.getElementById('menu-toggle-btn').addEventListener('click', () => trackUsage('toggle_menu'));
-    document.getElementById('voice-rec-btn').addEventListener('click', () => trackUsage('start_voice_recognition'));
-    document.getElementById('message-toggle-btn').addEventListener('click', () => trackUsage('toggle_message'));
-    document.getElementById('search-toggle-btn').addEventListener('click', () => trackUsage('toggle_search'));
-    initMenuOptions();
+// Função para exibir mensagens de texto
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
+        speechSynthesis.speak(utterance);
+    } else {
+        console.warn('API de síntese de voz não suportada neste navegador.');
+    }
+}
+
+// Função para alternar a visibilidade da caixa de pesquisa
+function toggleSearch() {
+    const searchBox = document.getElementById('search-box');
+    searchBox.style.display = searchBox.style.display === 'none' ? 'block' : 'none';
+}
+
+// Função para buscar locais no mapa
+function searchMap() {
+    const query = document.getElementById('search-input').value;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=-38.92,-13.37,-38.89,-13.38&bounded=1`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const searchResults = data.map(place => ({
+                name: place.display_name,
+                lat: place.lat,
+                lon: place.lon
+            }));
+            displaySearchResults(searchResults);
+        });
+}
+
+// Função para exibir resultados de pesquisa
+function displaySearchResults(results) {
+    const subMenu = document.getElementById('searchResults');
+    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
+    results.forEach(result => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-btn';
+        btn.textContent = result.name;
+        btn.onclick = () => showInfo(result.name, [result.lat, result.lon]);
+        subMenu.appendChild(btn);
+    });
+}
+
+// Inicializa o mapa e mostra o modal de boas-vindas ao carregar a página
+window.addEventListener('load', () => {
+    openModal('welcome-modal');
 });

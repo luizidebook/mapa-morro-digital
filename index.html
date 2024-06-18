@@ -3,27 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morro de São Paulo Digital</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Morro Digital</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="scripts.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Mapa principal ocupando a tela toda -->
     <div id="map"></div>
+
+    <!-- Modal de boas-vindas e seleção de idioma -->
+    <div id="welcome-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('welcome-modal')">&times;</span>
+            <h2>Bem-vindo ao Morro Digital!</h2>
+            <p>Selecione um idioma:</p>
+            <div class="flag-container">
+                <!-- Ícones de bandeiras para seleção de idioma -->
+                <img src="https://example.com/flags/br.png" alt="Português" onclick="selectLanguage('pt')">
+                <img src="https://example.com/flags/es.png" alt="Espanhol" onclick="selectLanguage('es')">
+                <img src="https://example.com/flags/en.png" alt="Inglês" onclick="selectLanguage('en')">
+                <img src="https://example.com/flags/he.png" alt="Hebraico" onclick="selectLanguage('he')">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal solicitando permissão para acessar a localização do usuário -->
+    <div id="location-permission-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('location-permission-modal')">&times;</span>
+            <h2>Permissão de Localização</h2>
+            <p>Precisamos de sua permissão para acessar sua localização:</p>
+            <button onclick="requestLocationPermission()">Permitir</button>
+        </div>
+    </div>
+
+    <!-- Modal solicitando permissão para acessar o microfone do usuário -->
+    <div id="microphone-permission-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('microphone-permission-modal')">&times;</span>
+            <h2>Permissão de Microfone</h2>
+            <p>Precisamos de sua permissão para acessar seu microfone:</p>
+            <button onclick="requestMicrophonePermission()">Permitir</button>
+        </div>
+    </div>
+
+    <!-- Botões de controle flutuantes sobre o mapa -->
     <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()">☰ Menu</button>
     <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()">🎤</button>
     <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()">💬</button>
     <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
 
+    <!-- Menu lateral -->
     <div id="menu" style="display:none;">
         <button class="menu-btn" onclick="toggleSubMenu('historiaSubMenu')">História de Morro</button>
         <div id="historiaSubMenu" class="submenu" style="display:none;">
             <h2>História de Morro de São Paulo</h2>
             <p>Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...</p>
-            <img src="https://via.placeholder.com/250" alt="História de Morro de São Paulo">
+            <img src="https://example.com/images/historia.jpg" alt="História de Morro de São Paulo">
             <p>Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.</p>
         </div>
 
@@ -62,62 +99,46 @@
             <h2>Pousadas</h2>
             <div id="pousadasContent"></div>
         </div>
-
-        <button class="menu-btn" onclick="toggleSubMenu('dicasSubMenu')">Dicas</button>
-        <div id="dicasSubMenu" class="submenu" style="display:none;">
-            <h2>Dicas</h2>
-            <p>Confira dicas úteis para aproveitar ao máximo sua estadia em Morro de São Paulo...</p>
-            <img src="https://via.placeholder.com/250" alt="Dicas">
-            <p>Leve protetor solar, use roupas leves, e não esqueça de experimentar a culinária local!</p>
-        </div>
-
-        <button class="menu-btn" onclick="toggleSubMenu('emergenciasSubMenu')">Emergências</button>
-        <div id="emergenciasSubMenu" class="submenu" style="display:none;">
-            <h2>Emergências</h2>
-            <p>Encontre informações importantes de contatos de emergência em Morro de São Paulo...</p>
-            <img src="https://via.placeholder.com/250" alt="Emergências">
-            <ul>
-                <li>Polícia: 190</li>
-                <li>Ambulância: 192</li>
-                <li>Bombeiros: 193</li>
-                <li>Hospital de Morro de São Paulo: +55 75 3652-1000</li>
-            </ul>
-        </div>
-
-        <button class="menu-btn" onclick="toggleSubMenu('sobreSubMenu')">Sobre</button>
-        <div id="sobreSubMenu" class="submenu" style="display:none;">
-            <h2>Sobre</h2>
-            <p>Saiba mais sobre a Morro Digital, uma plataforma dedicada a fornecer informações úteis sobre Morro de São Paulo...</p>
-            <img src="https://via.placeholder.com/250" alt="Sobre">
-            <p>Nosso objetivo é fornecer informações atualizadas e precisas para ajudar visitantes a aproveitarem ao máximo sua visita.</p>
-        </div>
     </div>
 
-    <div id="welcome-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('welcome-modal')">&times;</span>
-            <p data-translate="welcome">Bem-vindo ao Morro Digital! Selecione um idioma:</p>
-            <button onclick="translatePage('pt')">Português</button>
-            <button onclick="translatePage('en')">Inglês</button>
-            <button onclick="translatePage('es')">Espanhol</button>
-            <button onclick="translatePage('he')">Hebraico</button>
-        </div>
-    </div>
-
+    <!-- Indicador de carregamento -->
     <div id="loading-indicator" style="display:none;">Carregando...</div>
+
+    <!-- Notificação -->
     <div id="notification" style="display:none;"></div>
+
+    <!-- Caixa de mensagens -->
     <div id="message-box" style="display:none;"></div>
+
+    <!-- Caixa de pesquisa -->
     <div id="search-box" style="display:none;">
         <input type="text" id="search-input" placeholder="Pesquisar..." data-translate="searchPlaceholder">
         <button onclick="searchMap()" data-translate="searchButton">Pesquisar</button>
     </div>
     <div id="searchResults" style="display:none;"></div>
 
+    <!-- Modal de detalhes -->
     <div id="detail-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('detail-modal')">&times;</span>
             <div id="detail-content"></div>
         </div>
     </div>
+
+    <!-- Rodapé com botões de redes sociais -->
+    <footer>
+        <div class="social-buttons">
+            <button onclick="shareOnFacebook()">Facebook</button>
+            <button onclick="shareOnTwitter()">Twitter</button>
+            <button onclick="shareOnInstagram()">Instagram</button>
+        </div>
+        <p>&copy; 2024 Morro de São Paulo Digital. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Scripts para integração com Leaflet, OpenStreetMap e funcionalidades do site -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
