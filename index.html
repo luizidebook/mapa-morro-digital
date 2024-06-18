@@ -1,132 +1,132 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morro Digital</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <title>Morro de São Paulo Digital</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="scripts.js" defer></script>
 </head>
 <body>
+    <div id="map"></div>
+    <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()">☰ Menu</button>
+    <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()">🎤</button>
+    <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()">💬</button>
+    <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
+
+    <div id="menu" style="display:none;">
+        <button class="menu-btn" onclick="toggleSubMenu('historiaSubMenu')">História de Morro</button>
+        <div id="historiaSubMenu" class="submenu" style="display:none;">
+            <h2>História de Morro de São Paulo</h2>
+            <p>Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...</p>
+            <img src="https://via.placeholder.com/250" alt="História de Morro de São Paulo">
+            <p>Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.</p>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('pontosTuristicosSubMenu')">Pontos Turísticos</button>
+        <div id="pontosTuristicosSubMenu" class="submenu" style="display:none;">
+            <h2>Pontos Turísticos</h2>
+            <div id="pontosTuristicosContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('passeiosSubMenu')">Passeios</button>
+        <div id="passeiosSubMenu" class="submenu" style="display:none;">
+            <h2>Passeios</h2>
+            <div id="passeiosContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('praiasSubMenu')">Praias</button>
+        <div id="praiasSubMenu" class="submenu" style="display:none;">
+            <h2>Praias</h2>
+            <div id="praiasContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('vidaNoturnaSubMenu')">Vida Noturna</button>
+        <div id="vidaNoturnaSubMenu" class="submenu" style="display:none;">
+            <h2>Vida Noturna</h2>
+            <div id="vidaNoturnaContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('restaurantesSubMenu')">Restaurantes</button>
+        <div id="restaurantesSubMenu" class="submenu" style="display:none;">
+            <h2>Restaurantes</h2>
+            <div id="restaurantesContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="loadSubMenu('pousadasSubMenu')">Pousadas</button>
+        <div id="pousadasSubMenu" class="submenu" style="display:none;">
+            <h2>Pousadas</h2>
+            <div id="pousadasContent"></div>
+        </div>
+
+        <button class="menu-btn" onclick="toggleSubMenu('dicasSubMenu')">Dicas</button>
+        <div id="dicasSubMenu" class="submenu" style="display:none;">
+            <h2>Dicas</h2>
+            <p>Confira dicas úteis para aproveitar ao máximo sua estadia em Morro de São Paulo...</p>
+            <img src="https://via.placeholder.com/250" alt="Dicas">
+            <p>Leve protetor solar, use roupas leves, e não esqueça de experimentar a culinária local!</p>
+        </div>
+
+        <button class="menu-btn" onclick="toggleSubMenu('emergenciasSubMenu')">Emergências</button>
+        <div id="emergenciasSubMenu" class="submenu" style="display:none;">
+            <h2>Emergências</h2>
+            <p>Encontre informações importantes de contatos de emergência em Morro de São Paulo...</p>
+            <img src="https://via.placeholder.com/250" alt="Emergências">
+            <ul>
+                <li>Polícia: 190</li>
+                <li>Ambulância: 192</li>
+                <li>Bombeiros: 193</li>
+                <li>Hospital de Morro de São Paulo: +55 75 3652-1000</li>
+            </ul>
+        </div>
+
+        <button class="menu-btn" onclick="toggleSubMenu('sobreSubMenu')">Sobre</button>
+        <div id="sobreSubMenu" class="submenu" style="display:none;">
+            <h2>Sobre</h2>
+            <p>Saiba mais sobre a Morro Digital, uma plataforma dedicada a fornecer informações úteis sobre Morro de São Paulo...</p>
+            <img src="https://via.placeholder.com/250" alt="Sobre">
+            <p>Nosso objetivo é fornecer informações atualizadas e precisas para ajudar visitantes a aproveitarem ao máximo sua visita.</p>
+        </div>
+    </div>
+
     <div id="welcome-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('welcome-modal')">&times;</span>
-            <h2>Bem-vindo ao Morro Digital!</h2>
-            <p>Para uma melhor experiência, por favor, permita o acesso à sua localização.</p>
-            <button onclick="requestGeolocationPermission()">Permitir</button>
+            <p data-translate="welcome">Bem-vindo ao Morro Digital! Selecione um idioma:</p>
+            <button onclick="translatePage('pt')">Português</button>
+            <button onclick="translatePage('en')">Inglês</button>
+            <button onclick="translatePage('es')">Espanhol</button>
+            <button onclick="translatePage('he')">Hebraico</button>
         </div>
     </div>
-    <div id="microphone-modal" class="modal">
+
+    <div id="loading-indicator" style="display:none;">Carregando...</div>
+    <div id="notification" style="display:none;"></div>
+    <div id="message-box" style="display:none;"></div>
+    <div id="search-box" style="display:none;">
+        <input type="text" id="search-input" placeholder="Pesquisar..." data-translate="searchPlaceholder">
+        <button onclick="searchMap()" data-translate="searchButton">Pesquisar</button>
+    </div>
+    <div id="searchResults" style="display:none;"></div>
+
+    <div id="detail-modal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('microphone-modal')">&times;</span>
-            <h2>Permitir Acesso ao Microfone</h2>
-            <p>Para interagir por voz com o Mapa e o Guia Virtual, permita o acesso ao microfone.</p>
-            <button onclick="requestMicrophonePermission()">Permitir</button>
+            <span class="close" onclick="closeModal('detail-modal')">&times;</span>
+            <div id="detail-content"></div>
         </div>
     </div>
-    <button id="menu-toggle-btn" onclick="toggleMenu()">☰ Menu</button>
-    <div id="loading">
-    </div>
-    <div id="map"></div>
-    <div id="message-box"></div>
-    <div id="menu">
-        <button class="menu-btn" onclick="handleMenuClick('guide-submenu')">Guia Interativo</button>
-        <div id="guide-submenu" class="submenu">
-            <button class="submenu-btn" onclick="createPersonalizedRoute()">Roteiro Personalizado</button>
-            <button class="submenu-btn" onclick="showMessage('dicas')">Dicas</button>
-            <button class="submenu-btn" onclick="openReservations()">Reservas</button>
-            <button class="submenu-btn" onclick="openTranslation()">Tradução</button>
-            <button class="submenu-btn" onclick="startVoiceRecognition()">Comandos de Voz</button>
+
+    <footer>
+        <div class="social-buttons">
+            <button onclick="shareOnFacebook()">Facebook</button>
+            <button onclick="shareOnTwitter()">Twitter</button>
+            <button onclick="shareOnInstagram()">Instagram</button>
         </div>
-        <!-- Other menu items -->
-        <button class="menu-btn" onclick="showMessage('historia')">História de Morro</button>
-        <button class="menu-btn" onclick="handleMenuClick('pontosTuristicosSubMenu')">Pontos Turísticos</button>
-        <div id="pontosTuristicosSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('passeiosSubMenu')">Passeios</button>
-        <div id="passeiosSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('praiasSubMenu')">Praias</button>
-        <div id="praiasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('vidaNoturnaSubMenu')">Vida Noturna</button>
-        <div id="vidaNoturnaSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('restaurantesSubMenu')">Restaurantes</button>
-        <div id="restaurantesSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('pousadasSubMenu')">Pousadas</button>
-        <div id="pousadasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="handleMenuClick('lojasSubMenu')">Lojas</button>
-        <div id="lojasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="showMessage('emergencias')">Emergências</button>
-        <button class="menu-btn" onclick="showMessage('sobre')">Sobre</button>
-    </div>
-    <div id="search-box">
-        <input type="text" id="search-input" placeholder="Buscar no mapa...">
-        <button onclick="searchMap()">Buscar</button>
-    </div>
-    <div id="searchResults" class="submenu"></div>
-    <div id="guide-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('guide-modal')">&times;</span>
-            <h2>Guia Interativo</h2>
-            <p>Faça perguntas sobre Morro de São Paulo:</p>
-            <input type="text" id="guide-input" placeholder="Digite sua pergunta...">
-            <button onclick="askGuide()">Perguntar</button>
-            <div id="guide-response"></div>
-        </div>
-    </div>
-    <div id="translation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('translation-modal')">&times;</span>
-            <h2>Tradução</h2>
-            <p>Selecione o idioma:</p>
-            <select id="language-select" onchange="translatePage()">
-                <option value="pt">Português</option>
-                <option value="en">Inglês</option>
-                <option value="es">Espanhol</option>
-                <option value="fr">Francês</option>
-                <option value="de">Alemão</option>
-            </select>
-        </div>
-    </div>
-    <div id="reservation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('reservation-modal')">&times;</span>
-            <h2>Reservas</h2>
-            <form id="reservation-form">
-                <label for="name">Nome:</label>
-                <input type="text" id="name" name="name" required>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-                <label for="date">Data da Reserva:</label>
-                <input type="date" id="date" name="date" required>
-                <label for="time">Hora da Reserva:</label>
-                <input type="time" id="time" name="time" required>
-                <label for="type">Tipo de Reserva:</label>
-                <select id="type" name="type" required>
-                    <option value="restaurante">Restaurante</option>
-                    <option value="pousada">Pousada</option>
-                    <option value="passeio">Passeio</option>
-                </select>
-                <button type="button" onclick="makeReservation()">Reservar</button>
-            </form>
-            <div id="reservation-response"></div>
-        </div>
-    </div>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web-speech-cognition"></script>
-    <script src="scripts.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }).catch(error => {
-                    console.log('ServiceWorker registration failed: ', error);
-                });
-        }
-    </script>
+        <p>&copy; 2024 Morro de São Paulo Digital. Todos os direitos reservados.</p>
+    </footer>
 </body>
 </html>
