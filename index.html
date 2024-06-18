@@ -18,12 +18,12 @@
             <span class="close" onclick="closeModal('welcome-modal')">&times;</span>
             <h2>Bem-vindo ao Morro Digital!</h2>
             <p>Selecione um idioma:</p>
-            <div class="flag-container">
+            <div class="language-selection">
                 <!-- Ícones de bandeiras para seleção de idioma -->
-                <img src="https://example.com/flags/br.png" alt="Português" onclick="selectLanguage('pt')">
-                <img src="https://example.com/flags/es.png" alt="Espanhol" onclick="selectLanguage('es')">
-                <img src="https://example.com/flags/en.png" alt="Inglês" onclick="selectLanguage('en')">
-                <img src="https://example.com/flags/he.png" alt="Hebraico" onclick="selectLanguage('he')">
+                <button onclick="selectLanguage('pt')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Português"></button>
+                <button onclick="selectLanguage('es')"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Espanhol"></button>
+                <button onclick="selectLanguage('en')"><img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" alt="Inglês"></button>
+                <button onclick="selectLanguage('he')"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Hebraico"></button>
             </div>
         </div>
     </div>
@@ -55,9 +55,9 @@
     <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
 
     <!-- Menu lateral -->
-    <div id="menu" style="display:none;">
+    <div id="menu">
         <button class="menu-btn" onclick="toggleSubMenu('historiaSubMenu')">História de Morro</button>
-        <div id="historiaSubMenu" class="submenu" style="display:none;">
+        <div id="historiaSubMenu" class="submenu">
             <h2>História de Morro de São Paulo</h2>
             <p>Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...</p>
             <img src="https://example.com/images/historia.jpg" alt="História de Morro de São Paulo">
@@ -65,57 +65,57 @@
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('pontosTuristicosSubMenu')">Pontos Turísticos</button>
-        <div id="pontosTuristicosSubMenu" class="submenu" style="display:none;">
+        <div id="pontosTuristicosSubMenu" class="submenu">
             <h2>Pontos Turísticos</h2>
             <div id="pontosTuristicosContent"></div>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('passeiosSubMenu')">Passeios</button>
-        <div id="passeiosSubMenu" class="submenu" style="display:none;">
+        <div id="passeiosSubMenu" class="submenu">
             <h2>Passeios</h2>
             <div id="passeiosContent"></div>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('praiasSubMenu')">Praias</button>
-        <div id="praiasSubMenu" class="submenu" style="display:none;">
+        <div id="praiasSubMenu" class="submenu">
             <h2>Praias</h2>
             <div id="praiasContent"></div>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('vidaNoturnaSubMenu')">Vida Noturna</button>
-        <div id="vidaNoturnaSubMenu" class="submenu" style="display:none;">
+        <div id="vidaNoturnaSubMenu" class="submenu">
             <h2>Vida Noturna</h2>
             <div id="vidaNoturnaContent"></div>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('restaurantesSubMenu')">Restaurantes</button>
-        <div id="restaurantesSubMenu" class="submenu" style="display:none;">
+        <div id="restaurantesSubMenu" class="submenu">
             <h2>Restaurantes</h2>
             <div id="restaurantesContent"></div>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('pousadasSubMenu')">Pousadas</button>
-        <div id="pousadasSubMenu" class="submenu" style="display:none;">
+        <div id="pousadasSubMenu" class="submenu">
             <h2>Pousadas</h2>
             <div id="pousadasContent"></div>
         </div>
     </div>
 
     <!-- Indicador de carregamento -->
-    <div id="loading-indicator" style="display:none;">Carregando...</div>
+    <div id="loading-indicator">Carregando...</div>
 
     <!-- Notificação -->
-    <div id="notification" style="display:none;"></div>
+    <div id="notification"></div>
 
     <!-- Caixa de mensagens -->
-    <div id="message-box" style="display:none;"></div>
+    <div id="message-box"></div>
 
     <!-- Caixa de pesquisa -->
-    <div id="search-box" style="display:none;">
+    <div id="search-box">
         <input type="text" id="search-input" placeholder="Pesquisar..." data-translate="searchPlaceholder">
         <button onclick="searchMap()" data-translate="searchButton">Pesquisar</button>
     </div>
-    <div id="searchResults" style="display:none;"></div>
+    <div id="searchResults"></div>
 
     <!-- Modal de detalhes -->
     <div id="detail-modal" class="modal">
