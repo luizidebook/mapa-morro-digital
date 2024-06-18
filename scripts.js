@@ -1,7 +1,5 @@
 let map;
 let routingControl;
-let pedestrianPaths = [];
-let informalPaths = [];
 let tutorialStep = 0;
 const tutorialSteps = [
     'Bem-vindo ao Morro Digital! Este tutorial irá guiá-lo através das funcionalidades do site.',
@@ -46,17 +44,6 @@ const queries = {
     lojasSubMenu: `[out:json];node["shop"](around:10000,-13.376,-38.913);out body;`
 };
 
-const pedestrianQuery = `
-[out:json];
-(
-  way["highway"="footway"](around:10000,-13.376,-38.913);
-  way["highway"="path"](around:10000,-13.376,-38.913);
-);
-out body;
->;;
-out skel qt;
-`;
-
 function initMap() {
     map = L.map('map').setView([-13.377778, -38.9125], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -65,10 +52,6 @@ function initMap() {
     L.marker([-13.377778, -38.9125]).addTo(map)
         .bindPopup('<b>Morro de São Paulo</b><br>Um lugar incrível!')
         .openPopup();
-    fetchOSMData(pedestrianQuery).then(data => {
-        pedestrianPaths = data.elements.filter(element => element.type === 'way' && element.tags.highway === 'footway');
-        informalPaths = data.elements.filter(element => element.type === 'way' && element.tags.highway === 'path');
-    });
 }
 
 function toggleMenu() {
@@ -257,26 +240,37 @@ function displayOSMData(data, container) {
         btn.className = 'submenu-item';
         btn.textContent = name;
         btn.onclick = () => {
-            const latLng = element.type === 'node' ? [element.lat, element.lon] : [element.bounds.minlat, element.bounds.minlon];
-            map.setView(latLng, 15);
-            if (routingControl) {
-                map.removeControl(routingControl);
+            if (element.type === 'node') {
+                map.setView([element.lat, element.lon], 15);
+                routeTo([element.lat, element.lon]);
+            } else if (element.type === 'way' && element.bounds) {
+                map.fitBounds([
+                    [element.bounds.minlat, element.bounds.minlon],
+                    [element.bounds.maxlat, element.bounds.maxlon]
+                ]);
+                const center = [
+                    (element.bounds.minlat + element.bounds.maxlat) / 2,
+                    (element.bounds.minlon + element.bounds.maxlon) / 2
+                ];
+                routeTo(center);
             }
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(-13.377778, -38.9125),
-                    L.latLng(latLng[0], latLng[1])
-                ],
-                routeWhileDragging: true,
-                router: L.Routing.osrmv1({
-                    serviceUrl: 'https://router.project-osrm.org/route/v1',
-                    profile: 'foot'
-                })
-            }).addTo(map);
             showDetailModal(name, `Detalhes sobre ${name}`);
         };
         container.appendChild(btn);
     });
+}
+
+function routeTo(destination) {
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(map.getCenter()),
+            L.latLng(destination)
+        ],
+        routeWhileDragging: true
+    }).addTo(map);
 }
 
 function startTutorial() {
