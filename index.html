@@ -42,15 +42,7 @@
             <button onclick="requestMicrophonePermission()" data-translate="allow" aria-label="Allow">Permitir</button>
         </div>
     </div>
-
-    <!-- Botões de controle flutuantes sobre o mapa -->
-    <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()">☰ Menu</button>
-    <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()">🎤</button>
-    <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()">💬</button>
-    <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
-    <!-- Remover o botão "Criar Roteiro" -->
-    <!-- <button id="create-itinerary-btn" aria-label="Create Itinerary" onclick="startTravelPlanning()" data-translate="createItinerary">Criar Roteiro</button> -->
-
+    
     <!-- Menu lateral -->
     <div id="menu" aria-labelledby="menuTitle">
         <h2 id="menuTitle" style="display:none;">Menu</h2>
@@ -162,11 +154,11 @@
         </div>
     </div>
     <footer>
-        <div class="social-buttons">
-            <button onclick="shareOnFacebook()" aria-label="Share on Facebook">Facebook</button>
-            <button onclick="shareOnTwitter()" aria-label="Share on Twitter">Twitter</button>
-            <button onclick="shareOnInstagram()" aria-label="Share on Instagram">Instagram</button>
-        </div>
+        <!-- Adicionar botões de controle no rodapé -->
+        <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()">🎤</button>
+        <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()">💬</button>
+        <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
+        <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()">☰ Menu</button>
         <p>&copy; 2024 Morro de São Paulo Digital. Todos os direitos reservados.</p>
     </footer>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>

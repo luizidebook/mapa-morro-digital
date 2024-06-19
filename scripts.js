@@ -226,8 +226,17 @@ function showInfo(name, coordinates) {
     const messageBox = document.getElementById('message-box');
     messageBox.style.display = 'block';
 
-    const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}`;
-    messageBox.innerHTML = `<p>${info}</p>`;
+    const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}... Aqui você encontrará informações sobre a história, atrações turísticas, e outras curiosidades de ${name}.`;
+    const photos = [
+        'https://via.placeholder.com/150', 
+        'https://via.placeholder.com/150', 
+        'https://via.placeholder.com/150', 
+        'https://via.placeholder.com/150', 
+        'https://via.placeholder.com/150'
+    ];
+
+    const carousel = photos.map(photo => `<img src="${photo}" alt="Foto de ${name}">`).join('');
+    messageBox.innerHTML = `<p>${info}</p><div class="carousel">${carousel}</div>`;
     speakText(info);
 
     if (coordinates) {
@@ -249,7 +258,7 @@ function showRoute(destination) {
         router: L.Routing.osrmv1({
             serviceUrl: 'https://api.openrouteservice.org/v2/directions/foot-walking',
             profile: 'foot-walking',
-            apiKey: '0XAI_Tzc3xqUoaaU_n7QYPgHAgd7bTSyuszQ2YjXSWQ'
+            apiKey: 'YOUR_API_KEY'
         }),
         geocoder: L.Control.Geocoder.nominatim(),
         createMarker: function() { return null; },
@@ -359,22 +368,6 @@ function handleVoiceCommand(command) {
     } else {
         alert(`Comando de voz não reconhecido: ${command}`);
     }
-}
-
-// Funções para compartilhar nas redes sociais
-function shareOnFacebook() {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-}
-
-function shareOnTwitter() {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('Confira o Morro Digital!');
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-}
-
-function shareOnInstagram() {
-    alert('Compartilhamento no Instagram não é suportado diretamente. Por favor, copie o link e cole no seu Instagram.');
 }
 
 // Função para exibir e ocultar modais
@@ -495,7 +488,7 @@ function submitFeedback() {
     if (feedbackInput) {
         console.log('Feedback recebido:', feedbackInput);
         alert('Obrigado pelo seu feedback!');
-        document.getElementById('feedback-box').style.display = 'none';
+        closeModal('feedback-box');
         adjustItinerary(feedbackInput);
     } else {
         alert('Por favor, insira seu feedback.');
