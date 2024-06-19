@@ -275,10 +275,10 @@ function toggleMenu() {
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
 
-// Função para alternar a visibilidade dos submenus
-function toggleSubMenu(subMenuId) {
-    const subMenu = document.getElementById(subMenuId);
-    subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
+// Função para alternar a visibilidade da caixa de mensagens
+function toggleMessage() {
+    const messageBox = document.getElementById('message-box');
+    messageBox.style.display = messageBox.style.display === 'none' ? 'block' : 'none';
 }
 
 // Função para alternar a visibilidade da caixa de pesquisa
