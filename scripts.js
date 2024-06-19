@@ -131,14 +131,14 @@ function requestMicrophonePermission() {
 
 // Inicializa o mapa com a localização do usuário
 function initializeMap() {
-    map = L.map('map').setView([-13.370273, -38.907545], 15); // Coordenadas de Morro de São Paulo
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15); // Centralizar no ponto atual do usuário
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    L.marker([-13.370273, -38.907545]).addTo(map)
-        .bindPopup('Morro de São Paulo')
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui')
         .openPopup();
 
     document.getElementById('loading-indicator').style.display = 'none';
@@ -186,12 +186,12 @@ function loadSubMenu(subMenuId) {
     subMenu.style.display = 'block';
 
     const queries = {
-        pontosTuristicosSubMenu: '[out:json];node["tourism"="attraction"](around:10000,-13.370273,-38.907545);out body;',
-        passeiosSubMenu: '[out:json];node["tourism"="information"](around:10000,-13.370273,-38.907545);out body;',
-        praiasSubMenu: '[out:json];node["natural"="beach"](around:10000,-13.370273,-38.907545);out body;',
-        vidaNoturnaSubMenu: '[out:json];node["amenity"="nightclub"](around:10000,-13.370273,-38.907545);out body;',
-        restaurantesSubMenu: '[out:json];node["amenity"="restaurant"](around:10000,-13.370273,-38.907545);out body;',
-        pousadasSubMenu: '[out:json];node["tourism"="hotel"](around:10000,-13.370273,-38.907545);out body;'
+        pontosTuristicosSubMenu: '[out:json];node["tourism"="attraction"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
+        passeiosSubMenu: '[out:json];node["tourism"="information"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
+        praiasSubMenu: '[out:json];node["natural"="beach"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
+        vidaNoturnaSubMenu: '[out:json];node["amenity"="nightclub"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
+        restaurantesSubMenu: '[out:json];node["amenity"="restaurant"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
+        pousadasSubMenu: '[out:json];node["tourism"="hotel"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;'
     };
 
     fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
@@ -286,7 +286,7 @@ function searchMap() {
         return;
     }
 
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=-38.92,-13.37,-38.89,-13.38&bounded=1`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${currentLocation.longitude - 0.1},${currentLocation.latitude - 0.1},${currentLocation.longitude + 0.1},${currentLocation.latitude + 0.1}&bounded=1`;
 
     fetch(url)
         .then(response => response.json())
