@@ -11,28 +11,32 @@ const tutorialSteps = {
         'Primeiro, veja o mapa interativo que mostra sua localização atual e permite explorar a área ao redor.',
         'Use o botão ☰ Menu para abrir e fechar o menu.',
         'No menu, você pode acessar informações sobre História de Morro, Pontos Turísticos, Passeios, Praias, Vida Noturna, Restaurantes, Pousadas.',
-        'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.'
+        'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.',
+        'Você pode planejar sua viagem utilizando o botão 📅 Planejar Viagem.'
     ],
     en: [
         'Welcome to Morro Digital! This tutorial will guide you through the site features.',
         'First, see the interactive map that shows your current location and allows you to explore the surrounding area.',
         'Use the ☰ Menu button to open and close the menu.',
         'In the menu, you can access information about the History of Morro, Tourist Spots, Tours, Beaches, Nightlife, Restaurants, Inns.',
-        'Click on any menu item to get more information in the message box.'
+        'Click on any menu item to get more information in the message box.',
+        'You can plan your trip using the 📅 Plan Trip button.'
     ],
     es: [
         '¡Bienvenido a Morro Digital! Este tutorial le guiará a través de las funciones del sitio.',
         'Primero, vea el mapa interactivo que muestra su ubicación actual y le permite explorar el área circundante.',
         'Use el botón ☰ Menú para abrir y cerrar el menú.',
         'En el menú, puede acceder a información sobre la Historia de Morro, Lugares Turísticos, Excursiones, Playas, Vida Nocturna, Restaurantes, Posadas.',
-        'Haga clic en cualquier elemento del menú para obtener más información en la caja de mensajes.'
+        'Haga clic en cualquier elemento del menú para obtener más información en la caja de mensajes.',
+        'Puede planear su viaje utilizando el botón 📅 Planear Viaje.'
     ],
     he: [
         'ברוך הבא ל-Morro Digital! מדריך זה ידריך אותך בתכונות האתר.',
         'ראשית, ראה את המפה האינטראקטיבית שמראה את המיקום הנוכחי שלך ומאפשרת לך לחקור את האזור שמסביב.',
         'השתמש בכפתור ☰ Menu לפתיחת וסגירת התפריט.',
         'בתפריט, תוכל לגשת למידע על ההיסטוריה של מורו, מקומות תיירותיים, סיורים, חופים, חיי לילה, מסעדות, בתי מלון.',
-        'לחץ על כל פריט בתפריט כדי לקבל מידע נוסף בתיבת ההודעות.'
+        'לחץ על כל פריט בתפריט כדי לקבל מידע נוסף בתיבת ההודעות.',
+        'אתה יכול לתכנן את הטיול שלך באמצעות כפתור 📅 תכנון טיול.'
     ]
 };
 
@@ -176,11 +180,6 @@ function speakText(text) {
     }
 }
 
-// Inicializa o mapa e mostra o modal de boas-vindas ao carregar a página
-window.addEventListener('load', () => {
-    openModal('welcome-modal');
-});
-
 // Função para exibir o submenu e carregar dados da OSM
 function loadSubMenu(subMenuId) {
     const subMenu = document.getElementById(subMenuId);
@@ -249,7 +248,7 @@ function showRoute(destination) {
         ],
         router: L.Routing.osrmv1({
             serviceUrl: 'https://api.openrouteservice.org/v2/directions/foot-walking',
-            profile: 'foot',
+            profile: 'foot-walking',
             apiKey: '0XAI_Tzc3xqUoaaU_n7QYPgHAgd7bTSyuszQ2YjXSWQ'
         }),
         geocoder: L.Control.Geocoder.nominatim(),
