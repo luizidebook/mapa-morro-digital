@@ -16,8 +16,8 @@
     <div id="welcome-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('welcome-modal')">&times;</span>
-            <h2>Bem-vindo ao Morro Digital!</h2>
-            <p>Selecione um idioma:</p>
+            <h2 data-translate="welcome">Bem-vindo ao Morro Digital!</h2>
+            <p data-translate="selectLanguage">Selecione um idioma:</p>
             <div class="language-selection">
                 <!-- Ícones de bandeiras para seleção de idioma -->
                 <button onclick="selectLanguage('pt')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Português"></button>
@@ -32,9 +32,9 @@
     <div id="location-permission-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('location-permission-modal')">&times;</span>
-            <h2>Permissão de Localização</h2>
-            <p>Precisamos de sua permissão para acessar sua localização:</p>
-            <button onclick="requestLocationPermission()">Permitir</button>
+            <h2 data-translate="locationPermission">Permissão de Localização</h2>
+            <p data-translate="locationPermissionText">Precisamos de sua permissão para acessar sua localização:</p>
+            <button onclick="requestLocationPermission()" data-translate="allow">Permitir</button>
         </div>
     </div>
 
@@ -42,9 +42,9 @@
     <div id="microphone-permission-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('microphone-permission-modal')">&times;</span>
-            <h2>Permissão de Microfone</h2>
-            <p>Precisamos de sua permissão para acessar seu microfone:</p>
-            <button onclick="requestMicrophonePermission()">Permitir</button>
+            <h2 data-translate="microphonePermission">Permissão de Microfone</h2>
+            <p data-translate="microphonePermissionText">Precisamos de sua permissão para acessar seu microfone:</p>
+            <button onclick="requestMicrophonePermission()" data-translate="allow">Permitir</button>
         </div>
     </div>
 
@@ -56,49 +56,31 @@
 
     <!-- Menu lateral -->
     <div id="menu">
-        <button class="menu-btn" onclick="toggleSubMenu('historiaSubMenu')">História de Morro</button>
+        <button class="menu-btn" onclick="showMessage('historia')">História de Morro</button>
         <div id="historiaSubMenu" class="submenu">
-            <h2>História de Morro de São Paulo</h2>
-            <p>Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...</p>
+            <h2 data-translate="historyTitle">História de Morro de São Paulo</h2>
+            <p data-translate="historyText1">Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...</p>
             <img src="https://example.com/images/historia.jpg" alt="História de Morro de São Paulo">
-            <p>Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.</p>
+            <p data-translate="historyText2">Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.</p>
         </div>
 
         <button class="menu-btn" onclick="loadSubMenu('pontosTuristicosSubMenu')">Pontos Turísticos</button>
-        <div id="pontosTuristicosSubMenu" class="submenu">
-            <h2>Pontos Turísticos</h2>
-            <div id="pontosTuristicosContent"></div>
-        </div>
+        <div id="pontosTuristicosSubMenu" class="submenu"></div>
 
         <button class="menu-btn" onclick="loadSubMenu('passeiosSubMenu')">Passeios</button>
-        <div id="passeiosSubMenu" class="submenu">
-            <h2>Passeios</h2>
-            <div id="passeiosContent"></div>
-        </div>
+        <div id="passeiosSubMenu" class="submenu"></div>
 
         <button class="menu-btn" onclick="loadSubMenu('praiasSubMenu')">Praias</button>
-        <div id="praiasSubMenu" class="submenu">
-            <h2>Praias</h2>
-            <div id="praiasContent"></div>
-        </div>
+        <div id="praiasSubMenu" class="submenu"></div>
 
         <button class="menu-btn" onclick="loadSubMenu('vidaNoturnaSubMenu')">Vida Noturna</button>
-        <div id="vidaNoturnaSubMenu" class="submenu">
-            <h2>Vida Noturna</h2>
-            <div id="vidaNoturnaContent"></div>
-        </div>
+        <div id="vidaNoturnaSubMenu" class="submenu"></div>
 
         <button class="menu-btn" onclick="loadSubMenu('restaurantesSubMenu')">Restaurantes</button>
-        <div id="restaurantesSubMenu" class="submenu">
-            <h2>Restaurantes</h2>
-            <div id="restaurantesContent"></div>
-        </div>
+        <div id="restaurantesSubMenu" class="submenu"></div>
 
         <button class="menu-btn" onclick="loadSubMenu('pousadasSubMenu')">Pousadas</button>
-        <div id="pousadasSubMenu" class="submenu">
-            <h2>Pousadas</h2>
-            <div id="pousadasContent"></div>
-        </div>
+        <div id="pousadasSubMenu" class="submenu"></div>
     </div>
 
     <!-- Indicador de carregamento -->

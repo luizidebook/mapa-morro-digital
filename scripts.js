@@ -57,8 +57,8 @@ const translations = {
         'Permissão de Microfone': 'Permiso de Micrófono',
         'Precisamos de sua permissão para acessar seu microfone:': 'Necesitamos su permiso para acceder a su micrófono:',
         'História de Morro de São Paulo': 'Historia de Morro de São Paulo',
-        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'Conozca la rica historia de Morro de São Paulo, una isla llena de cultura y tradiciones...',
-        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.': 'Fundada en el siglo XVI, Morro de São Paulo tiene una historia fascinante que incluye invasiones de piratas, construcciones coloniales y mucho más.'
+        'Conheça a rica história de Morro de São Paulo, uma ilha llena de cultura y tradiciones...': 'Conozca la rica historia de Morro de São Paulo, una isla llena de cultura y tradiciones...',
+        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasiones de piratas, construcciones coloniales y mucho más.': 'Fundada en el siglo XVI, Morro de São Paulo tiene una historia fascinante que incluye invasiones de piratas, construcciones coloniales y mucho más.'
     },
     he: {
         'Bem-vindo ao Morro Digital!': 'ברוך הבא ל-Morro Digital!',
@@ -130,7 +130,7 @@ function initializeMap() {
     map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
@@ -152,6 +152,7 @@ function nextTutorialStep() {
     if (tutorialStep < tutorialSteps[selectedLanguage].length) {
         messageBox.innerHTML = `<p>${tutorialSteps[selectedLanguage][tutorialStep]}</p><button onclick="nextTutorialStep()">Próximo</button>`;
         speakText(tutorialSteps[selectedLanguage][tutorialStep]);
+        messageBox.style.display = 'block';
         tutorialStep++;
     } else {
         messageBox.style.display = 'none';
@@ -170,12 +171,12 @@ function loadSubMenu(subMenuId) {
     subMenu.style.display = 'block';
 
     const queries = {
-        pontosTuristicosSubMenu: `[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;`,
-        passeiosSubMenu: `[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;`,
-        praiasSubMenu: `[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;`,
-        vidaNoturnaSubMenu: `[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;`,
-        restaurantesSubMenu: `[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;`,
-        pousadasSubMenu: `[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;`
+        pontosTuristicosSubMenu: '[out:json];node["tourism"="attraction"];out body;',
+        passeiosSubMenu: '[out:json];node["tourism"="information"];out body;',
+        praiasSubMenu: '[out:json];node["natural"="beach"];out body;',
+        vidaNoturnaSubMenu: '[out:json];node["amenity"="nightclub"];out body;',
+        restaurantesSubMenu: '[out:json];node["amenity"="restaurant"];out body;',
+        pousadasSubMenu: '[out:json];node["tourism"="hotel"];out body;'
     };
 
     fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
@@ -194,7 +195,8 @@ function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
     data.elements.forEach(element => {
-        if (element.type === 'node' && element.tags.name) { // Adiciona apenas se houver um nome
+        if (element.type === 'node' && element.tags.name) {
+            // Adiciona apenas se houver um nome
             const btn = document.createElement('button');
             btn.className = 'submenu-btn';
             btn.textContent = element.tags.name;
@@ -351,6 +353,22 @@ function displaySearchResults(results) {
         btn.onclick = () => showInfo(result.name, [result.lat, result.lon]);
         subMenu.appendChild(btn);
     });
+}
+
+// Funções para compartilhar nas redes sociais
+function shareOnFacebook() {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+}
+
+function shareOnTwitter() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Confira o Morro Digital!');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+}
+
+function shareOnInstagram() {
+    alert('Compartilhamento no Instagram não é suportado diretamente. Por favor, copie o link e cole no seu Instagram.');
 }
 
 // Inicializa o mapa e mostra o modal de boas-vindas ao carregar a página
