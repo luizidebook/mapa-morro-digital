@@ -144,19 +144,6 @@ body, html {
     z-index: 1002;
 }
 
-#message-box {
-    position: fixed;
-    top: 220px;
-    left: 10px;
-    width: 315px;
-    height: 500px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    display: none;
-    z-index: 1001;
-}
-
 #search-box {
     position: fixed;
     top: 10px;
