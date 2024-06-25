@@ -1,169 +1,138 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morro Digital</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"></script>
+    <script defer src="scripts.js"></script>
 </head>
 <body>
     <div id="map"></div>
+    
+    <div class="button-container">
+        <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()" data-tutorial="Este é o botão de menu. Clique para abrir o menu."> '☰' </button>
+        <button id="plan-trip-btn" aria-label="Plan Trip" onclick="startTravelPlanning()" data-tutorial="Clique aqui para planejar sua viagem.">📅</button>
+        <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()" data-tutorial="Clique aqui para iniciar o reconhecimento de voz.">🎤</button>
+        <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()" data-tutorial="Clique aqui para abrir a caixa de mensagens.">💬</button>
+        <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()" data-tutorial="Clique aqui para abrir a barra de pesquisa.">🔍</button>
+    </div>
 
-    <div id="welcome-modal" class="modal" aria-labelledby="welcomeTitle" aria-describedby="selectLanguage">
+    <div id="menu" class="submenu">
+        <button class="menu-btn" data-submenu="history-submenu">História de Morro</button>
+        <div id="history-submenu" class="submenu">
+            <p>A história de Morro de São Paulo é rica e fascinante, com raízes que remontam ao período colonial...</p>
+        </div>
+        <button class="menu-btn" onclick="loadSubMenu('touristSpots-submenu')">Pontos Turísticos</button>
+        <div id="touristSpots-submenu" class="submenu"></div>
+        <button class="menu-btn" onclick="loadSubMenu('tours-submenu')">Passeios</button>
+        <div id="tours-submenu" class="submenu"></div>
+        <button class="menu-btn" onclick="loadSubMenu('beaches-submenu')">Praias</button>
+        <div id="beaches-submenu" class="submenu"></div>
+        <button class="menu-btn" onclick="loadSubMenu('nightlife-submenu')">Vida Noturna</button>
+        <div id="nightlife-submenu" class="submenu"></div>
+        <button class="menu-btn" onclick="loadSubMenu('restaurants-submenu')">Restaurantes</button>
+        <div id="restaurants-submenu" class="submenu"></div>
+        <button class="menu-btn" onclick="loadSubMenu('inns-submenu')">Pousadas</button>
+        <div id="inns-submenu" class="submenu"></div>
+        <button class="menu-btn" data-submenu="shops-submenu">Lojas</button>
+        <div id="shops-submenu" class="submenu"></div>
+        <button class="menu-btn" data-submenu="tips-submenu">Dicas</button>
+        <div id="tips-submenu" class="submenu">
+            <p>Para aproveitar melhor sua visita a Morro de São Paulo, considere estas dicas...</p>
+        </div>
+        <button class="menu-btn" data-submenu="emergencies-submenu">Emergências</button>
+        <div id="emergencies-submenu" class="submenu">
+            <p>Em caso de emergência, ligue para os seguintes números...</p>
+        </div>
+        <button class="menu-btn" data-submenu="about-submenu">Sobre</button>
+        <div id="about-submenu" class="submenu">
+            <p>Este site foi criado para fornecer informações abrangentes sobre Morro de São Paulo...</p>
+        </div>
+        <button class="menu-btn" onclick="manageRewards()">Ganhar Recompensa</button>
+        <button class="menu-btn" onclick="useRewards()">Usar Recompensa</button>
+    </div>
+
+    <div id="search-box" class="modal">
+        <input type="text" id="search-input" placeholder="Pesquisar...">
+        <button id="search-button" onclick="searchMap()">Pesquisar</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div id="message-box" class="modal">
+        <textarea id="feedback-input" placeholder="Deixe seu feedback aqui..."></textarea>
+        <button id="submit-feedback-btn" onclick="sendFeedback(event)">Enviar Feedback</button>
+    </div>
+
+    <div id="welcome-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('welcome-modal')" aria-label="Close">&times;</button>
-            <h2 id="welcomeTitle" data-translate="welcome">Bem-vindo ao Morro Digital!</h2>
-            <p id="selectLanguage" data-translate="selectLanguage">Selecione um idioma:</p>
+            <h2 data-translate="welcome">Bem-vindo ao Morro Digital! Você gostaria de iniciar o tutorial que te ensinará todas as funcionalidades do site?</h2>
+            <p data-translate="selectLanguage">Selecione um idioma:</p>
             <div class="language-selection">
-                <button onclick="selectLanguage('pt')" aria-label="Português"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Português"></button>
-                <button onclick="selectLanguage('es')" aria-label="Espanhol"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Espanhol"></button>
-                <button onclick="selectLanguage('en')" aria-label="Inglês"><img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" alt="Inglês"></button>
-                <button onclick="selectLanguage('he')" aria-label="Hebraico"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Hebraico"></button>
+                <button onclick="selectLanguage('pt')"><img src="bandeira_brasil.png" alt="Português"></button>
+                <button onclick="selectLanguage('es')"><img src="bandeira_espanha.png" alt="Espanhol"></button>
+                <button onclick="selectLanguage('en')"><img src="bandeira_eua.png" alt="Inglês"></button>
+                <button onclick="selectLanguage('he')"><img src="bandeira_israel.png" alt="Hebraico"></button>
             </div>
         </div>
     </div>
 
-    <div id="location-permission-modal" class="modal" aria-labelledby="locationPermissionTitle" aria-describedby="locationPermissionText">
+    <div id="location-permission-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('location-permission-modal')" aria-label="Close">&times;</button>
-            <h2 id="locationPermissionTitle" data-translate="locationPermission">Permissão de Localização</h2>
-            <p id="locationPermissionText" data-translate="locationPermissionText">Precisamos de sua permissão para acessar sua localização:</p>
-            <button onclick="requestLocationPermission()" data-translate="allow" aria-label="Allow">Permitir</button>
+            <h2 data-translate="locationPermission">Permissão de Localização</h2>
+            <p data-translate="locationPermissionText">Precisamos de sua permissão para acessar sua localização:</p>
+            <button id="allow-location-btn" onclick="requestLocationPermission()" data-translate="allow">Permitir</button>
         </div>
     </div>
 
-    <div id="microphone-permission-modal" class="modal" aria-labelledby="microphonePermissionTitle" aria-describedby="microphonePermissionText">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('microphone-permission-modal')" aria-label="Close">&times;</button>
-            <h2 id="microphonePermissionTitle" data-translate="microphonePermission">Permissão de Microfone</h2>
-            <p id="microphonePermissionText" data-translate="microphonePermissionText">Precisamos de sua permissão para acessar seu microfone:</p>
-            <button onclick="requestMicrophonePermission()" data-translate="allow" aria-label="Allow">Permitir</button>
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-content">
+            <p id="tutorial-message"></p>
+            <div class="tutorial-nav">
+                <button id="tutorial-start-btn" class="tutorial-button" onclick="startTutorial()" data-translate="start">Começar</button>
+                <button id="tutorial-yes-btn" class="tutorial-button" onclick="confirmTutorial()" data-translate="yes">Sim</button>
+                <button id="tutorial-no-btn" class="tutorial-button" onclick="endTutorial()" data-translate="no">Não</button>
+                <button id="tutorial-next-btn" class="tutorial-button" onclick="nextTutorialStep()" data-translate="next">Avançar</button>
+                <button id="tutorial-prev-btn" class="tutorial-button" onclick="previousTutorialStep()" data-translate="prev">Voltar</button>
+                <button id="tutorial-end-btn" class="tutorial-button" onclick="endTutorial()" data-translate="end">Encerrar Tutorial</button>
+                <button id="tutorial-create-itinerary-btn" class="tutorial-button" onclick="createItinerary()" data-translate="tutorial-create-itinerary-btn">Criar Roteiro</button>
+            </div>
+            <div id="progress-bar">
+                <div id="progress"></div>
+            </div>
         </div>
     </div>
-    
-    <!-- Menu lateral -->
-    <div id="menu" aria-labelledby="menuTitle">
-        <h2 id="menuTitle" style="display:none;">Menu</h2>
-        <!-- Adicionar "plan-trip-btn" como o primeiro item do menu lateral -->
-        <button class="menu-btn" onclick="startTravelPlanning()" data-translate="planTrip">Planejar Viagem</button>
-        <button class="menu-btn" onclick="showMessage('historia')" data-translate="history">História de Morro</button>
-        <div id="historiaSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('pontosTuristicosSubMenu')" data-translate="touristSpots">Pontos Turísticos</button>
-        <div id="pontosTuristicosSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('passeiosSubMenu')" data-translate="tours">Passeios</button>
-        <div id="passeiosSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('praiasSubMenu')" data-translate="beaches">Praias</button>
-        <div id="praiasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('vidaNoturnaSubMenu')" data-translate="nightlife">Vida Noturna</button>
-        <div id="vidaNoturnaSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('restaurantesSubMenu')" data-translate="restaurants">Restaurantes</button>
-        <div id="restaurantesSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('pousadasSubMenu')" data-translate="inns">Pousadas</button>
-        <div id="pousadasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('lojasSubMenu')" data-translate="shops">Lojas</button>
-        <div id="lojasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('dicasSubMenu')" data-translate="tips">Dicas</button>
-        <div id="dicasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('emergenciasSubMenu')" data-translate="emergencies">Emergências</button>
-        <div id="emergenciasSubMenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('sobreSubMenu')" data-translate="about">Sobre</button>
-        <div id="sobreSubMenu" class="submenu"></div>
+
+    <div id="tutorial-progress-container">
+        <div id="tutorial-progress-bar"></div>
     </div>
 
-    <div id="loading-indicator" data-translate="loading">Carregando...</div>
-    <div id="notification"></div>
-    <div id="message-box"></div>
-    <div id="search-box">
-        <label for="search-input" class="visually-hidden">Pesquisar</label>
-        <input type="text" id="search-input" placeholder="Pesquisar..." data-translate="searchPlaceholder" aria-label="Search">
-        <button onclick="searchMap()" data-translate="searchButton" aria-label="Search">Pesquisar</button>
+    <div id="itinerary-box" class="modal">
+        <div id="itinerary-content" class="modal-content"></div>
+        <button onclick="closeModal('itinerary-box')" data-translate="close">Fechar</button>
     </div>
-    <div id="searchResults"></div>
-    <div id="detail-modal" class="modal" aria-labelledby="detailTitle">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('detail-modal')" aria-label="Close">&times;</button>
-            <div id="detail-content"></div>
+
+    <div id="loading-indicator" class="loading-indicator">Carregando...</div>
+
+    <div id="weather-info" class="weather-info">
+        <img id="weather-icon" src="" alt="Weather Icon">
+        <div>
+            <div id="weather-description"></div>
+            <div id="temperature"></div>
         </div>
     </div>
-    <div id="question-box" class="modal" aria-labelledby="questionTitle">
+
+    <div id="guided-tour-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('question-box')" aria-label="Close">&times;</button>
-            <h2 id="questionTitle" data-translate="createItinerary">Criar Roteiro</h2>
-            <form id="itinerary-form">
-                <label for="user-name" data-translate="name">Nome:</label>
-                <input type="text" id="user-name" required>
-
-                <label for="user-origin" data-translate="origin">De onde você é?</label>
-                <input type="text" id="user-origin" required>
-
-                <label data-translate="firstVisit">É a primeira vez que visita Morro de São Paulo?</label>
-                <input type="radio" name="first-visit" value="sim" required> Sim
-                <input type="radio" name="first-visit" value="não" required> Não
-
-                <label for="activities-done" data-translate="activitiesDone">Quais atividades já realizou em Morro?</label>
-                <textarea id="activities-done"></textarea>
-
-                <label for="visited-places" data-translate="visitedPlaces">Quais pontos turísticos já visitou?</label>
-                <textarea id="visited-places"></textarea>
-
-                <label for="visited-beaches" data-translate="visitedBeaches">Quais praias já conheceu?</label>
-                <textarea id="visited-beaches"></textarea>
-
-                <label for="tours-done" data-translate="toursDone">Já realizou algum passeio em Morro? Se sim, qual?</label>
-                <textarea id="tours-done"></textarea>
-
-                <label for="attended-parties" data-translate="attendedParties">Já foi em alguma festa em Morro? Se sim, qual?</label>
-                <textarea id="attended-parties"></textarea>
-
-                <label for="preferred-parties" data-translate="preferredParties">Quais as opções de festas disponíveis são mais do seu agrado?</label>
-                <textarea id="preferred-parties"></textarea>
-
-                <label for="preferred-cuisine" data-translate="preferredCuisine">Qual o tipo de gastronomia tem mais interesse em experimentar?</label>
-                <textarea id="preferred-cuisine"></textarea>
-
-                <label data-translate="locationPreference">Tem preferência por local próximo à vila ou às praias?</label>
-                <input type="radio" name="location-preference" value="vila" required> Vila
-                <input type="radio" name="location-preference" value="praias" required> Praias
-
-                <label for="user-budget" data-translate="budget">Atualmente, qual é o valor que você tem disponível para utilizar?</label>
-                <input type="number" id="user-budget" required>
-
-                <label for="stay-duration" data-translate="stayDuration">Quantos dias você ficará em Morro de São Paulo?</label>
-                <input type="number" id="stay-duration" required>
-
-                <button type="button" onclick="collectUserData()" data-translate="submit">Enviar</button>
-            </form>
+            <h2 data-translate="tourGuideMessage">Este é um tour guiado pelos principais pontos turísticos de Morro de São Paulo. Aproveite!</h2>
+            <div id="tour-guide-content"></div>
+            <button onclick="closeModal('guided-tour-modal')" data-translate="close">Fechar</button>
         </div>
     </div>
-    <div id="itinerary-box" class="modal" aria-labelledby="itineraryTitle">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('itinerary-box')" aria-label="Close">&times;</button>
-            <div id="itinerary-content"></div>
-            <button onclick="openFeedbackModal()" data-translate="feedback">Enviar Feedback</button>
-        </div>
-    </div>
-    <div id="feedback-box" class="modal" aria-labelledby="feedbackTitle">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('feedback-box')" aria-label="Close">&times;</button>
-            <h2 id="feedbackTitle" data-translate="feedback">Feedback</h2>
-            <label for="feedback-input" class="visually-hidden">Deixe seu feedback aqui...</label>
-            <textarea id="feedback-input" placeholder="Deixe seu feedback aqui..." data-translate="feedbackPlaceholder"></textarea>
-            <button onclick="submitFeedback()" data-translate="submitFeedback">Enviar Feedback</button>
-        </div>
-    </div>
-    <footer>
-        <!-- Adicionar botões de controle no rodapé -->
-        <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()">🎤</button>
-        <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()">💬</button>
-        <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()">🔍</button>
-        <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()">☰ Menu</button>
-        <p>&copy; 2024 Morro de São Paulo Digital. Todos os direitos reservados.</p>
-    </footer>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script src="scripts.js"></script>
 </body>
 </html>

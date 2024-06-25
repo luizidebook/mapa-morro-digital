@@ -18,9 +18,6 @@ self.addEventListener('install', event => {
             .then(cache => {
                 return cache.addAll(urlsToCache);
             })
-            .catch(error => {
-                console.error('Error during cache installation:', error);
-            })
     );
 });
 
@@ -29,13 +26,6 @@ self.addEventListener('fetch', event => {
         caches.match(event.request)
             .then(response => {
                 return response || fetch(event.request);
-            })
-            .catch(error => {
-                console.error('Error during fetch:', error);
-                return new Response('Network error occurred', {
-                    status: 408,
-                    statusText: 'Network error'
-                });
             })
     );
 });
@@ -51,9 +41,6 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
-        })
-        .catch(error => {
-            console.error('Error during cache activation:', error);
         })
     );
 });

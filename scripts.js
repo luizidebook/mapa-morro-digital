@@ -4,78 +4,258 @@ let routingControl;
 let tutorialStep = 0;
 let selectedLanguage = 'pt';
 
-// Passos do tutorial em diferentes idiomas
-const tutorialSteps = {
-    pt: [
-        'Bem-vindo ao Morro Digital! Este tutorial irá guiá-lo através das funcionalidades do site.',
-        'Primeiro, veja o mapa interativo que mostra sua localização atual e permite explorar a área ao redor.',
-        'Use o botão ☰ Menu para abrir e fechar o menu.',
-        'No menu, você pode acessar informações sobre História de Morro, Pontos Turísticos, Passeios, Praias, Vida Noturna, Restaurantes, Pousadas.',
-        'Clique em qualquer item do menu para obter mais informações na caixa de mensagens.',
-        'Você pode planejar sua viagem utilizando o botão 📅 Planejar Viagem.'
-    ],
-    en: [
-        'Welcome to Morro Digital! This tutorial will guide you through the site features.',
-        'First, see the interactive map that shows your current location and allows you to explore the surrounding area.',
-        'Use the ☰ Menu button to open and close the menu.',
-        'In the menu, you can access information about the History of Morro, Tourist Spots, Tours, Beaches, Nightlife, Restaurants, Inns.',
-        'Click on any menu item to get more information in the message box.',
-        'You can plan your trip using the 📅 Plan Trip button.'
-    ],
-    es: [
-        '¡Bienvenido a Morro Digital! Este tutorial le guiará a través de las funciones del sitio.',
-        'Primero, vea el mapa interactivo que muestra su ubicación actual y le permite explorar el área circundante.',
-        'Use el botón ☰ Menú para abrir y cerrar el menú.',
-        'En el menú, puede acceder a información sobre la Historia de Morro, Lugares Turísticos, Excursiones, Playas, Vida Nocturna, Restaurantes, Posadas.',
-        'Haga clic en cualquier elemento del menú para obtener más información en la caja de mensajes.',
-        'Puede planear su viaje utilizando el botón 📅 Planear Viaje.'
-    ],
-    he: [
-        'ברוך הבא ל-Morro Digital! מדריך זה ידריך אותך בתכונות האתר.',
-        'ראשית, ראה את המפה האינטראקטיבית שמראה את המיקום הנוכחי שלך ומאפשרת לך לחקור את האזור שמסביב.',
-        'השתמש בכפתור ☰ Menu לפתיחת וסגירת התפריט.',
-        'בתפריט, תוכל לגשת למידע על ההיסטוריה של מורו, מקומות תיירותיים, סיורים, חופים, חיי לילה, מסעדות, בתי מלון.',
-        'לחץ על כל פריט בתפריט כדי לקבל מידע נוסף בתיבת ההודעות.',
-        'אתה יכול לתכנן את הטיול שלך באמצעות כפתור 📅 תכנון טיול.'
-    ]
-};
-
 // Tradução dos textos
 const translations = {
-    en: {
-        'Bem-vindo ao Morro Digital!': 'Welcome to Morro Digital!',
-        'Selecione um idioma:': 'Select a language:',
-        'Permissão de Localização': 'Location Permission',
-        'Precisamos de sua permissão para acessar sua localização:': 'We need your permission to access your location:',
-        'Permissão de Microfone': 'Microphone Permission',
-        'Precisamos de sua permissão para acessar seu microfone:': 'We need your permission to access your microphone:',
-        'História de Morro de São Paulo': 'History of Morro de São Paulo',
-        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'Learn about the rich history of Morro de São Paulo, an island full of culture and traditions...',
-        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasões de piratas, construções coloniais e muito mais.': 'Founded in the 16th century, Morro de São Paulo has a fascinating history that includes pirate invasions, colonial buildings, and much more.'
+    pt: {
+        welcome: "Bem-vindo ao Morro Digital! Você gostaria de iniciar o tutorial que te ensinará todas as funcionalidades do site?",
+        selectLanguage: "Selecione um idioma:",
+        locationPermission: "Permissão de Localização",
+        locationPermissionText: "Precisamos de sua permissão para acessar sua localização:",
+        allow: "Permitir",
+        createItinerary: "Você deseja criar um roteiro de atividades em Morro de São Paulo personalizado para suas preferências?",
+        name: "Nome:",
+        origin: "De onde você é?",
+        firstVisit: "É a primeira vez que visita Morro de São Paulo?",
+        activitiesDone: "Quais atividades já realizou em Morro?",
+        visitedPlaces: "Quais pontos turísticos já visitou?",
+        visitedBeaches: "Quais praias já conheceu?",
+        toursDone: "Já realizou algum passeio em Morro? Se sim, qual?",
+        attendedParties: "Já foi em alguma festa em Morro? Se sim, qual?",
+        preferredParties: "Quais as opções de festas disponíveis são mais do seu agrado?",
+        preferredCuisine: "Qual o tipo de gastronomia tem mais interesse em experimentar?",
+        locationPreference: "Tem preferência por local próximo à vila ou às praias?",
+        budget: "Atualmente, qual é o valor que você tem disponível para utilizar?",
+        stayDuration: "Quantos dias você ficará em Morro de São Paulo?",
+        submit: "Enviar",
+        feedback: "Enviar Feedback",
+        feedbackPlaceholder: "Deixe seu feedback aqui...",
+        submitFeedback: "Enviar Feedback",
+        tutorialStep1: "Bem-vindo ao tutorial! Clique em próximo para continuar.",
+        tutorialStep2: "Aqui você pode ver o mapa de Morro de São Paulo.",
+        tutorialStep3: "Use o menu lateral para navegar entre as categorias.",
+        tutorialStep4: "Clique em 'Planejar Viagem' para criar um roteiro personalizado.",
+        tutorialStep5: "Você pode enviar feedback clicando no botão correspondente.",
+        tutorialStep6: "Você deseja criar um roteiro de atividades em Morro de São Paulo personalizado para suas preferências?",
+        searchPlaceholder: "Pesquisar...",
+        searchButton: "Pesquisar",
+        loading: "Carregando...",
+        voiceFeedback: "Feedback por Voz",
+        tutorialComplete: "Tutorial completo!",
+        shareFacebook: "Facebook",
+        shareTwitter: "Twitter",
+        shareInstagram: "Instagram",
+        thankYou: "Obrigado pelo seu feedback! Um novo roteiro será gerado com base no seu feedback.",
+        start: "Começar",
+        yes: "Sim",
+        no: "Não",
+        next: "Avançar",
+        prev: "Voltar",
+        end: "Encerrar Tutorial",
+        menu: "Menu",
+        planTrip: "📅",
+        voiceRec: "🎤",
+        message: "💬",
+        search: "🔍",
+        touristSpots: "Pontos Turísticos",
+        tours: "Passeios",
+        beaches: "Praias",
+        nightlife: "Vida Noturna",
+        restaurants: "Restaurantes",
+        inns: "Pousadas",
+        pointsOfInterest: "Pontos de Interesse",
+        history: "História",
+        gastronomy: "Gastronomia",
+        shopping: "Compras",
+        emergencies: "Emergências"
     },
     es: {
-        'Bem-vindo ao Morro Digital!': '¡Bienvenido a Morro Digital!',
-        'Selecione um idioma:': 'Seleccione un idioma:',
-        'Permissão de Localização': 'Permiso de Ubicación',
-        'Precisamos de sua permissão para acessar sua localização:': 'Necesitamos su permiso para acceder a su ubicación:',
-        'Permissão de Microfone': 'Permiso de Micrófono',
-        'Precisamos de sua permissão para acessar seu microfone:': 'Necesitamos su permiso para acceder a su micrófono:',
-        'História de Morro de São Paulo': 'Historia de Morro de São Paulo',
-        'Conheça a rica história de Morro de São Paulo, uma ilha llena de cultura y tradiciones...': 'Conozca la rica historia de Morro de São Paulo, una isla llena de cultura y tradiciones...',
-        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui invasiones de piratas, construcciones coloniales y mucho más.': 'Fundada en el siglo XVI, Morro de São Paulo tiene una historia fascinante que incluye invasiones de piratas, construcciones coloniales y mucho más.'
+        welcome: "¡¡Bienvenidos a Morro Digital! ¿Te gustaría comenzar el tutorial que te enseñará todas las características del sitio?",
+        selectLanguage: "Seleccione un idioma:",
+        locationPermission: "Permiso de ubicación",
+        locationPermissionText: "Necesitamos su permiso para acceder a su ubicación:",
+        allow: "Permitir",
+        createItinerary: "¿Quieres crear un itinerario de actividades en Morro de São Paulo personalizado según tus preferencias?",
+        name: "Nombre:",
+        origin: "¿De dónde eres?",
+        firstVisit: "¿Es la primera vez que visita Morro de São Paulo?",
+        activitiesDone: "¿Qué actividades has realizado en Morro?",
+        visitedPlaces: "¿Qué puntos turísticos has visitado?",
+        visitedBeaches: "¿Qué playas has conocido?",
+        toursDone: "¿Has realizado algún tour en Morro? Si es así, ¿cuál?",
+        attendedParties: "¿Has asistido a alguna fiesta en Morro? Si es así, ¿cuál?",
+        preferredParties: "¿Qué opciones de fiestas disponibles son de tu agrado?",
+        preferredCuisine: "¿Qué tipo de gastronomía te interesa probar?",
+        locationPreference: "¿Prefieres un lugar cerca del pueblo o de las playas?",
+        budget: "¿Cuál es el presupuesto disponible para usar?",
+        stayDuration: "¿Cuántos días te quedarás en Morro de São Paulo?",
+        submit: "Enviar",
+        feedback: "Enviar Comentarios",
+        feedbackPlaceholder: "Deja tus comentarios aquí...",
+        submitFeedback: "Enviar Comentarios",
+        tutorialStep1: "¡Bienvenido al tutorial! Haga clic en siguiente para continuar.",
+        tutorialStep2: "Aquí puedes ver el mapa de Morro de São Paulo.",
+        tutorialStep3: "Utiliza el menú lateral para navegar entre las categorías.",
+        tutorialStep4: "Haz clic en 'Planificar Viaje' para crear un itinerario personalizado.",
+        tutorialStep5: "Puedes enviar comentarios haciendo clic en el botón correspondiente.",
+        tutorialStep6: "¿Quieres crear un itinerario de actividades en Morro de São Paulo personalizado según tus preferencias?",
+        searchPlaceholder: "Buscar...",
+        searchButton: "Buscar",
+        loading: "Cargando...",
+        voiceFeedback: "Comentarios por Voz",
+        tutorialComplete: "¡Tutorial completo!",
+        shareFacebook: "Facebook",
+        shareTwitter: "Twitter",
+        shareInstagram: "Instagram",
+        thankYou: "Gracias por tus comentarios! Se generará un nuevo itinerario basado en tus comentarios.",
+        start: "Comenzar",
+        yes: "Sí",
+        no: "No",
+        next: "Avanzar",
+        prev: "Atrás",
+        end: "Finalizar Tutorial",
+        menu: "Menú",
+        planTrip: "📅",
+        voiceRec: "🎤",
+        message: "💬",
+        search: "🔍",
+        touristSpots: "Puntos Turísticos",
+        tours: "Tours",
+        beaches: "Playas",
+        nightlife: "Vida Nocturna",
+        restaurants: "Restaurantes",
+        inns: "Posadas",
+        pointsOfInterest: "Puntos de Interés",
+        history: "Historia",
+        gastronomy: "Gastronomía",
+        shopping: "Compras",
+        emergencies: "Emergencias"
+    },
+    en: {
+        welcome: "Welcome to Morro Digital! Would you like to start the tutorial that will teach you all the site's features?",
+        selectLanguage: "Select a language:",
+        locationPermission: "Location Permission",
+        locationPermissionText: "We need your permission to access your location:",
+        allow: "Allow",
+        createItinerary: "Do you want to create an itinerary of activities in Morro de São Paulo personalized to your preferences?",
+        name: "Name:",
+        origin: "Where are you from?",
+        firstVisit: "Is this your first time visiting Morro de São Paulo?",
+        activitiesDone: "What activities have you done in Morro?",
+        visitedPlaces: "Which tourist spots have you visited?",
+        visitedBeaches: "Which beaches have you visited?",
+        toursDone: "Have you done any tours in Morro? If yes, which one?",
+        attendedParties: "Have you attended any parties in Morro? If yes, which one?",
+        preferredParties: "Which available party options are to your liking?",
+        preferredCuisine: "What type of cuisine are you interested in trying?",
+        locationPreference: "Do you prefer a location near the village or the beaches?",
+        budget: "What is your available budget to use?",
+        stayDuration: "How many days will you stay in Morro de São Paulo?",
+        submit: "Submit",
+        feedback: "Submit Feedback",
+        feedbackPlaceholder: "Leave your feedback here...",
+        submitFeedback: "Submit Feedback",
+        tutorialStep1: "Welcome to the tutorial! Click next to continue.",
+        tutorialStep2: "Here you can see the map of Morro de São Paulo.",
+        tutorialStep3: "Use the side menu to navigate between categories.",
+        tutorialStep4: "Click 'Plan Trip' to create a personalized itinerary.",
+        tutorialStep5: "You can send feedback by clicking the corresponding button.",
+        tutorialStep6: "Do you want to create an itinerary of activities in Morro de São Paulo personalized to your preferences?",
+        searchPlaceholder: "Search...",
+        searchButton: "Search",
+        loading: "Loading...",
+        voiceFeedback: "Voice Feedback",
+        tutorialComplete: "Tutorial complete!",
+        shareFacebook: "Facebook",
+        shareTwitter: "Twitter",
+        shareInstagram: "Instagram",
+        thankYou: "Thank you for your feedback! A new itinerary will be generated based on your feedback.",
+        start: "Start",
+        yes: "Yes",
+        no: "No",
+        next: "Next",
+        prev: "Back",
+        end: "End Tutorial",
+        menu: "Menu",
+        planTrip: "📅",
+        voiceRec: "🎤",
+        message: "💬",
+        search: "🔍",
+        touristSpots: "Tourist Spots",
+        tours: "Tours",
+        beaches: "Beaches",
+        nightlife: "Nightlife",
+        restaurants: "Restaurants",
+        inns: "Inns",
+        pointsOfInterest: "Points of Interest",
+        history: "History",
+        gastronomy: "Gastronomy",
+        shopping: "Shopping",
+        emergencies: "Emergencies"
     },
     he: {
-        'Bem-vindo ao Morro Digital!': 'ברוך הבא ל-Morro Digital!',
-        'Selecione um idioma:': 'בחר שפה:',
-        'Permissão de Localização': 'הרשאת מיקום',
-        'Precisamos de sua permissão para acessar sua localização:': 'אנו זקוקים להרשאתך כדי לגשת למיקומך:',
-        'Permissão de Microfone': 'הרשאת מיקרופון',
-        'Precisamos de sua permissão para acessar seu microfone:': 'אנו זקוקים להרשאתך כדי לגשת למיקרופון שלך:',
-        'História de Morro de São Paulo': 'ההיסטוריה של מורו דה סאו פאולו',
-        'Conheça a rica história de Morro de São Paulo, uma ilha cheia de cultura e tradições...': 'למד על ההיסטוריה העשירה של מורו דה סאו פאולו, אי מלא בתרבות ומסורות...',
-        'Fundada no século XVI, Morro de São Paulo tem uma história fascinante que inclui פלישות פיראטים, מבנים קולוניאליים והרבה יותר.': 'נוסדה במאה ה-16, למורו דה סאו פאולו יש היסטוריה מרתקת הכוללת פלישות פיראטים, מבנים קולוניאליים והרבה יותר.'
+        welcome: "ברוכים הבאים למורו דיגיטל! האם תרצה להתחיל את המדריך שילמד אותך את כל תכונות האתר?",
+        selectLanguage: "בחר שפה:",
+        locationPermission: "אישור מיקום",
+        locationPermissionText: "אנו צריכים את אישורך כדי לגשת למיקומך:",
+        allow: "אפשר",
+        createItinerary: "צהאם אתה רוצה ליצור מסלול פעילויות במורו דה סאו פאולו בהתאמה אישית להעדפותיך?",
+        name: "שם:",
+        origin: "מאיפה אתה?",
+        firstVisit: "האם זו הפעם הראשונה שלך במורו דה סאו פאולו?",
+        activitiesDone: "אילו פעילויות עשית במורו?",
+        visitedPlaces: "אילו אתרים תיירותיים ביקרת?",
+        visitedBeaches: "אילו חופים ביקרת?",
+        toursDone: "האם עשית סיורים במורו? אם כן, איזה?",
+        attendedParties: "האם השתתפת במסיבות במורו? אם כן, איזה?",
+        preferredParties: "אילו אפשרויות מסיבות הן לטעמך?",
+        preferredCuisine: "איזה סוג אוכל אתה מעוניין לנסות?",
+        locationPreference: "האם אתה מעדיף מקום קרוב לכפר או לחופים?",
+        budget: "מה התקציב הזמין שלך?",
+        stayDuration: "כמה ימים תשהה במורו דה סאו פאולו?",
+        submit: "שלח",
+        feedback: "שלח משוב",
+        feedbackPlaceholder: "השאר את המשוב שלך כאן...",
+        submitFeedback: "שלח משוב",
+        tutorialStep1: "ברוך הבא למדריך! לחץ על הבא כדי להמשיך.",
+        tutorialStep2: "כאן תוכל לראות את מפת מורו דה סאו פאולו.",
+        tutorialStep3: "השתמש בתפריט הצד כדי לנווט בין הקטגוריות.",
+        tutorialStep4: "לחץ על 'תכנן טיול' כדי ליצור מסלול מותאם אישית.",
+        tutorialStep5: "תוכל לשלוח משוב בלחיצה על הכפתור המתאים.",
+        tutorialStep6: "צהאם אתה רוצה ליצור מסלול פעילויות במורו דה סאו פאולו בהתאמה אישית להעדפותיך?",
+        searchPlaceholder: "חפש...",
+        searchButton: "חפש",
+        loading: "טוען...",
+        voiceFeedback: "משוב קולי",
+        tutorialComplete: "המדריך הושלם!",
+        shareFacebook: "פייסבוק",
+        shareTwitter: "טוויטר",
+        shareInstagram: "אינסטגרם",
+        thankYou: "תודה על המשוב שלך! מסלול חדש ייווצר בהתבסס על המשוב שלך.",
+        start: "התחל",
+        yes: "כן",
+        no: "לא",
+        next: "הבא",
+        prev: "הקודם",
+        end: "סיים הדרכה",
+        menu: "תפריט",
+        planTrip: "📅",
+        voiceRec: "🎤",
+        message: "💬",
+        search: "🔍",
+        touristSpots: "אתרי תיירות",
+        tours: "סיורים",
+        beaches: "חופים",
+        nightlife: "חיי לילה",
+        restaurants: "מסעדות",
+        inns: "אכסניות",
+        pointsOfInterest: "נקודות עניין",
+        history: "היסטוריה",
+        gastronomy: "גסטרונומיה",
+        shopping: "קניות",
+        emergencies: "חירום"
     }
 };
+
 
 // Função para traduzir o conteúdo do site
 function selectLanguage(lang) {
@@ -93,119 +273,174 @@ function requestLocationPermission() {
         currentLocation = position.coords;
         initializeMap();
         closeModal('location-permission-modal');
-        openModal('microphone-permission-modal');
+        startTutorial();
     }, error => {
         alert('Não foi possível obter sua localização.');
     });
 }
 
-// Função para solicitar permissão de microfone
-function requestMicrophonePermission() {
-    if ('webkitSpeechRecognition' in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onstart = function() {
-            closeModal('microphone-permission-modal');
-            alert('Permissão de microfone concedida.');
-            startTutorial();
-        };
-
-        recognition.onerror = function(event) {
-            if (event.error === 'not-allowed') {
-                alert('Permissão de microfone negada.');
-            }
-        };
-
-        recognition.onend = function() {
-            console.log('Reconhecimento de voz encerrado.');
-        };
-
-        recognition.start();
-    } else {
-        alert('API de reconhecimento de voz não suportada neste navegador.');
-    }
-}
-
 // Inicializa o mapa com a localização do usuário
 function initializeMap() {
-    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15); // Centralizar no ponto atual do usuário
+    map = L.map('map').setView([-13.375, -38.915], 15); // Coordenadas de Morro de São Paulo
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
-        .bindPopup('Você está aqui')
+        .bindPopup('Você está aqui!')
         .openPopup();
 
     document.getElementById('loading-indicator').style.display = 'none';
 }
 
 // Inicia o tutorial interativo
-function startTutorial() {
-    tutorialStep = 0;
-    nextTutorialStep();
+const tutorialSteps = [
+    { element: '#map', message: { pt: "Este é o mapa interativo de Morro de São Paulo.", en: "This is the interactive map of Morro de São Paulo.", es: "Este es el mapa interactivo de Morro de São Paulo.", he: "זהו המפה האינטראקטיבית של מורו דה סאו פאולו." } },
+    { element: '#menu-toggle-btn', message: { pt: "Clique no botão 'Menu' para acessar as categorias.", en: "Click the 'Menu' button to access the categories.", es: "Haz clic en el botón 'Menú' para acceder a las categorías.", he: "לחץ על כפתור 'תפריט' כדי לגשת לקטגוריות." } },
+    { element: '#plan-trip-btn', message: { pt: "Clique no botão 'Planejar Viagem' para criar um roteiro.", en: "Click the 'Plan Trip' button to create a route.", es: "Haz clic en el botón 'Planear Viaje' para crear una ruta.", he: "לחץ על כפתור 'תכנן טיול' כדי ליצור מסלול." } },
+    { element: '#voice-rec-btn', message: { pt: "Clique no botão '🎤' para iniciar o reconhecimento de voz.", en: "Click the '🎤' button to start voice recognition.", es: "Haz clic en el botón '🎤' para iniciar el reconocimiento de voz.", he: "לחץ על כפתור '🎤' כדי להתחיל זיהוי קול." } },
+    { element: '#message-toggle-btn', message: { pt: "Clique no botão '💬' para abrir a caixa de mensagens.", en: "Click the '💬' button to open the message box.", es: "Haz clic en el botón '💬' para abrir el cuadro de mensajes.", he: "לחץ על כפתור '💬' כדי לפתוח את תיבת ההודעות." } },
+    { element: '#search-toggle-btn', message: { pt: "Clique no botão '🔍' para abrir a barra de pesquisa.", en: "Click the '🔍' button to open the search bar.", es: "Haz clic en el botón '🔍' para abrir la barra de búsqueda.", he: "לחץ על כפתור '🔍' כדי לפתוח את סרגל החיפוש." } },
+    { element: null, message: { pt: "Você deseja criar um roteiro de atividades em Morro de São Paulo personalizado para suas preferências?", en: "Do you want to create an itinerary of activities in Morro de São Paulo personalized to your preferences?", es: "¿Quieres crear un itinerario de actividades en Morro de São Paulo personalizado según tus preferencias?", he: "צהאם אתה רוצה ליצור מסלול פעילויות במורו דה סאו פאולו בהתאמה אישית להעדפותיך?" } }
+];
+
+let currentStep = 0;
+
+function showTutorialStep(step) {
+    const { element, message } = tutorialSteps[step];
+    const targetElement = element ? document.querySelector(element) : null;
+    const tutorialOverlay = document.querySelector('#tutorial-overlay');
+    const tutorialMessage = document.querySelector('#tutorial-message');
+
+    // Atualizar a mensagem do tutorial
+    tutorialMessage.innerText = message[selectedLanguage];
+
+    // Remover overlays anteriores
+    const previousOverlays = document.querySelectorAll('.highlight-overlay');
+    previousOverlays.forEach(overlay => overlay.remove());
+
+    if (element) {
+        // Adicionar novo overlay de destaque
+        const rect = targetElement.getBoundingClientRect();
+        const highlightOverlay = document.createElement('div');
+        highlightOverlay.className = 'highlight-overlay';
+        highlightOverlay.style.position = 'absolute';
+        highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
+        highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
+        highlightOverlay.style.width = `${rect.width}px`;
+        highlightOverlay.style.height = `${rect.height}px`;
+        highlightOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        highlightOverlay.style.zIndex = '10000';
+        document.body.appendChild(highlightOverlay);
+    }
+
+    tutorialOverlay.style.display = 'block';
+
+    // Mostrar ou ocultar os botões de navegação conforme necessário
+    document.querySelector('#tutorial-prev-btn').style.display = step > 0 ? 'inline-block' : 'none';
+    document.querySelector('#tutorial-next-btn').style.display = step < tutorialSteps.length - 1 ? 'inline-block' : 'none';
+    document.querySelector('#tutorial-end-btn').style.display = step === tutorialSteps.length - 1 ? 'inline-block' : 'none';
+    document.querySelector('#tutorial-create-itinerary-btn').style.display = step === tutorialSteps.length - 1 ? 'inline-block' : 'none';
+
+    document.querySelector('#tutorial-start-btn').style.display = 'none';
+    document.querySelector('#tutorial-yes-btn').style.display = 'none';
+    document.querySelector('#tutorial-no-btn').style.display = 'none';
 }
 
-// Mostra o próximo passo do tutorial
 function nextTutorialStep() {
-    const messageBox = document.getElementById('message-box');
-    if (tutorialStep < tutorialSteps[selectedLanguage].length) {
-        messageBox.innerHTML = `<p>${tutorialSteps[selectedLanguage][tutorialStep]}</p><button onclick="nextTutorialStep()">Próximo</button>`;
-        speakText(tutorialSteps[selectedLanguage][tutorialStep]);
-        messageBox.style.display = 'block';
-        tutorialStep++;
+    if (currentStep < tutorialSteps.length) {
+        showTutorialStep(currentStep);
+        currentStep++;
     } else {
-        messageBox.style.display = 'none';
+        endTutorial();
     }
 }
 
-// Fecha o tutorial
-function closeTutorial() {
-    const messageBox = document.getElementById('message-box');
-    messageBox.style.display = 'none';
-}
-
-// Função para exibir mensagens de texto
-function speakText(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
-        speechSynthesis.speak(utterance);
-    } else {
-        console.warn('API de síntese de voz não suportada neste navegador.');
+function previousTutorialStep() {
+    if (currentStep > 0) {
+        currentStep--;
+        showTutorialStep(currentStep);
     }
 }
 
-// Função para exibir o submenu e carregar dados da OSM
-function loadSubMenu(subMenuId) {
-    const subMenu = document.getElementById(subMenuId);
-    subMenu.style.display = 'block';
-
-    const queries = {
-        pontosTuristicosSubMenu: '[out:json];node["tourism"="attraction"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
-        passeiosSubMenu: '[out:json];node["tourism"="information"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
-        praiasSubMenu: '[out:json];node["natural"="beach"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
-        vidaNoturnaSubMenu: '[out:json];node["amenity"="nightclub"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
-        restaurantesSubMenu: '[out:json];node["amenity"="restaurant"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;',
-        pousadasSubMenu: '[out:json];node["tourism"="hotel"](around:10000,' + currentLocation.latitude + ',' + currentLocation.longitude + ');out body;'
-    };
-
-    fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
+function startTutorial() {
+    currentStep = 0;
+    showWelcomeModal();
 }
 
-// Busca dados da OpenStreetMap
+function endTutorial() {
+    document.querySelector('#tutorial-overlay').style.display = 'none';
+    const overlayElements = document.querySelectorAll('.highlight-overlay');
+    overlayElements.forEach(element => element.remove());
+
+    alert(translations[selectedLanguage].tutorialComplete);
+}
+
+function showWelcomeModal() {
+    const welcomeModal = document.createElement('div');
+    welcomeModal.className = 'tutorial-modal';
+    welcomeModal.innerHTML = `
+        <div class="tutorial-modal-content">
+            <p>${translations[selectedLanguage].welcome}</p>
+            <button id="start-tutorial-btn">${translations[selectedLanguage].start}</button>
+        </div>
+    `;
+    document.body.appendChild(welcomeModal);
+
+    document.querySelector('#start-tutorial-btn').addEventListener('click', () => {
+        welcomeModal.remove();
+        showConfirmationModal();
+    });
+}
+
+function showConfirmationModal() {
+    const confirmationModal = document.createElement('div');
+    confirmationModal.className = 'tutorial-modal';
+    confirmationModal.innerHTML = `
+        <div class="tutorial-modal-content">
+            <p>${translations[selectedLanguage].createItinerary}</p>
+            <button id="confirm-tutorial-btn">${translations[selectedLanguage].yes}</button>
+            <button id="decline-tutorial-btn">${translations[selectedLanguage].no}</button>
+        </div>
+    `;
+    document.body.appendChild(confirmationModal);
+
+    document.querySelector('#confirm-tutorial-btn').addEventListener('click', () => {
+        confirmationModal.remove();
+        nextTutorialStep();
+    });
+
+    document.querySelector('#decline-tutorial-btn').addEventListener('click', () => {
+        confirmationModal.remove();
+        endTutorial();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#next-tutorial-btn').addEventListener('click', nextTutorialStep);
+    document.querySelector('#prev-tutorial-btn').addEventListener('click', previousTutorialStep);
+    document.querySelector('#end-tutorial-btn').addEventListener('click', endTutorial);
+    document.querySelector('#tutorial-create-itinerary-btn').addEventListener('click', endTutorial);
+    // Inicia o tutorial com o idioma padrão
+    selectLanguage('pt');
+    startTutorial();
+});
+
+// Função para buscar dados da OpenStreetMap
 async function fetchOSMData(query) {
-    const url = `https://overpass-api.de/api/interpreter?data=${query}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar dados da OSM:', error);
+    }
 }
 
-// Exibe os dados da OpenStreetMap
+// Função para exibir os dados da OpenStreetMap
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
@@ -226,17 +461,8 @@ function showInfo(name, coordinates) {
     const messageBox = document.getElementById('message-box');
     messageBox.style.display = 'block';
 
-    const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}... Aqui você encontrará informações sobre a história, atrações turísticas, e outras curiosidades de ${name}.`;
-    const photos = [
-        'https://via.placeholder.com/150', 
-        'https://via.placeholder.com/150', 
-        'https://via.placeholder.com/150', 
-        'https://via.placeholder.com/150', 
-        'https://via.placeholder.com/150'
-    ];
-
-    const carousel = photos.map(photo => `<img src="${photo}" alt="Foto de ${name}">`).join('');
-    messageBox.innerHTML = `<p>${info}</p><div class="carousel">${carousel}</div>`;
+    const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}`;
+    messageBox.innerHTML = `<p>${info}</p>`;
     speakText(info);
 
     if (coordinates) {
@@ -256,9 +482,8 @@ function showRoute(destination) {
             L.latLng(destination[0], destination[1])
         ],
         router: L.Routing.osrmv1({
-            serviceUrl: 'https://api.openrouteservice.org/v2/directions/foot-walking',
-            profile: 'foot-walking',
-            apiKey: 'YOUR_API_KEY'
+            serviceUrl: 'https://router.project-osrm.org/route/v1/',
+            profile: 'foot'
         }),
         geocoder: L.Control.Geocoder.nominatim(),
         createMarker: function() { return null; },
@@ -269,61 +494,21 @@ function showRoute(destination) {
     }).addTo(map);
 }
 
-// Função para alternar a visibilidade do menu
-function toggleMenu() {
-    const menu = document.getElementById('menu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
+// Função para carregar o submenu com dados da OSM
+function loadSubMenu(subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.style.display = 'block';
 
-// Função para alternar a visibilidade da caixa de mensagens
-function toggleMessage() {
-    const messageBox = document.getElementById('message-box');
-    messageBox.style.display = messageBox.style.display === 'none' ? 'block' : 'none';
-}
+    const queries = {
+        'touristSpots-submenu': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
+        'tours-submenu': '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
+        'beaches-submenu': '[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;',
+        'nightlife-submenu': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
+        'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
+        'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;'
+    };
 
-// Função para alternar a visibilidade da caixa de pesquisa
-function toggleSearch() {
-    const searchBox = document.getElementById('search-box');
-    searchBox.style.display = searchBox.style.display === 'none' ? 'block' : 'none';
-}
-
-// Função para buscar locais no mapa
-function searchMap() {
-    const query = document.getElementById('search-input').value;
-    if (!query) {
-        alert('Por favor, insira um termo de pesquisa.');
-        return;
-    }
-
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${currentLocation.longitude - 0.1},${currentLocation.latitude - 0.1},${currentLocation.longitude + 0.1},${currentLocation.latitude + 0.1}&bounded=1`;
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            const searchResults = data.map(place => ({
-                name: place.display_name,
-                lat: place.lat,
-                lon: place.lon
-            }));
-            displaySearchResults(searchResults);
-        })
-        .catch(error => {
-            console.error('Erro na busca:', error);
-            alert('Erro ao buscar locais. Tente novamente mais tarde.');
-        });
-}
-
-// Função para exibir resultados de pesquisa
-function displaySearchResults(results) {
-    const subMenu = document.getElementById('searchResults');
-    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
-    results.forEach(result => {
-        const btn = document.createElement('button');
-        btn.className = 'submenu-btn';
-        btn.textContent = result.name;
-        btn.onclick = () => showInfo(result.name, [result.lat, result.lon]);
-        subMenu.appendChild(btn);
-    });
+    fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
 }
 
 // Função para iniciar o reconhecimento de voz
@@ -341,7 +526,6 @@ function startVoiceRecognition() {
 
         recognition.onerror = function(event) {
             console.error('Erro no reconhecimento de voz:', event.error);
-            alert('Erro no reconhecimento de voz. Tente novamente.');
         };
 
         recognition.onend = function() {
@@ -370,6 +554,17 @@ function handleVoiceCommand(command) {
     }
 }
 
+
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function handleMenuClick(subMenuId) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.style.display = subMenu.style.display === 'none' ? 'block' : 'none';
+}
+
 // Função para exibir e ocultar modais
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'block';
@@ -379,260 +574,545 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
+// Função para exibir mensagens de texto
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage;
+        speechSynthesis.speak(utterance);
+    } else {
+        console.warn('API de síntese de voz não suportada neste navegador.');
+    }
+}
+
+// Função para alternar a visibilidade da caixa de pesquisa
+function toggleSearch() {
+    const searchBox = document.getElementById('search-box');
+    searchBox.style.display = searchBox.style.display === 'none' ? 'block' : 'none';
+}
+
+// Função para buscar locais no mapa
+function searchMap() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const searchResults = document.getElementById('searchResults');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    
+    searchResults.style.display = 'none';
+    loadingIndicator.style.display = 'block';
+
+    const pointsOfInterest = [
+        { name: 'Farol do Morro', lat: -13.375, lng: -38.917 },
+        { name: 'Praia de Gamboa', lat: -13.367, lng: -38.911 },
+        { name: 'Igreja Nossa Senhora da Luz', lat: -13.379, lng: -38.914 },
+        { name: 'Forte de Morro de São Paulo', lat: -13.379, lng: -38.914 },
+        { name: 'Fonte Grande', lat: -13.379, lng: -38.914 }
+    ];
+
+    setTimeout(() => {
+        searchResults.innerHTML = '';
+        pointsOfInterest.forEach(point => {
+            if (point.name.toLowerCase().includes(searchTerm)) {
+                const resultItem = document.createElement('div');
+                resultItem.textContent = point.name;
+                resultItem.onclick = () => {
+                    map.setView([point.lat, point.lng], 15);
+                    L.popup()
+                        .setLatLng([point.lat, point.lng])
+                        .setContent(point.name)
+                        .openOn(map);
+                    showDetailModal(point.name, 'Detalhes sobre ' + point.name);
+                };
+                searchResults.appendChild(resultItem);
+            }
+        });
+
+        if (searchResults.innerHTML === '') {
+            searchResults.innerHTML = 'Nenhum resultado encontrado.';
+        }
+
+        loadingIndicator.style.display = 'none';
+        searchResults.style.display = 'block';
+    }, 1000); // Simulação de tempo de carregamento
+}
+
+
+// Função para exibir resultados de pesquisa
+function displaySearchResults(results) {
+    const subMenu = document.getElementById('searchResults');
+    subMenu.innerHTML = ''; // Limpa o submenu antes de adicionar os novos elementos
+    results.forEach(result => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-btn';
+        btn.textContent = result.name;
+        btn.onclick = () => showInfo(result.name, [result.lat, result.lon]);
+        subMenu.appendChild(btn);
+    });
+}
+
 // Inicializa o mapa e mostra o modal de boas-vindas ao carregar a página
 window.addEventListener('load', () => {
     openModal('welcome-modal');
 });
 
-// Dados de perguntas e respostas para o planejamento de viagens
-const questions = [
-    "Qual é o seu nome?",
-    "De onde você é? (Estado e cidade)",
-    "É a primeira vez que visita o Morro de São Paulo?",
-    "Quais atividades já realizou em Morro desde que chegou?",
-    "Já visitou ou conhece a famosa Toca do Morcego?",
-    "Quais pontos turísticos já visitou?",
-    "Quais praias já conheceu?",
-    "Já realizou algum passeio em Morro? Se sim, qual?",
-    "Já foi a alguma festa em Morro? Quais as opções de festas disponíveis são mais do seu agrado?",
-    "Qual o tipo de gastronomia tem mais interesse em experimentar?",
-    "Tem preferência por local próximo à vila ou às praias?",
-    "Atualmente, qual é o valor que você tem disponível para utilizar?",
-    "Quantos dias pretende ficar em Morro de São Paulo?",
-    "Prefere atividades mais tranquilas ou mais aventureiras?"
-];
+// Funções para compartilhar nas redes sociais
+function shareOnFacebook() {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+}
 
-// Função para gerar o roteiro personalizado com base nas respostas do usuário
-function generateItinerary(answers) {
-    const [name, location, firstTime, activities, morcego, points, beaches, tour, party, cuisine, proximity, budget, days, preference] = answers;
-    const totalDays = parseInt(days) || 3;
+function shareOnTwitter() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Confira o Morro Digital!');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+}
 
-    const itinerary = {
-        name: name,
-        days: totalDays,
-        activities: []
-    };
+function shareOnInstagram() {
+    alert('Compartilhamento no Instagram não é suportado diretamente. Por favor, copie o link e cole no seu Instagram.');
+}
 
-    for (let i = 1; i <= totalDays; i++) {
-        const dayPlan = { day: i, activities: [] };
+// Função para gerenciar recompensas do usuário
+function manageRewards() {
+    // Exemplo de lógica para gerenciar recompensas
+    let rewards = localStorage.getItem('rewards') || 0;
+    rewards++;
+    localStorage.setItem('rewards', rewards);
+    alert(`Você ganhou uma recompensa! Total de recompensas: ${rewards}`);
+}
 
-        if (i === 1) {
-            if (firstTime.toLowerCase() === 'sim') {
-                dayPlan.activities.push("Visita à Toca do Morcego", "Passeio pelas praias principais");
-            } else {
-                dayPlan.activities.push("Passeio por pontos turísticos menos conhecidos", "Exploração das praias alternativas");
-            }
-        } else if (i === totalDays) {
-            if (budget && parseInt(budget) > 1000) {
-                dayPlan.activities.push("Passeio de barco pelas ilhas próximas", "Visita a uma pousada de luxo");
-            } else {
-                dayPlan.activities.push("Passeio de barco econômico", "Exploração de atrações gratuitas");
-            }
-        } else {
-            if (party.toLowerCase() === 'sim') {
-                dayPlan.activities.push("Festa noturna em Morro", "Jantar em um restaurante de gastronomia local");
-            } else {
-                dayPlan.activities.push("Tour histórico pelo centro de Morro de São Paulo", "Jantar em um restaurante de gastronomia local");
-            }
-        }
-
-        if (preference.toLowerCase() === 'tranquilas') {
-            dayPlan.activities.push("Visita a um spa", "Caminhada tranquila pela praia");
-        } else {
-            dayPlan.activities.push("Aventura de tirolesa", "Mergulho nas praias");
-        }
-
-        itinerary.activities.push(dayPlan);
+// Função para usar recompensas
+function useRewards() {
+    let rewards = localStorage.getItem('rewards') || 0;
+    if (rewards > 0) {
+        rewards--;
+        localStorage.setItem('rewards', rewards);
+        alert(`Você usou uma recompensa! Total de recompensas restantes: ${rewards}`);
+    } else {
+        alert('Você não tem recompensas suficientes.');
     }
-
-    return itinerary;
 }
 
-// Função para exibir o roteiro personalizado
-function displayItinerary(itinerary) {
-    const itineraryContent = document.getElementById('itinerary-content');
-    itineraryContent.innerHTML = `<h2>Roteiro de ${itinerary.days} Dias para ${itinerary.name}</h2>`;
+// Adicionando botões de recompensas no menu
+document.getElementById('menu').innerHTML += `
+    <button class="menu-btn" onclick="manageRewards()">Ganhar Recompensa</button>
+    <button class="menu-btn" onclick="useRewards()">Usar Recompensa</button>
+`;
 
-    itinerary.activities.forEach(dayPlan => {
-        const dayDiv = document.createElement('div');
-        dayDiv.innerHTML = `<h3>Dia ${dayPlan.day}</h3>`;
-        dayPlan.activities.forEach(activity => {
-            const activityItem = document.createElement('p');
-            activityItem.textContent = activity;
-            dayDiv.appendChild(activityItem);
+// Função para buscar a previsão do tempo
+function fetchWeather() {
+    const apiKey = 'YOUR_WEATHER_API_KEY';
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&units=metric&lang=${selectedLanguage}&appid=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayWeather(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar a previsão do tempo:', error);
         });
-        itineraryContent.appendChild(dayDiv);
-    });
-
-    document.getElementById('itinerary-box').style.display = 'block';
-
-    // Solicitar feedback após exibir o roteiro
-    setTimeout(requestItineraryFeedback, 1000);
 }
 
-// Função para solicitar feedback do usuário sobre o roteiro
-function requestItineraryFeedback() {
-    const feedbackBox = document.getElementById('feedback-box');
-    feedbackBox.innerHTML = `
-        <h2>Feedback do Roteiro</h2>
-        <p>O que você achou do roteiro?</p>
-        <textarea id="feedback-input" rows="4" cols="50"></textarea>
-        <button onclick="submitFeedback()">Enviar Feedback</button>
+// Função para exibir a previsão do tempo
+function displayWeather(data) {
+    const weatherBox = document.getElementById('weather-box');
+    const weatherContent = document.getElementById('weather-content');
+    weatherContent.innerHTML = `
+        <p>${data.weather[0].description}</p>
+        <p>Temperatura: ${data.main.temp}°C</p>
+        <p>Umidade: ${data.main.humidity}%</p>
+        <p>Vento: ${data.wind.speed} m/s</p>
     `;
-    feedbackBox.style.display = 'block';
+    weatherBox.style.display = 'block';
 }
 
-// Função para enviar o feedback do usuário
-function submitFeedback() {
-    const feedbackInput = document.getElementById('feedback-input').value.trim();
-    if (feedbackInput) {
-        console.log('Feedback recebido:', feedbackInput);
-        alert('Obrigado pelo seu feedback!');
-        closeModal('feedback-box');
-        adjustItinerary(feedbackInput);
-    } else {
-        alert('Por favor, insira seu feedback.');
-    }
+// Chama a função fetchWeather após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
 }
 
-// Função para ajustar o roteiro com base no feedback do usuário
-function adjustItinerary(feedback) {
-    console.log('Ajustando o roteiro com base no feedback:', feedback);
-    if (feedback.toLowerCase().includes('mais tempo na praia')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Mais tempo de lazer na praia");
-        });
-    } else if (feedback.toLowerCase().includes('menos caminhadas')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities = dayPlan.activities.filter(activity => !activity.toLowerCase().includes('caminhada'));
-        });
-    } else if (feedback.toLowerCase().includes('mais atividades culturais')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Visita a museus e centros culturais");
-        });
-    } else if (feedback.toLowerCase().includes('mais aventura')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Atividades de aventura, como trilhas e tirolesa");
-        });
-    }
+// Função para buscar eventos locais
+function fetchEvents() {
+    const apiKey = 'YOUR_EVENTS_API_KEY';
+    const url = `https://api.eventservice.com/events?location=Morro+de+São+Paulo&apikey=${apiKey}`;
 
-    // Reexibir o roteiro ajustado
-    displayItinerary(itinerary);
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayEvents(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar eventos locais:', error);
+        });
 }
 
-// Função para exibir o roteiro personalizado
-function displayItinerary(itinerary) {
-    const itineraryContent = document.getElementById('itinerary-content');
-    itineraryContent.innerHTML = `<h2>Roteiro de ${itinerary.days} Dias para ${itinerary.name}</h2>`;
+// Função para exibir eventos locais
+function displayEvents(data) {
+    const eventsBox = document.getElementById('events-box');
+    const eventsContent = document.getElementById('events-content');
+    eventsContent.innerHTML = data.events.map(event => `
+        <p>${event.name}</p>
+        <p>${event.date}</p>
+        <p>${event.location}</p>
+    `).join('');
+    eventsBox.style.display = 'block';
+}
 
-    itinerary.activities.forEach(dayPlan => {
-        const dayDiv = document.createElement('div');
-        dayDiv.innerHTML = `<h3>Dia ${dayPlan.day}</h3>`;
-        dayPlan.activities.forEach(activity => {
-            const activityItem = document.createElement('p');
-            activityItem.textContent = activity;
-            dayDiv.appendChild(activityItem);
+// Chama a função fetchEvents após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
+
+    // Buscar eventos locais
+    fetchEvents();
+}
+
+// Função para buscar restaurantes
+function fetchRestaurants() {
+    const apiKey = 'YOUR_RESTAURANT_API_KEY';
+    const url = `https://api.restaurantservice.com/restaurants?location=Morro+de+São+Paulo&apikey=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayRestaurants(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar restaurantes:', error);
         });
-        itineraryContent.appendChild(dayDiv);
+}
+
+// Função para exibir restaurantes
+function displayRestaurants(data) {
+    const restaurantBox = document.getElementById('restaurant-reservation-box');
+    const restaurantContent = document.getElementById('restaurant-reservation-content');
+    restaurantContent.innerHTML = data.restaurants.map(restaurant => `
+        <p>${restaurant.name}</p>
+        <p>${restaurant.address}</p>
+        <button onclick="makeReservation('${restaurant.id}')">Reservar</button>
+    `).join('');
+    restaurantBox.style.display = 'block';
+}
+
+// Função para fazer uma reserva
+function makeReservation(restaurantId) {
+    const apiKey = 'YOUR_RESTAURANT_API_KEY';
+    const url = `https://api.restaurantservice.com/reservations?restaurant_id=${restaurantId}&apikey=${apiKey}`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: 'USER_ID',
+            date: 'RESERVATION_DATE',
+            time: 'RESERVATION_TIME',
+            guests: 'NUMBER_OF_GUESTS'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Reserva feita com sucesso!');
+    })
+    .catch(error => {
+        console.error('Erro ao fazer a reserva:', error);
     });
-
-    document.getElementById('itinerary-box').style.display = 'block';
-
-    // Solicitar feedback após exibir o roteiro
-    setTimeout(requestItineraryFeedback, 1000);
-
-    // Adicionar botão de salvar roteiro
-    const saveButton = document.createElement('button');
-    saveButton.textContent = 'Salvar Roteiro';
-    saveButton.onclick = () => saveItinerary(itinerary);
-    itineraryContent.appendChild(saveButton);
-
-    // Adicionar botão de compartilhar roteiro
-    const shareButton = document.createElement('button');
-    shareButton.textContent = 'Compartilhar Roteiro';
-    shareButton.onclick = () => shareItinerary(itinerary);
-    itineraryContent.appendChild(shareButton);
 }
 
-// Função para compartilhar o roteiro nas redes sociais
-function shareItinerary(itinerary) {
-    const itineraryText = `Roteiro de ${itinerary.days} Dias para ${itinerary.name}:\n`;
-    itinerary.activities.forEach(dayPlan => {
-        itineraryText += `\nDia ${dayPlan.day}:\n`;
-        dayPlan.activities.forEach(activity => {
-            itineraryText += `- ${activity}\n`;
+// Chama a função fetchRestaurants após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
+
+    // Buscar eventos locais
+    fetchEvents();
+
+    // Buscar restaurantes
+    fetchRestaurants();
+}
+
+// Função para buscar hotéis
+function fetchHotels() {
+    const apiKey = 'YOUR_HOTEL_API_KEY';
+    const url = `https://api.hotelservice.com/hotels?location=Morro+de+São+Paulo&apikey=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayHotels(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar hotéis:', error);
         });
+}
+
+// Função para exibir hotéis
+function displayHotels(data) {
+    const hotelBox = document.getElementById('hotel-reservation-box');
+    const hotelContent = document.getElementById('hotel-reservation-content');
+    hotelContent.innerHTML = data.hotels.map(hotel => `
+        <p>${hotel.name}</p>
+        <p>${hotel.address}</p>
+        <button onclick="makeHotelReservation('${hotel.id}')">Reservar</button>
+    `).join('');
+    hotelBox.style.display = 'block';
+}
+
+// Função para fazer uma reserva de hotel
+function makeHotelReservation(hotelId) {
+    const apiKey = 'YOUR_HOTEL_API_KEY';
+    const url = `https://api.hotelservice.com/reservations?hotel_id=${hotelId}&apikey=${apiKey}`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: 'USER_ID',
+            check_in: 'CHECK_IN_DATE',
+            check_out: 'CHECK_OUT_DATE',
+            guests: 'NUMBER_OF_GUESTS'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Reserva feita com sucesso!');
+    })
+    .catch(error => {
+        console.error('Erro ao fazer a reserva:', error);
     });
-
-    const shareText = encodeURIComponent(itineraryText);
-    const shareUrl = encodeURIComponent(window.location.href);
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`;
-    window.open(twitterUrl, '_blank');
 }
 
-// Função para salvar o roteiro personalizado no localStorage
-function saveItinerary(itinerary) {
-    localStorage.setItem('savedItinerary', JSON.stringify(itinerary));
-    alert('Roteiro salvo com sucesso!');
+// Chama a função fetchHotels após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
+
+    // Buscar eventos locais
+    fetchEvents();
+
+    // Buscar restaurantes
+    fetchRestaurants();
+
+    // Buscar hotéis
+    fetchHotels();
 }
 
-// Função para carregar o roteiro personalizado do localStorage
-function loadItinerary() {
-    const savedItinerary = localStorage.getItem('savedItinerary');
-    if (savedItinerary) {
-        const itinerary = JSON.parse(savedItinerary);
-        displayItinerary(itinerary);
-    } else {
-        alert('Nenhum roteiro salvo encontrado.');
-    }
-}
+// Função para enviar feedback
+function sendFeedback(event) {
+    event.preventDefault();
+    const feedbackText = document.getElementById('feedback-text').value;
 
-// Função para iniciar o planejamento de viagens
-function startTravelPlanning() {
-    // Perguntas de planejamento de viagem
-    let answers = [];
-    for (let question of questions) {
-        let answer = prompt(question);
-        if (!answer) {
-            alert('Por favor, responda todas as perguntas.');
-            return;
-        }
-        answers.push(answer);
-    }
-
-    // Gerar e exibir o roteiro com base nas respostas
-    const itinerary = generateItinerary(answers);
-    displayItinerary(itinerary);
-
-    // Opção para salvar o roteiro
-    const saveButton = document.createElement('button');
-    saveButton.textContent = 'Salvar Roteiro';
-    saveButton.onclick = () => saveItinerary(itinerary);
-    document.getElementById('itinerary-content').appendChild(saveButton);
-}
-
-// Função para ajustar o roteiro com base no feedback do usuário
-function adjustItinerary(feedback) {
-    console.log('Ajustando o roteiro com base no feedback:', feedback);
-    const feedbackLower = feedback.toLowerCase();
-    if (feedbackLower.includes('mais tempo na praia')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Mais tempo de lazer na praia");
-        });
-    } else if (feedbackLower.includes('menos caminhadas')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities = dayPlan.activities.filter(activity => !activity.toLowerCase().includes('caminhada'));
-        });
-    } else if (feedbackLower.includes('mais atividades culturais')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Visita a museus e centros culturais");
-        });
-    } else if (feedbackLower.includes('mais aventura')) {
-        itinerary.activities.forEach(dayPlan => {
-            dayPlan.activities.push("Atividades de aventura, como trilhas e tirolesa");
-        });
+    if (feedbackText.trim() === '') {
+        alert('Por favor, preencha o campo de feedback.');
+        return;
     }
 
-    // Reexibir o roteiro ajustado
-    displayItinerary(itinerary);
+    const apiKey = 'YOUR_FEEDBACK_API_KEY';
+    const url = `https://api.feedbackservice.com/feedback?apikey=${apiKey}`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: 'USER_ID',
+            feedback: feedbackText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Feedback enviado com sucesso!');
+        document.getElementById('feedback-form').reset();
+        document.getElementById('feedback-box').style.display = 'none';
+    })
+    .catch(error => {
+        console.error('Erro ao enviar feedback:', error);
+    });
+}
+
+// Adiciona evento de envio ao formulário de feedback
+document.getElementById('feedback-form').addEventListener('submit', sendFeedback);
+
+// Função para alternar a visibilidade da caixa de feedback
+function toggleFeedback() {
+    const feedbackBox = document.getElementById('feedback-box');
+    feedbackBox.style.display = feedbackBox.style.display === 'none' ? 'block' : 'none';
+}
+
+// Adiciona botão para abrir a caixa de feedback
+const feedbackButton = document.createElement('button');
+feedbackButton.id = 'feedback-toggle-btn';
+feedbackButton.innerText = 'Feedback';
+feedbackButton.onclick = toggleFeedback;
+document.body.appendChild(feedbackButton);
+
+// Estilo para o botão de feedback
+const feedbackButtonStyle = document.createElement('style');
+feedbackButtonStyle.innerHTML = document.head.appendChild(feedbackButtonStyle);
+
+// Função para buscar recompensas do usuário
+function fetchRewards() {
+    const apiKey = 'YOUR_REWARDS_API_KEY';
+    const url = `https://api.rewardsservice.com/rewards?user_id=USER_ID&apikey=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayRewards(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar recompensas:', error);
+        });
+}
+
+// Função para exibir recompensas do usuário
+function displayRewards(data) {
+    const rewardsBox = document.getElementById('rewards-box');
+    const rewardsContent = document.getElementById('rewards-content');
+    rewardsContent.innerHTML = data.rewards.map(reward => `
+        <p>${reward.description}</p>
+        <p>Pontos: ${reward.points}</p>
+    `).join('');
+    rewardsBox.style.display = 'block';
+}
+
+// Chama a função fetchRewards após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
+
+    // Buscar eventos locais
+    fetchEvents();
+
+    // Buscar restaurantes
+    fetchRestaurants();
+
+    // Buscar hotéis
+    fetchHotels();
+
+    // Buscar recompensas
+    fetchRewards();
+}
+
+// Função para buscar conquistas do usuário
+function fetchAchievements() {
+    const apiKey = 'YOUR_ACHIEVEMENTS_API_KEY';
+    const url = `https://api.achievementsservice.com/achievements?user_id=USER_ID&apikey=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayAchievements(data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar conquistas:', error);
+        });
+}
+
+// Função para exibir conquistas do usuário
+function displayAchievements(data) {
+    const achievementsBox = document.getElementById('achievements-box');
+    const achievementsContent = document.getElementById('achievements-content');
+    achievementsContent.innerHTML = data.achievements.map(achievement => `
+        <p>${achievement.description}</p>
+        <p>Data: ${achievement.date}</p>
+    `).join('');
+    achievementsBox.style.display = 'block';
+}
+
+// Chama a função fetchAchievements após inicializar o mapa
+function initializeMap() {
+    map = L.map('map').setView([currentLocation.latitude, currentLocation.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map)
+        .bindPopup('Você está aqui!')
+        .openPopup();
+
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    // Buscar a previsão do tempo
+    fetchWeather();
+
+    // Buscar eventos locais
+    fetchEvents();
+
+    // Buscar restaurantes
+    fetchRestaurants();
+
+    // Buscar hotéis
+    fetchHotels();
+
+    // Buscar recompensas
+    fetchRewards();
+
+    // Buscar conquistas
+    fetchAchievements();
 }
