@@ -459,7 +459,7 @@ function displayOSMData(data, subMenuId) {
 // Exibe informações sobre o local selecionado
 function showInfo(name, coordinates) {
     const messageBox = document.getElementById('message-box');
-    messageBox.style.display = 'block';
+    messageBox.style.display = 'none';
 
     const info = translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `Informações detalhadas sobre ${name}`;
     messageBox.innerHTML = `<p>${info}</p>`;
