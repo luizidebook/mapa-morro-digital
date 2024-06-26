@@ -276,7 +276,7 @@ body, html {
     position: fixed;
     top: 0;
     right: 0;
-    width: 120px;
+    width: 150px;
     height: 100%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
@@ -328,7 +328,7 @@ body, html {
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    font-size: 0.6em;
+    font-size: 0.8em;
 }
 
 #menu .submenu-item:hover {
@@ -396,6 +396,50 @@ label {
     .control-btn {
         width: 100%;
         padding: 10px;
-         font-size: 3em;
+         font-size: 1em;
     }
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .control-buttons {
+        flex-direction: column;
+        gap: 5px;
+        bottom: 10px;
+        left: 90px;
+        top: 353px;
+    }
+    .modal {
+        width: 50%;
+        left: 5%;
+        padding: 15px;
+    }
+
+    .assistant-modal {
+         width: 50%;
+        left: 5%;
+        padding: 15px;
+    }
+
+   .control-buttons {
+        flex-direction: column;
+        gap: 5px;
+        bottom: 10px;
+        left: 110px;
+        top: 353px;
+    }
+
+    .menu-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 1em;
+    }
+    .control-btn {
+        width: 100%;
+        padding: 10px;
+         font-size: 1em;
+    }
+}
+    
 }
