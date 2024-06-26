@@ -6,133 +6,94 @@
     <title>Morro Digital</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"></script>
-    <script defer src="scripts.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
 </head>
 <body>
-    <div id="map"></div>
-    
-    <div class="button-container">
-        <button id="menu-toggle-btn" aria-label="Toggle Menu" onclick="toggleMenu()" data-tutorial="Este é o botão de menu. Clique para abrir o menu."> '☰' </button>
-        <button id="plan-trip-btn" aria-label="Plan Trip" onclick="startTravelPlanning()" data-tutorial="Clique aqui para planejar sua viagem.">📅</button>
-        <button id="voice-rec-btn" aria-label="Voice Recognition" onclick="startVoiceRecognition()" data-tutorial="Clique aqui para iniciar o reconhecimento de voz.">🎤</button>
-        <button id="message-toggle-btn" aria-label="Toggle Message" onclick="toggleMessage()" data-tutorial="Clique aqui para abrir a caixa de mensagens.">💬</button>
-        <button id="search-toggle-btn" aria-label="Toggle Search" onclick="toggleSearch()" data-tutorial="Clique aqui para abrir a barra de pesquisa.">🔍</button>
-    </div>
+    <div id="map-container">
+        <div id="map"></div>
 
-    <div id="menu" class="submenu">
-        <button class="menu-btn" data-submenu="history-submenu">História de Morro</button>
-        <div id="history-submenu" class="submenu">
-            <p>A história de Morro de São Paulo é rica e fascinante, com raízes que remontam ao período colonial...</p>
-        </div>
-        <button class="menu-btn" onclick="loadSubMenu('touristSpots-submenu')">Pontos Turísticos</button>
-        <div id="touristSpots-submenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('tours-submenu')">Passeios</button>
-        <div id="tours-submenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('beaches-submenu')">Praias</button>
-        <div id="beaches-submenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('nightlife-submenu')">Vida Noturna</button>
-        <div id="nightlife-submenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('restaurants-submenu')">Restaurantes</button>
-        <div id="restaurants-submenu" class="submenu"></div>
-        <button class="menu-btn" onclick="loadSubMenu('inns-submenu')">Pousadas</button>
-        <div id="inns-submenu" class="submenu"></div>
-        <button class="menu-btn" data-submenu="shops-submenu">Lojas</button>
-        <div id="shops-submenu" class="submenu"></div>
-        <button class="menu-btn" data-submenu="tips-submenu">Dicas</button>
-        <div id="tips-submenu" class="submenu">
-            <p>Para aproveitar melhor sua visita a Morro de São Paulo, considere estas dicas...</p>
-        </div>
-        <button class="menu-btn" data-submenu="emergencies-submenu">Emergências</button>
-        <div id="emergencies-submenu" class="submenu">
-            <p>Em caso de emergência, ligue para os seguintes números...</p>
-        </div>
-        <button class="menu-btn" data-submenu="about-submenu">Sobre</button>
-        <div id="about-submenu" class="submenu">
-            <p>Este site foi criado para fornecer informações abrangentes sobre Morro de São Paulo...</p>
-        </div>
-        <button class="menu-btn" onclick="manageRewards()">Ganhar Recompensa</button>
-        <button class="menu-btn" onclick="useRewards()">Usar Recompensa</button>
-    </div>
-
-    <div id="search-box" class="modal">
-        <input type="text" id="search-input" placeholder="Pesquisar...">
-        <button id="search-button" onclick="searchMap()">Pesquisar</button>
-        <div id="searchResults"></div>
-    </div>
-
-    <div id="message-box" class="modal">
-        <textarea id="feedback-input" placeholder="Deixe seu feedback aqui..."></textarea>
-        <button id="submit-feedback-btn" onclick="sendFeedback(event)">Enviar Feedback</button>
-    </div>
-
-    <div id="welcome-modal" class="modal">
-        <div class="modal-content">
-            <h2 data-translate="welcome">Bem-vindo ao Morro Digital!</h2>
-            <p data-translate="selectLanguage">Selecione um idioma:</p>
-            <div class="language-selection">
-                <button onclick="selectLanguage('pt')"><img src="bandeira_brasil.png" alt="Português"></button>
-                <button onclick="selectLanguage('es')"><img src="bandeira_espanha.png" alt="Espanhol"></button>
-                <button onclick="selectLanguage('en')"><img src="bandeira_eua.png" alt="Inglês"></button>
-                <button onclick="selectLanguage('he')"><img src="bandeira_israel.png" alt="Hebraico"></button>
+        <div id="welcome-modal" class="modal">
+            <div class="modal-content">
+                <h2>Bem-vindo ao Morro Digital!</h2>
+                <p>Selecione um idioma:</p>
+                <div class="language-selection">
+                    <button class="lang-btn" data-lang="pt"><img src="brazil.png" alt="Brasil"></button>
+                    <button class="lang-btn" data-lang="es"><img src="spain.png" alt="Espanha"></button>
+                    <button class="lang-btn" data-lang="en"><img src="usa.png" alt="Estados Unidos"></button>
+                    <button class="lang-btn" data-lang="he"><img src="israel.png" alt="Israel"></button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="location-permission-modal" class="modal">
-        <div class="modal-content">
-            <h2 data-translate="locationPermission">Permissão de Localização</h2>
-            <p data-translate="locationPermissionText">Precisamos de sua permissão para acessar sua localização:</p>
-            <button id="allow-location-btn" onclick="requestLocationPermission()" data-translate="allow">Permitir</button>
+        <div id="assistant-modal" class="modal">
+            <span class="close-btn">&times;</span>
+            <div class="modal-content"></div>
         </div>
-    </div>
 
-    <div id="tutorial-overlay" class="tutorial-overlay">
-        <div class="tutorial-content">
-            <p id="tutorial-message"></p>
-            <div class="tutorial-nav">
-                <button id="tutorial-start-btn" class="tutorial-button" onclick="startTutorial()" data-translate="start">Começar</button>
-                <button id="tutorial-yes-btn" class="tutorial-button" onclick="confirmTutorial()" data-translate="yes">Sim</button>
-                <button id="tutorial-no-btn" class="tutorial-button" onclick="endTutorial()" data-translate="no">Não</button>
-                <button id="tutorial-next-btn" class="tutorial-button" onclick="nextTutorialStep()" data-translate="next">Avançar</button>
-                <button id="tutorial-prev-btn" class="tutorial-button" onclick="previousTutorialStep()" data-translate="prev">Voltar</button>
-                <button id="tutorial-end-btn" class="tutorial-button" onclick="endTutorial()" data-translate="end">Encerrar Tutorial</button>
-                <button id="tutorial-create-itinerary-btn" class="tutorial-button" onclick="createItinerary()" data-translate="tutorial-create-itinerary-btn">Criar Roteiro</button>
+        <!-- Menu Toggle -->
+        <button id="menu-toggle" class="menu-toggle">
+            &#9776;
+        </button>
+
+        <!-- Menu Flutuante com Ícones -->
+        <div id="floating-menu" class="floating-menu">
+            <button class="menu-btn" data-feature="pontos-turisticos"><i class="fas fa-landmark"></i></button>
+            <button class="menu-btn" data-feature="passeios"><i class="fas fa-walking"></i></button>
+            <button class="menu-btn" data-feature="praias"><i class="fas fa-umbrella-beach"></i></button>
+            <button class="menu-btn" data-feature="festas"><i class="fas fa-glass-cheers"></i></button>
+            <button class="menu-btn" data-feature="restaurantes"><i class="fas fa-utensils"></i></button>
+            <button class="menu-btn" data-feature="pousadas"><i class="fas fa-bed"></i></button>
+            <button class="menu-btn" data-feature="lojas"><i class="fas fa-store"></i></button>
+            <button class="menu-btn" data-feature="emergencias"><i class="fas fa-ambulance"></i></button>
+            <button class="menu-btn" data-feature="dicas"><i class="fas fa-lightbulb"></i></button>
+            <button class="menu-btn zoom-in"><i class="fas fa-plus"></i></button>
+            <button class="menu-btn zoom-out"><i class="fas fa-minus"></i></button>
+            <button class="menu-btn locate-user"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn" data-feature="sobre"><i class="fas fa-info-circle"></i></button>
+        </div>
+
+        <!-- Menu Lateral -->
+        <div id="menu" class="menu hidden">
+            <div id="touristSpots-submenu" class="submenu"></div>
+            <div id="tours-submenu" class="submenu"></div>
+            <div id="beaches-submenu" class="submenu"></div>
+            <div id="nightlife-submenu" class="submenu"></div>
+            <div id="restaurants-submenu" class="submenu"></div>
+            <div id="inns-submenu" class="submenu"></div>
+            <div id="shops-submenu" class="submenu"></div>
+        </div>
+
+        <div class="control-buttons">
+            <button class="control-btn" id="create-route-btn">Criar Rota</button>
+            <button class="control-btn" id="generate-itinerary-btn">Gerar Roteiro</button>
+            <button class="control-btn" id="tutorial-prev-btn">Voltar</button>
+            <button class="control-btn" id="tutorial-next-btn">Avançar</button>
+            <button class="control-btn" id="tutorial-end-btn">Encerrar Tutorial</button>
+        </div>
+
+        <div id="info-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-title"></span>
+                <div class="content"></div>
             </div>
-            <div id="progress-bar">
-                <div id="progress"></div>
-            </div>
+        </div>
+
+        <div id="place-details-modal" class="modal">
+            <div class="modal-content"></div>
+        </div>
+
+        <div id="itinerary-form-modal" class="modal">
+            <form>
+                <input type="text" name="name" placeholder="Nome do Roteiro">
+                <textarea name="description" placeholder="Descrição do Roteiro"></textarea>
+                <button type="button" onclick="saveEditedItinerary()">Salvar</button>
+            </form>
         </div>
     </div>
-
-    <div id="tutorial-progress-container">
-        <div id="tutorial-progress-bar"></div>
-    </div>
-
-    <div id="itinerary-box" class="modal">
-        <div id="itinerary-content" class="modal-content"></div>
-        <button onclick="closeModal('itinerary-box')" data-translate="close">Fechar</button>
-    </div>
-
-    <div id="loading-indicator" class="loading-indicator">Carregando...</div>
-
-    <div id="weather-info" class="weather-info">
-        <img id="weather-icon" src="" alt="Weather Icon">
-        <div>
-            <div id="weather-description"></div>
-            <div id="temperature"></div>
-        </div>
-    </div>
-
-    <div id="guided-tour-modal" class="modal">
-        <div class="modal-content">
-            <h2 data-translate="tourGuideMessage">Este é um tour guiado pelos principais pontos turísticos de Morro de São Paulo. Aproveite!</h2>
-            <div id="tour-guide-content"></div>
-            <button onclick="closeModal('guided-tour-modal')" data-translate="close">Fechar</button>
-        </div>
-    </div>
+    <script src="scripts.js"></script>
 </body>
 </html>
