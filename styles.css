@@ -1,6 +1,7 @@
+/* Correções no styles.css */
 body, html {
     margin: 0;
-    padding: 0;
+    padding: 10px;
     width: 100%;
     height: 100%;
     font-family: Arial, sans-serif;
@@ -19,34 +20,51 @@ body, html {
     z-index: 0; /* Placeholder para o mapa */
 }
 
+.assistant-modal{
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none;
+    max-width: 80%;
+
+}
+
 .modal {
     position: absolute;
     top: 20px;
     left: 20px;
     background: white;
-    padding: 10px;
+    padding: 20px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     display: none;
+    max-width: 80%;
 }
 
 .modal .modal-content {
-    padding: 10px;
+    padding: 20px;
 }
 
 .modal .modal-title {
-    font-size: 1.2em;
+    font-size: 1.4em;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .close-btn {
     position: absolute;
-    top: 5px;
+    top: 10px;
     right: 10px;
     cursor: pointer;
+    font-size: 1.2em;
 }
 
 .menu-toggle {
@@ -85,13 +103,128 @@ body, html {
     color: white;
     border: none;
     margin: 5px 0;
-    padding: 15px;
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    font-size: 0.7em;
+    z-index: 1000;
+}
+
+.menu-btn:hover {
+    background: #555;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+#map-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background-color: #eaeaea; /* Placeholder para o mapa */
+    z-index: 0;
+}
+
+.welcome-modal{
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
+
+
+.modal {
+    position: absolute;
+    width: 60%;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
+
+.modal .modal-content {
+    padding: 10px;
+}
+
+.modal .modal-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.menu-toggle {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.floating-menu {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.floating-menu.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #333;
+    color: white;
+    border: none;
+    margin: 2px 0;
+    padding: 10px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
     height: 10px;
     font-size: 0.7em;
-    z-index: 1000;
 }
 
 .control-buttons {
@@ -110,8 +243,8 @@ body, html {
     padding: 10px;
     border-radius: 4px;
     cursor: pointer;
-    z-index: 1000;
 }
+
 
 .carousel {
     display: flex;
@@ -125,7 +258,7 @@ body, html {
 
 .carousel-item img {
     width: 100%;
-    border-radius: 5px;
+    border-radius: 8px;
 }
 
 #highlight-create-route-btn {
@@ -138,18 +271,17 @@ body, html {
     z-index: 10;
 }
 
-
 /* Menu Lateral */
 #menu {
     position: fixed;
     top: 0;
     right: 0;
-    width: 250px;
+    width: 120px;
     height: 100%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 10;
+    z-index: 999;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -161,10 +293,10 @@ body, html {
 
 #menu .menu-btn {
     width: 100%;
-    padding: 15px;
+    padding: 0px;
     background: #f4f4f4;
     border: none;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 0px solid #ddd;
     text-align: left;
     cursor: pointer;
 }
@@ -175,7 +307,7 @@ body, html {
 
 #menu .submenu {
     display: none;
-    padding: 10px;
+    padding: 1px;
 }
 
 #menu .submenu h2 {
@@ -190,14 +322,79 @@ body, html {
 
 #menu .submenu-item {
     width: 100%;
-    padding: 10px;
+    padding: 3px;
     background: #f4f4f4;
     border: none;
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
+    font-size: 0.6em;
 }
 
 #menu .submenu-item:hover {
     background: #ddd;
+}
+
+.highlight-overlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+}
+
+h2 {
+    display: block;
+    font-size: 0.9em;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+label {
+    cursor: default;
+    font-size: 0.9em;
+
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+
+    .control-buttons {
+        flex-direction: column;
+        gap: 5px;
+        bottom: 10px;
+        left: 90px;
+        top: 353px;
+    }
+    .modal {
+        width: 40%;
+        left: 5%;
+        padding: 15px;
+    }
+
+    .assistant-modal {
+         width: 40%;
+        left: 5%;
+        padding: 15px;
+    }
+
+   .control-buttons {
+        flex-direction: column;
+        gap: 5px;
+        bottom: 10px;
+        left: 110px;
+        top: 353px;
+    }
+
+    .menu-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7em;
+    }
+    .control-btn {
+        width: 100%;
+        padding: 10px;
+    }
 }

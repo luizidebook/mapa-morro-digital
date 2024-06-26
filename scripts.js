@@ -1,3 +1,4 @@
+// Correções no scripts.js
 document.addEventListener('DOMContentLoaded', () => {
     initializeMap();
     loadResources();
@@ -9,12 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentSubMenu = null;
 let currentLocation = null;
 let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
-let tutorialStep = 0; // Corrigido para inicializar corretamente
 
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
-    const menuToggle = document.getElementById('menu-toggle');
+    const menuToggle = document.getElementById('menu-btn');
     const floatingMenu = document.getElementById('floating-menu');
 
     closeModal.addEventListener('click', () => {
@@ -36,10 +36,6 @@ function setupEventListeners() {
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
     });
-
-    document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
-    document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-    document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
 }
 
 function initializeMap() {
@@ -74,8 +70,8 @@ function activateAssistant() {
 }
 
 function showWelcomeMessage() {
-    const welcomeModal = document.getElementById('welcome-modal');
-    welcomeModal.style.display = 'block';
+    const modal = document.getElementById('welcome-modal');
+    modal.style.display = 'block';
 }
 
 function requestLanguageSelection() {
@@ -83,11 +79,14 @@ function requestLanguageSelection() {
     modalContent.innerHTML = `
         <h2>${translations[selectedLanguage].selectLanguage}</h2>
         <div class="language-selection">
-            <button class="lang-btn" data-lang="pt"><img src="brazil.png" alt="Brasil"></button>
-            <button class="lang-btn" data-lang="es"><img src="spain.png" alt="Espanha"></button>
-            <button class="lang-btn" data-lang="en"><img src="usa.png" alt="Estados Unidos"></button>
-            <button class="lang-btn" data-lang="he"><img src="israel.png" alt="Israel"></button>
+            <button class="lang-btn" data-lang="pt"><img src="images/brazil.png" alt="Brasil"></button>
+            <button class="lang-btn" data-lang="es"><img src="images/spain.png" alt="Espanha"></button>
+            <button class="lang-btn" data-lang="en"><img src="images/usa.png" alt="Estados Unidos"></button>
+            <button class="lang-btn" data-lang="he"><img src="images/israel.png" alt="Israel"></button>
         </div>
+        <label>
+            <input type="checkbox" id="dont-show-again"> Não mostrar novamente
+        </label>
     `;
 }
 
@@ -222,27 +221,35 @@ function showInfoModal(name, coordinates, osmId) {
         <h2>${name}</h2>
         <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
         <p><strong>${translations[selectedLanguage].createRoutePrompt}</strong></p>
-        <button id="highlight-create-route-btn" onclick="createRoute(${coordinates[0]}, ${coordinates[1]})">${translations[selectedLanguage].createRoute}</button>
+        <button id="highlight-create-route-btn" onclick="createRouteTo(${coordinates[0]}, ${coordinates[1]})">${translations[selectedLanguage].createRoute}</button>
     `;
+
+    const createRouteBtn = modalContent.querySelector('#highlight-create-route-btn');
+    createRouteBtn.style.border = '2px solid red';
+    createRouteBtn.style.padding = '10px';
+    createRouteBtn.style.backgroundColor = 'white';
+    createRouteBtn.style.color = 'red';
 
     infoModal.style.display = 'block';
 }
 
-function createRoute(lat, lon) {
+function createRouteTo(lat, lon) {
+    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
     if (!currentLocation) {
-        alert(translations[selectedLanguage].locationUnavailable);
+        console.log(translations[selectedLanguage].locationNotAvailable);
         return;
     }
 
-    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
     fetch(`https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}`)
         .then(response => response.json())
         .then(data => {
             const coords = data.features[0].geometry.coordinates;
             const latlngs = coords.map(coord => [coord[1], coord[0]]);
-            L.polyline(latlngs, { color: 'blue' }).addTo(map)
-                .bindPopup(translations[selectedLanguage].routeCreated)
-                .openPopup();
+            L.polyline(latlngs, {color: 'blue'}).addTo(map);
+            map.fitBounds(L.polyline(latlngs).getBounds());
+        })
+        .catch(error => {
+            console.error(translations[selectedLanguage].routeCreationError, error);
         });
 }
 
@@ -360,28 +367,28 @@ const tutorialSteps = [
     {
         element: null,
         message: {
-            pt: "Bem-vindo ao Morro Digital! Este é o seu assistente virtual.",
-            en: "Welcome to Morro Digital! This is your virtual assistant.",
-            es: "¡Bienvenidos a Morro Digital! Este es tu asistente virtual.",
-            he: "ברוכים הבאים למורו דיגיטל! זהו העוזר הווירטואלי שלך."
+            pt: "Olá! Eu sou seu assistente virtual. Vou te ajudar a explorar todas as funcionalidades deste site. Vamos começar!",
+            en: "Hello! I am your virtual assistant. I will help you explore all the features of this site. Let's start!",
+            es: "¡Hola! Soy tu asistente virtual. Te ayudaré a explorar todas las funcionalidades de este sitio. ¡Vamos a empezar!",
+            he: "שלום! אני העוזר הווירטואלי שלך. אני אעזור לך לחקור את כל הפונקציות של האתר הזה. בואו נתחיל!"
         }
     },
     {
         element: null,
         message: {
-            pt: "Por favor, permita o acesso à sua localização para melhor experiência.",
-            en: "Please allow access to your location for a better experience.",
-            es: "Por favor, permita el acceso a tu ubicación para una mejor experiencia.",
-            he: "אנא אפשר גישה למיקום שלך לחוויה טובה יותר."
+            pt: "Primeiro, precisamos da sua permissão para acessar sua localização atual. Isso nos ajudará a fornecer informações relevantes e personalizadas.",
+            en: "First, we need your permission to access your current location. This will help us provide relevant and personalized information.",
+            es: "Primero, necesitamos tu permiso para acceder a tu ubicación actual. Esto nos ayudará a proporcionar información relevante y personalizada.",
+            he: "ראשית, אנו זקוקים לאישור שלך לגשת למיקום הנוכחי שלך. זה יעזור לנו לספק מידע רלוונטי ומותאם אישית."
         }
     },
     {
         element: '#map',
         message: {
-            pt: "Este é o mapa onde você pode ver sua localização atual e explorar os pontos turísticos.",
-            en: "This is the map where you can see your current location and explore tourist spots.",
-            es: "Este es el mapa donde puedes ver tu ubicación actual y explorar los puntos turísticos.",
-            he: "זהו המפה שבה ניתן לראות את המיקום הנוכחי שלך ולחקור את נקודות התיירות."
+            pt: "Este é o mapa. Aqui você pode ver e explorar os pontos turísticos, praias, restaurantes e muito mais.",
+            en: "This is the map. Here you can see and explore tourist spots, beaches, restaurants, and more.",
+            es: "Este es el mapa. Aquí puedes ver y explorar los puntos turísticos, playas, restaurantes y más.",
+            he: "זו המפה. כאן תוכלו לראות ולחקור אתרי תיירות, חופים, מסעדות ועוד."
         }
     },
     {
@@ -449,6 +456,8 @@ const tutorialSteps = [
     }
 ];
 
+let currentStep = 0;
+
 function showTutorialStep(step) {
     const { element, message } = tutorialSteps[step];
     const targetElement = element ? document.querySelector(element) : null;
@@ -474,24 +483,24 @@ function showTutorialStep(step) {
 }
 
 function nextTutorialStep() {
-    if (tutorialStep < tutorialSteps.length) {
-        showTutorialStep(tutorialStep);
-        tutorialStep++;
+    if (currentStep < tutorialSteps.length) {
+        showTutorialStep(currentStep);
+        currentStep++;
     } else {
         endTutorial();
     }
 }
 
 function previousTutorialStep() {
-    if (tutorialStep > 0) {
-        tutorialStep--;
-        showTutorialStep(tutorialStep);
+    if (currentStep > 0) {
+        currentStep--;
+        showTutorialStep(currentStep);
     }
 }
 
 function startTutorial() {
-    tutorialStep = 0;
-    showTutorialStep(tutorialStep);
+    currentStep = 0;
+    showTutorialStep(currentStep);
 }
 
 function endTutorial() {
@@ -502,7 +511,13 @@ function endTutorial() {
     alert(translations[selectedLanguage].tutorialComplete);
 }
 
-// Traduções
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
+    document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+    document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
+    startTutorial();
+});
+
 const translations = {
     pt: {
         welcome: "Bem-vindo ao Morro Digital! Você gostaria de iniciar o tutorial que te ensinará todas as funcionalidades do site?",
@@ -525,8 +540,8 @@ const translations = {
         provideContinuousAssistance: "Fornecer assistência contínua.",
         answerQuestions: "Responder pergunta:",
         youAreHere: "Você está aqui!",
-        locationUnavailable: "Localização indisponível.",
-        routeCreated: "Rota criada com sucesso."
+        locationNotAvailable: "Localização atual não disponível.",
+        routeCreationError: "Erro ao criar rota."
     },
     es: {
         welcome: "¡Bienvenidos a Morro Digital! ¿Te gustaría comenzar el tutorial que te enseñará todas las características del sitio?",
@@ -549,8 +564,8 @@ const translations = {
         provideContinuousAssistance: "Proporcionar asistencia continua.",
         answerQuestions: "Responder pregunta:",
         youAreHere: "¡Estás aquí!",
-        locationUnavailable: "Ubicación no disponible.",
-        routeCreated: "Ruta creada con éxito."
+        locationNotAvailable: "Ubicación actual no disponible.",
+        routeCreationError: "Error creando la ruta."
     },
     en: {
         welcome: "Welcome to Morro Digital! Would you like to start the tutorial that will teach you all the site's features?",
@@ -573,8 +588,8 @@ const translations = {
         provideContinuousAssistance: "Provide continuous assistance.",
         answerQuestions: "Answer question:",
         youAreHere: "You are here!",
-        locationUnavailable: "Location unavailable.",
-        routeCreated: "Route created successfully."
+        locationNotAvailable: "Current location not available.",
+        routeCreationError: "Error creating route."
     },
     he: {
         welcome: "ברוכים הבאים למורו דיגיטל! האם תרצה להתחיל את המדריך שילמד אותך את כל תכונות האתר?",
@@ -597,21 +612,36 @@ const translations = {
         provideContinuousAssistance: "ספק סיוע מתמשך.",
         answerQuestions: "ענה על שאלה:",
         youAreHere: "אתה כאן!",
-        locationUnavailable: "המיקום אינו זמין.",
-        routeCreated: "המסלול נוצר בהצלחה."
+        locationNotAvailable: "המיקום הנוכחי לא זמין.",
+        routeCreationError: "שגיאה ביצירת מסלול."
     }
 };
 
-document.getElementById('map').addEventListener('click', () => { if (tutorialStep === 2) nextTutorialStep(); });
+document.getElementById('map').addEventListener('click', () => { if (currentStep === 2) nextTutorialStep(); });
 
-document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (tutorialStep === 4) nextTutorialStep(); });
+document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (currentStep === 3) nextTutorialStep(); });
 
-document.querySelector('.menu-btn[data-feature="passeios"]').addEventListener('click', () => { if (tutorialStep === 5) nextTutorialStep(); });
+document.querySelector('.menu-btn[data-feature="passeios"]').addEventListener('click', () => { if (currentStep === 4) nextTutorialStep(); });
 
-document.querySelector('.menu-btn[data-feature="praias"]').addEventListener('click', () => { if (tutorialStep === 6) nextTutorialStep(); });
+document.querySelector('.menu-btn[data-feature="praias"]').addEventListener('click', () => { if (currentStep === 5) nextTutorialStep(); });
 
-document.querySelector('.menu-btn[data-feature="restaurantes"]').addEventListener('click', () => { if (tutorialStep === 7) nextTutorialStep(); });
+document.querySelector('.menu-btn[data-feature="restaurantes"]').addEventListener('click', () => { if (currentStep === 6) nextTutorialStep(); });
 
-document.getElementById('create-route-btn').addEventListener('click', () => { if (tutorialStep === 8) nextTutorialStep(); });
+document.getElementById('create-route-btn').addEventListener('click', () => { if (currentStep === 7) nextTutorialStep(); });
 
-document.getElementById('feedback-toggle-btn').addEventListener('click', () => { if (tutorialStep === 9) nextTutorialStep(); });
+document.getElementById('feedback-toggle-btn').addEventListener('click', () => { if (currentStep === 8) nextTutorialStep(); });
+
+window.addEventListener('resize', function() {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+        const windowHeight = window.innerHeight;
+        const modalHeight = modal.offsetHeight;
+        if (modalHeight > windowHeight) {
+            modal.style.top = '10px';
+            modal.style.transform = 'translateX(-50%)';
+        } else {
+            modal.style.top = '10%';
+            modal.style.transform = 'translate(-50%, -10%)';
+        }
+    }
+});

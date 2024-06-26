@@ -1,3 +1,4 @@
+<!-- Correções no index.html -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -26,16 +27,19 @@
                 <h2>Bem-vindo ao Morro Digital!</h2>
                 <p>Este tutorial irá guiá-lo através das funcionalidades do site.</p>
                 <div class="language-selection">
-                    <button class="lang-btn" data-lang="pt"><img src="brazil.png" alt="Brasil"></button>
-                    <button class="lang-btn" data-lang="es"><img src="spain.png" alt="Espanha"></button>
-                    <button class="lang-btn" data-lang="en"><img src="usa.png" alt="Estados Unidos"></button>
-                    <button class="lang-btn" data-lang="he"><img src="israel.png" alt="Israel"></button>
+                    <button class="lang-btn" data-lang="pt"><img src="https://example.com/flags/brazil.png" alt="Brasil"></button>
+                    <button class="lang-btn" data-lang="es"><img src="https://example.com/flags/spain.png" alt="Espanha"></button>
+                    <button class="lang-btn" data-lang="en"><img src="https://example.com/flags/usa.png" alt="Estados Unidos"></button>
+                    <button class="lang-btn" data-lang="he"><img src="https://example.com/flags/israel.png" alt="Israel"></button>
                 </div>
+                <label>
+                    <input type="checkbox" id="dont-show-again"> Não mostrar novamente
+                </label>
             </div>
         </div>
 
         <!-- Menu Toggle -->
-        <button id="menu-toggle" class="menu-toggle">
+        <button id="menu-btn" class="menu-toggle">
             &#9776;
         </button>
 
@@ -68,11 +72,11 @@
         </div>
 
         <div class="control-buttons">
+            <button class="control-btn" id="tutorial-next-btn">Avançar</button>
+            <button class="control-btn" id="tutorial-prev-btn">Voltar</button>
+            <button class="control-btn" id="tutorial-end-btn">Encerrar Tutorial</button>
             <button class="control-btn" id="create-route-btn">Criar Rota</button>
             <button class="control-btn" id="generate-itinerary-btn">Gerar Roteiro</button>
-            <button class="control-btn" id="tutorial-prev-btn">Voltar</button>
-            <button class="control-btn" id="tutorial-next-btn">Avançar</button>
-            <button class="control-btn" id="tutorial-end-btn">Encerrar Tutorial</button>
         </div>
 
         <div id="info-modal" class="modal">
