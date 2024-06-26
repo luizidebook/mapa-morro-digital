@@ -369,13 +369,13 @@ label {
         top: 353px;
     }
     .modal {
-        width: 40%;
+        width: 50%;
         left: 5%;
         padding: 15px;
     }
 
     .assistant-modal {
-         width: 40%;
+         width: 50%;
         left: 5%;
         padding: 15px;
     }
@@ -391,10 +391,11 @@ label {
     .menu-btn {
         width: 30px;
         height: 30px;
-        font-size: 0.7em;
+        font-size: 1em;
     }
     .control-btn {
         width: 100%;
         padding: 10px;
+         font-size: 3em;
     }
 }
