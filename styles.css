@@ -403,7 +403,7 @@ label {
     .control-buttons {
     position: absolute;
     top: 70%;
-    left: 50%;
+    left: 70%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
@@ -421,10 +421,21 @@ label {
         padding: 15px;
     }
 
-    .assistant-modal {
+       .assistant-modal {
          width: 50%;
         left: 5%;
         padding: 15px;
     }
 
+    .menu-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 1em;
+    }
+    .control-btn {
+        width: 100%;
+        padding: 10px;
+         font-size: 1em;
+    }
+}
    
