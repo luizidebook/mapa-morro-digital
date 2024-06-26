@@ -227,22 +227,27 @@ body, html {
     font-size: 0.7em;
 }
 
-.control-buttons {
+    .control-buttons {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    transition: opacity 0.3s ease-in-out;
     z-index: 1000;
-}
+    }
+
 
 .control-btn {
     background: #333;
     color: white;
     border: none;
-    padding: 10px;
-    border-radius: 4px;
+    padding: 15px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -380,14 +385,6 @@ label {
         padding: 15px;
     }
 
-   .control-buttons {
-        flex-direction: column;
-        gap: 5px;
-        bottom: 10px;
-        left: 110px;
-        top: 353px;
-    }
-
     .menu-btn {
         width: 30px;
         height: 30px;
@@ -404,12 +401,20 @@ label {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .control-buttons {
-        flex-direction: column;
-        gap: 5px;
-        bottom: 10px;
-        left: 90px;
-        top: 353px;
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
     }
+
+    .control-buttons.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
     .modal {
         width: 50%;
         left: 5%;
@@ -422,24 +427,4 @@ label {
         padding: 15px;
     }
 
-   .control-buttons {
-        flex-direction: column;
-        gap: 5px;
-        bottom: 10px;
-        left: 110px;
-        top: 353px;
-    }
-
-    .menu-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 1em;
-    }
-    .control-btn {
-        width: 100%;
-        padding: 10px;
-         font-size: 1em;
-    }
-}
-
-}
+   
