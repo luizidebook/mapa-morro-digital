@@ -617,6 +617,7 @@ const translations = {
     }
 };
 
+
 document.getElementById('map').addEventListener('click', () => { if (currentStep === 2) nextTutorialStep(); });
 
 document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (currentStep === 3) nextTutorialStep(); });
@@ -645,3 +646,4 @@ window.addEventListener('resize', function() {
         }
     }
 });
+
