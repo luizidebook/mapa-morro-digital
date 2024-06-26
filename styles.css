@@ -53,13 +53,12 @@ body, html {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(51, 51, 51, 1); /* Opacidade de 100% */
+    background: #333;
     color: white;
     border: none;
     padding: 10px;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 1000;
 }
 
 .floating-menu {
@@ -67,7 +66,7 @@ body, html {
     top: 50%;
     right: 20px;
     transform: translateY(-50%);
-    display: ;
+    display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
     z-index: 1000;
@@ -82,49 +81,37 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-   background: rgba(51, 51, 51, 1); /* Opacidade de 70% */
+    background: #333;
     color: white;
     border: none;
     margin: 5px 0;
-    padding: 10px;
+    padding: 15px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
     height: 10px;
     font-size: 0.7em;
-}
-
-/* Adicione o seguinte código ao seu styles.css */
-
-.highlight-overlay {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 10000;
+    z-index: 1000;
 }
 
 .control-buttons {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
     display: flex;
     gap: 10px;
+    z-index: 1000;
 }
 
-.control-buttons .control-btn {
-    background-color: #007BFF;
-    color: #FFF;
+.control-btn {
+    background: #333;
+    color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 10px;
+    border-radius: 4px;
     cursor: pointer;
-    border-radius: 5px;
-    font-size: 16px;
+    z-index: 1000;
 }
-
-.control-buttons .control-btn:hover {
-    background-color: #0056b3;
-}
-
 
 .carousel {
     display: flex;
@@ -148,6 +135,7 @@ body, html {
     color: red;
     cursor: pointer;
     margin-top: 10px;
+    z-index: 10;
 }
 
 
@@ -156,12 +144,12 @@ body, html {
     position: fixed;
     top: 0;
     right: 0;
-    width: 120px;
+    width: 250px;
     height: 100%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 900; /* Colocar o menu lateral abaixo do menu flutuante */
+    z-index: 10;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -174,7 +162,7 @@ body, html {
 #menu .menu-btn {
     width: 100%;
     padding: 15px;
-    background: rgba(51, 51, 51, 0.7); /* Opacidade de 70% */
+    background: #f4f4f4;
     border: none;
     border-bottom: 1px solid #ddd;
     text-align: left;
@@ -187,7 +175,7 @@ body, html {
 
 #menu .submenu {
     display: none;
-    padding: 0px;
+    padding: 10px;
 }
 
 #menu .submenu h2 {
@@ -208,25 +196,8 @@ body, html {
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    font-size: 0.5em; /* Diminui o tamanho da fonte */
 }
 
 #menu .submenu-item:hover {
     background: #ddd;
-}
-
-
-.language-selection .lang-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.language-selection .lang-btn img {
-    width: 32px;
-    height: auto;
-}
-
-.hidden {
-    display: none;
 }
