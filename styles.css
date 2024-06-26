@@ -431,8 +431,8 @@ label {
     }
 
     .menu-btn {
-        width: 30px;
-        height: 30px;
+        width: 20px;
+        height: 20px;
         font-size: 1em;
     }
     .control-btn {
@@ -441,5 +441,5 @@ label {
          font-size: 1em;
     }
 }
-    
+
 }
