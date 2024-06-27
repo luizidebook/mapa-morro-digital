@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLanguage();
     activateAssistant();
     setupEventListeners();
+    startTutorial();
 });
 
 let currentSubMenu = null;
@@ -37,6 +38,61 @@ function setupEventListeners() {
         btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const welcomeMessage = {
+        pt: "Bem-vindo ao Morro Digital! Estamos aqui para te guiar em uma jornada incrível pelo Morro de São Paulo. Por favor, selecione o seu idioma preferido para começarmos.",
+        en: "Welcome to Morro Digital! We are here to guide you on an amazing journey through Morro de São Paulo. Please select your preferred language to get started.",
+        es: "¡Bienvenido a Morro Digital! Estamos aquí para guiarte en un viaje increíble por Morro de São Paulo. Por favor, selecciona tu idioma preferido para comenzar.",
+        he: "ברוך הבא למורו דיגיטל! אנחנו כאן כדי להדריך אותך במסע מדהים דרך מורו דה סאו פאולו. אנא בחר את השפה המועדפת עליך כדי להתחיל."
+    };
+
+    document.getElementById('welcome-message').textContent = welcomeMessage['pt']; // Definir idioma padrão para exibição inicial
+
+    document.getElementById('welcome-modal').style.display = 'block';
+    document.body.classList.add('blocked');
+
+    document.querySelectorAll('.lang-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedLang = button.getAttribute('data-lang');
+            localStorage.setItem('selectedLanguage', selectedLang); // Armazenar a seleção do idioma
+            document.getElementById('welcome-message').textContent = welcomeMessage[selectedLang];
+            document.getElementById('welcome-modal').style.display = 'none';
+            document.body.classList.remove('blocked');
+            loadLanguageResources(selectedLang); // Função para carregar os recursos no idioma selecionado
+        });
+    });
+});
+
+function loadLanguageResources(lang) {
+    // Função para carregar os recursos do idioma selecionado
+    // Implementação aqui...
+}
+
+
+const welcomeMessage = {
+        pt: "Bem-vindo ao Morro Digital! Estamos aqui para te guiar em uma jornada incrível pelo Morro de São Paulo. Por favor, selecione o seu idioma preferido para começarmos.",
+        en: "Welcome to Morro Digital! We are here to guide you on an amazing journey through Morro de São Paulo. Please select your preferred language to get started.",
+        es: "¡Bienvenido a Morro Digital! Estamos aquí para guiarte en un viaje increíble por Morro de São Paulo. Por favor, selecciona tu idioma preferido para comenzar.",
+        he: "ברוך הבא למורו דיגיטל! אנחנו כאן כדי להדריך אותך במסע מדהים דרך מורו דה סאו פאולו. אנא בחר את השפה המועדפת עליך כדי להתחיל."
+    };
+
+    document.getElementById('welcome-message').textContent = welcomeMessage['pt']; // Definir idioma padrão para exibição inicial
+
+    document.getElementById('welcome-modal').style.display = 'block';
+    document.body.classList.add('blocked');
+
+    document.querySelectorAll('.lang-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedLang = button.getAttribute('data-lang');
+            localStorage.setItem('selectedLanguage', selectedLang); // Armazenar a seleção do idioma
+            document.getElementById('welcome-message').textContent = welcomeMessage[selectedLang];
+            document.getElementById('welcome-modal').style.display = 'none';
+            document.body.classList.remove('blocked');
+            loadLanguageResources(selectedLang); // Função para carregar os recursos no idioma selecionado
+        });
+    });
+
 
 function initializeMap() {
     map = L.map('map', {
@@ -362,124 +418,298 @@ function updateAssistantModalContent(content) {
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
-// Funções do Tutorial
+let currentStep = 0;
+
 const tutorialSteps = [
     {
         element: null,
         message: {
-            pt: "Olá! Eu sou seu assistente virtual. Vou te ajudar a explorar todas as funcionalidades deste site. Vamos começar!",
-            en: "Hello! I am your virtual assistant. I will help you explore all the features of this site. Let's start!",
-            es: "¡Hola! Soy tu asistente virtual. Te ayudaré a explorar todas las funcionalidades de este sitio. ¡Vamos a empezar!",
-            he: "שלום! אני העוזר הווירטואלי שלך. אני אעזור לך לחקור את כל הפונקציות של האתר הזה. בואו נתחיל!"
+            pt: "Olá! Eu sou seu assistente virtual. Estou aqui para te ajudar a explorar todas as funcionalidades deste site com amor e atenção. Vamos começar esta jornada juntos!",
+            en: "Hello! I am your virtual assistant. I'm here to help you explore all the features of this site with love and care. Let's start this journey together!",
+            es: "¡Hola! Soy tu asistente virtual. Estoy aquí para ayudarte a explorar todas las funcionalidades de este sitio con amor y cuidado. ¡Comencemos este viaje juntos!",
+            he: "שלום! אני העוזר הווירטואלי שלך. אני כאן כדי לעזור לך לחקור את כל התכונות של אתר זה באהבה ובטיפול. בואו נתחיל את המסע הזה ביחד!"
         }
+    },
+    {
+        element: '#tutorial-next-btn',
+        message: {
+            pt: "Este é o botão 'Avançar'. Clique aqui para ir para o próximo passo do tutorial. Vamos tentar juntos, clique no botão!",
+            en: "This is the 'Next' button. Click here to go to the next step of the tutorial. Let's try it together, click the button!",
+            es: "Este es el botón 'Siguiente'. Haz clic aquí para ir al siguiente paso del tutorial. ¡Intentémoslo juntos, haz clic en el botón!",
+            he: "זהו כפתור 'הבא'. לחץ כאן כדי לעבור לשלב הבא של המדריך. בוא ננסה יחד, לחץ על הכפתור!"
+        },
+        highlight: true,
+        action: () => addNextStepClickListener()
+    },
+    {
+        element: '#tutorial-prev-btn',
+        message: {
+            pt: "Este é o botão 'Voltar'. Clique aqui para retornar ao passo anterior do tutorial. Vamos tentar, clique no botão!",
+            en: "This is the 'Back' button. Click here to go back to the previous step of the tutorial. Let's try it, click the button!",
+            es: "Este es el botón 'Atrás'. Haz clic aquí para volver al paso anterior del tutorial. ¡Intentémoslo, haz clic en el botón!",
+            he: "זהו כפתור 'חזור'. לחץ כאן כדי לחזור לשלב הקודם של המדריך. בוא ננסה, לחץ על הכפתור!"
+        },
+        highlight: true,
+        action: () => addPrevStepClickListener()
+    },
+    {
+        element: '#tutorial-end-btn',
+        message: {
+            pt: "Este é o botão 'Encerrar Tutorial'. Clique aqui se você quiser encerrar o tutorial a qualquer momento. Vamos tentar, clique no botão!",
+            en: "This is the 'End Tutorial' button. Click here if you want to end the tutorial at any time. Let's try it, click the button!",
+            es: "Este es el botón 'Finalizar Tutorial'. Haz clic aquí si deseas finalizar el tutorial en cualquier momento. ¡Intentémoslo, haz clic en el botón!",
+            he: "זהו כפתור 'סיום מדריך'. לחץ כאן אם ברצונך לסיים את המדריך בכל עת. בוא ננסה, לחץ על הכפתור!"
+        },
+        highlight: true,
+        action: () => addEndTutorialClickListener()
     },
     {
         element: null,
         message: {
-            pt: "Primeiro, precisamos da sua permissão para acessar sua localização atual. Isso nos ajudará a fornecer informações relevantes e personalizadas.",
-            en: "First, we need your permission to access your current location. This will help us provide relevant and personalized information.",
-            es: "Primero, necesitamos tu permiso para acceder a tu ubicación actual. Esto nos ayudará a proporcionar información relevante y personalizada.",
-            he: "ראשית, אנו זקוקים לאישור שלך לגשת למיקום הנוכחי שלך. זה יעזור לנו לספק מידע רלוונטי ומותאם אישית."
-        }
+            pt: "Primeiro, precisamos da sua permissão para acessar sua localização atual. Isso nos ajudará a fornecer informações relevantes e personalizadas. Clique em 'Permitir' quando solicitado.",
+            en: "First, we need your permission to access your current location. This will help us provide relevant and personalized information. Click 'Allow' when prompted.",
+            es: "Primero, necesitamos tu permiso para acceder a tu ubicación actual. Esto nos ayudará a proporcionar información relevante y personalizada. Haz clic en 'Permitir' cuando se te solicite.",
+            he: "ראשית, אנו זקוקים לאישור שלך לגשת למיקום הנוכחי שלך. זה יעזור לנו לספק מידע רלוונטי ומותאם אישית. לחץ על 'אפשר' כאשר תתבקש."
+        },
+        action: requestLocationPermission
     },
     {
         element: '#map',
         message: {
-            pt: "Este é o mapa. Aqui você pode ver e explorar os pontos turísticos, praias, restaurantes e muito mais.",
-            en: "This is the map. Here you can see and explore tourist spots, beaches, restaurants, and more.",
-            es: "Este es el mapa. Aquí puedes ver y explorar los puntos turísticos, playas, restaurantes y más.",
-            he: "זו המפה. כאן תוכלו לראות ולחקור אתרי תיירות, חופים, מסעדות ועוד."
-        }
+            pt: "Este é o mapa. Aqui você pode ver e explorar os pontos turísticos, praias, restaurantes e muito mais. Experimente clicar no mapa!",
+            en: "This is the map. Here you can see and explore tourist spots, beaches, restaurants, and more. Try clicking on the map!",
+            es: "Este es el mapa. Aquí puedes ver y explorar los puntos turísticos, playas, restaurantes y más. ¡Intenta hacer clic en el mapa!",
+            he: "זו המפה. כאן תוכלו לראות ולחקור אתרי תיירות, חופים, מסעדות ועוד. נסה ללחוץ על המפה!"
+        },
+        highlight: true,
+        action: () => addMapClickListener()
     },
     {
-        element: '#menu-toggle',
+        element: '#menu-btn',
         message: {
-            pt: "Este é o botão para abrir o menu flutuante. Clique nele para explorar as funcionalidades do site.",
-            en: "This is the button to open the floating menu. Click it to explore the site's features.",
-            es: "Este es el botón para abrir el menú flotante. Haz clic en él para explorar las funcionalidades del sitio.",
-            he: "זהו הכפתור לפתיחת התפריט הצף. לחץ עליו כדי לחקור את הפונקציות של האתר."
-        }
+            pt: "Clique neste botão para abrir o menu flutuante. Aqui você pode acessar várias funcionalidades do site.",
+            en: "Click this button to open the floating menu. Here you can access various site features.",
+            es: "Haz clic en este botón para abrir el menú flotante. Aquí puedes acceder a varias funciones del sitio.",
+            he: "לחץ על כפתור זה כדי לפתוח את התפריט הצף. כאן תוכל לגשת לפונקציות שונות של האתר."
+        },
+        highlight: true,
+        action: () => addMenuToggleClickListener()
     },
     {
         element: '.menu-btn[data-feature="pontos-turisticos"]',
         message: {
-            pt: "Clique neste ícone para ver os pontos turísticos de Morro de São Paulo.",
-            en: "Click this icon to see the tourist spots of Morro de São Paulo.",
-            es: "Haz clic en este icono para ver los puntos turísticos de Morro de São Paulo.",
-            he: "לחץ על סמל זה כדי לראות את נקודות התיירות של מורו דה סאו פאולו."
-        }
+            pt: "Clique neste ícone para ver os pontos turísticos de Morro de São Paulo. Explore os lugares mais incríveis da região!",
+            en: "Click this icon to see the tourist spots of Morro de São Paulo. Explore the most amazing places in the region!",
+            es: "Haz clic en este icono para ver los puntos turísticos de Morro de São Paulo. ¡Explora los lugares más increíbles de la región!",
+            he: "לחץ על סמל זה כדי לראות את נקודות התיירות של מורו דה סאו פאולו. חקור את המקומות המדהימים ביותר באזור!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('pontos-turisticos')
     },
     {
         element: '.menu-btn[data-feature="passeios"]',
         message: {
-            pt: "Clique neste ícone para ver os passeios disponíveis.",
-            en: "Click this icon to see the available tours.",
-            es: "Haz clic en este icono para ver los tours disponibles.",
-            he: "לחץ על סמל זה כדי לראות את הסיורים הזמינים."
-        }
+            pt: "Clique neste ícone para ver os passeios disponíveis. Descubra as melhores aventuras que você pode viver aqui!",
+            en: "Click this icon to see the available tours. Discover the best adventures you can experience here!",
+            es: "Haz clic en este icono para ver los tours disponibles. ¡Descubre las mejores aventuras que puedes vivir aquí!",
+            he: "לחץ על סמל זה כדי לראות את הסיורים הזמינים. גלה את ההרפתקאות הטובות ביותר שאתה יכול לחוות כאן!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('passeios')
     },
     {
         element: '.menu-btn[data-feature="praias"]',
         message: {
-            pt: "Clique neste ícone para ver as praias de Morro de São Paulo.",
-            en: "Click this icon to see the beaches of Morro de São Paulo.",
-            es: "Haz clic en este icono para ver las playas de Morro de São Paulo.",
-            he: "לחץ על סמל זה כדי לראות את החופים של מורו דה סאו פאולו."
-        }
+            pt: "Clique neste ícone para ver as praias de Morro de São Paulo. Encontre os melhores locais para relaxar e se divertir!",
+            en: "Click this icon to see the beaches of Morro de São Paulo. Find the best spots to relax and have fun!",
+            es: "Haz clic en este icono para ver las playas de Morro de São Paulo. ¡Encuentra los mejores lugares para relajarte y divertirte!",
+            he: "לחץ על סמל זה כדי לראות את החופים של מורו דה סאו פאולו. מצא את המקומות הטובים ביותר להירגע וליהנות!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('praias')
+    },
+    {
+        element: '.menu-btn[data-feature="festas"]',
+        message: {
+            pt: "Clique neste ícone para ver as festas e eventos em Morro de São Paulo. Conheça as melhores baladas e shows!",
+            en: "Click this icon to see the parties and events in Morro de São Paulo. Discover the best parties and shows!",
+            es: "Haz clic en este icono para ver las fiestas y eventos en Morro de São Paulo. ¡Descubre las mejores fiestas y espectáculos!",
+            he: "לחץ על סמל זה כדי לראות את המסיבות והאירועים במורו דה סאו פאולו. גלה את המסיבות והמופעים הטובים ביותר!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('festas')
     },
     {
         element: '.menu-btn[data-feature="restaurantes"]',
         message: {
-            pt: "Clique neste ícone para ver os restaurantes da região.",
-            en: "Click this icon to see the restaurants in the area.",
-            es: "Haz clic en este icono para ver los restaurantes de la región.",
-            he: "לחץ על סמל זה כדי לראות את המסעדות באזור."
-        }
+            pt: "Clique neste ícone para ver os restaurantes da região. Delicie-se com a melhor gastronomia local!",
+            en: "Click this icon to see the restaurants in the area. Enjoy the best local cuisine!",
+            es: "Haz clic en este icono para ver los restaurantes de la región. ¡Disfruta de la mejor gastronomía local!",
+            he: "לחץ על סמל זה כדי לראות את המסעדות באזור. תהנה מהמטבח המקומי הטוב ביותר!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('restaurantes')
+    },
+    {
+        element: '.menu-btn[data-feature="pousadas"]',
+        message: {
+            pt: "Clique neste ícone para ver as pousadas disponíveis. Encontre o lugar perfeito para sua estadia!",
+            en: "Click this icon to see the available inns. Find the perfect place for your stay!",
+            es: "Haz clic en este icono para ver las posadas disponibles. ¡Encuentra el lugar perfecto para tu estadía!",
+            he: "לחץ על סמל זה כדי לראות את הפונדקים הזמינים. מצא את המקום המושלם לשהותך!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('pousadas')
+    },
+    {
+        element: '.menu-btn[data-feature="lojas"]',
+        message: {
+            pt: "Clique neste ícone para ver as lojas da região. Descubra as melhores lojas para suas compras!",
+            en: "Click this icon to see the shops in the area. Discover the best stores for your shopping!",
+            es: "Haz clic en este icono para ver las tiendas de la región. ¡Descubre las mejores tiendas para tus compras!",
+            he: "לחץ על סמל זה כדי לראות את החנויות באזור. גלה את החנויות הטובות ביותר לקניות שלך!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('lojas')
+    },
+    {
+        element: '.menu-btn[data-feature="emergencias"]',
+        message: {
+            pt: "Clique neste ícone para ver os contatos de emergência. Tenha sempre à mão os números úteis!",
+            en: "Click this icon to see the emergency contacts. Always have the useful numbers at hand!",
+            es: "Haz clic en este icono para ver los contactos de emergencia. ¡Ten siempre a mano los números útiles!",
+            he: "לחץ על סמל זה כדי לראות את אנשי הקשר לשעת חירום. תמיד יש את המספרים השימושיים בהישג יד!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('emergencias')
+    },
+    {
+        element: '.menu-btn[data-feature="dicas"]',
+        message: {
+            pt: "Clique neste ícone para ver dicas úteis sobre a região. Receba as melhores recomendações!",
+            en: "Click this icon to see useful tips about the area. Get the best recommendations!",
+            es: "Haz clic en este icono para ver consejos útiles sobre la región. ¡Obtén las mejores recomendaciones!",
+            he: "לחץ על סמל זה כדי לראות טיפים שימושיים על האזור. קבל את ההמלצות הטובות ביותר!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('dicas')
+    },
+    {
+        element: '.menu-btn.zoom-in',
+        message: {
+            pt: "Use este botão para dar zoom in no mapa. Experimente!",
+            en: "Use this button to zoom in on the map. Try it!",
+            es: "Usa este botón para acercar el mapa. ¡Inténtalo!",
+            he: "השתמש בכפתור זה כדי להתקרב במפה. נסה את זה!"
+        },
+        highlight: true,
+        action: () => addZoomClickListener('zoom-in')
+    },
+    {
+        element: '.menu-btn.zoom-out',
+        message: {
+            pt: "Use este botão para dar zoom out no mapa. Experimente!",
+            en: "Use this button to zoom out on the map. Try it!",
+            es: "Usa este botón para alejar el mapa. ¡Inténtalo!",
+            he: "השתמש בכפתור זה כדי להתרחק במפה. נסה את זה!"
+        },
+        highlight: true,
+        action: () => addZoomClickListener('zoom-out')
+    },
+    {
+        element: '.menu-btn.locate-user',
+        message: {
+            pt: "Use este botão para localizar sua posição atual no mapa. Experimente!",
+            en: "Use this button to locate your current position on the map. Try it!",
+            es: "Usa este botón para localizar tu posición actual en el mapa. ¡Inténtalo!",
+            he: "השתמש בכפתור זה כדי לאתר את המיקום הנוכחי שלך במפה. נסה את זה!"
+        },
+        highlight: true,
+        action: () => addLocateUserClickListener()
+    },
+    {
+        element: '.menu-btn[data-feature="sobre"]',
+        message: {
+            pt: "Clique neste ícone para saber mais sobre o site. Conheça nossa história e propósito!",
+            en: "Click this icon to learn more about the site. Learn about our history and purpose!",
+            es: "Haz clic en este icono para saber más sobre el sitio. ¡Conoce nuestra historia y propósito!",
+            he: "לחץ על סמל זה כדי ללמוד עוד על האתר. למד על ההיסטוריה והמטרה שלנו!"
+        },
+        highlight: true,
+        action: () => addFeatureClickListener('sobre')
     },
     {
         element: '#create-route-btn',
         message: {
-            pt: "Use este botão para criar uma rota até o local selecionado.",
-            en: "Use this button to create a route to the selected location.",
-            es: "Usa este botón para crear una ruta al lugar seleccionado.",
-            he: "השתמש בכפתור זה כדי ליצור מסלול למיקום הנבחר."
-        }
+            pt: "Use este botão para criar uma rota até o local selecionado. Planeje seu caminho com facilidade!",
+            en: "Use this button to create a route to the selected location. Plan your way easily!",
+            es: "Usa este botón para crear una ruta al lugar seleccionado. ¡Planifica tu camino fácilmente!",
+            he: "השתמש בכפתור זה כדי ליצור מסלול למיקום הנבחר. תכנן את דרכך בקלות!"
+        },
+        highlight: true,
+        action: () => showCreateRouteButton()
+    },
+    {
+        element: '#generate-itinerary-btn',
+        message: {
+            pt: "Use este botão para gerar um roteiro. Organize suas atividades e aproveite ao máximo!",
+            en: "Use this button to generate an itinerary. Organize your activities and make the most of your time!",
+            es: "Usa este botón para generar un itinerario. ¡Organiza tus actividades y aprovecha al máximo tu tiempo!",
+            he: "השתמש בכפתור זה כדי ליצור מסלול. ארגן את הפעילויות שלך ותפיק את המרב מהזמן שלך!"
+        },
+        highlight: true,
+        action: () => showGenerateItineraryButton()
     },
     {
         element: '#feedback-toggle-btn',
         message: {
-            pt: "Clique aqui para enviar feedback sobre sua experiência no site.",
-            en: "Click here to submit feedback about your experience on the site.",
-            es: "Haz clic aquí para enviar comentarios sobre tu experiencia en el sitio.",
-            he: "לחץ כאן כדי לשלוח משוב על החוויה שלך באתר."
+            pt: "Clique aqui para enviar feedback sobre sua experiência no site. Sua opinião é muito importante para nós!",
+            en: "Click here to submit feedback about your experience on the site. Your opinion is very important to us!",
+            es: "Haz clic aquí para enviar comentarios sobre tu experiencia en el sitio. ¡Tu opinión es muy importante para nosotros!",
+            he: "לחץ כאן כדי לשלוח משוב על החוויה שלך באתר. דעתך חשובה לנו מאוד!"
+        },
+        highlight: true,
+        action: () => addFeedbackClickListener()
+    },
+    {
+        element: null,
+        message: {
+            pt: "Tutorial completo! Você está pronto para explorar o Morro Digital. Se precisar de ajuda, clique no ícone de ajuda. Aproveite sua jornada!",
+            en: "Tutorial complete! You are ready to explore Morro Digital. If you need help, click on the help icon. Enjoy your journey!",
+            es: "¡Tutorial completo! Estás listo para explorar Morro Digital. Si necesitas ayuda, haz clic en el icono de ayuda. ¡Disfruta tu viaje!",
+            he: "המדריך הושלם! אתה מוכן לחקור את מורו דיגיטל. אם אתה צריך עזרה, לחץ על סמל העזרה. תהנה מהמסע שלך!"
         }
     }
 ];
 
-let currentStep = 0;
-
 function showTutorialStep(step) {
-    const { element, message } = tutorialSteps[step];
+    const { element, message, action, highlight } = tutorialSteps[step];
     const targetElement = element ? document.querySelector(element) : null;
 
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
 
-    const previousOverlays = document.querySelectorAll('.highlight-overlay');
-    previousOverlays.forEach(overlay => overlay.remove());
-
-    if (element) {
-        const rect = targetElement.getBoundingClientRect();
-        const highlightOverlay = document.createElement('div');
-        highlightOverlay.className = 'highlight-overlay';
-        highlightOverlay.style.position = 'absolute';
-        highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
-        highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
-        highlightOverlay.style.width = `${rect.width}px`;
-        highlightOverlay.style.height = `${rect.height}px`;
-        highlightOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        highlightOverlay.style.zIndex = '10';
-        document.body.appendChild(highlightOverlay);
+    if (highlight && targetElement) {
+        highlightElement(targetElement);
     }
+
+    if (action) {
+        action();
+    }
+}
+
+function highlightElement(element) {
+    const rect = element.getBoundingClientRect();
+    const highlightOverlay = document.createElement('div');
+    highlightOverlay.className = 'highlight-overlay';
+    highlightOverlay.style.position = 'absolute';
+    highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
+    highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
+    highlightOverlay.style.width = `${rect.width}px`;
+    highlightOverlay.style.height = `${rect.height}px`;
+    highlightOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    highlightOverlay.style.zIndex = '10';
+    highlightOverlay.style.transition = 'background-color 0.5s ease';
+    document.body.appendChild(highlightOverlay);
 }
 
 function nextTutorialStep() {
@@ -511,12 +741,65 @@ function endTutorial() {
     alert(translations[selectedLanguage].tutorialComplete);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
-    document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-    document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
-    startTutorial();
-});
+function updateAssistantModalContent(content) {
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    modalContent.innerHTML = content;
+    document.getElementById('assistant-modal').style.display = 'block';
+}
+
+// Funções de interatividade para cada passo do tutorial
+function addNextStepClickListener() {
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addPrevStepClickListener() {
+    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep, { once: true });
+}
+
+function addEndTutorialClickListener() {
+    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial, { once: true });
+}
+
+function addMapClickListener() {
+    document.getElementById('map').addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addMenuToggleClickListener() {
+    document.getElementById('menu-btn').addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addFeatureClickListener(feature) {
+    document.querySelector(`.menu-btn[data-feature="${feature}"]`).addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addZoomClickListener(zoomType) {
+    document.querySelector(`.menu-btn.${zoomType}`).addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addLocateUserClickListener() {
+    document.querySelector('.menu-btn.locate-user').addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function showCreateRouteButton() {
+    const createRouteBtn = document.getElementById('create-route-btn');
+    createRouteBtn.style.display = 'block';
+    createRouteBtn.addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function showGenerateItineraryButton() {
+    const generateItineraryBtn = document.getElementById('generate-itinerary-btn');
+    generateItineraryBtn.style.display = 'block';
+    generateItineraryBtn.addEventListener('click', nextTutorialStep, { once: true });
+}
+
+function addFeedbackClickListener() {
+    document.getElementById('feedback-toggle-btn').addEventListener('click', nextTutorialStep, { once: true });
+}
+
+// Adiciona event listeners para os botões de navegação do tutorial
+document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
+document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
 
 const translations = {
     pt: {
