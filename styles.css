@@ -211,6 +211,18 @@ body, html {
     pointer-events: none;
 }
 
+ .menu-toggle-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1em;
+    }
+
+.menu-floating-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1.5em;
+    }
+
 .menu-btn {
     display: flex;
     justify-content: center;
@@ -218,8 +230,8 @@ body, html {
     background: #333;
     color: white;
     border: none;
-    margin: 2px 0;
-    padding: 25px;
+    margin: 1px 0;
+    padding: 15px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
@@ -227,16 +239,15 @@ body, html {
     font-size: 0.7em;
 }
 
-  .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 80%;
-        left: 50%;
+        top: 75%;
+        left: 15%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
         transition: opacity 0.3s ease-in-out;
         z-index: 1000;
-
     }
 
 .control-btn {
@@ -244,7 +255,7 @@ body, html {
     color: white;
     border: none;
     margin: 0.1em;
-    padding: 30px;
+    padding: 10px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1em;
@@ -369,8 +380,8 @@ label {
 
     .control-buttons {
         position: absolute;
-        top: 80%;
-        left: 50%;
+        top: 75%;
+        left: 15%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
@@ -383,6 +394,7 @@ label {
         padding: 15px;
     }
 
+
     .assistant-modal {
          width: 50%;
         left: 5%;
@@ -390,52 +402,266 @@ label {
     }
 
     .menu-btn {
-        width: 50px;
-        height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #333;
+    color: white;
+    border: none;
+    margin: 1px 0;
+    padding: 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 10px;
+    height: 10px;
+    font-size: 0.7em;
+}
+
+     .menu-toggle-btn {
+        width: 30px;
+        height: 30px;
         font-size: 1em;
     }
 
 
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .control-buttons {
+    .menu-floating-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1.5em;
+    }
+
+   .control-btn {
+    background: #333;
+    color: white;
+    border: none;
+    margin: 0.1em;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+}
+
+//* Media Queries para diferentes tamanhos de tela */
+
+/* Dispositivos pequenos */
+@media (max-width: 600px) {
+    .modal {
+        width: 90%;
+        left: 5%;
+        padding: 15px;
+    }
+
+    .floating-menu {
     position: absolute;
-    top: 80%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 45%;
+    right: 20px;
+    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
     z-index: 1000;
-    }
-
-    .control-buttons.hidden {
-    opacity: 0;
-    pointer-events: none;
 }
-    .modal {
-        width: 50%;
+
+    .assistant-modal {
+        width: 90%;
         left: 5%;
         padding: 15px;
     }
 
-       .assistant-modal {
-         width: 50%;
-        left: 5%;
+
+/* Dispositivos médios */
+@media (max-width: 768px) {
+    .modal {
+        width: 90%;
+        left: 10%;
         padding: 15px;
     }
 
     .menu-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #333;
+    color: white;
+    border: none;
+    margin: 1px 0;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 10px;
+    height: 10px;
+    font-size: 0.7em;
+}
+
+    .assistant-modal {
+        width: 80%;
+        left: 10%;
+        padding: 15px;
     }
+
+    .menu-btn {
+        width: 10px;
+        height: 10px;
+        font-size: 1em;
+    }
+
+
+    .floating-menu {
+    position: absolute;
+    top: 45%;
+    right: 20px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
+}
+
     .control-btn {
-        width: 100%;
-        padding: 18px;
-         font-size: 1em;
-         margin: 0.1em;
+    background: #333;
+    color: white;
+    border: none;
+    margin: 0.1em;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-buttons {
+        position: absolute;
+        top: 75%;
+        left: 15%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+}
+
+/* Dispositivos grandes */
+@media (max-width: 1024px) {
+    .modal {
+        width: 70%;
+        left: 15%;
+        padding: 20px;
+    }
+
+    .assistant-modal {
+        width: 70%;
+        left: 15%;
+        padding: 20px;
+    }
+
+    .menu-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1em;
+    }
+
+    .control-buttons {
+        bottom: 20px;
+    }
+
+    .control-btn {
+    background: #333;
+    color: white;
+    border: none;
+    margin: 0.1em;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+}
+
+/* Dispositivos extra grandes */
+@media (max-width: 1200px) {
+    .modal {
+        width: 60%;
+        left: 20%;
+        padding: 25px;
+    }
+
+    .assistant-modal {
+        width: 60%;
+        left: 20%;
+        padding: 25px;
+    }
+
+     .menu-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1em;
+    }
+
+    .control-buttons {
+        position: absolute;
+        top: 75%;
+        left: 15%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+
+    .control-buttons {
+        bottom: 25px;
+    }
+
+    .control-btn {
+         width: 20px;
+        height: 20px;
+        font-size: 1em;
+    }
+
+}
+
+/* Dispositivos extra-extra grandes */
+@media (min-width: 1201px) {
+    .modal {
+        width: 50%;
+        left: 25%;
+        padding: 30px;
+    }
+
+    .assistant-modal {
+        width: 50%;
+        left: 25%;
+        padding: 30px;
+    }
+
+    .menu-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 1em;
+    }
+
+ .control-buttons {
+        position: absolute;
+        top: 75%;
+        left: 25%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .control-btn {
+        padding: 10px;
+        font-size: 1.3em;
     }
 }
-   
