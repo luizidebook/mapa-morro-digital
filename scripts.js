@@ -1,8 +1,6 @@
-// Correções no scripts.js
 document.addEventListener('DOMContentLoaded', () => {
     initializeMap();
     loadResources();
-    loadLanguage();
     activateAssistant();
     setupEventListeners();
     startTutorial();
@@ -47,19 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
         he: "ברוך הבא למורו דיגיטל! אנחנו כאן כדי להדריך אותך במסע מדהים דרך מורו דה סאו פאולו. אנא בחר את השפה המועדפת עליך כדי להתחיל."
     };
 
-    document.getElementById('welcome-message').textContent = welcomeMessage['pt']; // Definir idioma padrão para exibição inicial
-
+    document.getElementById('welcome-message').textContent = welcomeMessage[selectedLanguage];
     document.getElementById('welcome-modal').style.display = 'block';
-    document.body.classList.add('blocked');
 
     document.querySelectorAll('.lang-btn').forEach(button => {
         button.addEventListener('click', () => {
             const selectedLang = button.getAttribute('data-lang');
-            localStorage.setItem('selectedLanguage', selectedLang); // Armazenar a seleção do idioma
-            document.getElementById('welcome-message').textContent = welcomeMessage[selectedLang];
+            localStorage.setItem('preferredLanguage', selectedLang);
+            selectedLanguage = selectedLang;
             document.getElementById('welcome-modal').style.display = 'none';
-            document.body.classList.remove('blocked');
-            loadLanguageResources(selectedLang); // Função para carregar os recursos no idioma selecionado
+            unblockUserInteraction('menuToggle');
+            loadLanguageResources(selectedLang);
+            startTutorial();
         });
     });
 });
@@ -69,34 +66,9 @@ function loadLanguageResources(lang) {
     // Implementação aqui...
 }
 
-
-const welcomeMessage = {
-        pt: "Bem-vindo ao Morro Digital! Estamos aqui para te guiar em uma jornada incrível pelo Morro de São Paulo. Por favor, selecione o seu idioma preferido para começarmos.",
-        en: "Welcome to Morro Digital! We are here to guide you on an amazing journey through Morro de São Paulo. Please select your preferred language to get started.",
-        es: "¡Bienvenido a Morro Digital! Estamos aquí para guiarte en un viaje increíble por Morro de São Paulo. Por favor, selecciona tu idioma preferido para comenzar.",
-        he: "ברוך הבא למורו דיגיטל! אנחנו כאן כדי להדריך אותך במסע מדהים דרך מורו דה סאו פאולו. אנא בחר את השפה המועדפת עליך כדי להתחיל."
-    };
-
-    document.getElementById('welcome-message').textContent = welcomeMessage['pt']; // Definir idioma padrão para exibição inicial
-
-    document.getElementById('welcome-modal').style.display = 'block';
-    document.body.classList.add('blocked');
-
-    document.querySelectorAll('.lang-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const selectedLang = button.getAttribute('data-lang');
-            localStorage.setItem('selectedLanguage', selectedLang); // Armazenar a seleção do idioma
-            document.getElementById('welcome-message').textContent = welcomeMessage[selectedLang];
-            document.getElementById('welcome-modal').style.display = 'none';
-            document.body.classList.remove('blocked');
-            loadLanguageResources(selectedLang); // Função para carregar os recursos no idioma selecionado
-        });
-    });
-
-
 function initializeMap() {
     map = L.map('map', {
-        zoomControl: false 
+        zoomControl: false
     }).setView([-13.376, -38.913], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -108,21 +80,8 @@ function loadResources() {
     console.log('Recursos carregados.');
 }
 
-function loadLanguage() {
-    const language = localStorage.getItem('preferredLanguage') || 'pt';
-    translatePage(language);
-    console.log(`Idioma carregado: ${language}`);
-}
-
-function translatePage(language) {
-    document.querySelectorAll('[data-translate]').forEach(el => {
-        el.innerText = translations[language][el.getAttribute('data-translate')] || el.innerText;
-    });
-}
-
 function activateAssistant() {
     showWelcomeMessage();
-    requestLanguageSelection();
 }
 
 function showWelcomeMessage() {
@@ -130,31 +89,11 @@ function showWelcomeMessage() {
     modal.style.display = 'block';
 }
 
-function requestLanguageSelection() {
-    const modalContent = document.querySelector('#welcome-modal .modal-content');
-    modalContent.innerHTML = `
-        <h2>${translations[selectedLanguage].selectLanguage}</h2>
-        <div class="language-selection">
-            <button class="lang-btn" data-lang="pt"><img src="images/brazil.png" alt="Brasil"></button>
-            <button class="lang-btn" data-lang="es"><img src="images/spain.png" alt="Espanha"></button>
-            <button class="lang-btn" data-lang="en"><img src="images/usa.png" alt="Estados Unidos"></button>
-            <button class="lang-btn" data-lang="he"><img src="images/israel.png" alt="Israel"></button>
-        </div>
-        <label>
-            <input type="checkbox" id="dont-show-again"> Não mostrar novamente
-        </label>
-    `;
-}
-
-function setLanguage(language) {
-    localStorage.setItem('preferredLanguage', language);
-    selectedLanguage = language;
-    loadLanguage();
-    document.getElementById('welcome-modal').style.display = 'none';
-    startTutorial();
-}
-
 function requestLocationPermission() {
+    blockUserInteraction();
+    const assistantModal = document.getElementById('assistant-modal');
+    assistantModal.classList.add('location-permission'); // Adiciona a classe para ajustar a posição
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
             currentLocation = {
@@ -166,16 +105,26 @@ function requestLocationPermission() {
                 .setLatLng([currentLocation.latitude, currentLocation.longitude])
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
+            unblockUserInteraction();
+            assistantModal.classList.remove('location-permission'); // Remove a classe após permissão
+            nextTutorialStep();
+            showLocationMessage(); // Avança para o próximo passo do tutorial
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
+            unblockUserInteraction();
+            assistantModal.classList.remove('location-permission'); // Remove a classe se a permissão for negada
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
+        unblockUserInteraction();
+        assistantModal.classList.remove('location-permission'); // Remove a classe se a geolocalização não for suportada
     }
 }
 
+
+
 function adjustMapWithLocation(lat, lon) {
-    map.setView([lat, lon], 13);
+    map.setView([lat, lon], 16);
 }
 
 function handleFeatureSelection(feature) {
@@ -411,7 +360,6 @@ function showInfoModal(title, content) {
     infoModal.style.display = 'block';
 }
 
-// Função para atualizar o conteúdo do modal do assistente
 function updateAssistantModalContent(content) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
     modalContent.innerHTML = content;
@@ -476,10 +424,10 @@ const tutorialSteps = [
     {
         element: '#map',
         message: {
-            pt: "Este é o mapa. Aqui você pode ver e explorar os pontos turísticos, praias, restaurantes e muito mais. Experimente clicar no mapa!",
-            en: "This is the map. Here you can see and explore tourist spots, beaches, restaurants, and more. Try clicking on the map!",
-            es: "Este es el mapa. Aquí puedes ver y explorar los puntos turísticos, playas, restaurantes y más. ¡Intenta hacer clic en el mapa!",
-            he: "זו המפה. כאן תוכלו לראות ולחקור אתרי תיירות, חופים, מסעדות ועוד. נסה ללחוץ על המפה!"
+            pt: "Esta é a sua localização atual. Agora você pode explorar os pontos turísticos, praias, restaurantes e muito mais. Experimente clicar no mapa!",
+            en: "This is your current location. Now you can explore tourist spots, beaches, restaurants, and more. Try clicking on the map!",
+            es: "Esta es tu ubicación actual. Ahora puedes explorar los puntos turísticos, playas, restaurantes y más. ¡Intenta hacer clic en el mapa!",
+            he: "זהו המיקום הנוכחי שלך. עכשיו אתה יכול לחקור אתרי תיירות, חופים, מסעדות ועוד. נסה ללחוץ על המפה!"
         },
         highlight: true,
         action: () => addMapClickListener()
@@ -489,7 +437,7 @@ const tutorialSteps = [
         message: {
             pt: "Clique neste botão para abrir o menu flutuante. Aqui você pode acessar várias funcionalidades do site.",
             en: "Click this button to open the floating menu. Here you can access various site features.",
-            es: "Haz clic en este botón para abrir el menú flotante. Aquí puedes acceder a varias funciones del sitio.",
+            es: "Haz clic en este botón para abrir el menú flutuante. Aquí puedes acceder a varias funciones del sitio.",
             he: "לחץ על כפתור זה כדי לפתוח את התפריט הצף. כאן תוכל לגשת לפונקציות שונות של האתר."
         },
         highlight: true,
@@ -741,12 +689,6 @@ function endTutorial() {
     alert(translations[selectedLanguage].tutorialComplete);
 }
 
-function updateAssistantModalContent(content) {
-    const modalContent = document.querySelector('#assistant-modal .modal-content');
-    modalContent.innerHTML = content;
-    document.getElementById('assistant-modal').style.display = 'block';
-}
-
 // Funções de interatividade para cada passo do tutorial
 function addNextStepClickListener() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep, { once: true });
@@ -796,7 +738,14 @@ function addFeedbackClickListener() {
     document.getElementById('feedback-toggle-btn').addEventListener('click', nextTutorialStep, { once: true });
 }
 
-// Adiciona event listeners para os botões de navegação do tutorial
+function blockUserInteraction() {
+    document.body.classList.add('blocked');
+}
+
+function unblockUserInteraction() {
+    document.body.classList.remove('blocked');
+}
+
 document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
 document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
 document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
@@ -900,33 +849,6 @@ const translations = {
     }
 };
 
-
 document.getElementById('map').addEventListener('click', () => { if (currentStep === 2) nextTutorialStep(); });
 
 document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (currentStep === 3) nextTutorialStep(); });
-
-document.querySelector('.menu-btn[data-feature="passeios"]').addEventListener('click', () => { if (currentStep === 4) nextTutorialStep(); });
-
-document.querySelector('.menu-btn[data-feature="praias"]').addEventListener('click', () => { if (currentStep === 5) nextTutorialStep(); });
-
-document.querySelector('.menu-btn[data-feature="restaurantes"]').addEventListener('click', () => { if (currentStep === 6) nextTutorialStep(); });
-
-document.getElementById('create-route-btn').addEventListener('click', () => { if (currentStep === 7) nextTutorialStep(); });
-
-document.getElementById('feedback-toggle-btn').addEventListener('click', () => { if (currentStep === 8) nextTutorialStep(); });
-
-window.addEventListener('resize', function() {
-    const modal = document.querySelector('.modal');
-    if (modal) {
-        const windowHeight = window.innerHeight;
-        const modalHeight = modal.offsetHeight;
-        if (modalHeight > windowHeight) {
-            modal.style.top = '10px';
-            modal.style.transform = 'translateX(-50%)';
-        } else {
-            modal.style.top = '10%';
-            modal.style.transform = 'translate(-50%, -10%)';
-        }
-    }
-});
-

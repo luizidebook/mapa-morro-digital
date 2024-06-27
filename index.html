@@ -1,4 +1,3 @@
-<!-- Correções no index.html -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -14,6 +13,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
 </head>
 <body>
+
+    <body class="blocked">
+    <div id="blocked-overlay"></div>
+    <!-- Resto do conteúdo -->
+</body>
+
     <div id="map-container">
         <div id="map"></div>
 
@@ -22,17 +27,17 @@
             <div class="modal-content"></div>
         </div>
 
-<div id="welcome-modal" class="welcome-modal">
-    <div class="modal-content">
-        <p id="welcome-message"></p>
-        <div id="language-selection">
-            <button class="lang-btn" data-lang="pt">Português</button>
-            <button class="lang-btn" data-lang="en">English</button>
-            <button class="lang-btn" data-lang="es">Español</button>
-            <button class="lang-btn" data-lang="he">עברית</button>
+        <div id="welcome-modal" class="welcome-modal">
+            <div class="modal-content">
+                <p id="welcome-message"></p>
+                <div id="language-selection">
+                    <button class="lang-btn" data-lang="pt">Português</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="es">Español</button>
+                    <button class="lang-btn" data-lang="he">עברית</button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <!-- Menu Toggle -->
         <button id="menu-btn" class="menu-toggle">
@@ -70,8 +75,8 @@
             <button class="control-btn" id="tutorial-next-btn">Avançar</button>
             <button class="control-btn" id="tutorial-prev-btn">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn">Encerrar Tutorial</button>
-        <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
-<button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
+            <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
+            <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
         </div>
 
         <div id="info-modal" class="modal">

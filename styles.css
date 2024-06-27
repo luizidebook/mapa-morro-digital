@@ -1,4 +1,4 @@
-/* Estilos Gerais */
+
 body, html {
     margin: 0;
     padding: 0;
@@ -6,6 +6,58 @@ body, html {
     height: 100%;
     font-family: Arial, sans-serif;
 }
+
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+}
+
+body.blocked {
+    pointer-events: none;
+}
+
+body.blocked #welcome-modal,
+body.blocked .lang-btn {
+    pointer-events: all;
+}
+
+#blocked-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9998; /* Coloque abaixo do modal de boas-vindas */
+    display: none;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#welcome-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+}
+
+#language-selection {
+    position: relative;
+    z-index: 10001; /* Garante que os botões de idioma estejam acima do overlay */
+}
+
 
 #map-container {
     position: relative;
@@ -17,7 +69,6 @@ body, html {
     width: 100%;
     height: 100%;
     background-color: #eaeaea; /* Placeholder para o mapa */
-    z-index: 0;
 }
 
 /* Estilos do Modal de Boas-Vindas */
@@ -33,7 +84,7 @@ body, html {
     border: 1px solid #ccc;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10000;
+    z-index: 100000;
     display: none;
     text-align: center;
 }
@@ -59,7 +110,7 @@ body, html {
 
 /* Estilos do Modal do Assistente */
 .modal {
-position: absolute;
+    position: absolute;
     top: 10%;
     left: 10%;
     transform: translate(-50%, -50%);
@@ -70,22 +121,9 @@ position: absolute;
     border: 1px solid #ccc;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    z-index: 999;
     display: none;
     text-align: center;
-    text-size-adjust: 10px;
-}
-
-.modal .modal-content {
-    padding: 10px;
-    font-size: 14px;
-    line-height: 1.2;
-}
-
-.modal .modal-title {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-bottom: 10px;
 }
 
 /* Outros Estilos */
@@ -106,7 +144,7 @@ position: absolute;
     padding: 20px;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 999;
 }
 
 .floating-menu {
@@ -117,7 +155,7 @@ position: absolute;
     display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
-    z-index: 1002;
+    z-index: 1000;
 }
 
 .floating-menu.hidden {
@@ -169,34 +207,40 @@ position: absolute;
     border-radius: 15px;
     border: none;
     transition: background-color 0.3s ease;
+    z-index: 1001; /* Ajustado z-index para estar abaixo dos botões Criar Rota e Gerar Roteiro */
 }
 
 .control-btn:hover {
     background-color: #45a049; /* Cor de fundo ao passar o mouse */
 }
 
-
 /* Estilo para o modal do assistente */
-        #assistant-modal {
-        position: absolute;
-        top: 20%;
-        left: 40%;
-        transform: translate(-50%, -50%);
-        width: 60%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        display: none;
-        text-align: center;
+#assistant-modal {
+    position: absolute;
+    top: 20%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    display: none;
+    text-align: center;
 }
 
-.highlight-overlay {
-    animation: highlight 1s infinite alternate;
+/* Adicionar estas novas regras CSS */
+#assistant-modal.location-permission {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001; /* Garante que esteja acima do overlay de bloqueio */
 }
+
 
 @keyframes highlight {
     from {
@@ -222,16 +266,6 @@ position: absolute;
     border-radius: 8px;
 }
 
-#highlight-create-route-btn {
-    border: 2px solid red;
-    padding: 10px;
-    background-color: white;
-    color: red;
-    cursor: pointer;
-    margin-top: 10px;
-    z-index: 10;
-}
-
 /* Menu Lateral */
 #menu {
     position: fixed;
@@ -242,7 +276,7 @@ position: absolute;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 1001;
+    z-index: 999;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -316,16 +350,16 @@ label {
 @media (max-width: 600px) {
     .control-buttons {
         position: absolute;
-        top: 85%;
-        left: 50%;
+        top: 92%;
+        left: 35%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
+        z-index: 1000;
         flex-direction: row-reverse;
     }
 
-#assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -337,11 +371,10 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
+        z-index: 999;
         display: none;
         text-align: center;
-}
-
+    }
 
     .menu-toggle-btn {
         width: 30px;
@@ -356,7 +389,7 @@ label {
 }
 
 @media (max-width: 768px) {
-#assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -368,14 +401,14 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
+        z-index: 999;
         display: none;
         text-align: center;
-}
-    .control-buttons {
+    }
+   .control-buttons {
         position: absolute;
-        top: 85%;
-        left: 50%;
+        top: 92%;
+        left: 35%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
@@ -385,7 +418,7 @@ label {
 }
 
 @media (max-width: 1024px) {
-#assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -397,14 +430,14 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
+        z-index: 999;
         display: none;
         text-align: center;
-}
+    }
     .control-buttons {
         position: absolute;
-        top: 85%;
-        left: 50%;
+        top: 92%;
+        left: 35%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
@@ -414,7 +447,7 @@ label {
 }
 
 @media (max-width: 1200px) {
-#assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -426,14 +459,14 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
+        z-index: 999;
         display: none;
         text-align: center;
-}
+    }
     .control-buttons {
         position: absolute;
-        top: 85%;
-        left: 50%;
+        top: 92%;
+        left: 35%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
@@ -443,7 +476,7 @@ label {
 }
 
 @media (min-width: 1201px) {
-#assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -455,14 +488,14 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
+        z-index: 999;
         display: none;
         text-align: center;
-}
+    }
     .control-buttons {
         position: absolute;
-        top: 85%;
-        left: 50%;
+        top: 92%;
+        left: 35%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
@@ -471,3 +504,16 @@ label {
     }
 }
 
+.control-btn {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
