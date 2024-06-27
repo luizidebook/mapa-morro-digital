@@ -1,121 +1,3 @@
-/* Correções no styles.css */
-body, html {
-    margin: 0;
-    padding: 10px;
-    width: 100%;
-    height: 100%;
-    font-family: Arial, sans-serif;
-}
-
-#map-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-#map {
-    width: 100%;
-    height: 100%;
-    background-color: #eaeaea;
-    z-index: 0; /* Placeholder para o mapa */
-}
-
-.assistant-modal{
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    display: none;
-    max-width: 80%;
-
-}
-
-.modal {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    display: none;
-    max-width: 80%;
-}
-
-.modal .modal-content {
-    padding: 20px;
-}
-
-.modal .modal-title {
-    font-size: 1.4em;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    font-size: 1.2em;
-}
-
-.menu-toggle {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: #333;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.floating-menu {
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    transition: opacity 0.3s ease-in-out;
-    z-index: 1000;
-}
-
-.floating-menu.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.menu-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #333;
-    color: white;
-    border: none;
-    margin: 5px 0;
-    padding: 5px;
-    border-radius: 50%;
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    font-size: 0.7em;
-    z-index: 1000;
-}
-
-.menu-btn:hover {
-    background: #555;
-}
-
 body, html {
     margin: 0;
     padding: 0;
@@ -140,7 +22,7 @@ body, html {
 .welcome-modal{
     position: absolute;
     top: 20px;
-    left: 20px;
+    left: 10px;
     background: white;
     padding: 10px;
     border: 1px solid #ccc;
@@ -153,9 +35,10 @@ body, html {
 
 .modal {
     position: absolute;
-    width: 60%;
+    width: 70%;
+    height: 40%;
     top: 20px;
-    left: 20px;
+    left: 10px;
     background: white;
     padding: 10px;
     border: 1px solid #ccc;
@@ -231,7 +114,7 @@ body, html {
     color: white;
     border: none;
     margin: 1px 0;
-    padding: 15px;
+    padding: 18px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
@@ -242,7 +125,7 @@ body, html {
 .control-buttons {
         position: absolute;
         top: 75%;
-        left: 15%;
+        left: 50%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
@@ -378,21 +261,31 @@ label {
 /* Responsividade */
 @media (max-width: 600px) {
 
-    .control-buttons {
+ .control-buttons {
         position: absolute;
         top: 75%;
-        left: 15%;
+        left: 50%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
         transition: opacity 0.3s ease-in-out;
         z-index: 1000;
     }
+
     .modal {
-        width: 50%;
-        left: 5%;
-        padding: 15px;
-    }
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
 
     .assistant-modal {
@@ -409,7 +302,7 @@ label {
     color: white;
     border: none;
     margin: 1px 0;
-    padding: 15px;
+    padding: 18px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
@@ -451,11 +344,20 @@ label {
 
 /* Dispositivos pequenos */
 @media (max-width: 600px) {
-    .modal {
-        width: 90%;
-        left: 5%;
-        padding: 15px;
-    }
+   .modal {
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
     .floating-menu {
     position: absolute;
@@ -477,11 +379,20 @@ label {
 
 /* Dispositivos médios */
 @media (max-width: 768px) {
-    .modal {
-        width: 90%;
-        left: 10%;
-        padding: 15px;
-    }
+  .modal {
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
     .menu-btn {
     display: flex;
@@ -491,7 +402,7 @@ label {
     color: white;
     border: none;
     margin: 1px 0;
-    padding: 10px;
+    padding: 15px;
     border-radius: 50%;
     cursor: pointer;
     width: 10px;
@@ -505,11 +416,6 @@ label {
         padding: 15px;
     }
 
-    .menu-btn {
-        width: 10px;
-        height: 10px;
-        font-size: 1em;
-    }
 
 
     .floating-menu {
@@ -538,7 +444,7 @@ label {
 .control-buttons {
         position: absolute;
         top: 75%;
-        left: 15%;
+        left: 40%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
@@ -550,11 +456,20 @@ label {
 
 /* Dispositivos grandes */
 @media (max-width: 1024px) {
-    .modal {
-        width: 70%;
-        left: 15%;
-        padding: 20px;
-    }
+ .modal {
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
     .assistant-modal {
         width: 70%;
@@ -562,14 +477,15 @@ label {
         padding: 20px;
     }
 
-    .menu-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 1em;
-    }
-
-    .control-buttons {
-        bottom: 20px;
+ .control-buttons {
+        position: absolute;
+        top: 75%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1000;
     }
 
     .control-btn {
@@ -587,11 +503,20 @@ label {
 
 /* Dispositivos extra grandes */
 @media (max-width: 1200px) {
-    .modal {
-        width: 60%;
-        left: 20%;
-        padding: 25px;
-    }
+   .modal {
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
     .assistant-modal {
         width: 60%;
@@ -599,26 +524,17 @@ label {
         padding: 25px;
     }
 
-     .menu-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 1em;
-    }
 
-    .control-buttons {
+
+  .control-buttons {
         position: absolute;
         top: 75%;
-        left: 15%;
+        left: 50%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
         transition: opacity 0.3s ease-in-out;
         z-index: 1000;
-    }
-
-
-    .control-buttons {
-        bottom: 25px;
     }
 
     .control-btn {
@@ -631,11 +547,20 @@ label {
 
 /* Dispositivos extra-extra grandes */
 @media (min-width: 1201px) {
-    .modal {
-        width: 50%;
-        left: 25%;
-        padding: 30px;
-    }
+   .modal {
+    position: absolute;
+    width: 70%;
+    height: 40%;
+    top: 20px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+}
 
     .assistant-modal {
         width: 50%;
@@ -643,16 +568,12 @@ label {
         padding: 30px;
     }
 
-    .menu-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 1em;
-    }
+
 
  .control-buttons {
         position: absolute;
         top: 75%;
-        left: 25%;
+        left: 50%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
