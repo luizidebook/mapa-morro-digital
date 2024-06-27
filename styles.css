@@ -70,7 +70,7 @@ position: absolute;
     border: 1px solid #ccc;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10000;
+    z-index: 1000;
     display: none;
     text-align: center;
     text-size-adjust: 10px;
@@ -117,7 +117,7 @@ position: absolute;
     display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
-    z-index: 1000;
+    z-index: 1002;
 }
 
 .floating-menu.hidden {
@@ -175,32 +175,6 @@ position: absolute;
     background-color: #45a049; /* Cor de fundo ao passar o mouse */
 }
 
-/* Estilo para os botões "Criar Rota" e "Gerar Roteiro" */
-#create-route-btn, #generate-itinerary-btn {
-    background-color: #008CBA; /* Cor de fundo */
-    color: white; /* Cor do texto */
-    padding: 15px 20px; /* Espaçamento interno */
-    text-align: center; /* Alinhamento do texto */
-    text-decoration: none; /* Sem sublinhado */
-    display: inline-block; /* Exibição em linha */
-    font-size: 16px; /* Tamanho da fonte */
-    margin: 4px 2px; /* Margens */
-    cursor: pointer; /* Cursor de ponteiro */
-    border-radius: 12px; /* Bordas arredondadas */
-    border: none; /* Sem borda */
-    transition: background-color 0.3s ease; /* Transição suave */
-    position: absolute; /* Posição absoluta */
-    bottom: 10px; /* Posição do fundo */
-    right: 10px; /* Posição da direita */
-}
-
-#generate-itinerary-btn {
-    right: 150px; /* Posição da direita */
-}
-
-#generate-itinerary-btn:hover, #create-route-btn:hover {
-    background-color: #007bb5; /* Cor de fundo ao passar o mouse */
-}
 
 /* Estilo para o modal do assistente */
         #assistant-modal {
@@ -215,7 +189,7 @@ position: absolute;
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
@@ -268,7 +242,7 @@ position: absolute;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 999;
+    z-index: 1001;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -347,7 +321,7 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 10000;
         flex-direction: row-reverse;
     }
 
@@ -363,7 +337,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
@@ -394,7 +368,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
@@ -423,7 +397,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
@@ -452,7 +426,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
@@ -481,7 +455,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
+        z-index: 1000;
         display: none;
         text-align: center;
 }
