@@ -12,39 +12,30 @@
     <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
 </head>
-<body>
-
-    <body class="blocked">
-    <div id="blocked-overlay"></div>
-    <!-- Resto do conteúdo -->
-</body>
-
+<body class="blocked">
+    <div id="blocked-overlay" ></div>
     <div id="map-container">
         <div id="map"></div>
-
         <div id="assistant-modal" class="modal">
             <span class="close-btn">&times;</span>
             <div class="modal-content"></div>
         </div>
-
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
                 <div id="language-selection">
-                    <button class="lang-btn" data-lang="pt">Português</button>
-                    <button class="lang-btn" data-lang="en">English</button>
-                    <button class="lang-btn" data-lang="es">Español</button>
-                    <button class="lang-btn" data-lang="he">עברית</button>
+                    <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')">Português</button>
+                    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">English</button>
+                    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">Español</button>
+                    <button class="lang-btn" data-lang="he" onclick="setLanguage('he')">עברית</button>
                 </div>
             </div>
         </div>
-
-        <!-- Menu Toggle -->
         <button id="menu-btn" class="menu-toggle">
             &#9776;
         </button>
-        <!-- Menu Flutuante com Ícones -->
         <div id="floating-menu" class="floating-menu">
+            <!-- Botões de menu -->
             <button class="menu-btn" data-feature="pontos-turisticos"><i class="fas fa-landmark"></i></button>
             <button class="menu-btn" data-feature="passeios"><i class="fas fa-walking"></i></button>
             <button class="menu-btn" data-feature="praias"><i class="fas fa-umbrella-beach"></i></button>
@@ -59,9 +50,7 @@
             <button class="menu-btn locate-user"><i class="fas fa-map-marker-alt"></i></button>
             <button class="menu-btn" data-feature="sobre"><i class="fas fa-info-circle"></i></button>
         </div>
-
-        <!-- Menu Lateral -->
-        <div id="menu" class="menu hidden">
+       <div id="menu" class="menu hidden">
             <div id="touristSpots-submenu" class="submenu"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
@@ -70,26 +59,19 @@
             <div id="inns-submenu" class="submenu"></div>
             <div id="shops-submenu" class="submenu"></div>
         </div>
-
-        <div class="control-buttons">
-            <button class="control-btn" id="tutorial-next-btn">Avançar</button>
-            <button class="control-btn" id="tutorial-prev-btn">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn">Encerrar Tutorial</button>
+        </div>
+         <div class="control-buttons">
+            <<button id="tutorial-yes-btn" class="control-btn" style="display:none;">Sim</button>
+             <button id="tutorial-no-btn" class="control-btn" style="display:none;">Não</button>
+            <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
+            <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
+            <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
             <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
             <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
         </div>
-
-        <div id="info-modal" class="modal">
-            <div class="modal-content">
-                <span class="modal-title"></span>
-                <div class="content"></div>
-            </div>
-        </div>
-
         <div id="place-details-modal" class="modal">
             <div class="modal-content"></div>
         </div>
-
         <div id="itinerary-form-modal" class="modal">
             <form>
                 <input type="text" name="name" placeholder="Nome do Roteiro">

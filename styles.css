@@ -1,4 +1,3 @@
-
 body, html {
     margin: 0;
     padding: 0;
@@ -6,58 +5,75 @@ body, html {
     height: 100%;
     font-family: Arial, sans-serif;
 }
-
 .blocked {
     pointer-events: none;
 }
 
 #blocked-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 99;
-}
-
-body.blocked {
-    pointer-events: none;
-}
-
-body.blocked #welcome-modal,
-body.blocked .lang-btn {
-    pointer-events: all;
-}
-
-#blocked-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 9998; /* Coloque abaixo do modal de boas-vindas */
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10001;
 }
 
 body.blocked #blocked-overlay {
     display: block;
 }
 
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
 #welcome-modal {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10000;
+    z-index: 100000;
 }
 
 #language-selection {
     position: relative;
-    z-index: 10001; /* Garante que os botões de idioma estejam acima do overlay */
+    z-index: 1001;
 }
-
 
 #map-container {
     position: relative;
@@ -68,10 +84,9 @@ body.blocked #blocked-overlay {
 #map {
     width: 100%;
     height: 100%;
-    background-color: #eaeaea; /* Placeholder para o mapa */
+    background-color: #eaeaea;
 }
 
-/* Estilos do Modal de Boas-Vindas */
 .welcome-modal {
     position: fixed;
     top: 50%;
@@ -108,7 +123,6 @@ body.blocked #blocked-overlay {
     background-color: #0056b3;
 }
 
-/* Estilos do Modal do Assistente */
 .modal {
     position: absolute;
     top: 10%;
@@ -126,7 +140,6 @@ body.blocked #blocked-overlay {
     text-align: center;
 }
 
-/* Outros Estilos */
 .close-btn {
     position: absolute;
     top: 5px;
@@ -144,7 +157,7 @@ body.blocked #blocked-overlay {
     padding: 20px;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 999;
+    z-index: 99000;
 }
 
 .floating-menu {
@@ -155,7 +168,7 @@ body.blocked #blocked-overlay {
     display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
-    z-index: 1000;
+    z-index: 99100;
 }
 
 .floating-menu.hidden {
@@ -193,7 +206,6 @@ body.blocked #blocked-overlay {
     font-size: 0.7em;
 }
 
-/* Estilo para os botões de controle */
 .control-btn {
     background-color: #007BFF;
     color: white;
@@ -207,18 +219,17 @@ body.blocked #blocked-overlay {
     border-radius: 15px;
     border: none;
     transition: background-color 0.3s ease;
-    z-index: 1001; /* Ajustado z-index para estar abaixo dos botões Criar Rota e Gerar Roteiro */
+    z-index: 1000;
 }
 
 .control-btn:hover {
-    background-color: #45a049; /* Cor de fundo ao passar o mouse */
+    background-color: #45a049;
 }
 
-/* Estilo para o modal do assistente */
 #assistant-modal {
     position: absolute;
     top: 20%;
-    left: 40%;
+    left: 50%;
     transform: translate(-50%, -50%);
     width: 60%;
     max-width: 600px;
@@ -227,28 +238,30 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 999;
+    z-index: 100000;
     display: none;
     text-align: center;
 }
 
-/* Adicionar estas novas regras CSS */
 #assistant-modal.location-permission {
     position: absolute;
     top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10001; /* Garante que esteja acima do overlay de bloqueio */
+    z-index: 1001;
 }
 
-
-@keyframes highlight {
+@keyframes highlight-animation {
     from {
         background-color: rgba(0, 0, 0, 0.3);
     }
     to {
         background-color: rgba(0, 0, 0, 0.5);
     }
+}
+
+.highlight-overlay {
+    animation: highlight-animation 1s infinite alternate;
 }
 
 .carousel {
@@ -266,7 +279,6 @@ body.blocked #blocked-overlay {
     border-radius: 8px;
 }
 
-/* Menu Lateral */
 #menu {
     position: fixed;
     top: 0;
@@ -276,7 +288,7 @@ body.blocked #blocked-overlay {
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 999;
+    z-index: 9990;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -341,12 +353,66 @@ h2 {
     unicode-bidi: isolate;
 }
 
-label {
-    cursor: default;
-    font-size: 0.9em;
+.blocked {
+    pointer-events: none;
 }
 
-/* Responsividade */
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
 @media (max-width: 600px) {
     .control-buttons {
         position: absolute;
@@ -355,7 +421,7 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 100000;
         flex-direction: row-reverse;
     }
 
@@ -371,7 +437,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        z-index: 100000;
         display: none;
         text-align: center;
     }
@@ -386,10 +452,71 @@ label {
         height: 20px;
         font-size: 1.5em;
     }
+
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
 }
 
 @media (max-width: 768px) {
-    #assistant-modal {
+    #tant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -401,10 +528,11 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        z-index: 100000;
         display: none;
         text-align: center;
     }
+
    .control-buttons {
         position: absolute;
         top: 92%;
@@ -412,11 +540,71 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 100000;
         flex-direction: row-reverse;
-    }
 }
 
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
+}
 @media (max-width: 1024px) {
     #assistant-modal {
         position: absolute;
@@ -430,7 +618,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        z-index: 100000;
         display: none;
         text-align: center;
     }
@@ -441,10 +629,72 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 100000;
         flex-direction: row-reverse;
     }
+
+.blocked {
+    pointer-events: none;
 }
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
+}
+
 
 @media (max-width: 1200px) {
     #assistant-modal {
@@ -459,7 +709,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        z-index: 100000;
         display: none;
         text-align: center;
     }
@@ -470,9 +720,70 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 100000;
         flex-direction: row-reverse;
     }
+
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
 }
 
 @media (min-width: 1201px) {
@@ -488,7 +799,7 @@ label {
         border: 1px solid #ccc;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 999;
+        z-index: 100000;
         display: none;
         text-align: center;
     }
@@ -499,21 +810,215 @@ label {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 1000;
+        z-index: 100000;
         flex-direction: row-reverse;
     }
+
+.blocked {
+    pointer-events: none;
 }
 
-.control-btn {
-    background-color: #007BFF;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
     font-size: 14px;
+    white-space: nowrap;
 }
 
-.control-btn:hover {
-    background-color: #0056b3;
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
 }
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
+.tutorial-progress-bar {
+    width: 100%;
+    height: 5px;
+    background-color: #f3f3f3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+}
+
+.progress-bar-inner {
+    height: 100%;
+    background-color: #007BFF;
+    width: 0%;
+    transition: width 0.5s;
+}
+
+
+@media (max-width: 768px) {
+  
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
+
+}
+
+@media (max-width: 480px) {
+ 
+
+.blocked {
+    pointer-events: none;
+}
+
+#blocked-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1005;
+}
+
+body.blocked #blocked-overlay {
+    display: block;
+}
+
+#tutorial-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10001; /* Above the blocked overlay */
+    pointer-events: auto; /* Enable clicking */
+}
+
+#end-tutorial-message {
+    position: absolute;
+    background: white;
+    padding: 5px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10002; /* Above the blocked overlay */
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#end-tutorial-message .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001; /* Above the blocked overlay */
+    background: transparent;
+}
+
+
+
+
+
+}
+

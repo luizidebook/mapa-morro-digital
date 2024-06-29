@@ -3,18 +3,21 @@ document.addEventListener('DOMContentLoaded', () => {
     loadResources();
     activateAssistant();
     setupEventListeners();
-    startTutorial();
+    showWelcomeMessage();
+    blockUserInteraction(); // Bloqueia a interação do usuário inicialmente
 });
 
 let currentSubMenu = null;
 let currentLocation = null;
 let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
+let currentStep = 0;
 
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
     const menuToggle = document.getElementById('menu-btn');
     const floatingMenu = document.getElementById('floating-menu');
+    const tutorialBtn = document.getElementById('tutorial-btn');
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -33,37 +36,230 @@ function setupEventListeners() {
     });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
+        btn.addEventListener('click', () => {
+            setLanguage(btn.getAttribute('data-lang'));
+            document.getElementById('welcome-modal').style.display = 'none'; // Esconde o modal de boas-vindas
+            
+        });
+    });
+
+    tutorialBtn.addEventListener('click', () => {
+        startTutorial();
+        document.getElementById('end-tutorial-message').style.display = 'none';
+        document.querySelector('.circle-highlight').style.display = 'none';
+        unblockUserInteraction(); // Desbloqueia a interação do usuário após a seleção do idioma
+    });
+
+    document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
+    document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep); // Evento para o botão "Próximo"
+    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+}
+
+function blockUserInteraction() {
+    document.body.classList.add('blocked');
+    document.getElementById('tutorial-btn').style.pointerEvents = 'auto';
+}
+
+function unblockUserInteraction() {
+    document.body.classList.remove('blocked');
+}
+
+function showEndTutorialMessage() {
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const endMessage = document.createElement('div');
+    
+    endMessage.id = 'end-tutorial-message';
+    endMessage.innerHTML = `
+        <p>Clique neste botão para abrir o Tutorial novamente</p>
+        <span class="close-btn">&times;</span>
+    `;
+    
+    document.body.appendChild(endMessage);
+
+    positionMessage(endMessage, sobreButton);
+    createCircleHighlight(sobreButton);
+
+    endMessage.querySelector('.close-btn').addEventListener('click', () => {
+        endMessage.style.display = 'none';
+        document.querySelector('.circle-highlight').style.display = 'none';
+        unblockUserInteraction();
+    });
+
+    // Reposiciona a mensagem e o círculo ao redimensionar a janela
+    window.addEventListener('resize', () => {
+        positionMessage(endMessage, sobreButton);
+        positionCircleHighlight(sobreButton);
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const welcomeMessage = {
-        pt: "Bem-vindo ao Morro Digital! Estamos aqui para te guiar em uma jornada incrível pelo Morro de São Paulo. Por favor, selecione o seu idioma preferido para começarmos.",
-        en: "Welcome to Morro Digital! We are here to guide you on an amazing journey through Morro de São Paulo. Please select your preferred language to get started.",
-        es: "¡Bienvenido a Morro Digital! Estamos aquí para guiarte en un viaje increíble por Morro de São Paulo. Por favor, selecciona tu idioma preferido para comenzar.",
-        he: "ברוך הבא למורו דיגיטל! אנחנו כאן כדי להדריך אותך במסע מדהים דרך מורו דה סאו פאולו. אנא בחר את השפה המועדפת עליך כדי להתחיל."
-    };
+function positionMessage(messageElement, targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
+    messageElement.style.top = `${rect.top}px`;
+}
 
-    document.getElementById('welcome-message').textContent = welcomeMessage[selectedLanguage];
-    document.getElementById('welcome-modal').style.display = 'block';
+function createCircleHighlight(targetElement) {
+    const circleHighlight = document.createElement('div');
+    circleHighlight.className = 'circle-highlight';
+    document.body.appendChild(circleHighlight);
+    positionCircleHighlight(targetElement);
+}
 
-    document.querySelectorAll('.lang-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const selectedLang = button.getAttribute('data-lang');
-            localStorage.setItem('preferredLanguage', selectedLang);
-            selectedLanguage = selectedLang;
-            document.getElementById('welcome-modal').style.display = 'none';
-            unblockUserInteraction('menuToggle');
-            loadLanguageResources(selectedLang);
-            startTutorial();
-        });
+function positionCircleHighlight(targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    const circleHighlight = document.querySelector('.circle-highlight');
+    circleHighlight.style.width = `${rect.width}px`;
+    circleHighlight.style.height = `${rect.height}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+}
+
+function endTutorial() {
+    const assistantModal = document.getElementById('assistant-modal');
+    const controlButtons = document.querySelector('.control-buttons');
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+
+    // Esconde o modal com animação
+    assistantModal.style.transition = 'all 1s ease';
+    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
+    assistantModal.style.opacity = '0';
+    
+    // Esconde os botões de controle
+    controlButtons.style.opacity = '0';
+    controlButtons.style.transition = 'opacity 1s ease';
+
+    setTimeout(() => {
+        assistantModal.style.display = 'none';
+        controlButtons.style.display = 'none';
+        showEndTutorialMessage();
+    }, 1000); // Tempo igual à duração da transição
+}
+
+
+function blockUserInteraction() {
+    document.body.classList.add('blocked');
+    document.getElementById('tutorial-btn').style.pointerEvents = 'auto';
+}
+
+function unblockUserInteraction() {
+    document.body.classList.remove('blocked');
+}
+
+function showEndTutorialMessage() {
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const endMessage = document.createElement('div');
+    
+    endMessage.id = 'end-tutorial-message';
+    endMessage.innerHTML = `
+        <p>Clique neste botão para abrir o Tutorial novamente</p>
+        <span class="close-btn">&times;</span>
+    `;
+    
+    document.body.appendChild(endMessage);
+
+    positionMessage(endMessage, sobreButton);
+    createCircleHighlight(sobreButton);
+
+    endMessage.querySelector('.close-btn').addEventListener('click', () => {
+        endMessage.style.display = 'none';
+        document.querySelector('.circle-highlight').style.display = 'none';
+        unblockUserInteraction();
     });
-});
 
-function loadLanguageResources(lang) {
-    // Função para carregar os recursos do idioma selecionado
-    // Implementação aqui...
+    // Reposiciona a mensagem e o círculo ao redimensionar a janela
+    window.addEventListener('resize', () => {
+        positionMessage(endMessage, sobreButton);
+        positionCircleHighlight(sobreButton);
+    });
+}
+
+function positionMessage(messageElement, targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
+    messageElement.style.top = `${rect.top}px`;
+}
+
+function createCircleHighlight(targetElement) {
+    const circleHighlight = document.createElement('div');
+    circleHighlight.className = 'circle-highlight';
+    document.body.appendChild(circleHighlight);
+    positionCircleHighlight(targetElement);
+}
+
+function positionCircleHighlight(targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    const circleHighlight = document.querySelector('.circle-highlight');
+    circleHighlight.style.width = `${rect.width}px`;
+    circleHighlight.style.height = `${rect.height}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+}
+
+function endTutorial() {
+    const assistantModal = document.getElementById('assistant-modal');
+    const controlButtons = document.querySelector('.control-buttons');
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+
+    // Esconde o modal com animação
+    assistantModal.style.transition = 'all 1s ease';
+    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
+    assistantModal.style.opacity = '0';
+    
+    // Esconde os botões de controle
+    controlButtons.style.opacity = '0';
+    controlButtons.style.transition = 'opacity 1s ease';
+
+    setTimeout(() => {
+        assistantModal.style.display = 'none';
+        controlButtons.style.display = 'none';
+        showEndTutorialMessage();
+    }, 1000); // Tempo igual à duração da transição
+}
+
+
+function closeBlockedOverlay() {
+    const overlay = document.getElementById('blocked-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    unblockUserInteraction();
+}
+
+function showWelcomeMessage() {
+    const modal = document.getElementById('welcome-modal');
+    modal.style.display = 'block';
+    // Mantém os botões de idioma clicáveis
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.style.pointerEvents = 'auto';
+    });
+}
+
+function blockUserInteraction() {
+    document.body.classList.add('blocked');
+}
+
+function unblockUserInteraction() {
+    document.body.classList.remove('blocked');
+}
+
+function setLanguage(lang) {
+    localStorage.setItem('preferredLanguage', lang);
+    selectedLanguage = lang;
+    translatePageContent(lang);
+    unblockUserInteraction(); // Desbloqueia a interação do usuário após a seleção do idioma
+    document.getElementById('welcome-modal').style.display = 'none'; // Esconde o modal de boas-vindas
+    startTutorial(); // Inicia o tutorial após a seleção do idioma
+}
+
+function translatePageContent(lang) {
+    // Função para traduzir o conteúdo da página
+    const elements = document.querySelectorAll('[data-translate]');
+    elements.forEach(el => {
+        const key = el.getAttribute('data-translate');
+        el.textContent = translations[lang][key];
+    });
 }
 
 function initializeMap() {
@@ -84,15 +280,10 @@ function activateAssistant() {
     showWelcomeMessage();
 }
 
-function showWelcomeMessage() {
-    const modal = document.getElementById('welcome-modal');
-    modal.style.display = 'block';
-}
-
 function requestLocationPermission() {
     blockUserInteraction();
     const assistantModal = document.getElementById('assistant-modal');
-    assistantModal.classList.add('location-permission'); // Adiciona a classe para ajustar a posição
+    assistantModal.classList.add('location-permission');
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -106,22 +297,20 @@ function requestLocationPermission() {
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
             unblockUserInteraction();
-            assistantModal.classList.remove('location-permission'); // Remove a classe após permissão
+            assistantModal.classList.remove('location-permission');
             nextTutorialStep();
-            showLocationMessage(); // Avança para o próximo passo do tutorial
+            showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
             unblockUserInteraction();
-            assistantModal.classList.remove('location-permission'); // Remove a classe se a permissão for negada
+            assistantModal.classList.remove('location-permission');
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
         unblockUserInteraction();
-        assistantModal.classList.remove('location-permission'); // Remove a classe se a geolocalização não for suportada
+        assistantModal.classList.remove('location-permission');
     }
 }
-
-
 
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
@@ -366,30 +555,39 @@ function updateAssistantModalContent(content) {
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
-let currentStep = 0;
-
 const tutorialSteps = [
     {
         element: null,
         message: {
-            pt: "Olá! Eu sou seu assistente virtual. Estou aqui para te ajudar a explorar todas as funcionalidades deste site com amor e atenção. Vamos começar esta jornada juntos!",
-            en: "Hello! I am your virtual assistant. I'm here to help you explore all the features of this site with love and care. Let's start this journey together!",
-            es: "¡Hola! Soy tu asistente virtual. Estoy aquí para ayudarte a explorar todas las funcionalidades de este sitio con amor y cuidado. ¡Comencemos este viaje juntos!",
-            he: "שלום! אני העוזר הווירטואלי שלך. אני כאן כדי לעזור לך לחקור את כל התכונות של אתר זה באהבה ובטיפול. בואו נתחיל את המסע הזה ביחד!"
+            pt: "Seja Bem Vindo ao Morro de São Paulo Digital! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital desenvolvida para te ajudar a explorar as maravilhas de Morro de São Paulo! Deseja que eu te ensine a como usar todas as funcionalidades do site?",
+            en: "Welcome to Morro de São Paulo Digital! My name is 'Sol' and I am the artificial intelligence of Morro Digital developed to help you explore the wonders of Morro de São Paulo! Would you like me to teach you how to use all the site's features?",
+            es: "¡Bienvenidos a Morro de São Paulo Digital! Mi nombre es 'Sol' y soy la inteligencia artificial de Morro Digital desarrollada para ayudarte a explorar las maravillas de Morro de São Paulo! ¿Te gustaría que te enseñe a usar todas las funciones del sitio?",
+            he: "ברוכים הבאים למורו דיגיטל! שמי 'סול' ואני הבינה המלאכותית של מורו דיגיטל שנוצרה כדי לעזור לך לחקור את נפלאות מורו דה סאו פאולו! האם תרצה שאלמד אותך כיצד להשתמש בכל הפונקציות באתר?"
+        },
+        action: () => {
+            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
         }
     },
     {
+        step: 1,
         element: '#tutorial-next-btn',
         message: {
-            pt: "Este é o botão 'Avançar'. Clique aqui para ir para o próximo passo do tutorial. Vamos tentar juntos, clique no botão!",
+            pt: "Este é o botão 'Próximo'. Clique aqui para ir para o próximo passo do tutorial. Vamos tentar juntos, clique no botão!",
             en: "This is the 'Next' button. Click here to go to the next step of the tutorial. Let's try it together, click the button!",
             es: "Este es el botón 'Siguiente'. Haz clic aquí para ir al siguiente paso del tutorial. ¡Intentémoslo juntos, haz clic en el botón!",
             he: "זהו כפתור 'הבא'. לחץ כאן כדי לעבור לשלב הבא של המדריך. בוא ננסה יחד, לחץ על הכפתור!"
         },
         highlight: true,
-        action: () => addNextStepClickListener()
+        action: () => {
+            document.getElementById('tutorial-yes-btn').style.display = 'none';
+            document.getElementById('tutorial-no-btn').style.display = 'none';
+            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+            addNextStepClickListener();
+        }
     },
     {
+        step: 2,
         element: '#tutorial-prev-btn',
         message: {
             pt: "Este é o botão 'Voltar'. Clique aqui para retornar ao passo anterior do tutorial. Vamos tentar, clique no botão!",
@@ -398,9 +596,14 @@ const tutorialSteps = [
             he: "זהו כפתור 'חזור'. לחץ כאן כדי לחזור לשלב הקודם של המדריך. בוא ננסה, לחץ על הכפתור!"
         },
         highlight: true,
-        action: () => addPrevStepClickListener()
+        action: () => {
+            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
+            addPrevStepClickListener();
+        }
     },
     {
+        step: 3,
         element: '#tutorial-end-btn',
         message: {
             pt: "Este é o botão 'Encerrar Tutorial'. Clique aqui se você quiser encerrar o tutorial a qualquer momento. Vamos tentar, clique no botão!",
@@ -409,225 +612,13 @@ const tutorialSteps = [
             he: "זהו כפתור 'סיום מדריך'. לחץ כאן אם ברצונך לסיים את המדריך בכל עת. בוא ננסה, לחץ על הכפתור!"
         },
         highlight: true,
-        action: () => addEndTutorialClickListener()
-    },
-    {
-        element: null,
-        message: {
-            pt: "Primeiro, precisamos da sua permissão para acessar sua localização atual. Isso nos ajudará a fornecer informações relevantes e personalizadas. Clique em 'Permitir' quando solicitado.",
-            en: "First, we need your permission to access your current location. This will help us provide relevant and personalized information. Click 'Allow' when prompted.",
-            es: "Primero, necesitamos tu permiso para acceder a tu ubicación actual. Esto nos ayudará a proporcionar información relevante y personalizada. Haz clic en 'Permitir' cuando se te solicite.",
-            he: "ראשית, אנו זקוקים לאישור שלך לגשת למיקום הנוכחי שלך. זה יעזור לנו לספק מידע רלוונטי ומותאם אישית. לחץ על 'אפשר' כאשר תתבקש."
-        },
-        action: requestLocationPermission
-    },
-    {
-        element: '#map',
-        message: {
-            pt: "Esta é a sua localização atual. Agora você pode explorar os pontos turísticos, praias, restaurantes e muito mais. Experimente clicar no mapa!",
-            en: "This is your current location. Now you can explore tourist spots, beaches, restaurants, and more. Try clicking on the map!",
-            es: "Esta es tu ubicación actual. Ahora puedes explorar los puntos turísticos, playas, restaurantes y más. ¡Intenta hacer clic en el mapa!",
-            he: "זהו המיקום הנוכחי שלך. עכשיו אתה יכול לחקור אתרי תיירות, חופים, מסעדות ועוד. נסה ללחוץ על המפה!"
-        },
-        highlight: true,
-        action: () => addMapClickListener()
-    },
-    {
-        element: '#menu-btn',
-        message: {
-            pt: "Clique neste botão para abrir o menu flutuante. Aqui você pode acessar várias funcionalidades do site.",
-            en: "Click this button to open the floating menu. Here you can access various site features.",
-            es: "Haz clic en este botón para abrir el menú flutuante. Aquí puedes acceder a varias funciones del sitio.",
-            he: "לחץ על כפתור זה כדי לפתוח את התפריט הצף. כאן תוכל לגשת לפונקציות שונות של האתר."
-        },
-        highlight: true,
-        action: () => addMenuToggleClickListener()
-    },
-    {
-        element: '.menu-btn[data-feature="pontos-turisticos"]',
-        message: {
-            pt: "Clique neste ícone para ver os pontos turísticos de Morro de São Paulo. Explore os lugares mais incríveis da região!",
-            en: "Click this icon to see the tourist spots of Morro de São Paulo. Explore the most amazing places in the region!",
-            es: "Haz clic en este icono para ver los puntos turísticos de Morro de São Paulo. ¡Explora los lugares más increíbles de la región!",
-            he: "לחץ על סמל זה כדי לראות את נקודות התיירות של מורו דה סאו פאולו. חקור את המקומות המדהימים ביותר באזור!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('pontos-turisticos')
-    },
-    {
-        element: '.menu-btn[data-feature="passeios"]',
-        message: {
-            pt: "Clique neste ícone para ver os passeios disponíveis. Descubra as melhores aventuras que você pode viver aqui!",
-            en: "Click this icon to see the available tours. Discover the best adventures you can experience here!",
-            es: "Haz clic en este icono para ver los tours disponibles. ¡Descubre las mejores aventuras que puedes vivir aquí!",
-            he: "לחץ על סמל זה כדי לראות את הסיורים הזמינים. גלה את ההרפתקאות הטובות ביותר שאתה יכול לחוות כאן!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('passeios')
-    },
-    {
-        element: '.menu-btn[data-feature="praias"]',
-        message: {
-            pt: "Clique neste ícone para ver as praias de Morro de São Paulo. Encontre os melhores locais para relaxar e se divertir!",
-            en: "Click this icon to see the beaches of Morro de São Paulo. Find the best spots to relax and have fun!",
-            es: "Haz clic en este icono para ver las playas de Morro de São Paulo. ¡Encuentra los mejores lugares para relajarte y divertirte!",
-            he: "לחץ על סמל זה כדי לראות את החופים של מורו דה סאו פאולו. מצא את המקומות הטובים ביותר להירגע וליהנות!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('praias')
-    },
-    {
-        element: '.menu-btn[data-feature="festas"]',
-        message: {
-            pt: "Clique neste ícone para ver as festas e eventos em Morro de São Paulo. Conheça as melhores baladas e shows!",
-            en: "Click this icon to see the parties and events in Morro de São Paulo. Discover the best parties and shows!",
-            es: "Haz clic en este icono para ver las fiestas y eventos en Morro de São Paulo. ¡Descubre las mejores fiestas y espectáculos!",
-            he: "לחץ על סמל זה כדי לראות את המסיבות והאירועים במורו דה סאו פאולו. גלה את המסיבות והמופעים הטובים ביותר!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('festas')
-    },
-    {
-        element: '.menu-btn[data-feature="restaurantes"]',
-        message: {
-            pt: "Clique neste ícone para ver os restaurantes da região. Delicie-se com a melhor gastronomia local!",
-            en: "Click this icon to see the restaurants in the area. Enjoy the best local cuisine!",
-            es: "Haz clic en este icono para ver los restaurantes de la región. ¡Disfruta de la mejor gastronomía local!",
-            he: "לחץ על סמל זה כדי לראות את המסעדות באזור. תהנה מהמטבח המקומי הטוב ביותר!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('restaurantes')
-    },
-    {
-        element: '.menu-btn[data-feature="pousadas"]',
-        message: {
-            pt: "Clique neste ícone para ver as pousadas disponíveis. Encontre o lugar perfeito para sua estadia!",
-            en: "Click this icon to see the available inns. Find the perfect place for your stay!",
-            es: "Haz clic en este icono para ver las posadas disponibles. ¡Encuentra el lugar perfecto para tu estadía!",
-            he: "לחץ על סמל זה כדי לראות את הפונדקים הזמינים. מצא את המקום המושלם לשהותך!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('pousadas')
-    },
-    {
-        element: '.menu-btn[data-feature="lojas"]',
-        message: {
-            pt: "Clique neste ícone para ver as lojas da região. Descubra as melhores lojas para suas compras!",
-            en: "Click this icon to see the shops in the area. Discover the best stores for your shopping!",
-            es: "Haz clic en este icono para ver las tiendas de la región. ¡Descubre las mejores tiendas para tus compras!",
-            he: "לחץ על סמל זה כדי לראות את החנויות באזור. גלה את החנויות הטובות ביותר לקניות שלך!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('lojas')
-    },
-    {
-        element: '.menu-btn[data-feature="emergencias"]',
-        message: {
-            pt: "Clique neste ícone para ver os contatos de emergência. Tenha sempre à mão os números úteis!",
-            en: "Click this icon to see the emergency contacts. Always have the useful numbers at hand!",
-            es: "Haz clic en este icono para ver los contactos de emergencia. ¡Ten siempre a mano los números útiles!",
-            he: "לחץ על סמל זה כדי לראות את אנשי הקשר לשעת חירום. תמיד יש את המספרים השימושיים בהישג יד!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('emergencias')
-    },
-    {
-        element: '.menu-btn[data-feature="dicas"]',
-        message: {
-            pt: "Clique neste ícone para ver dicas úteis sobre a região. Receba as melhores recomendações!",
-            en: "Click this icon to see useful tips about the area. Get the best recommendations!",
-            es: "Haz clic en este icono para ver consejos útiles sobre la región. ¡Obtén las mejores recomendaciones!",
-            he: "לחץ על סמל זה כדי לראות טיפים שימושיים על האזור. קבל את ההמלצות הטובות ביותר!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('dicas')
-    },
-    {
-        element: '.menu-btn.zoom-in',
-        message: {
-            pt: "Use este botão para dar zoom in no mapa. Experimente!",
-            en: "Use this button to zoom in on the map. Try it!",
-            es: "Usa este botón para acercar el mapa. ¡Inténtalo!",
-            he: "השתמש בכפתור זה כדי להתקרב במפה. נסה את זה!"
-        },
-        highlight: true,
-        action: () => addZoomClickListener('zoom-in')
-    },
-    {
-        element: '.menu-btn.zoom-out',
-        message: {
-            pt: "Use este botão para dar zoom out no mapa. Experimente!",
-            en: "Use this button to zoom out on the map. Try it!",
-            es: "Usa este botón para alejar el mapa. ¡Inténtalo!",
-            he: "השתמש בכפתור זה כדי להתרחק במפה. נסה את זה!"
-        },
-        highlight: true,
-        action: () => addZoomClickListener('zoom-out')
-    },
-    {
-        element: '.menu-btn.locate-user',
-        message: {
-            pt: "Use este botão para localizar sua posição atual no mapa. Experimente!",
-            en: "Use this button to locate your current position on the map. Try it!",
-            es: "Usa este botón para localizar tu posición actual en el mapa. ¡Inténtalo!",
-            he: "השתמש בכפתור זה כדי לאתר את המיקום הנוכחי שלך במפה. נסה את זה!"
-        },
-        highlight: true,
-        action: () => addLocateUserClickListener()
-    },
-    {
-        element: '.menu-btn[data-feature="sobre"]',
-        message: {
-            pt: "Clique neste ícone para saber mais sobre o site. Conheça nossa história e propósito!",
-            en: "Click this icon to learn more about the site. Learn about our history and purpose!",
-            es: "Haz clic en este icono para saber más sobre el sitio. ¡Conoce nuestra historia y propósito!",
-            he: "לחץ על סמל זה כדי ללמוד עוד על האתר. למד על ההיסטוריה והמטרה שלנו!"
-        },
-        highlight: true,
-        action: () => addFeatureClickListener('sobre')
-    },
-    {
-        element: '#create-route-btn',
-        message: {
-            pt: "Use este botão para criar uma rota até o local selecionado. Planeje seu caminho com facilidade!",
-            en: "Use this button to create a route to the selected location. Plan your way easily!",
-            es: "Usa este botón para crear una ruta al lugar seleccionado. ¡Planifica tu camino fácilmente!",
-            he: "השתמש בכפתור זה כדי ליצור מסלול למיקום הנבחר. תכנן את דרכך בקלות!"
-        },
-        highlight: true,
-        action: () => showCreateRouteButton()
-    },
-    {
-        element: '#generate-itinerary-btn',
-        message: {
-            pt: "Use este botão para gerar um roteiro. Organize suas atividades e aproveite ao máximo!",
-            en: "Use this button to generate an itinerary. Organize your activities and make the most of your time!",
-            es: "Usa este botón para generar un itinerario. ¡Organiza tus actividades y aprovecha al máximo tu tiempo!",
-            he: "השתמש בכפתור זה כדי ליצור מסלול. ארגן את הפעילויות שלך ותפיק את המרב מהזמן שלך!"
-        },
-        highlight: true,
-        action: () => showGenerateItineraryButton()
-    },
-    {
-        element: '#feedback-toggle-btn',
-        message: {
-            pt: "Clique aqui para enviar feedback sobre sua experiência no site. Sua opinião é muito importante para nós!",
-            en: "Click here to submit feedback about your experience on the site. Your opinion is very important to us!",
-            es: "Haz clic aquí para enviar comentarios sobre tu experiencia en el sitio. ¡Tu opinión es muy importante para nosotros!",
-            he: "לחץ כאן כדי לשלוח משוב על החוויה שלך באתר. דעתך חשובה לנו מאוד!"
-        },
-        highlight: true,
-        action: () => addFeedbackClickListener()
-    },
-    {
-        element: null,
-        message: {
-            pt: "Tutorial completo! Você está pronto para explorar o Morro Digital. Se precisar de ajuda, clique no ícone de ajuda. Aproveite sua jornada!",
-            en: "Tutorial complete! You are ready to explore Morro Digital. If you need help, click on the help icon. Enjoy your journey!",
-            es: "¡Tutorial completo! Estás listo para explorar Morro Digital. Si necesitas ayuda, haz clic en el icono de ayuda. ¡Disfruta tu viaje!",
-            he: "המדריך הושלם! אתה מוכן לחקור את מורו דיגיטל. אם אתה צריך עזרה, לחץ על סמל העזרה. תהנה מהמסע שלך!"
+        action: () => {
+            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-end-btn').style.display = 'inline-block';
+            addEndTutorialClickListener();
         }
-    }
+    },
 ];
 
 function showTutorialStep(step) {
@@ -655,15 +646,16 @@ function highlightElement(element) {
     highlightOverlay.style.width = `${rect.width}px`;
     highlightOverlay.style.height = `${rect.height}px`;
     highlightOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    highlightOverlay.style.zIndex = '10';
+    highlightOverlay.style.zIndex = '9';
     highlightOverlay.style.transition = 'background-color 0.5s ease';
     document.body.appendChild(highlightOverlay);
 }
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length) {
-        showTutorialStep(currentStep);
         currentStep++;
+        showTutorialStep(currentStep);
+        updateProgressBar(currentStep, tutorialSteps.length);
     } else {
         endTutorial();
     }
@@ -677,19 +669,61 @@ function previousTutorialStep() {
 }
 
 function startTutorial() {
-    currentStep = 0;
+    currentStep = 1;
     showTutorialStep(currentStep);
 }
 
-function endTutorial() {
-    document.querySelector('#tutorial-overlay').style.display = 'none';
-    const overlayElements = document.querySelectorAll('.highlight-overlay');
-    overlayElements.forEach(element => element.remove());
-
-    alert(translations[selectedLanguage].tutorialComplete);
+function unblockUserInteraction() {
+    document.body.classList.remove('blocked');
 }
 
-// Funções de interatividade para cada passo do tutorial
+function endTutorial() {
+    const assistantModal = document.getElementById('assistant-modal');
+    const controlButtons = document.querySelector('.control-buttons');
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    closeBlockedOverlay(); // Garante que a sobreposição de bloqueio seja fechada
+
+    // Esconde o modal com animação
+    assistantModal.style.transition = 'all 1s ease';
+    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
+    assistantModal.style.opacity = '0';
+    
+    // Esconde os botões de controle
+    controlButtons.style.opacity = '0';
+    controlButtons.style.transition = 'opacity 1s ease';
+
+    setTimeout(() => {
+        assistantModal.style.display = 'none';
+        controlButtons.style.display = 'none';
+        showEndTutorialMessage();
+        unblockUserInteraction(); // Desbloqueia a interação do usuário
+    }, 1000); // Tempo igual à duração da transição
+}
+
+function showEndTutorialMessage() {
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const endMessage = document.createElement('div');
+    
+    endMessage.id = 'end-tutorial-message';
+    endMessage.innerHTML = `
+        <p>Clique neste botão para abrir o Tutorial novamente</p>
+        <div class="circle-highlight"></div>
+    `;
+    
+    document.body.appendChild(endMessage);
+    
+    const circleHighlight = endMessage.querySelector('.circle-highlight');
+    const rect = sobreButton.getBoundingClientRect();
+    
+    circleHighlight.style.position = 'absolute';
+    circleHighlight.style.border = '2px solid red';
+    circleHighlight.style.borderRadius = '50%';
+    circleHighlight.style.width = rect.width + 'px';
+    circleHighlight.style.height = rect.height + 'px';
+    circleHighlight.style.left = rect.left + 'px';
+    circleHighlight.style.top = rect.top + 'px';
+}
+
 function addNextStepClickListener() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep, { once: true });
 }
@@ -702,153 +736,126 @@ function addEndTutorialClickListener() {
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial, { once: true });
 }
 
-function addMapClickListener() {
-    document.getElementById('map').addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addMenuToggleClickListener() {
-    document.getElementById('menu-btn').addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addFeatureClickListener(feature) {
-    document.querySelector(`.menu-btn[data-feature="${feature}"]`).addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addZoomClickListener(zoomType) {
-    document.querySelector(`.menu-btn.${zoomType}`).addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addLocateUserClickListener() {
-    document.querySelector('.menu-btn.locate-user').addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function showCreateRouteButton() {
-    const createRouteBtn = document.getElementById('create-route-btn');
-    createRouteBtn.style.display = 'block';
-    createRouteBtn.addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function showGenerateItineraryButton() {
-    const generateItineraryBtn = document.getElementById('generate-itinerary-btn');
-    generateItineraryBtn.style.display = 'block';
-    generateItineraryBtn.addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addFeedbackClickListener() {
-    document.getElementById('feedback-toggle-btn').addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function blockUserInteraction() {
-    document.body.classList.add('blocked');
-}
-
-function unblockUserInteraction() {
-    document.body.classList.remove('blocked');
-}
-
 document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
 document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
 document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
 
-const translations = {
-    pt: {
-        welcome: "Bem-vindo ao Morro Digital! Você gostaria de iniciar o tutorial que te ensinará todas as funcionalidades do site?",
-        start: "Começar",
-        tutorialComplete: "Tutorial completo!",
-        selectLanguage: "Selecione seu idioma",
-        locationPermissionDenied: "Permissão de localização negada.",
-        geolocationNotSupported: "Geolocalização não é suportada por este navegador.",
-        osmFetchError: "Erro ao buscar dados da OSM:",
-        detailedInfo: "Informações detalhadas sobre",
-        createRoutePrompt: "Para criar uma rota até este local, clique no botão 'Criar Rota' abaixo.",
-        createRoute: "Criar Rota",
-        itinerarySaved: "Roteiro salvo:",
-        suggestGuidedTour: "Sugerir tour guiado.",
-        startGuidedTour: "Iniciar tour guiado.",
-        showPointOfInterestInfo: "Mostrar informações do ponto de interesse:",
-        requestActivityParticipation: "Solicitar participação em atividades.",
-        submitFeedback: "Enviar feedback:",
-        feedbackSent: "Feedback enviado com sucesso:",
-        provideContinuousAssistance: "Fornecer assistência contínua.",
-        answerQuestions: "Responder pergunta:",
-        youAreHere: "Você está aqui!",
-        locationNotAvailable: "Localização atual não disponível.",
-        routeCreationError: "Erro ao criar rota."
-    },
-    es: {
-        welcome: "¡Bienvenidos a Morro Digital! ¿Te gustaría comenzar el tutorial que te enseñará todas las características del sitio?",
-        start: "Comenzar",
-        tutorialComplete: "¡Tutorial completo!",
-        selectLanguage: "Seleccione su idioma",
-        locationPermissionDenied: "Permiso de ubicación denegado.",
-        geolocationNotSupported: "La geolocalización no es compatible con este navegador.",
-        osmFetchError: "Error al buscar datos de OSM:",
-        detailedInfo: "Información detallada sobre",
-        createRoutePrompt: "Para crear una ruta hasta este lugar, haga clic en el botón 'Crear Ruta' a continuación.",
-        createRoute: "Crear Ruta",
-        itinerarySaved: "Itinerario guardado:",
-        suggestGuidedTour: "Sugerir tour guiado.",
-        startGuidedTour: "Iniciar tour guiado.",
-        showPointOfInterestInfo: "Mostrar información del punto de interés:",
-        requestActivityParticipation: "Solicitar participación en actividades.",
-        submitFeedback: "Enviar comentarios:",
-        feedbackSent: "Comentarios enviados con éxito:",
-        provideContinuousAssistance: "Proporcionar asistencia continua.",
-        answerQuestions: "Responder pregunta:",
-        youAreHere: "¡Estás aquí!",
-        locationNotAvailable: "Ubicación actual no disponible.",
-        routeCreationError: "Error creando la ruta."
-    },
-    en: {
-        welcome: "Welcome to Morro Digital! Would you like to start the tutorial that will teach you all the site's features?",
-        start: "Start",
-        tutorialComplete: "Tutorial complete!",
-        selectLanguage: "Select your language",
-        locationPermissionDenied: "Location permission denied.",
-        geolocationNotSupported: "Geolocation is not supported by this browser.",
-        osmFetchError: "Error fetching OSM data:",
-        detailedInfo: "Detailed information about",
-        createRoutePrompt: "To create a route to this location, click the 'Create Route' button below.",
-        createRoute: "Create Route",
-        itinerarySaved: "Itinerary saved:",
-        suggestGuidedTour: "Suggest guided tour.",
-        startGuidedTour: "Start guided tour.",
-        showPointOfInterestInfo: "Show point of interest information:",
-        requestActivityParticipation: "Request activity participation.",
-        submitFeedback: "Submit feedback:",
-        feedbackSent: "Feedback sent successfully:",
-        provideContinuousAssistance: "Provide continuous assistance.",
-        answerQuestions: "Answer question:",
-        youAreHere: "You are here!",
-        locationNotAvailable: "Current location not available.",
-        routeCreationError: "Error creating route."
-    },
-    he: {
-        welcome: "ברוכים הבאים למורו דיגיטל! האם תרצה להתחיל את המדריך שילמד אותך את כל תכונות האתר?",
-        start: "התחל",
-        tutorialComplete: "המדריך הושלם!",
-        selectLanguage: "בחר את השפה שלך",
-        locationPermissionDenied: "הרשאת מיקום נדחתה.",
-        geolocationNotSupported: "מיקום גיאוגרפי אינו נתמך על ידי דפדפן זה.",
-        osmFetchError: "שגיאה באחזור נתוני OSM:",
-        detailedInfo: "מידע מפורט על",
-        createRoutePrompt: "כדי ליצור מסלול למיקום זה, לחץ על כפתור 'צור מסלול' למטה.",
-        createRoute: "צור מסלול",
-        itinerarySaved: "מסלול נשמר:",
-        suggestGuidedTour: "הצע סיור מודרך.",
-        startGuidedTour: "התחל סיור מודרך.",
-        showPointOfInterestInfo: "הצג מידע על נקודת עניין:",
-        requestActivityParticipation: "בקש השתתפות בפעילויות.",
-        submitFeedback: "שלח משוב:",
-        feedbackSent: "משוב נשלח בהצלחה:",
-        provideContinuousAssistance: "ספק סיוע מתמשך.",
-        answerQuestions: "ענה על שאלה:",
-        youAreHere: "אתה כאן!",
-        locationNotAvailable: "המיקום הנוכחי לא זמין.",
-        routeCreationError: "שגיאה ביצירת מסלול."
-    }
-};
-
 document.getElementById('map').addEventListener('click', () => { if (currentStep === 2) nextTutorialStep(); });
 
 document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (currentStep === 3) nextTutorialStep(); });
+
+function startTutorial() {
+    currentStep = 1;
+    document.getElementById('tutorial-yes-btn').style.display = 'none';
+    document.getElementById('tutorial-no-btn').style.display = 'none';
+    document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+    showTutorialStep(currentStep);
+}
+
+function showEndTutorialMessage() {
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const endMessage = document.createElement('div');
+    
+    endMessage.id = 'end-tutorial-message';
+    endMessage.innerHTML = `
+        <p>Clique neste botão para abrir o Tutorial novamente</p>
+        <div class="circle-highlight"></div>
+        <button class="close-btn">&times;</button>
+    `;
+    
+    document.body.appendChild(endMessage);
+    
+    const circleHighlight = endMessage.querySelector('.circle-highlight');
+    const rect = sobreButton.getBoundingClientRect();
+    
+    // Ajustando a posição da mensagem ao lado do botão "Sobre"
+    endMessage.style.position = 'absolute';
+    endMessage.style.bottom = '20%';
+    endMessage.style.left = `${rect.left + window.scrollX}px`;
+    
+    // Ajustando a posição do círculo de destaque
+    circleHighlight.style.position = 'absolute';
+    circleHighlight.style.border = '2px solid red';
+    circleHighlight.style.borderRadius = '50%';
+    circleHighlight.style.width = '32px';
+    circleHighlight.style.height = '32px';
+    circleHighlight.style.left = '42%';
+    circleHighlight.style.top = '50%';
+    circleHighlight.style.transform = 'translateY(-50%)';
+    circleHighlight.style.background = 'white';
+    
+    const closeButton = endMessage.querySelector('.close-btn');
+    closeButton.addEventListener('click', () => {
+        endMessage.style.display = 'none';
+    });
+}
+
+function endTutorial() {
+    const assistantModal = document.getElementById('assistant-modal');
+    const controlButtons = document.querySelector('.control-buttons');
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+
+    // Esconde o modal com animação
+    assistantModal.style.transition = 'all 1s ease';
+    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
+    assistantModal.style.opacity = '0';
+    
+    // Esconde os botões de controle
+    controlButtons.style.opacity = '0';
+    controlButtons.style.transition = 'opacity 1s ease';
+
+    setTimeout(() => {
+        assistantModal.style.display = 'none';
+        controlButtons.style.display = 'none';
+        showEndTutorialMessage();
+    }, 1000); // Tempo igual à duração da transição
+}
+
+function showEndTutorialMessage() {
+    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const endMessage = document.createElement('div');
+    
+    endMessage.id = 'end-tutorial-message';
+    endMessage.innerHTML = `
+        <p>Clique neste botão para abrir o Tutorial novamente</p>
+        <span class="close-btn">&times;</span>
+    `;
+    
+    document.body.appendChild(endMessage);
+
+    positionMessage(endMessage, sobreButton);
+    createCircleHighlight(sobreButton);
+
+    endMessage.querySelector('.close-btn').addEventListener('click', () => {
+        endMessage.style.display = 'none';
+        document.querySelector('.circle-highlight').style.display = 'none';
+    });
+
+    // Reposiciona a mensagem e o círculo ao redimensionar a janela
+    window.addEventListener('resize', () => {
+        positionMessage(endMessage, sobreButton);
+        positionCircleHighlight(sobreButton);
+    });
+}
+
+function positionMessage(messageElement, targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
+    messageElement.style.top = `${rect.top}px`;
+}
+
+function createCircleHighlight(targetElement) {
+    const circleHighlight = document.createElement('div');
+    circleHighlight.className = 'circle-highlight';
+    document.body.appendChild(circleHighlight);
+    positionCircleHighlight(targetElement);
+}
+
+function positionCircleHighlight(targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    const circleHighlight = document.querySelector('.circle-highlight');
+    circleHighlight.style.width = `${rect.width}px`;
+    circleHighlight.style.height = `${rect.height}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+}
