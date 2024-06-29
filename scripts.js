@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
-    blockUserInteraction();
 });
 
 let currentSubMenu = null;
@@ -56,9 +55,14 @@ function setupEventListeners() {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
-            event.stopPropagation();  // Prevents propagation to other handlers.
-            if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
-                nextTutorialStep();
+            event.stopPropagation();
+
+            if (tutorialIsActive) {
+                if (feature === 'sobre') {
+                    transitionAssistantModalToEnsino();
+                } else if (tutorialSteps[currentStep].step === feature) {
+                    nextTutorialStep();
+                }
             }
         });
     });
@@ -67,7 +71,6 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
-            blockUserInteraction();
         });
     });
 
@@ -85,7 +88,7 @@ function setupEventListeners() {
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 
-    // Eventos para "Emergências", "Dicas", "Sobre" e "Ensino"
+    // Eventos para "Emergências", "Dicas", "Ensino"
     document.querySelector('.menu-btn[data-feature="emergencias"]').addEventListener('click', () => {
         showInfoInSidebar('Emergências', 'Informações de emergência...');
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'emergencias') {
@@ -100,17 +103,12 @@ function setupEventListeners() {
         }
     });
 
-document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
-    showInfoInSidebar('Sobre', 'Informações sobre o site...');
-    if (tutorialIsActive && tutorialSteps[currentStep].step === 'sobre') {
-        nextTutorialStep();
-    }
-    if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
-        nextTutorialStep();
-    }
-});
-
-
+    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', () => {
+        showInfoInSidebar('Ensino', 'Informações de ensino...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
+            endTutorial();
+        }
+    });
 }
 
 function showInfoInSidebar(title, content) {
@@ -129,89 +127,42 @@ function showInfoInSidebar(title, content) {
     currentSubMenu = `${title.toLowerCase()}-submenu`;
 }
 
-function blockUserInteraction() {
-    document.body.classList.add('blocked');
-    document.getElementById('tutorial-btn').style.pointerEvents = 'auto';
-}
-
-function unblockUserInteraction() {
-    document.body.classList.remove('blocked');
-}
-
-function showEndTutorialMessage() {
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    const endMessage = document.createElement('div');
-    
-    endMessage.id = 'end-tutorial-message';
-    endMessage.innerHTML = `
-        <p>Clique neste botão para abrir o Tutorial novamente</p>
-        <span class="close-btn">&times;</span>
-    `;
-    
-    document.body.appendChild(endMessage);
-
-    positionMessage(endMessage, sobreButton);
-    createCircleHighlight(sobreButton);
-
-    endMessage.querySelector('.close-btn').addEventListener('click', () => {
-        endMessage.style.display = 'none';
-        document.querySelector('.circle-highlight').style.display = 'none';
-        unblockUserInteraction();
-    });
-
-    window.addEventListener('resize', () => {
-        positionMessage(endMessage, sobreButton);
-        positionCircleHighlight(sobreButton);
-    });
-}
-
-function positionMessage(messageElement, targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    messageElement.style.left = `${rect.left + window.scrollX - messageElement.offsetWidth - 10}px`;
-    messageElement.style.top = `${rect.top + window.scrollY}px`;
-}
-
-function createCircleHighlight(targetElement) {
-    const circleHighlight = document.createElement('div');
-    circleHighlight.className = 'circle-highlight';
-    document.body.appendChild(circleHighlight);
-    positionCircleHighlight(targetElement);
-}
-
-function positionCircleHighlight(targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    const circleHighlight = document.querySelector('.circle-highlight');
-    circleHighlight.style.width = `${rect.width}px`;
-    circleHighlight.style.height = `${rect.height}px`;
-    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
-    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
-}
-
-function endTutorial() {
+function transitionAssistantModalToEnsino() {
     const assistantModal = document.getElementById('assistant-modal');
-    const controlButtons = document.querySelector('.control-buttons');
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
+    const ensinoButton = document.querySelector('.menu-btn[data-feature="ensino"]');
+    const rect = ensinoButton.getBoundingClientRect();
 
     assistantModal.style.transition = 'all 1s ease';
-    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
+    assistantModal.style.transform = `translate(${rect.left}px, ${rect.top}px) scale(0.1)`;
     assistantModal.style.opacity = '0';
-
-    controlButtons.style.opacity = '0';
-    controlButtons.style.transition = 'opacity 1s ease';
 
     setTimeout(() => {
         assistantModal.style.display = 'none';
-        controlButtons.style.display = 'none';
-        showEndTutorialMessage();
+        highlightElement(ensinoButton);
+        nextTutorialStep();
     }, 1000);
 }
 
-function closeBlockedOverlay() {
-    const overlay = document.getElementById('blocked-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-    unblockUserInteraction();
+function highlightElement(element) {
+    removeExistingHighlights();
+
+    const rect = element.getBoundingClientRect();
+    const circleHighlight = document.createElement('div');
+    circleHighlight.className = 'circle-highlight';
+    circleHighlight.style.position = 'absolute';
+    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.width = `${rect.width}px`;
+    circleHighlight.style.height = `${rect.height}px`;
+    circleHighlight.style.border = '2px solid red';
+    circleHighlight.style.borderRadius = '50%';
+    circleHighlight.style.zIndex = '999';
+
+    document.body.appendChild(circleHighlight);
+}
+
+function removeExistingHighlights() {
+    document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
 }
 
 function showWelcomeMessage() {
@@ -219,6 +170,7 @@ function showWelcomeMessage() {
     modal.style.display = 'block';
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.style.pointerEvents = 'auto';
+        document.getElementById('tutorial-overlay').style.display = 'flex';
     });
 }
 
@@ -226,7 +178,6 @@ function setLanguage(lang) {
     localStorage.setItem('preferredLanguage', lang);
     selectedLanguage = lang;
     translatePageContent(lang);
-    unblockUserInteraction();
     document.getElementById('welcome-modal').style.display = 'none';
     startTutorial();
 }
@@ -258,7 +209,7 @@ function activateAssistant() {
 }
 
 function requestLocationPermission() {
-   const assistantModal = document.getElementById('assistant-modal');
+    const assistantModal = document.getElementById('assistant-modal');
     assistantModal.classList.add('location-permission');
 
     if (navigator.geolocation) {
@@ -272,26 +223,23 @@ function requestLocationPermission() {
                 .setLatLng([currentLocation.latitude, currentLocation.longitude])
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
-            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
                 nextTutorialStep();
             }
-            showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
-            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
-        unblockUserInteraction();
         assistantModal.classList.remove('location-permission');
     }
 }
 
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
+    L.marker([lat, lon]).addTo(map).bindPopup("Você está aqui!").openPopup();
 }
 
 function handleFeatureSelection(feature) {
@@ -306,7 +254,7 @@ function handleFeatureSelection(feature) {
         'emergencias': 'emergencies-submenu',
         'dicas': 'tips-submenu',
         'sobre': 'about-submenu',
-        'ensino': 'ensino-submenu'
+        'ensino': 'education-submenu'
     };
 
     const subMenuId = featureMappings[feature];
@@ -365,43 +313,27 @@ function displayOSMData(data, subMenuId) {
         if (element.type === 'node' && element.tags.name) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
+            btn.setAttribute('aria-label', element.tags.name);
             btn.textContent = element.tags.name;
-            btn.onclick = () => showInfo(element.tags.name, [element.lat, element.lon], element.id);
+            btn.onclick = () => createRouteTo(element.lat, element.lon);
+            btn.oncontextmenu = (e) => {
+                e.preventDefault();
+                showInfoModal(element.tags.name, element.lat, element.lon, element.id);
+            };
             subMenu.appendChild(btn);
         }
     });
 }
 
-function showInfo(name, coordinates, osmId) {
-    const messageBox = document.getElementById('message-box');
-    messageBox.style.display = 'none';
-
-    const info = `${translations[selectedLanguage].detailedInfo} ${name}`;
-    messageBox.innerHTML = `<p>${info}</p>`;
-
-    if (coordinates) {
-        showRoute(coordinates);
-    }
-
-    showInfoModal(name, coordinates, osmId);
-}
-
-function showInfoModal(name, coordinates, osmId) {
+function showInfoModal(name, lat, lon, osmId) {
     const infoModal = document.getElementById('info-modal');
     const modalContent = infoModal.querySelector('.modal-content');
 
     modalContent.innerHTML = `
         <h2>${name}</h2>
         <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
-        <p><strong>${translations[selectedLanguage].createRoutePrompt}</strong></p>
-        <button id="highlight-create-route-btn" onclick="createRouteTo(${coordinates[0]}, ${coordinates[1]})">${translations[selectedLanguage].createRoute}</button>
+        <button id="highlight-create-route-btn" onclick="createRouteTo(${lat}, ${lon})">${translations[selectedLanguage].createRoute}</button>
     `;
-
-    const createRouteBtn = modalContent.querySelector('#highlight-create-route-btn');
-    createRouteBtn.style.border = '2px solid red';
-    createRouteBtn.style.padding = '10px';
-    createRouteBtn.style.backgroundColor = 'white';
-    createRouteBtn.style.color = 'red';
 
     infoModal.style.display = 'block';
 }
@@ -418,7 +350,7 @@ function createRouteTo(lat, lon) {
         .then(data => {
             const coords = data.features[0].geometry.coordinates;
             const latlngs = coords.map(coord => [coord[1], coord[0]]);
-            L.polyline(latlngs, {color: 'blue'}).addTo(map);
+            L.polyline(latlngs, { color: 'blue' }).addTo(map);
             map.fitBounds(L.polyline(latlngs).getBounds());
         })
         .catch(error => {
@@ -721,10 +653,10 @@ const tutorialSteps = [
         step: 'sobre',
         element: '.menu-btn[data-feature="sobre"]',
         message: {
-            pt: "Aqui você encontra informações sobre o site.",
-            en: "Here you find information about the site.",
-            es: "Aquí encuentras información sobre el sitio.",
-            he: "כאן תמצאו מידע על האתר."
+            pt: "Aqui você encontra informações sobre a empresa Morro Digital.",
+            en: "Here you find information about the company Morro Digital.",
+            es: "Aquí encuentras información sobre la empresa Morro Digital.",
+            he: "כאן תמצאו מידע על חברת Morro Digital."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="sobre"]');
@@ -746,108 +678,6 @@ const tutorialSteps = [
         }
     }
 ];
-
-function setupEventListeners() {
-    const modal = document.getElementById('assistant-modal');
-    const closeModal = document.querySelector('.close-btn');
-    const menuToggle = document.getElementById('menu-btn');
-    const floatingMenu = document.getElementById('floating-menu');
-    const tutorialBtn = document.getElementById('tutorial-btn');
-
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    menuToggle.addEventListener('click', () => {
-        floatingMenu.classList.toggle('hidden');
-        if (tutorialIsActive && currentStep === 0) {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
-        map.zoomIn();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
-        map.zoomOut();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
-        requestLocationPermission();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
-        btn.addEventListener('click', (event) => {
-            const feature = btn.getAttribute('data-feature');
-            handleFeatureSelection(feature);
-            event.stopPropagation();  // Prevents propagation to other handlers.
-            if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
-                nextTutorialStep();
-            }
-        });
-    });
-
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            setLanguage(btn.getAttribute('data-lang'));
-            document.getElementById('welcome-modal').style.display = 'none';
-            blockUserInteraction();
-        });
-    });
-
-    tutorialBtn.addEventListener('click', () => {
-        if (tutorialIsActive) {
-            endTutorial();
-        } else {
-            startTutorial();
-        }
-    });
-
-    document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
-    document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
-    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
-    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
-
-    // Eventos para "Emergências", "Dicas", "Sobre" e "Ensino"
-    document.querySelector('.menu-btn[data-feature="emergencias"]').addEventListener('click', () => {
-        showInfoInSidebar('Emergências', 'Informações de emergência...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'emergencias') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
-        showInfoInSidebar('Dicas', 'Dicas úteis...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
-        showInfoInSidebar('Sobre', 'Informações sobre o site...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'sobre') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', () => {
-        showInfoInSidebar('Ensino', 'Informações de ensino...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
-            nextTutorialStep();
-        }
-    });
-}
 
 function showTutorialStep(step) {
     const { element, message, action } = tutorialSteps.find(s => s.step === step);
@@ -903,8 +733,6 @@ function previousTutorialStep() {
     }
 }
 
-
-
 function startTutorial() {
     currentStep = 0;
     tutorialIsActive = true;
@@ -922,3 +750,12 @@ function updateProgressBar(current, total) {
     const progressBar = document.getElementById('tutorial-progress-bar');
     progressBar.style.width = `${(current / total) * 100}%`;
 }
+
+function showMessage(message, type) {
+    const messageBox = document.createElement('div');
+    messageBox.className = `message-box ${type}`;
+    messageBox.innerText = message;
+    document.body.appendChild(messageBox);
+    setTimeout(() => messageBox.remove(), 3000);
+}
+

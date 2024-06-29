@@ -5,24 +5,6 @@ body, html {
     height: 100%;
     font-family: Arial, sans-serif;
 }
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10001;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -30,33 +12,6 @@ body.blocked #blocked-overlay {
     right: 20px;
     z-index: 10001; /* Above the blocked overlay */
     pointer-events: auto; /* Enable clicking */
-}
-
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
-}
-
-.circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
 }
 
 
@@ -121,6 +76,107 @@ body.blocked #blocked-overlay {
 .lang-btn:hover {
     background-color: #0056b3;
 }
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 
 .modal {
     position: absolute;
@@ -242,14 +298,6 @@ body.blocked #blocked-overlay {
     text-align: center;
 }
 
-#assistant-modal.location-permission {
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1001;
-}
-
 @keyframes highlight-animation {
     from {
         background-color: rgba(0, 0, 0, 0.3);
@@ -352,24 +400,6 @@ h2 {
     unicode-bidi: isolate;
 }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -379,34 +409,148 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Outros estilos necessários para o layout */
+.hidden {
+    display: none;
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.blocked {
+    pointer-events: none;
+    opacity: 0.5;
 }
 
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
 
-/* Adicione esses estilos ao seu arquivo styles.css *
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
 
 
@@ -451,25 +595,6 @@ body.blocked #blocked-overlay {
         font-size: 1.5em;
     }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
-
 #tutorial-btn {
     position: fixed;
     bottom: 20px;
@@ -478,31 +603,107 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
+
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 
 
 /* Adicione esses estilos ao seu arquivo styles.css */
@@ -540,25 +741,6 @@ body.blocked #blocked-overlay {
         flex-direction: row-reverse;
 }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
-
 #tutorial-btn {
     position: fixed;
     bottom: 20px;
@@ -567,30 +749,104 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
+
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 
@@ -629,24 +885,6 @@ body.blocked #blocked-overlay {
         flex-direction: row-reverse;
     }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -656,32 +894,105 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
 
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 
 
 /* Adicione esses estilos ao seu arquivo styles.css */
@@ -717,24 +1028,6 @@ body.blocked #blocked-overlay {
         flex-direction: row-reverse;
     }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -744,32 +1037,105 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
 
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 
 
 /* Adicione esses estilos ao seu arquivo styles.css */
@@ -806,24 +1172,6 @@ body.blocked #blocked-overlay {
         flex-direction: row-reverse;
     }
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -833,31 +1181,103 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
 
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 
@@ -885,24 +1305,6 @@ body.blocked #blocked-overlay {
 
 @media (max-width: 768px) {
   
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -912,33 +1314,106 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
 
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
 
 /* Adicione esses estilos ao seu arquivo styles.css */
@@ -952,24 +1427,6 @@ body.blocked #blocked-overlay {
 @media (max-width: 480px) {
  
 
-.blocked {
-    pointer-events: none;
-}
-
-#blocked-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1005;
-}
-
-body.blocked #blocked-overlay {
-    display: block;
-}
 
 #tutorial-btn {
     position: fixed;
@@ -979,32 +1436,105 @@ body.blocked #blocked-overlay {
     pointer-events: auto; /* Enable clicking */
 }
 
-#end-tutorial-message {
-    position: absolute;
-    background: white;
-    padding: 5px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 998; /* Above the blocked overlay */
-    text-align: center;
-    font-size: 14px;
-    white-space: nowrap;
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
 }
 
-#end-tutorial-message .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    cursor: pointer;
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
 }
 
+/* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
+    animation: fadeIn 1s forwards;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+/* Estilos para a barra de progresso do tutorial */
+#tutorial-overlay {
+    display: none;
+    position: fixed;
+    z-index: 700;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    padding-top: 60px;
+}
+
+#tutorial-overlay .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+#tutorial-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+}
+
+/* Animação para fechar o modal */
+@keyframes closeToEducation {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
+        opacity: 0;
+    }
+}
+
+.animate-close-to-education {
+    animation: closeToEducation 1s forwards;
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+    position: absolute;
+    border: 2px solid red;
+    border-radius: 50%;
+    z-index: 999;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
