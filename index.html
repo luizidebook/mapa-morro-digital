@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
 </head>
 <body class="blocked">
-    <div id="blocked-overlay" ></div>
+    <div id="blocked-overlay"></div>
     <div id="map-container">
         <div id="map"></div>
         <div id="assistant-modal" class="modal">
@@ -34,50 +34,49 @@
         <button id="menu-btn" class="menu-toggle">
             &#9776;
         </button>
-        <div id="floating-menu" class="floating-menu">
-            <!-- Botões de menu -->
+        <div id="floating-menu" class="floating-menu hidden">
             <button class="menu-btn" data-feature="pontos-turisticos"><i class="fas fa-landmark"></i></button>
-            <button class="menu-btn" data-feature="passeios"><i class="fas fa-walking"></i></button>
-            <button class="menu-btn" data-feature="praias"><i class="fas fa-umbrella-beach"></i></button>
-            <button class="menu-btn" data-feature="festas"><i class="fas fa-glass-cheers"></i></button>
-            <button class="menu-btn" data-feature="restaurantes"><i class="fas fa-utensils"></i></button>
-            <button class="menu-btn" data-feature="pousadas"><i class="fas fa-bed"></i></button>
-            <button class="menu-btn" data-feature="lojas"><i class="fas fa-store"></i></button>
-            <button class="menu-btn" data-feature="emergencias"><i class="fas fa-ambulance"></i></button>
-            <button class="menu-btn" data-feature="dicas"><i class="fas fa-lightbulb"></i></button>
-            <button class="menu-btn zoom-in"><i class="fas fa-plus"></i></button>
-            <button class="menu-btn zoom-out"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user"><i class="fas fa-map-marker-alt"></i></button>
-            <button class="menu-btn" data-feature="sobre"><i class="fas fa-info-circle"></i></button>
+<button class="menu-btn" data-feature="passeios"><i class="fas fa-walking"></i></button>
+<button class="menu-btn" data-feature="praias"><i class="fas fa-umbrella-beach"></i></button>
+<button class="menu-btn" data-feature="festas"><i class="fas fa-glass-cheers"></i></button>
+<button class="menu-btn" data-feature="restaurantes"><i class="fas fa-utensils"></i></button>
+<button class="menu-btn" data-feature="pousadas"><i class="fas fa-bed"></i></button>
+<button class="menu-btn" data-feature="lojas"><i class="fas fa-store"></i></button>
+<button class="menu-btn" data-feature="emergencias"><i class="fas fa-ambulance"></i></button>
+<button class="menu-btn" data-feature="dicas"><i class="fas fa-lightbulb"></i></button>
+<button class="menu-btn zoom-in"><i class="fas fa-plus"></i></button>
+<button class="menu-btn zoom-out"><i class="fas fa-minus"></i></button>
+<button class="menu-btn locate-user"><i class="fas fa-map-marker-alt"></i></button>
+<button class="menu-btn" data-feature="sobre"><i class="fas fa-info-circle"></i></button>
+<button class="menu-btn" data-feature="ensino"><i class="fas fa-chalkboard-teacher"></i></button>
+
+     
+
+</button>
         </div>
-       <div id="menu" class="menu hidden">
+
+        <div id="menu" class="menu">
             <div id="touristSpots-submenu" class="submenu"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
-            <div id="nightlife-submenu" class="submenu"></div>
+            <div id="nightlife-submenu" class="submenu"></div> <!-- Submenu for Festas -->
             <div id="restaurants-submenu" class="submenu"></div>
             <div id="inns-submenu" class="submenu"></div>
             <div id="shops-submenu" class="submenu"></div>
+            <div id="emergencies-submenu" class="submenu"></div>
+            <div id="tips-submenu" class="submenu"></div>
+             <div id="zoom-in-submenu" class="submenu"></div>
+
         </div>
-        </div>
-         <div class="control-buttons">
-            <<button id="tutorial-yes-btn" class="control-btn" style="display:none;">Sim</button>
-             <button id="tutorial-no-btn" class="control-btn" style="display:none;">Não</button>
+
+        <div class="control-buttons">
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;">Próximo>Sim</button>
+            <button id="tutorial-no-btn" class="control-btn" style="display:none;">Não</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
             <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
             <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
-        </div>
-        <div id="place-details-modal" class="modal">
-            <div class="modal-content"></div>
-        </div>
-        <div id="itinerary-form-modal" class="modal">
-            <form>
-                <input type="text" name="name" placeholder="Nome do Roteiro">
-                <textarea name="description" placeholder="Descrição do Roteiro"></textarea>
-                <button type="button" onclick="saveEditedItinerary()">Salvar</button>
-            </form>
         </div>
     </div>
     <script src="scripts.js"></script>
