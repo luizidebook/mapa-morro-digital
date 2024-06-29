@@ -4,13 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
-    blockUserInteraction(); // Bloqueia a interação do usuário inicialmente
+    blockUserInteraction();
 });
 
 let currentSubMenu = null;
 let currentLocation = null;
 let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
 let currentStep = 0;
+let tutorialIsActive = false;
 
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
@@ -25,36 +26,107 @@ function setupEventListeners() {
 
     menuToggle.addEventListener('click', () => {
         floatingMenu.classList.toggle('hidden');
+        if (tutorialIsActive && currentStep === 0) {
+            nextTutorialStep();
+        }
     });
 
-    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => map.zoomIn());
-    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => map.zoomOut());
-    document.querySelector('.menu-btn.locate-user').addEventListener('click', requestLocationPermission);
+    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
+        map.zoomIn();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
+        map.zoomOut();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
+        requestLocationPermission();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+            nextTutorialStep();
+        }
+    });
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
-        btn.addEventListener('click', () => handleFeatureSelection(btn.getAttribute('data-feature')));
+        btn.addEventListener('click', (event) => {
+            const feature = btn.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            event.stopPropagation();  // Prevents propagation to other handlers.
+            if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
+                nextTutorialStep();
+            }
+        });
     });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
-            document.getElementById('welcome-modal').style.display = 'none'; // Esconde o modal de boas-vindas
-            
+            document.getElementById('welcome-modal').style.display = 'none';
+            blockUserInteraction();
         });
     });
 
     tutorialBtn.addEventListener('click', () => {
-        startTutorial();
-        document.getElementById('end-tutorial-message').style.display = 'none';
-        document.querySelector('.circle-highlight').style.display = 'none';
-        unblockUserInteraction(); // Desbloqueia a interação do usuário após a seleção do idioma
+        if (tutorialIsActive) {
+            endTutorial();
+        } else {
+            startTutorial();
+        }
     });
 
     document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
     document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
-    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep); // Evento para o botão "Próximo"
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+
+    // Eventos para "Emergências", "Dicas", "Sobre" e "Ensino"
+    document.querySelector('.menu-btn[data-feature="emergencias"]').addEventListener('click', () => {
+        showInfoInSidebar('Emergências', 'Informações de emergência...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'emergencias') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
+        showInfoInSidebar('Dicas', 'Dicas úteis...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
+            nextTutorialStep();
+        }
+    });
+
+document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
+    showInfoInSidebar('Sobre', 'Informações sobre o site...');
+    if (tutorialIsActive && tutorialSteps[currentStep].step === 'sobre') {
+        nextTutorialStep();
+    }
+    if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
+        nextTutorialStep();
+    }
+});
+
+
+}
+
+function showInfoInSidebar(title, content) {
+    const sidebar = document.getElementById('menu');
+    const sidebarContent = sidebar.querySelector('.sidebar-content');
+
+    sidebarContent.innerHTML = `
+        <h2>${title}</h2>
+        <p>${content}</p>
+    `;
+
+    sidebar.style.display = 'block';
+    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
+    document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.remove('inactive');
+    document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.add('active');
+    currentSubMenu = `${title.toLowerCase()}-submenu`;
 }
 
 function blockUserInteraction() {
@@ -87,7 +159,6 @@ function showEndTutorialMessage() {
         unblockUserInteraction();
     });
 
-    // Reposiciona a mensagem e o círculo ao redimensionar a janela
     window.addEventListener('resize', () => {
         positionMessage(endMessage, sobreButton);
         positionCircleHighlight(sobreButton);
@@ -96,8 +167,8 @@ function showEndTutorialMessage() {
 
 function positionMessage(messageElement, targetElement) {
     const rect = targetElement.getBoundingClientRect();
-    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
-    messageElement.style.top = `${rect.top}px`;
+    messageElement.style.left = `${rect.left + window.scrollX - messageElement.offsetWidth - 10}px`;
+    messageElement.style.top = `${rect.top + window.scrollY}px`;
 }
 
 function createCircleHighlight(targetElement) {
@@ -121,12 +192,10 @@ function endTutorial() {
     const controlButtons = document.querySelector('.control-buttons');
     const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
 
-    // Esconde o modal com animação
     assistantModal.style.transition = 'all 1s ease';
     assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
     assistantModal.style.opacity = '0';
-    
-    // Esconde os botões de controle
+
     controlButtons.style.opacity = '0';
     controlButtons.style.transition = 'opacity 1s ease';
 
@@ -134,90 +203,8 @@ function endTutorial() {
         assistantModal.style.display = 'none';
         controlButtons.style.display = 'none';
         showEndTutorialMessage();
-    }, 1000); // Tempo igual à duração da transição
+    }, 1000);
 }
-
-
-function blockUserInteraction() {
-    document.body.classList.add('blocked');
-    document.getElementById('tutorial-btn').style.pointerEvents = 'auto';
-}
-
-function unblockUserInteraction() {
-    document.body.classList.remove('blocked');
-}
-
-function showEndTutorialMessage() {
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    const endMessage = document.createElement('div');
-    
-    endMessage.id = 'end-tutorial-message';
-    endMessage.innerHTML = `
-        <p>Clique neste botão para abrir o Tutorial novamente</p>
-        <span class="close-btn">&times;</span>
-    `;
-    
-    document.body.appendChild(endMessage);
-
-    positionMessage(endMessage, sobreButton);
-    createCircleHighlight(sobreButton);
-
-    endMessage.querySelector('.close-btn').addEventListener('click', () => {
-        endMessage.style.display = 'none';
-        document.querySelector('.circle-highlight').style.display = 'none';
-        unblockUserInteraction();
-    });
-
-    // Reposiciona a mensagem e o círculo ao redimensionar a janela
-    window.addEventListener('resize', () => {
-        positionMessage(endMessage, sobreButton);
-        positionCircleHighlight(sobreButton);
-    });
-}
-
-function positionMessage(messageElement, targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
-    messageElement.style.top = `${rect.top}px`;
-}
-
-function createCircleHighlight(targetElement) {
-    const circleHighlight = document.createElement('div');
-    circleHighlight.className = 'circle-highlight';
-    document.body.appendChild(circleHighlight);
-    positionCircleHighlight(targetElement);
-}
-
-function positionCircleHighlight(targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    const circleHighlight = document.querySelector('.circle-highlight');
-    circleHighlight.style.width = `${rect.width}px`;
-    circleHighlight.style.height = `${rect.height}px`;
-    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
-    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
-}
-
-function endTutorial() {
-    const assistantModal = document.getElementById('assistant-modal');
-    const controlButtons = document.querySelector('.control-buttons');
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-
-    // Esconde o modal com animação
-    assistantModal.style.transition = 'all 1s ease';
-    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
-    assistantModal.style.opacity = '0';
-    
-    // Esconde os botões de controle
-    controlButtons.style.opacity = '0';
-    controlButtons.style.transition = 'opacity 1s ease';
-
-    setTimeout(() => {
-        assistantModal.style.display = 'none';
-        controlButtons.style.display = 'none';
-        showEndTutorialMessage();
-    }, 1000); // Tempo igual à duração da transição
-}
-
 
 function closeBlockedOverlay() {
     const overlay = document.getElementById('blocked-overlay');
@@ -230,31 +217,21 @@ function closeBlockedOverlay() {
 function showWelcomeMessage() {
     const modal = document.getElementById('welcome-modal');
     modal.style.display = 'block';
-    // Mantém os botões de idioma clicáveis
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.style.pointerEvents = 'auto';
     });
-}
-
-function blockUserInteraction() {
-    document.body.classList.add('blocked');
-}
-
-function unblockUserInteraction() {
-    document.body.classList.remove('blocked');
 }
 
 function setLanguage(lang) {
     localStorage.setItem('preferredLanguage', lang);
     selectedLanguage = lang;
     translatePageContent(lang);
-    unblockUserInteraction(); // Desbloqueia a interação do usuário após a seleção do idioma
-    document.getElementById('welcome-modal').style.display = 'none'; // Esconde o modal de boas-vindas
-    startTutorial(); // Inicia o tutorial após a seleção do idioma
+    unblockUserInteraction();
+    document.getElementById('welcome-modal').style.display = 'none';
+    startTutorial();
 }
 
 function translatePageContent(lang) {
-    // Função para traduzir o conteúdo da página
     const elements = document.querySelectorAll('[data-translate]');
     elements.forEach(el => {
         const key = el.getAttribute('data-translate');
@@ -281,8 +258,7 @@ function activateAssistant() {
 }
 
 function requestLocationPermission() {
-    blockUserInteraction();
-    const assistantModal = document.getElementById('assistant-modal');
+   const assistantModal = document.getElementById('assistant-modal');
     assistantModal.classList.add('location-permission');
 
     if (navigator.geolocation) {
@@ -298,7 +274,9 @@ function requestLocationPermission() {
                 .openOn(map);
             unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
-            nextTutorialStep();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+                nextTutorialStep();
+            }
             showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
@@ -327,7 +305,8 @@ function handleFeatureSelection(feature) {
         'lojas': 'shops-submenu',
         'emergencias': 'emergencies-submenu',
         'dicas': 'tips-submenu',
-        'sobre': 'about-submenu'
+        'sobre': 'about-submenu',
+        'ensino': 'ensino-submenu'
     };
 
     const subMenuId = featureMappings[feature];
@@ -557,77 +536,326 @@ function updateAssistantModalContent(content) {
 
 const tutorialSteps = [
     {
-        element: null,
+        step: 'menu-toggle',
+        element: '#menu-btn',
         message: {
-            pt: "Seja Bem Vindo ao Morro de São Paulo Digital! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital desenvolvida para te ajudar a explorar as maravilhas de Morro de São Paulo! Deseja que eu te ensine a como usar todas as funcionalidades do site?",
-            en: "Welcome to Morro de São Paulo Digital! My name is 'Sol' and I am the artificial intelligence of Morro Digital developed to help you explore the wonders of Morro de São Paulo! Would you like me to teach you how to use all the site's features?",
-            es: "¡Bienvenidos a Morro de São Paulo Digital! Mi nombre es 'Sol' y soy la inteligencia artificial de Morro Digital desarrollada para ayudarte a explorar las maravillas de Morro de São Paulo! ¿Te gustaría que te enseñe a usar todas las funciones del sitio?",
-            he: "ברוכים הבאים למורו דיגיטל! שמי 'סול' ואני הבינה המלאכותית של מורו דיגיטל שנוצרה כדי לעזור לך לחקור את נפלאות מורו דה סאו פאולו! האם תרצה שאלמד אותך כיצד להשתמש בכל הפונקציות באתר?"
+            pt: "Clique aqui para abrir o menu.",
+            en: "Click here to open the menu.",
+            es: "Haz clic aquí para abrir el menú.",
+            he: "לחץ כאן כדי לפתוח את התפריט."
         },
         action: () => {
-            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+            const element = document.querySelector('#menu-btn');
+            highlightElement(element);
         }
     },
     {
-        step: 1,
-        element: '#tutorial-next-btn',
+        step: 'pontos-turisticos',
+        element: '.menu-btn[data-feature="pontos-turisticos"]',
         message: {
-            pt: "Este é o botão 'Próximo'. Clique aqui para ir para o próximo passo do tutorial. Vamos tentar juntos, clique no botão!",
-            en: "This is the 'Next' button. Click here to go to the next step of the tutorial. Let's try it together, click the button!",
-            es: "Este es el botón 'Siguiente'. Haz clic aquí para ir al siguiente paso del tutorial. ¡Intentémoslo juntos, haz clic en el botón!",
-            he: "זהו כפתור 'הבא'. לחץ כאן כדי לעבור לשלב הבא של המדריך. בוא ננסה יחד, לחץ על הכפתור!"
+            pt: "Aqui você encontra pontos turísticos.",
+            en: "Here you find tourist spots.",
+            es: "Aquí encuentras puntos turísticos.",
+            he: "כאן תמצאו נקודות תיירות."
         },
-        highlight: true,
         action: () => {
-            document.getElementById('tutorial-yes-btn').style.display = 'none';
-            document.getElementById('tutorial-no-btn').style.display = 'none';
-            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
-            addNextStepClickListener();
+            const element = document.querySelector('.menu-btn[data-feature="pontos-turisticos"]');
+            highlightElement(element);
         }
     },
     {
-        step: 2,
-        element: '#tutorial-prev-btn',
+        step: 'passeios',
+        element: '.menu-btn[data-feature="passeios"]',
         message: {
-            pt: "Este é o botão 'Voltar'. Clique aqui para retornar ao passo anterior do tutorial. Vamos tentar, clique no botão!",
-            en: "This is the 'Back' button. Click here to go back to the previous step of the tutorial. Let's try it, click the button!",
-            es: "Este es el botón 'Atrás'. Haz clic aquí para volver al paso anterior del tutorial. ¡Intentémoslo, haz clic en el botón!",
-            he: "זהו כפתור 'חזור'. לחץ כאן כדי לחזור לשלב הקודם של המדריך. בוא ננסה, לחץ על הכפתור!"
+            pt: "Aqui você encontra passeios disponíveis.",
+            en: "Here you find available tours.",
+            es: "Aquí encuentras paseos disponibles.",
+            he: "כאן תמצאו סיורים זמינים."
         },
-        highlight: true,
         action: () => {
-            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
-            addPrevStepClickListener();
+            const element = document.querySelector('.menu-btn[data-feature="passeios"]');
+            highlightElement(element);
         }
     },
     {
-        step: 3,
-        element: '#tutorial-end-btn',
+        step: 'praias',
+        element: '.menu-btn[data-feature="praias"]',
         message: {
-            pt: "Este é o botão 'Encerrar Tutorial'. Clique aqui se você quiser encerrar o tutorial a qualquer momento. Vamos tentar, clique no botão!",
-            en: "This is the 'End Tutorial' button. Click here if you want to end the tutorial at any time. Let's try it, click the button!",
-            es: "Este es el botón 'Finalizar Tutorial'. Haz clic aquí si deseas finalizar el tutorial en cualquier momento. ¡Intentémoslo, haz clic en el botón!",
-            he: "זהו כפתור 'סיום מדריך'. לחץ כאן אם ברצונך לסיים את המדריך בכל עת. בוא ננסה, לחץ על הכפתור!"
+            pt: "Aqui você encontra as praias.",
+            en: "Here you find the beaches.",
+            es: "Aquí encuentras las playas.",
+            he: "כאן תמצאו את החופים."
         },
-        highlight: true,
         action: () => {
-            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-end-btn').style.display = 'inline-block';
-            addEndTutorialClickListener();
+            const element = document.querySelector('.menu-btn[data-feature="praias"]');
+            highlightElement(element);
         }
     },
+    {
+        step: 'festas',
+        element: '.menu-btn[data-feature="festas"]',
+        message: {
+            pt: "Aqui você encontra festas e eventos.",
+            en: "Here you find parties and events.",
+            es: "Aquí encuentras fiestas y eventos.",
+            he: "כאן תמצאו מסיבות ואירועים."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="festas"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'restaurantes',
+        element: '.menu-btn[data-feature="restaurantes"]',
+        message: {
+            pt: "Aqui você encontra os restaurantes.",
+            en: "Here you find the restaurants.",
+            es: "Aquí encuentras los restaurantes.",
+            he: "כאן תמצאו את המסעדות."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="restaurantes"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'pousadas',
+        element: '.menu-btn[data-feature="pousadas"]',
+        message: {
+            pt: "Aqui você encontra as pousadas.",
+            en: "Here you find the inns.",
+            es: "Aquí encuentras las posadas.",
+            he: "כאן תמצאו את האכסניות."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="pousadas"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'lojas',
+        element: '.menu-btn[data-feature="lojas"]',
+        message: {
+            pt: "Aqui você encontra as lojas.",
+            en: "Here you find the shops.",
+            es: "Aquí encuentras las tiendas.",
+            he: "כאן תמצאו את החנויות."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="lojas"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'emergencias',
+        element: '.menu-btn[data-feature="emergencias"]',
+        message: {
+            pt: "Aqui você encontra informações de emergência.",
+            en: "Here you find emergency information.",
+            es: "Aquí encuentras información de emergencia.",
+            he: "כאן תמצאו מידע חירום."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="emergencias"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'dicas',
+        element: '.menu-btn[data-feature="dicas"]',
+        message: {
+            pt: "Aqui você encontra dicas úteis.",
+            en: "Here you find useful tips.",
+            es: "Aquí encuentras consejos útiles.",
+            he: "כאן תמצאו טיפים שימושיים."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="dicas"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'zoom-in',
+        element: '.menu-btn.zoom-in',
+        message: {
+            pt: "Use este botão para dar zoom in no mapa.",
+            en: "Use this button to zoom in on the map.",
+            es: "Usa este botón para acercar el mapa.",
+            he: "השתמש בכפתור זה כדי להתקרב למפה."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn.zoom-in');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'zoom-out',
+        element: '.menu-btn.zoom-out',
+        message: {
+            pt: "Use este botão para dar zoom out no mapa.",
+            en: "Use this button to zoom out on the map.",
+            es: "Usa este botón para alejar el mapa.",
+            he: "השתמש בכפתור זה כדי להתרחק מהמפה."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn.zoom-out');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'locate-user',
+        element: '.menu-btn.locate-user',
+        message: {
+            pt: "Use este botão para localizar sua posição no mapa.",
+            en: "Use this button to locate your position on the map.",
+            es: "Usa este botón para localizar tu posición en el mapa.",
+            he: "השתמש בכפתור זה כדי לאתר את המיקום שלך במפה."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn.locate-user');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'sobre',
+        element: '.menu-btn[data-feature="sobre"]',
+        message: {
+            pt: "Aqui você encontra informações sobre o site.",
+            en: "Here you find information about the site.",
+            es: "Aquí encuentras información sobre el sitio.",
+            he: "כאן תמצאו מידע על האתר."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="sobre"]');
+            highlightElement(element);
+        }
+    },
+    {
+        step: 'ensino',
+        element: '.menu-btn[data-feature="ensino"]',
+        message: {
+            pt: "Aqui você encontra informações de ensino.",
+            en: "Here you find education information.",
+            es: "Aquí encuentras información educativa.",
+            he: "כאן תמצאו מידע חינוכי."
+        },
+        action: () => {
+            const element = document.querySelector('.menu-btn[data-feature="ensino"]');
+            highlightElement(element);
+        }
+    }
 ];
 
+function setupEventListeners() {
+    const modal = document.getElementById('assistant-modal');
+    const closeModal = document.querySelector('.close-btn');
+    const menuToggle = document.getElementById('menu-btn');
+    const floatingMenu = document.getElementById('floating-menu');
+    const tutorialBtn = document.getElementById('tutorial-btn');
+
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    menuToggle.addEventListener('click', () => {
+        floatingMenu.classList.toggle('hidden');
+        if (tutorialIsActive && currentStep === 0) {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
+        map.zoomIn();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
+        map.zoomOut();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
+        requestLocationPermission();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            const feature = btn.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            event.stopPropagation();  // Prevents propagation to other handlers.
+            if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
+                nextTutorialStep();
+            }
+        });
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setLanguage(btn.getAttribute('data-lang'));
+            document.getElementById('welcome-modal').style.display = 'none';
+            blockUserInteraction();
+        });
+    });
+
+    tutorialBtn.addEventListener('click', () => {
+        if (tutorialIsActive) {
+            endTutorial();
+        } else {
+            startTutorial();
+        }
+    });
+
+    document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
+    document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
+    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+
+    // Eventos para "Emergências", "Dicas", "Sobre" e "Ensino"
+    document.querySelector('.menu-btn[data-feature="emergencias"]').addEventListener('click', () => {
+        showInfoInSidebar('Emergências', 'Informações de emergência...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'emergencias') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
+        showInfoInSidebar('Dicas', 'Dicas úteis...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
+        showInfoInSidebar('Sobre', 'Informações sobre o site...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'sobre') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', () => {
+        showInfoInSidebar('Ensino', 'Informações de ensino...');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
+            nextTutorialStep();
+        }
+    });
+}
+
 function showTutorialStep(step) {
-    const { element, message, action, highlight } = tutorialSteps[step];
+    const { element, message, action } = tutorialSteps.find(s => s.step === step);
     const targetElement = element ? document.querySelector(element) : null;
 
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
 
-    if (highlight && targetElement) {
+    if (targetElement) {
         highlightElement(targetElement);
     }
 
@@ -637,24 +865,31 @@ function showTutorialStep(step) {
 }
 
 function highlightElement(element) {
+    removeExistingHighlights();
+
     const rect = element.getBoundingClientRect();
-    const highlightOverlay = document.createElement('div');
-    highlightOverlay.className = 'highlight-overlay';
-    highlightOverlay.style.position = 'absolute';
-    highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
-    highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
-    highlightOverlay.style.width = `${rect.width}px`;
-    highlightOverlay.style.height = `${rect.height}px`;
-    highlightOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    highlightOverlay.style.zIndex = '9';
-    highlightOverlay.style.transition = 'background-color 0.5s ease';
-    document.body.appendChild(highlightOverlay);
+    const circleHighlight = document.createElement('div');
+    circleHighlight.className = 'circle-highlight';
+    circleHighlight.style.position = 'absolute';
+    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.width = `${rect.width}px`;
+    circleHighlight.style.height = `${rect.height}px`;
+    circleHighlight.style.border = '2px solid red';
+    circleHighlight.style.borderRadius = '50%';
+    circleHighlight.style.zIndex = '999';
+
+    document.body.appendChild(circleHighlight);
+}
+
+function removeExistingHighlights() {
+    document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
 }
 
 function nextTutorialStep() {
-    if (currentStep < tutorialSteps.length) {
+    if (currentStep < tutorialSteps.length - 1) {
         currentStep++;
-        showTutorialStep(currentStep);
+        showTutorialStep(tutorialSteps[currentStep].step);
         updateProgressBar(currentStep, tutorialSteps.length);
     } else {
         endTutorial();
@@ -664,198 +899,26 @@ function nextTutorialStep() {
 function previousTutorialStep() {
     if (currentStep > 0) {
         currentStep--;
-        showTutorialStep(currentStep);
+        showTutorialStep(tutorialSteps[currentStep].step);
     }
 }
 
-function startTutorial() {
-    currentStep = 1;
-    showTutorialStep(currentStep);
-}
 
-function unblockUserInteraction() {
-    document.body.classList.remove('blocked');
+
+function startTutorial() {
+    currentStep = 0;
+    tutorialIsActive = true;
+    showTutorialStep(tutorialSteps[currentStep].step);
+    document.getElementById('tutorial-overlay').style.display = 'flex';
 }
 
 function endTutorial() {
-    const assistantModal = document.getElementById('assistant-modal');
-    const controlButtons = document.querySelector('.control-buttons');
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    closeBlockedOverlay(); // Garante que a sobreposição de bloqueio seja fechada
-
-    // Esconde o modal com animação
-    assistantModal.style.transition = 'all 1s ease';
-    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
-    assistantModal.style.opacity = '0';
-    
-    // Esconde os botões de controle
-    controlButtons.style.opacity = '0';
-    controlButtons.style.transition = 'opacity 1s ease';
-
-    setTimeout(() => {
-        assistantModal.style.display = 'none';
-        controlButtons.style.display = 'none';
-        showEndTutorialMessage();
-        unblockUserInteraction(); // Desbloqueia a interação do usuário
-    }, 1000); // Tempo igual à duração da transição
+    document.getElementById('tutorial-overlay').style.display = 'none';
+    tutorialIsActive = false;
+    removeExistingHighlights();
 }
 
-function showEndTutorialMessage() {
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    const endMessage = document.createElement('div');
-    
-    endMessage.id = 'end-tutorial-message';
-    endMessage.innerHTML = `
-        <p>Clique neste botão para abrir o Tutorial novamente</p>
-        <div class="circle-highlight"></div>
-    `;
-    
-    document.body.appendChild(endMessage);
-    
-    const circleHighlight = endMessage.querySelector('.circle-highlight');
-    const rect = sobreButton.getBoundingClientRect();
-    
-    circleHighlight.style.position = 'absolute';
-    circleHighlight.style.border = '2px solid red';
-    circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.width = rect.width + 'px';
-    circleHighlight.style.height = rect.height + 'px';
-    circleHighlight.style.left = rect.left + 'px';
-    circleHighlight.style.top = rect.top + 'px';
-}
-
-function addNextStepClickListener() {
-    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep, { once: true });
-}
-
-function addPrevStepClickListener() {
-    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep, { once: true });
-}
-
-function addEndTutorialClickListener() {
-    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial, { once: true });
-}
-
-document.querySelector('#tutorial-next-btn').addEventListener('click', nextTutorialStep);
-document.querySelector('#tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-document.querySelector('#tutorial-end-btn').addEventListener('click', endTutorial);
-
-document.getElementById('map').addEventListener('click', () => { if (currentStep === 2) nextTutorialStep(); });
-
-document.querySelector('.menu-btn[data-feature="pontos-turisticos"]').addEventListener('click', () => { if (currentStep === 3) nextTutorialStep(); });
-
-function startTutorial() {
-    currentStep = 1;
-    document.getElementById('tutorial-yes-btn').style.display = 'none';
-    document.getElementById('tutorial-no-btn').style.display = 'none';
-    document.getElementById('tutorial-next-btn').style.display = 'inline-block';
-    showTutorialStep(currentStep);
-}
-
-function showEndTutorialMessage() {
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    const endMessage = document.createElement('div');
-    
-    endMessage.id = 'end-tutorial-message';
-    endMessage.innerHTML = `
-        <p>Clique neste botão para abrir o Tutorial novamente</p>
-        <div class="circle-highlight"></div>
-        <button class="close-btn">&times;</button>
-    `;
-    
-    document.body.appendChild(endMessage);
-    
-    const circleHighlight = endMessage.querySelector('.circle-highlight');
-    const rect = sobreButton.getBoundingClientRect();
-    
-    // Ajustando a posição da mensagem ao lado do botão "Sobre"
-    endMessage.style.position = 'absolute';
-    endMessage.style.bottom = '20%';
-    endMessage.style.left = `${rect.left + window.scrollX}px`;
-    
-    // Ajustando a posição do círculo de destaque
-    circleHighlight.style.position = 'absolute';
-    circleHighlight.style.border = '2px solid red';
-    circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.width = '32px';
-    circleHighlight.style.height = '32px';
-    circleHighlight.style.left = '42%';
-    circleHighlight.style.top = '50%';
-    circleHighlight.style.transform = 'translateY(-50%)';
-    circleHighlight.style.background = 'white';
-    
-    const closeButton = endMessage.querySelector('.close-btn');
-    closeButton.addEventListener('click', () => {
-        endMessage.style.display = 'none';
-    });
-}
-
-function endTutorial() {
-    const assistantModal = document.getElementById('assistant-modal');
-    const controlButtons = document.querySelector('.control-buttons');
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-
-    // Esconde o modal com animação
-    assistantModal.style.transition = 'all 1s ease';
-    assistantModal.style.transform = 'translate(' + (sobreButton.getBoundingClientRect().left - assistantModal.getBoundingClientRect().left) + 'px, ' + (sobreButton.getBoundingClientRect().top - assistantModal.getBoundingClientRect().top) + 'px)';
-    assistantModal.style.opacity = '0';
-    
-    // Esconde os botões de controle
-    controlButtons.style.opacity = '0';
-    controlButtons.style.transition = 'opacity 1s ease';
-
-    setTimeout(() => {
-        assistantModal.style.display = 'none';
-        controlButtons.style.display = 'none';
-        showEndTutorialMessage();
-    }, 1000); // Tempo igual à duração da transição
-}
-
-function showEndTutorialMessage() {
-    const sobreButton = document.querySelector('.menu-btn[data-feature="sobre"]');
-    const endMessage = document.createElement('div');
-    
-    endMessage.id = 'end-tutorial-message';
-    endMessage.innerHTML = `
-        <p>Clique neste botão para abrir o Tutorial novamente</p>
-        <span class="close-btn">&times;</span>
-    `;
-    
-    document.body.appendChild(endMessage);
-
-    positionMessage(endMessage, sobreButton);
-    createCircleHighlight(sobreButton);
-
-    endMessage.querySelector('.close-btn').addEventListener('click', () => {
-        endMessage.style.display = 'none';
-        document.querySelector('.circle-highlight').style.display = 'none';
-    });
-
-    // Reposiciona a mensagem e o círculo ao redimensionar a janela
-    window.addEventListener('resize', () => {
-        positionMessage(endMessage, sobreButton);
-        positionCircleHighlight(sobreButton);
-    });
-}
-
-function positionMessage(messageElement, targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    messageElement.style.left = `${rect.left - messageElement.offsetWidth - 10}px`;
-    messageElement.style.top = `${rect.top}px`;
-}
-
-function createCircleHighlight(targetElement) {
-    const circleHighlight = document.createElement('div');
-    circleHighlight.className = 'circle-highlight';
-    document.body.appendChild(circleHighlight);
-    positionCircleHighlight(targetElement);
-}
-
-function positionCircleHighlight(targetElement) {
-    const rect = targetElement.getBoundingClientRect();
-    const circleHighlight = document.querySelector('.circle-highlight');
-    circleHighlight.style.width = `${rect.width}px`;
-    circleHighlight.style.height = `${rect.height}px`;
-    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
-    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
+function updateProgressBar(current, total) {
+    const progressBar = document.getElementById('tutorial-progress-bar');
+    progressBar.style.width = `${(current / total) * 100}%`;
 }

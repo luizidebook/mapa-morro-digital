@@ -39,7 +39,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -56,10 +56,9 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
+
 
 
 #welcome-modal {
@@ -260,9 +259,9 @@ body.blocked #blocked-overlay {
     }
 }
 
-.highlight-overlay {
-    animation: highlight-animation 1s infinite alternate;
-}
+/* Adicione esses estilos ao seu arquivo styles.css */
+
+
 
 .carousel {
     display: flex;
@@ -288,7 +287,7 @@ body.blocked #blocked-overlay {
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0,0,0,0.5);
     overflow-y: auto;
-    z-index: 9990;
+    z-index: 999;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -387,7 +386,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -404,11 +403,10 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
+/* Adicione esses estilos ao seu arquivo styles.css *
 
 
 
@@ -421,7 +419,7 @@ body.blocked #blocked-overlay {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 100000;
+        z-index: 0;
         flex-direction: row-reverse;
     }
 
@@ -487,7 +485,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -499,24 +497,22 @@ body.blocked #blocked-overlay {
     right: 10px;
     cursor: pointer;
 }
-
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
 
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 
 }
 
 @media (max-width: 768px) {
-    #tant-modal {
+    #assistant-modal {
         position: absolute;
         top: 20%;
         left: 40%;
@@ -540,7 +536,7 @@ body.blocked #blocked-overlay {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 100000;
+        z-index: 0;
         flex-direction: row-reverse;
 }
 
@@ -578,7 +574,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -590,15 +586,15 @@ body.blocked #blocked-overlay {
     right: 10px;
     cursor: pointer;
 }
-
 .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
+
+
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 
@@ -629,7 +625,7 @@ body.blocked #blocked-overlay {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 100000;
+        z-index: 0;
         flex-direction: row-reverse;
     }
 
@@ -667,7 +663,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -684,14 +680,11 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
 
-
-
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 }
 
@@ -720,7 +713,7 @@ body.blocked #blocked-overlay {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 100000;
+        z-index: 0;
         flex-direction: row-reverse;
     }
 
@@ -758,7 +751,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -775,12 +768,11 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
 
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 
@@ -810,7 +802,7 @@ body.blocked #blocked-overlay {
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
-        z-index: 100000;
+        z-index: 0;
         flex-direction: row-reverse;
     }
 
@@ -848,7 +840,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -865,12 +857,11 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
 
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 
@@ -928,7 +919,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -945,11 +936,12 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
+
+
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 
@@ -994,7 +986,7 @@ body.blocked #blocked-overlay {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 10002; /* Above the blocked overlay */
+    z-index: 998; /* Above the blocked overlay */
     text-align: center;
     font-size: 14px;
     white-space: nowrap;
@@ -1011,14 +1003,10 @@ body.blocked #blocked-overlay {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
-    pointer-events: none;
-    z-index: 10001; /* Above the blocked overlay */
-    background: transparent;
+    z-index: 999;
 }
 
-
-
+/* Adicione esses estilos ao seu arquivo styles.css */
 
 
 }
-
