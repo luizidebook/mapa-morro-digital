@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" defer></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js" defer></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js" defer></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
@@ -31,38 +31,36 @@
             <div class="modal-content">
                 <p id="welcome-message"></p>
                 <div id="language-selection">
-                    <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')">Português</button>
-                    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">English</button>
-                    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">Español</button>
-                    <button class="lang-btn" data-lang="he" onclick="setLanguage('he')">עברית</button>
+                    <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')" aria-label="Selecionar Português">Português</button>
+                    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')" aria-label="Selecionar Inglês">English</button>
+                    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')" aria-label="Selecionar Espanhol">Español</button>
+                    <button class="lang-btn" data-lang="he" onclick="setLanguage('he')" aria-label="Selecionar Hebraico">עברית</button>
                 </div>
             </div>
         </div>
-        <button id="menu-btn" class="menu-toggle" aria-label="Menu">
-            &#9776;
-        </button>
+        <button id="menu-btn" class="menu-toggle" aria-label="Menu">&#9776;</button>
         <div id="floating-menu" class="floating-menu hidden">
-            <button class="menu-btn" data-feature="pontos-turisticos"><i class="fas fa-landmark"></i></button>
-            <button class="menu-btn" data-feature="passeios"><i class="fas fa-walking"></i></button>
-            <button class="menu-btn" data-feature="praias"><i class="fas fa-umbrella-beach"></i></button>
-            <button class="menu-btn" data-feature="festas"><i class="fas fa-glass-cheers"></i></button>
-            <button class="menu-btn" data-feature="restaurantes"><i class="fas fa-utensils"></i></button>
-            <button class="menu-btn" data-feature="pousadas"><i class="fas fa-bed"></i></button>
-            <button class="menu-btn" data-feature="lojas"><i class="fas fa-store"></i></button>
-            <button class="menu-btn" data-feature="emergencias"><i class="fas fa-ambulance"></i></button>
-            <button class="menu-btn" data-feature="dicas"><i class="fas fa-lightbulb"></i></button>
-            <button class="menu-btn zoom-in"><i class="fas fa-plus"></i></button>
-            <button class="menu-btn zoom-out"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user"><i class="fas fa-map-marker-alt"></i></button>
-            <button class="menu-btn" data-feature="sobre"><i class="fas fa-info-circle"></i></button>
-            <button class="menu-btn" data-feature="ensino"><i class="fas fa-chalkboard-teacher"></i></button>
+            <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos"><i class="fas fa-landmark"></i></button>
+            <button class="menu-btn" data-feature="passeios" aria-label="Passeios"><i class="fas fa-walking"></i></button>
+            <button class="menu-btn" data-feature="praias" aria-label="Praias"><i class="fas fa-umbrella-beach"></i></button>
+            <button class="menu-btn" data-feature="festas" aria-label="Festas"><i class="fas fa-glass-cheers"></i></button>
+            <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes"><i class="fas fa-utensils"></i></button>
+            <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas"><i class="fas fa-bed"></i></button>
+            <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store"></i></button>
+            <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
+            <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
+            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
+            <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
+            <button class="menu-btn locate-user" aria-label="Localizar Usuário"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="endTutorial()"></i></button>
         </div>
 
         <div id="menu" class="menu">
             <div id="touristSpots-submenu" class="submenu"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
-            <div id="nightlife-submenu" class="submenu"></div> <!-- Submenu for Festas -->
+            <div id="nightlife-submenu" class="submenu"></div>
             <div id="restaurants-submenu" class="submenu"></div>
             <div id="inns-submenu" class="submenu"></div>
             <div id="shops-submenu" class="submenu"></div>
@@ -71,19 +69,18 @@
         </div>
 
         <div class="control-buttons">
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;">Próximo>Sim</button>
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;">Sim</button>
             <button id="tutorial-no-btn" class="control-btn" style="display:none;">Não</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
+            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
             <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
         </div>
 
-        <!-- Modais de informação -->
         <div id="info-modal" class="modal">
             <div class="modal-content">
-                <span class="close-btn">&times;</span>
+                <span class="close-btn" aria-label="Fechar">&times;</span>
                 <div class="modal-title"></div>
                 <div class="modal-content"></div>
             </div>

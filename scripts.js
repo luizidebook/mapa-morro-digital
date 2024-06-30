@@ -52,18 +52,13 @@ function setupEventListeners() {
     });
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
-        btn.addEventListener('click', (event) => {
+        btn.addEventListener('click', () => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
-            event.stopPropagation();
 
-            if (tutorialIsActive) {
-                if (feature === 'sobre') {
-                    transitionAssistantModalToEnsino();
-                } else if (tutorialSteps[currentStep].step === feature) {
                     nextTutorialStep();
-                }
-            }
+                
+            
         });
     });
 
@@ -758,4 +753,3 @@ function showMessage(message, type) {
     document.body.appendChild(messageBox);
     setTimeout(() => messageBox.remove(), 3000);
 }
-
