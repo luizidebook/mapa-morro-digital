@@ -933,7 +933,7 @@ function speakText(text) {
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
 
     // Ajustar velocidade e tom para uma fala mais natural
-    utterance.rate = 0.9; // Velocidade mais lenta para parecer mais natural
+    utterance.rate = 1.3; // Velocidade mais lenta para parecer mais natural
     utterance.pitch = 1.0; // Tom padrão
 
     // Seleciona uma voz feminina disponível
