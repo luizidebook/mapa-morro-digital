@@ -324,7 +324,7 @@ function activateAssistant() {
     showWelcomeMessage();
 }
 
-function requestLocationPermission(callback) {
+function requestLocationPermission() {
     const assistantModal = document.getElementById('assistant-modal');
     assistantModal.classList.add('location-permission');
 
@@ -335,28 +335,34 @@ function requestLocationPermission(callback) {
                 longitude: position.coords.longitude
             };
             adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-            const marker = L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map);
-            marker.bindPopup(translations[selectedLanguage].youAreHere).openPopup();
+            L.popup()
+                .setLatLng([currentLocation.latitude, currentLocation.longitude])
+                .setContent(translations[selectedLanguage].youAreHere)
+                .openOn(map);
+            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
-            if (callback) callback();
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+            if (tutorialIsActive && currentStep === 'locate-user') {
                 nextTutorialStep();
             }
+            showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
+            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
+        unblockUserInteraction();
         assistantModal.classList.remove('location-permission');
     }
 }
 
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
-    L.marker([lat, lon]).addTo(map).bindPopup("Você está aqui!").openPopup();
+    L.marker([lat, lon]).addTo(map)
+        .bindPopup(translations[selectedLanguage].youAreHere)
+        .openPopup();
 }
-
 function handleFeatureSelection(feature) {
     const featureMappings = {
         'pontos-turisticos': 'touristSpots-submenu',
@@ -445,7 +451,7 @@ function handleSubmenuButtonClick(lat, lon) {
 
 function createRouteTo(lat, lon) {
     console.log('createRouteTo chamada com lat:', lat, 'e lon:', lon);
-    const apiKey = 'your-api-key-here';
+    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
     if (!currentLocation) {
         console.log(translations[selectedLanguage].locationNotAvailable);
         return;
@@ -922,25 +928,56 @@ function speakText(text) {
     if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
     }
-    
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
-    
-    // Seleciona uma voz feminina se disponível
+
+    // Ajustar velocidade e tom para uma fala mais natural
+    utterance.rate = 0.9; // Velocidade mais lenta para parecer mais natural
+    utterance.pitch = 1.0; // Tom padrão
+
+    // Seleciona uma voz feminina disponível
     const voices = speechSynthesis.getVoices();
-    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
-    if (femaleVoices.length > 0) {
-        utterance.voice = femaleVoices[0];
-    } else {
-        // Caso não encontre uma voz feminina específica, seleciona a primeira voz disponível com o idioma correto
-        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
-        if (defaultVoices.length > 0) {
-            utterance.voice = defaultVoices[0];
-        }
+    let femaleVoice = voices.find(voice => voice.lang === utterance.lang && voice.name.toLowerCase().includes('female'));
+
+    if (!femaleVoice) {
+        // Caso não encontre uma voz feminina exata, procura qualquer voz feminina
+        femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
     }
+
+    if (!femaleVoice) {
+        // Caso ainda não encontre, usa a primeira voz disponível do idioma
+        femaleVoice = voices.find(voice => voice.lang === utterance.lang);
+    }
+
+    if (femaleVoice) {
+        utterance.voice = femaleVoice;
+    } else {
+        // Caso não encontre nenhuma voz correspondente, usa a primeira voz disponível
+        utterance.voice = voices[0];
+    }
+
+    // Evento para logar quando a fala começar e terminar
+    utterance.onstart = () => {
+        console.log('Speech started');
+    };
+
+    utterance.onend = () => {
+        console.log('Speech ended');
+    };
 
     speechSynthesis.speak(utterance);
 }
+
+// Carregar vozes e garantir que a função esteja pronta para ser usada
+speechSynthesis.onvoiceschanged = () => {
+    const voices = speechSynthesis.getVoices();
+    // Opcional: listar todas as vozes disponíveis no console para debug
+    console.log('Available voices:', voices);
+};
+
+// Chamar essa função para garantir que as vozes estão carregadas
+speechSynthesis.getVoices();
 
 
 // Funções adicionais
