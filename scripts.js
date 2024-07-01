@@ -196,10 +196,20 @@ function setupEventListeners() {
 
     document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
     document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
+    document.getElementById('create-itinerary-btn').addEventListener('click', () => {
+        endTutorial();
+        collectInterestData();
+    });
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 }
+
+function collectInterestData() {
+    const questionnaireModal = document.getElementById('questionnaire-modal');
+    questionnaireModal.style.display = 'block';
+}
+
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
@@ -824,14 +834,18 @@ const tutorialSteps = [
     {
         step: 'end-tutorial',
         message: {
-            pt: "Obrigado por seguir o tutorial! Gostaria de repetir o tutorial?",
-            en: "Thank you for following the tutorial! Would you like to repeat the tutorial?",
-            es: "¡Gracias por seguir el tutorial! ¿Te gustaría repetir el tutorial?",
-            he: "תודה על ההשתתפות במדריך! האם תרצה לחזור על המדריך?"
+            pt: "Obrigado por seguir o tutorial! Gostaria de criar um roteiro de atividades personalizado com suas preferências?",
+            en: "Thank you for following the tutorial! Would you like to create a personalized activity itinerary with your preferences?",
+            es: "¡Gracias por seguir el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado con tus preferencias?",
+            he: "תודה על ההשתתפות במדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית עם ההעדפות שלך?"
         },
         action: () => {
-            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
             document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+            document.getElementById('create-itinerary-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'none';
+            document.getElementById('tutorial-next-btn').style.display = 'none';
+            document.getElementById('tutorial-prev-btn').style.display = 'none';
+            document.getElementById('tutorial-end-btn').style.display = 'none';
         }
     }
 ];

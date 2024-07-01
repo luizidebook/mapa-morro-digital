@@ -95,7 +95,7 @@ function closeSideMenu()">&times;</span>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
-            <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
+            <button id="create-itinerary-btn" class="control-btn" style="display: none;">Criar Roteiro</button>
             <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
         </div>
 
@@ -114,6 +114,57 @@ function closeSideMenu()">&times;</span>
         </div>
     </div>
     </div>
+
+    <div id="questionnaire-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 data-translate="questionnaireTitle">Criação de Roteiro Personalizado</h2>
+        <form id="questionnaire-form">
+            <label for="interest1" data-translate="interest1">Qual tipo de atividade você prefere?</label>
+            <input type="text" id="interest1" name="interest1">
+            <label for="interest2" data-translate="interest2">Quais locais você gostaria de visitar?</label>
+            <input type="text" id="interest2" name="interest2">
+            <!-- Adicione mais campos conforme necessário -->
+            <button type="submit" class="btn" data-translate="submit">Enviar</button>
+        </form>
+    </div>
+</div>
+
+<div id="tour-guide-modal" class="modal">
+    <div class="modal-content">
+        <h2 data-translate="tourGuideTitle">Sugestão de Tour Guiado</h2>
+        <p data-translate="tourGuideMessage">Gostaria de iniciar um tour guiado pelos pontos de interesse?</p>
+        <button id="start-tour-btn" class="btn" data-translate="startTour">Iniciar Tour</button>
+        <button class="btn close-btn" data-translate="noThanks">Não, Obrigado</button>
+    </div>
+</div>
+
+<div id="satisfaction-survey-modal" class="modal">
+    <div class="modal-content">
+        <h2 data-translate="surveyTitle">Pesquisa de Satisfação</h2>
+        <p data-translate="surveyMessage">Por favor, avalie seu tour:</p>
+        <div class="star-rating">
+            <!-- Adicione estrelas para avaliação -->
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <button class="btn close-btn" data-translate="submitSurvey">Enviar</button>
+    </div>
+</div>
+
+<div id="activity-summary-modal" class="modal">
+    <div class="modal-content">
+        <h2 data-translate="activitySummaryTitle">Resumo das Atividades</h2>
+        <p data-translate="activitySummaryMessage">Gostaria de realizar as atividades do roteiro?</p>
+        <div id="activity-summary"></div>
+        <button class="btn" id="confirm-activities-btn" data-translate="confirmActivities">Confirmar Atividades</button>
+        <button class="btn close-btn" data-translate="noThanks">Não, Obrigado</button>
+    </div>
+</div>
+
     
     <!-- Notificações -->
     <div id="notification-container"></div>
