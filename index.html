@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" defer></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js" defer></script>
     <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js" defer></script>
@@ -34,11 +38,23 @@ function closeSideMenu()">&times;</span>
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
+                <h2> Seja Bem Vindo ao Morro Digital!</h2> 
+                <p> Escolha seu idioma: </p>
                 <div id="language-selection">
-                    <button class="lang-btn" data-lang="pt" onclick="setLanguage('pt')" aria-label="Selecionar Português">Português</button>
-                    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')" aria-label="Selecionar Inglês">English</button>
-                    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')" aria-label="Selecionar Espanhol">Español</button>
-                    <button class="lang-btn" data-lang="he" onclick="setLanguage('he')" aria-label="Selecionar Hebraico">עברית</button>
+                  <!-- Exemplo de botão de idioma com bandeira -->
+<button class="lang-btn" data-lang="pt">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Bandeira do Brasil" style="width:30px;height:20px;">
+</button>
+<button class="lang-btn" data-lang="es">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Bandeira da Espanha" style="width:30px;height:20px;">
+</button>
+<button class="lang-btn" data-lang="en">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg" alt="Bandeira dos Estados Unidos" style="width:30px;height:20px;">
+</button>
+<button class="lang-btn" data-lang="he">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Bandeira de Israel" style="width:30px;height:20px;">
+</button>
+
                 </div>
             </div>
         </div>
@@ -62,7 +78,7 @@ function closeSideMenu()">&times;</span>
 
         <div id="menu" class="menu">
             <button id="close-menu-btn" class="close-menu-btn">X</button>
-            <div id="touristSpots-submenu" class="submenu" onclick="createRouteTo()"></div>
+            <div id="touristSpots-submenu" class="submenu" onclick="createRouteTo(lat, lon)"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
             <div id="nightlife-submenu" class="submenu"></div>
@@ -74,8 +90,8 @@ function closeSideMenu()">&times;</span>
         </div>
 
         <div class="control-buttons">
-           <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()">Não</button>
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()">Sim</button>
+           <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()" data-translate="yes">>Sim</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>

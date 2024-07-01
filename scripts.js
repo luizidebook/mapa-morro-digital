@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFavorites();
 });
 
+let map;
 let currentSubMenu = null;
 let currentLocation = null;
 let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
@@ -17,6 +18,112 @@ let tutorialIsActive = false;
 let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
 let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let routingControl = null;
+let speechSynthesisUtterance = new SpeechSynthesisUtterance();
+
+const translations = {
+    pt: {
+        welcome: "Bem-vindo ao nosso site!",
+        youAreHere: "Você está aqui!",
+        locationPermissionDenied: "Permissão de localização negada.",
+        geolocationNotSupported: "Geolocalização não é suportada por este navegador.",
+        osmFetchError: "Erro ao buscar dados do OpenStreetMap.",
+        detailedInfo: "Informação detalhada sobre",
+        createRoute: "Criar Rota",
+        addToFavorites: "Adicionar aos Favoritos",
+        itinerarySaved: "Roteiro salvo com sucesso.",
+        suggestGuidedTour: "Sugerir um tour guiado",
+        startGuidedTour: "Iniciar tour guiado",
+        showPointOfInterestInfo: "Mostrar informações do ponto de interesse",
+        requestActivityParticipation: "Solicitar participação em atividades",
+        submitFeedback: "Enviar feedback",
+        feedbackSent: "Feedback enviado com sucesso.",
+        purchase: "Comprar",
+        purchaseSuccess: "Compra realizada com sucesso!",
+        provideContinuousAssistance: "Fornecer assistência contínua",
+        answerQuestions: "Responder perguntas",
+        search: "Buscar",
+        favorite: "Favorito",
+        yes: "Sim",
+        no: "Não"
+    },
+    en: {
+        welcome: "Welcome to our site!",
+        youAreHere: "You are here!",
+        locationPermissionDenied: "Location permission denied.",
+        geolocationNotSupported: "Geolocation is not supported by this browser.",
+        osmFetchError: "Error fetching data from OpenStreetMap.",
+        detailedInfo: "Detailed information about",
+        createRoute: "Create Route",
+        addToFavorites: "Add to Favorites",
+        itinerarySaved: "Itinerary saved successfully.",
+        suggestGuidedTour: "Suggest a guided tour",
+        startGuidedTour: "Start guided tour",
+        showPointOfInterestInfo: "Show point of interest information",
+        requestActivityParticipation: "Request activity participation",
+        submitFeedback: "Submit feedback",
+        feedbackSent: "Feedback sent successfully.",
+        purchase: "Purchase",
+        purchaseSuccess: "Purchase completed successfully!",
+        provideContinuousAssistance: "Provide continuous assistance",
+        answerQuestions: "Answer questions",
+        search: "Search",
+        favorite: "Favorite",
+        yes: "Yes",
+        no: "No"
+    },
+    es: {
+        welcome: "¡Bienvenido a nuestro sitio!",
+        youAreHere: "¡Estás aquí!",
+        locationPermissionDenied: "Permiso de ubicación denegado.",
+        geolocationNotSupported: "La geolocalización no es compatible con este navegador.",
+        osmFetchError: "Error al obtener datos de OpenStreetMap.",
+        detailedInfo: "Información detallada sobre",
+        createRoute: "Crear ruta",
+        addToFavorites: "Agregar a Favoritos",
+        itinerarySaved: "Itinerario guardado con éxito.",
+        suggestGuidedTour: "Sugerir un tour guiado",
+        startGuidedTour: "Iniciar tour guiado",
+        showPointOfInterestInfo: "Mostrar información del punto de interés",
+        requestActivityParticipation: "Solicitar participación en actividades",
+        submitFeedback: "Enviar comentarios",
+        feedbackSent: "Comentarios enviados con éxito.",
+        purchase: "Comprar",
+        purchaseSuccess: "¡Compra realizada con éxito!",
+        provideContinuousAssistance: "Proporcionar asistencia continua",
+        answerQuestions: "Responder preguntas",
+        search: "Buscar",
+        favorite: "Favorito",
+        yes: "Sí",
+        no: "No"
+    },
+    he: {
+        welcome: "ברוך הבא לאתר שלנו!",
+        youAreHere: "אתה כאן!",
+        locationPermissionDenied: "הרשאת מיקום נדחתה.",
+        geolocationNotSupported: "דפדפן זה אינו תומך בגאולוקיישן.",
+        osmFetchError: "שגיאה בשליפת נתונים מ-OpenStreetMap.",
+        detailedInfo: "מידע מפורט על",
+        createRoute: "צור מסלול",
+        addToFavorites: "הוסף למועדפים",
+        itinerarySaved: "המסלול נשמר בהצלחה.",
+        suggestGuidedTour: "הצע סיור מודרך",
+        startGuidedTour: "התחל סיור מודרך",
+        showPointOfInterestInfo: "הצג מידע על נקודת עניין",
+        requestActivityParticipation: "בקש השתתפות בפעילות",
+        submitFeedback: "שלח משוב",
+        feedbackSent: "המשוב נשלח בהצלחה.",
+        purchase: "לִרְכּוֹשׁ",
+        purchaseSuccess: "הרכישה הושלמה בהצלחה!",
+        provideContinuousAssistance: "ספק סיוע רציף",
+        answerQuestions: "ענה על שאלות",
+        search: "לחפש",
+        favorite: "מועדף",
+        yes: "כן",
+        no: "לא"
+    }
+};
+
 
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
@@ -185,6 +292,10 @@ function translatePageContent(lang) {
         const key = el.getAttribute('data-translate');
         el.textContent = translations[lang][key];
     });
+
+    // Atualizar textos dos botões "Sim" e "Não"
+    document.getElementById('tutorial-yes-btn').textContent = translations[lang].tutorialYes;
+    document.getElementById('tutorial-no-btn').textContent = translations[lang].tutorialNo;
 }
 
 function initializeMap() {
@@ -205,7 +316,7 @@ function activateAssistant() {
     showWelcomeMessage();
 }
 
-function requestLocationPermission() {
+function requestLocationPermission(callback) {
     const assistantModal = document.getElementById('assistant-modal');
     assistantModal.classList.add('location-permission');
 
@@ -215,13 +326,11 @@ function requestLocationPermission() {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
             };
-            console.log('Localização atual definida:', currentLocation);
             adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-            L.popup()
-                .setLatLng([currentLocation.latitude, currentLocation.longitude])
-                .setContent(translations[selectedLanguage].youAreHere)
-                .openOn(map);
+            const marker = L.marker([currentLocation.latitude, currentLocation.longitude]).addTo(map);
+            marker.bindPopup(translations[selectedLanguage].youAreHere).openPopup();
             assistantModal.classList.remove('location-permission');
+            if (callback) callback();
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
                 nextTutorialStep();
             }
@@ -234,6 +343,7 @@ function requestLocationPermission() {
         assistantModal.classList.remove('location-permission');
     }
 }
+
 
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
@@ -312,18 +422,23 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => {
-                console.log('Botão do submenu clicado para:', element.tags.name, 'Lat:', element.lat, 'Lon:', element.lon);
-                createRouteTo(element.lat, element.lon);
-            };
+            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon);
             subMenu.appendChild(btn);
         }
     });
 }
 
+function handleSubmenuButtonClick(lat, lon) {
+    if (!currentLocation) {
+        requestLocationPermission(() => createRouteTo(lat, lon));
+    } else {
+        createRouteTo(lat, lon);
+    }
+}
+
 function createRouteTo(lat, lon) {
     console.log('createRouteTo chamada com lat:', lat, 'e lon:', lon);
-    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
+    const apiKey = 'your-api-key-here';
     if (!currentLocation) {
         console.log(translations[selectedLanguage].locationNotAvailable);
         return;
@@ -335,22 +450,43 @@ function createRouteTo(lat, lon) {
     console.log('URL da API:', url);
 
     fetch(url)
-        .then(response => {
-            console.log('Resposta da API recebida:', response);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             showLoadingSpinner(false);
             console.log('Dados da API:', data);
             const coords = data.features[0].geometry.coordinates;
             const latlngs = coords.map(coord => [coord[1], coord[0]]);
-            L.polyline(latlngs, { color: 'blue' }).addTo(map);
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(currentLocation.latitude, currentLocation.longitude),
+                    L.latLng(lat, lon)
+                ],
+                createMarker: () => null,
+                routeWhileDragging: true
+            }).addTo(map);
             map.fitBounds(L.polyline(latlngs).getBounds());
         })
         .catch(error => {
             showLoadingSpinner(false);
             console.error(translations[selectedLanguage].routeCreationError, error);
         });
+}
+
+function showInfoModal(name, lat, lon, osmId) {
+    const infoModal = document.getElementById('info-modal');
+    const modalContent = infoModal.querySelector('.modal-content');
+
+    modalContent.innerHTML = `
+        <h2>${name}</h2>
+        <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
+        <button id="highlight-create-route-btn" onclick="createRouteTo(${lat}, ${lon})">${translations[selectedLanguage].createRoute}</button>
+        <button id="add-to-favorites-btn" onclick="addToFavorites('${name}', ${lat}, ${lon}, ${osmId})">${translations[selectedLanguage].addToFavorites()}</button>
+    `;
+
+    infoModal.style.display = 'block';
 }
 
 function showItineraryForm() {
@@ -705,11 +841,14 @@ function showTutorialStep(step) {
     const targetElement = element ? document.querySelector(element) : null;
 
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
+    speakText(message[selectedLanguage]);
 
     // Verifica se é o primeiro ou o último passo do tutorial
     if (step === 'start-tutorial' || step === 'end-tutorial') {
         // Exibe os botões "Sim" e "Não"
         document.querySelector('.control-buttons').style.display = 'block';
+        document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
+        document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
     } else {
         // Oculta os botões "Sim" e "Não"
         document.querySelector('.control-buttons').style.display = 'none';
@@ -723,6 +862,7 @@ function showTutorialStep(step) {
         action();
     }
 }
+
 
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
@@ -765,6 +905,16 @@ function updateProgressBar(current, total) {
     const progressBar = document.getElementById('tutorial-progress-bar');
     progressBar.style.width = `${(current / total) * 100}%`;
 }
+
+function speakText(text) {
+    if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
+    speechSynthesis.speak(utterance);
+}
+
 
 // Funções adicionais
 
@@ -871,14 +1021,14 @@ function showRoteiroAndPrice(roteiro, totalPrice) {
             ${roteiro.map(item => `<li>${item}</li>`).join('')}
         </ul>
         <p>Total: ${totalPrice}</p>
-        <button onclick="purchaseRoteiro()">Comprar</button>
+        <button onclick="purchaseRoteiro()">${translations[selectedLanguage].purchase}</button>
     `;
     showModal('info-modal');
 }
 
 function purchaseRoteiro() {
-    console.log('Compra realizada com sucesso!');
-    showNotification('Compra realizada com sucesso!', 'success');
+    console.log(translations[selectedLanguage].purchaseSuccess);
+    showNotification(translations[selectedLanguage].purchaseSuccess, 'success');
     hideModal('info-modal');
 }
 
