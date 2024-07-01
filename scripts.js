@@ -39,7 +39,7 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
         map.zoomIn();
-          closeSideMenu(); // Fechar menu lateral
+        closeSideMenu();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
             nextTutorialStep();
         }
@@ -47,7 +47,7 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
-           closeSideMenu(); // Fechar menu lateral
+        closeSideMenu();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
             nextTutorialStep();
         }
@@ -55,7 +55,7 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
         requestLocationPermission();
-           closeSideMenu(); // Fechar menu lateral
+        closeSideMenu();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
             nextTutorialStep();
         }
@@ -64,7 +64,6 @@ function setupEventListeners() {
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
-               closeSideMenu(); // Fechar menu lateral
             handleFeatureSelection(feature);
             event.stopPropagation();
 
@@ -313,7 +312,10 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => createRouteTo(element.lat, element.lon);
+            btn.onclick = () => {
+                createRouteTo(element.lat, element.lon);
+                closeSideMenu();
+            };
             btn.oncontextmenu = (e) => {
                 e.preventDefault();
                 showInfoModal(element.tags.name, element.lat, element.lon, element.id);
@@ -714,7 +716,7 @@ const tutorialSteps = [
             he: "תודה על ההשתתפות במדריך! האם תרצה לחזור על המדריך?"
         },
         action: () => {
-             document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
             document.getElementById('tutorial-no-btn').style.display = 'inline-block';
         }
     }
@@ -726,8 +728,8 @@ function showTutorialStep(step) {
 
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
 
-    // Verifica se é o primeiro passo do tutorial
-    if (step === 'start-tutorial') {
+    // Verifica se é o primeiro ou o último passo do tutorial
+    if (step === 'start-tutorial' || step === 'end-tutorial') {
         // Exibe os botões "Sim" e "Não"
         document.querySelector('.control-buttons').style.display = 'block';
     } else {
@@ -748,7 +750,6 @@ function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
     modal.style.display = 'none';
 }
-
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
@@ -787,7 +788,7 @@ function updateProgressBar(current, total) {
     progressBar.style.width = `${(current / total) * 100}%`;
 }
 
-// Funções adicionadas
+// Funções adicionais
 
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
@@ -951,7 +952,6 @@ function showCarouselInAssistantModal(name) {
 
     assistantModal.style.display = 'block';
 
-    // Inicializa o carrossel
     initializeCarousel();
 }
 
@@ -965,4 +965,3 @@ function initializeCarousel() {
         carouselItems[currentItemIndex].classList.add('active');
     }, 3000);
 }
-
