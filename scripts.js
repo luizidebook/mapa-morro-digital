@@ -610,7 +610,8 @@ function updateAssistantModalContent(content) {
 const tutorialSteps = [
 {
     step: 'start-tutorial',
-    message: {"Oá Seja Bem Vindo! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
+    message: {
+        pt: "Olá, seja bem-vindo! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital, desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
         en: "Hello, welcome! I am 'Sol', the artificial intelligence of Morro Digital, developed to help you experience all the wonders of Morro de São Paulo. Would you like me to teach you how to use the site’s tools through a guided tutorial?",
         es: "Hola, ¡bienvenido! Soy 'Sol', la inteligencia artificial de Morro Digital, desarrollada para ayudarte a experimentar todas las maravillas de Morro de São Paulo. ¿Te gustaría que te enseñara a usar las herramientas del sitio a través de un tutorial guiado?",
         he: "שלום, ברוך הבא! אני 'סול', הבינה המלאכותית של מורו דיגיטל, פותחה כדי לעזור לך לחוות את כל נפלאות מורו דה סאו פאולו. האם תרצה שאלמד אותך כיצד להשתמש בכלי האתר דרך מדריך מודרך?"
@@ -952,7 +953,6 @@ function speakText(text) {
         setVoice();
     }
 }
-
 
 
 // Funções adicionais
