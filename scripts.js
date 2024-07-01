@@ -206,7 +206,7 @@ function setupEventListeners() {
 
 function collectInterestData() {
     const questionnaireModal = document.getElementById('questionnaire-modal');
-    questionnaireModal.style.display = 'block';
+    questionnaireModal.style.display = 'assistant-modal';
 }
 
 function showNotification(message, type = 'success') {
@@ -339,7 +339,6 @@ function requestLocationPermission() {
                 .setLatLng([currentLocation.latitude, currentLocation.longitude])
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
-            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
             if (tutorialIsActive && currentStep === 'locate-user') {
                 nextTutorialStep();
@@ -347,12 +346,10 @@ function requestLocationPermission() {
             showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
-            unblockUserInteraction();
             assistantModal.classList.remove('location-permission');
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
-        unblockUserInteraction();
         assistantModal.classList.remove('location-permission');
     }
 }
@@ -613,8 +610,7 @@ function updateAssistantModalContent(content) {
 const tutorialSteps = [
 {
     step: 'start-tutorial',
-    message: {
-        pt: "Olá, seja bem-vindo! Eu sou a 'Sol', a inteligência artificial da Morro Digital, desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
+    message: {"Oá Seja Bem Vindo! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
         en: "Hello, welcome! I am 'Sol', the artificial intelligence of Morro Digital, developed to help you experience all the wonders of Morro de São Paulo. Would you like me to teach you how to use the site’s tools through a guided tutorial?",
         es: "Hola, ¡bienvenido! Soy 'Sol', la inteligencia artificial de Morro Digital, desarrollada para ayudarte a experimentar todas las maravillas de Morro de São Paulo. ¿Te gustaría que te enseñara a usar las herramientas del sitio a través de un tutorial guiado?",
         he: "שלום, ברוך הבא! אני 'סול', הבינה המלאכותית של מורו דיגיטל, פותחה כדי לעזור לך לחוות את כל נפלאות מורו דה סאו פאולו. האם תרצה שאלמד אותך כיצד להשתמש בכלי האתר דרך מדריך מודרך?"
@@ -928,43 +924,34 @@ function speakText(text) {
     if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
     }
-
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
 
-    // Seleciona uma voz feminina disponível
-    const voices = speechSynthesis.getVoices();
-    let femaleVoice = voices.find(voice => voice.lang === utterance.lang && voice.name.toLowerCase().includes('female'));
-    
-    if (!femaleVoice) {
-        // Caso não encontre uma voz feminina exata, procura qualquer voz feminina
-        femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
-    }
-    
-    if (!femaleVoice) {
-        // Caso ainda não encontre, usa a primeira voz disponível do idioma
-        femaleVoice = voices.find(voice => voice.lang === utterance.lang);
+    function setVoice() {
+        const voices = speechSynthesis.getVoices();
+        const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && 
+            (voice.name.includes("Female") || voice.name.includes("Feminina") || voice.name.includes("Woman") || voice.name.includes("Mulher")));
+        
+        if (femaleVoices.length > 0) {
+            utterance.voice = femaleVoices[0];
+        } else {
+            const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
+            if (defaultVoices.length > 0) {
+                utterance.voice = defaultVoices[0];
+            }
+        }
+
+        speechSynthesis.speak(utterance);
     }
 
-    if (femaleVoice) {
-        utterance.voice = femaleVoice;
+    // Verifica se as vozes já estão carregadas, caso contrário aguarda o evento 'voiceschanged'
+    if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.addEventListener('voiceschanged', setVoice);
     } else {
-        // Caso não encontre nenhuma voz correspondente, usa a primeira voz disponível
-        utterance.voice = voices[0];
+        setVoice();
     }
-
-    speechSynthesis.speak(utterance);
 }
-
-// Carregar vozes e garantir que a função esteja pronta para ser usada
-speechSynthesis.onvoiceschanged = () => {
-    const voices = speechSynthesis.getVoices();
-    // Opcional: listar todas as vozes disponíveis no console para debug
-    console.log('Available voices:', voices);
-};
-
-// Chamar essa função para garantir que as vozes estão carregadas
-speechSynthesis.getVoices();
 
 
 
