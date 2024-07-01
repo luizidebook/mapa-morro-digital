@@ -124,7 +124,6 @@ const translations = {
     }
 };
 
-
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -209,7 +208,6 @@ function collectInterestData() {
     const questionnaireModal = document.getElementById('questionnaire-modal');
     questionnaireModal.style.display = 'block';
 }
-
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
@@ -304,8 +302,8 @@ function translatePageContent(lang) {
     });
 
     // Atualizar textos dos botões "Sim" e "Não"
-    document.getElementById('tutorial-yes-btn').textContent = translations[lang].tutorialYes;
-    document.getElementById('tutorial-no-btn').textContent = translations[lang].tutorialNo;
+    document.getElementById('tutorial-yes-btn').textContent = translations[lang].yes;
+    document.getElementById('tutorial-no-btn').textContent = translations[lang].no;
 }
 
 function initializeMap() {
@@ -353,7 +351,6 @@ function requestLocationPermission(callback) {
         assistantModal.classList.remove('location-permission');
     }
 }
-
 
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
@@ -608,27 +605,28 @@ function updateAssistantModalContent(content) {
 }
 
 const tutorialSteps = [
-    {
-        step: 'start-tutorial',
-        message: {
-            pt: "Bem-vindo ao tutorial! Deseja iniciar o tutorial?",
-            en: "Welcome to the tutorial! Do you want to start the tutorial?",
-            es: "¡Bienvenido al tutorial! ¿Quieres comenzar el tutorial?",
-            he: "ברוך הבא למדריך! האם אתה רוצה להתחיל במדריך?"
-        },
-        action: () => {
-            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
-        }
+{
+    step: 'start-tutorial',
+    message: {
+        pt: "Olá, seja bem-vindo! Eu sou a 'Sol', a inteligência artificial da Morro Digital, desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
+        en: "Hello, welcome! I am 'Sol', the artificial intelligence of Morro Digital, developed to help you experience all the wonders of Morro de São Paulo. Would you like me to teach you how to use the site’s tools through a guided tutorial?",
+        es: "Hola, ¡bienvenido! Soy 'Sol', la inteligencia artificial de Morro Digital, desarrollada para ayudarte a experimentar todas las maravillas de Morro de São Paulo. ¿Te gustaría que te enseñara a usar las herramientas del sitio a través de un tutorial guiado?",
+        he: "שלום, ברוך הבא! אני 'סול', הבינה המלאכותית של מורו דיגיטל, פותחה כדי לעזור לך לחוות את כל נפלאות מורו דה סאו פאולו. האם תרצה שאלמד אותך כיצד להשתמש בכלי האתר דרך מדריך מודרך?"
     },
+    action: () => {
+        document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+        document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+    }
+}
+,
     {
         step: 'menu-toggle',
         element: '#menu-btn',
         message: {
-            pt: "Clique aqui para abrir o menu.",
-            en: "Click here to open the menu.",
-            es: "Haz clic aquí para abrir el menú.",
-            he: "לחץ כאן כדי לפתוח את התפריט."
+            pt: "Clique aqui para abrir o menu principal. Você pode usar este menu para acessar diferentes funcionalidades e informações sobre Morro de São Paulo.",
+            en: "Click here to open the main menu. You can use this menu to access different features and information about Morro de São Paulo.",
+            es: "Haz clic aquí para abrir el menú principal. Puedes usar este menú para acceder a diferentes funciones e información sobre Morro de São Paulo.",
+            he: "לחץ כאן כדי לפתוח את התפריט הראשי. אתה יכול להשתמש בתפריט זה כדי לגשת לתכונות שונות ומידע על מורו דה סאו פאולו."
         },
         action: () => {
             const element = document.querySelector('#menu-btn');
@@ -639,10 +637,10 @@ const tutorialSteps = [
         step: 'pontos-turisticos',
         element: '.menu-btn[data-feature="pontos-turisticos"]',
         message: {
-            pt: "Aqui você encontra pontos turísticos.",
-            en: "Here you find tourist spots.",
-            es: "Aquí encuentras puntos turísticos.",
-            he: "כאן תמצאו נקודות תיירות."
+            pt: "Aqui você encontra uma lista dos pontos turísticos mais populares de Morro de São Paulo. Clique em qualquer item para ver mais detalhes e criar rotas.",
+            en: "Here you find a list of the most popular tourist spots in Morro de São Paulo. Click on any item to see more details and create routes.",
+            es: "Aquí encuentras una lista de los puntos turísticos más populares de Morro de São Paulo. Haz clic en cualquier elemento para ver más detalles y crear rutas.",
+            he: "כאן תמצא רשימה של המקומות התיירותיים הפופולריים ביותר במורו דה סאו פאולו. לחץ על כל פריט כדי לראות פרטים נוספים וליצור מסלולים."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="pontos-turisticos"]');
@@ -653,10 +651,10 @@ const tutorialSteps = [
         step: 'passeios',
         element: '.menu-btn[data-feature="passeios"]',
         message: {
-            pt: "Aqui você encontra passeios disponíveis.",
-            en: "Here you find available tours.",
-            es: "Aquí encuentras paseos disponibles.",
-            he: "כאן תמצאו סיורים זמינים."
+            pt: "Aqui você encontra diversos passeios disponíveis em Morro de São Paulo. Escolha um passeio para ver informações detalhadas e opções de reserva.",
+            en: "Here you find various tours available in Morro de São Paulo. Choose a tour to see detailed information and booking options.",
+            es: "Aquí encuentras varios paseos disponibles en Morro de São Paulo. Elige un paseo para ver información detallada y opciones de reserva.",
+            he: "כאן תמצא סיורים שונים הזמינים במורו דה סאו פאולו. בחר סיור כדי לראות מידע מפורט ואפשרויות הזמנה."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="passeios"]');
@@ -667,10 +665,10 @@ const tutorialSteps = [
         step: 'praias',
         element: '.menu-btn[data-feature="praias"]',
         message: {
-            pt: "Aqui você encontra as praias.",
-            en: "Here you find the beaches.",
-            es: "Aquí encuentras las playas.",
-            he: "כאן תמצאו את החופים."
+            pt: "Encontre as melhores praias de Morro de São Paulo. Clique em uma praia para ver detalhes, fotos e dicas de visita.",
+            en: "Find the best beaches in Morro de São Paulo. Click on a beach to see details, photos, and visit tips.",
+            es: "Encuentra las mejores playas de Morro de São Paulo. Haz clic en una playa para ver detalles, fotos y consejos de visita.",
+            he: "מצא את החופים הטובים ביותר במורו דה סאו פאולו. לחץ על חוף כדי לראות פרטים, תמונות וטיפים לביקור."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="praias"]');
@@ -681,10 +679,10 @@ const tutorialSteps = [
         step: 'festas',
         element: '.menu-btn[data-feature="festas"]',
         message: {
-            pt: "Aqui você encontra festas e eventos.",
-            en: "Here you find parties and events.",
-            es: "Aquí encuentras fiestas y eventos.",
-            he: "כאן תמצאו מסיבות ואירועים."
+            pt: "Veja as festas e eventos acontecendo em Morro de São Paulo. Clique em um evento para mais informações e para adicionar ao seu calendário.",
+            en: "See the parties and events happening in Morro de São Paulo. Click on an event for more information and to add it to your calendar.",
+            es: "Ve las fiestas y eventos que suceden en Morro de São Paulo. Haz clic en un evento para más información y para agregarlo a tu calendario.",
+            he: "ראה את המסיבות והאירועים המתרחשים במורו דה סאו פאולו. לחץ על אירוע למידע נוסף ולהוספתו ללוח השנה שלך."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="festas"]');
@@ -695,10 +693,10 @@ const tutorialSteps = [
         step: 'restaurantes',
         element: '.menu-btn[data-feature="restaurantes"]',
         message: {
-            pt: "Aqui você encontra os restaurantes.",
-            en: "Here you find the restaurants.",
-            es: "Aquí encuentras los restaurantes.",
-            he: "כאן תמצאו את המסעדות."
+            pt: "Descubra os melhores restaurantes de Morro de São Paulo. Clique em um restaurante para ver o menu, horários de funcionamento e fazer uma reserva.",
+            en: "Discover the best restaurants in Morro de São Paulo. Click on a restaurant to see the menu, opening hours, and make a reservation.",
+            es: "Descubre los mejores restaurantes de Morro de São Paulo. Haz clic en un restaurante para ver el menú, horarios de apertura y hacer una reserva.",
+            he: "גלה את המסעדות הטובות ביותר במורו דה סאו פאולו. לחץ על מסעדה כדי לראות את התפריט, שעות הפתיחה ולהזמין מקום."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="restaurantes"]');
@@ -709,10 +707,10 @@ const tutorialSteps = [
         step: 'pousadas',
         element: '.menu-btn[data-feature="pousadas"]',
         message: {
-            pt: "Aqui você encontra as pousadas.",
-            en: "Here you find the inns.",
-            es: "Aquí encuentras las posadas.",
-            he: "כאן תמצאו את האכסניות."
+            pt: "Encontre as melhores pousadas para sua estadia em Morro de São Paulo. Clique em uma pousada para ver disponibilidade e preços.",
+            en: "Find the best inns for your stay in Morro de São Paulo. Click on an inn to see availability and prices.",
+            es: "Encuentra las mejores posadas para tu estadía en Morro de São Paulo. Haz clic en una posada para ver disponibilidad y precios.",
+            he: "מצא את הפונדקים הטובים ביותר לשהותך במורו דה סאו פאולו. לחץ על פונדק כדי לראות זמינות ומחירים."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="pousadas"]');
@@ -723,10 +721,10 @@ const tutorialSteps = [
         step: 'lojas',
         element: '.menu-btn[data-feature="lojas"]',
         message: {
-            pt: "Aqui você encontra as lojas.",
-            en: "Here you find the shops.",
-            es: "Aquí encuentras las tiendas.",
-            he: "כאן תמצאו את החנויות."
+            pt: "Descubra as lojas locais de Morro de São Paulo. Clique em uma loja para ver os produtos oferecidos e a localização.",
+            en: "Discover the local shops in Morro de São Paulo. Click on a shop to see the products offered and the location.",
+            es: "Descubre las tiendas locales de Morro de São Paulo. Haz clic en una tienda para ver los productos ofrecidos y la ubicación.",
+            he: "גלה את החנויות המקומיות במורו דה סאו פאולו. לחץ על חנות כדי לראות את המוצרים המוצעים והמיקום."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="lojas"]');
@@ -737,10 +735,10 @@ const tutorialSteps = [
         step: 'emergencias',
         element: '.menu-btn[data-feature="emergencias"]',
         message: {
-            pt: "Aqui você encontra informações de emergência.",
-            en: "Here you find emergency information.",
-            es: "Aquí encuentras información de emergencia.",
-            he: "כאן תמצאו מידע חירום."
+            pt: "Aqui você encontra informações importantes para situações de emergência em Morro de São Paulo, como hospitais e delegacias.",
+            en: "Here you find important information for emergency situations in Morro de São Paulo, such as hospitals and police stations.",
+            es: "Aquí encuentras información importante para situaciones de emergencia en Morro de São Paulo, como hospitales y comisarías.",
+            he: "כאן תמצא מידע חשוב למצבי חירום במורו דה סאו פאולו, כגון בתי חולים ותחנות משטרה."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="emergencias"]');
@@ -751,10 +749,10 @@ const tutorialSteps = [
         step: 'dicas',
         element: '.menu-btn[data-feature="dicas"]',
         message: {
-            pt: "Aqui você encontra dicas úteis.",
-            en: "Here you find useful tips.",
-            es: "Aquí encuentras consejos útiles.",
-            he: "כאן תמצאו טיפים שימושיים."
+            pt: "Encontre dicas úteis para aproveitar ao máximo sua visita a Morro de São Paulo, incluindo sugestões de segurança e melhores práticas.",
+            en: "Find useful tips to make the most of your visit to Morro de São Paulo, including safety suggestions and best practices.",
+            es: "Encuentra consejos útiles para aprovechar al máximo tu visita a Morro de São Paulo, incluidas sugerencias de seguridad y mejores prácticas.",
+            he: "מצא טיפים שימושיים למקסם את ביקורך במורו דה סאו פאולו, כולל הצעות בטיחות ונהלים מומלצים."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="dicas"]');
@@ -765,10 +763,10 @@ const tutorialSteps = [
         step: 'zoom-in',
         element: '.menu-btn.zoom-in',
         message: {
-            pt: "Use este botão para dar zoom in no mapa.",
-            en: "Use this button to zoom in on the map.",
-            es: "Usa este botón para acercar el mapa.",
-            he: "השתמש בכפתור זה כדי להתקרב למפה."
+            pt: "Use este botão para aproximar a visualização do mapa e ver mais detalhes sobre a área exibida.",
+            en: "Use this button to zoom in on the map and see more details about the displayed area.",
+            es: "Usa este botón para acercar el mapa y ver más detalles sobre el área mostrada.",
+            he: "השתמש בכפתור זה כדי להתקרב למפה ולראות פרטים נוספים על האזור המוצג."
         },
         action: () => {
             const element = document.querySelector('.menu-btn.zoom-in');
@@ -779,10 +777,10 @@ const tutorialSteps = [
         step: 'zoom-out',
         element: '.menu-btn.zoom-out',
         message: {
-            pt: "Use este botão para dar zoom out no mapa.",
-            en: "Use this button to zoom out on the map.",
-            es: "Usa este botón para alejar el mapa.",
-            he: "השתמש בכפתור זה כדי להתרחק מהמפה."
+            pt: "Use este botão para afastar a visualização do mapa e ter uma visão mais ampla da região.",
+            en: "Use this button to zoom out on the map and get a broader view of the region.",
+            es: "Usa este botón para alejar el mapa y tener una vista más amplia de la región.",
+            he: "השתמש בכפתור זה כדי להתרחק מהמפה ולקבל מבט רחב יותר על האזור."
         },
         action: () => {
             const element = document.querySelector('.menu-btn.zoom-out');
@@ -793,10 +791,10 @@ const tutorialSteps = [
         step: 'locate-user',
         element: '.menu-btn.locate-user',
         message: {
-            pt: "Use este botão para localizar sua posição no mapa.",
-            en: "Use this button to locate your position on the map.",
-            es: "Usa este botón para localizar tu posición en el mapa.",
-            he: "השתמש בכפתור זה כדי לאתר את המיקום שלך במפה."
+            pt: "Use este botão para localizar sua posição atual no mapa. Esta função é útil para navegar e encontrar pontos de interesse próximos a você.",
+            en: "Use this button to locate your current position on the map. This feature is useful for navigating and finding points of interest near you.",
+            es: "Usa este botón para localizar tu posición actual en el mapa. Esta función es útil para navegar y encontrar puntos de interés cercanos.",
+            he: "השתמש בכפתור זה כדי לאתר את מיקומך הנוכחי במפה. תכונה זו שימושית לניווט ומציאת נקודות עניין קרובות."
         },
         action: () => {
             const element = document.querySelector('.menu-btn.locate-user');
@@ -807,10 +805,10 @@ const tutorialSteps = [
         step: 'sobre',
         element: '.menu-btn[data-feature="sobre"]',
         message: {
-            pt: "Aqui você encontra informações sobre a empresa Morro Digital.",
-            en: "Here you find information about the company Morro Digital.",
-            es: "Aquí encuentras información sobre la empresa Morro Digital.",
-            he: "כאן תמצאו מידע על חברת Morro Digital."
+            pt: "Aqui você encontra informações sobre a Morro Digital, nossa missão e os serviços que oferecemos.",
+            en: "Here you find information about Morro Digital, our mission, and the services we offer.",
+            es: "Aquí encuentras información sobre Morro Digital, nuestra misión y los servicios que ofrecemos.",
+            he: "כאן תמצא מידע על מורו דיגיטל, המשימה שלנו והשירותים שאנו מציעים."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="sobre"]');
@@ -821,33 +819,34 @@ const tutorialSteps = [
         step: 'ensino',
         element: '.menu-btn[data-feature="ensino"]',
         message: {
-            pt: "Aqui você encontra informações de ensino.",
-            en: "Here you find education information.",
-            es: "Aquí encuentras información educativa.",
-            he: "כאן תמצאו מידע חינוכי."
+            pt: "Aqui você encontra informações sobre opções de ensino e aprendizado disponíveis em Morro de São Paulo.",
+            en: "Here you find information about education and learning options available in Morro de São Paulo.",
+            es: "Aquí encuentras información sobre opciones de educación y aprendizaje disponibles en Morro de São Paulo.",
+            he: "כאן תמצא מידע על אפשרויות חינוך ולמידה זמינות במורו דה סאו פאולו."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="ensino"]');
             highlightElement(element);
         }
     },
-    {
-        step: 'end-tutorial',
-        message: {
-            pt: "Obrigado por seguir o tutorial! Gostaria de criar um roteiro de atividades personalizado com suas preferências?",
-            en: "Thank you for following the tutorial! Would you like to create a personalized activity itinerary with your preferences?",
-            es: "¡Gracias por seguir el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado con tus preferencias?",
-            he: "תודה על ההשתתפות במדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית עם ההעדפות שלך?"
-        },
-        action: () => {
-            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-            document.getElementById('create-itinerary-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-yes-btn').style.display = 'none';
-            document.getElementById('tutorial-next-btn').style.display = 'none';
-            document.getElementById('tutorial-prev-btn').style.display = 'none';
-            document.getElementById('tutorial-end-btn').style.display = 'none';
-        }
+   {
+    step: 'end-tutorial',
+    message: {
+        pt: "Parabéns! Você concluiu o tutorial! Você gostaria de criar um roteiro de atividades para se fazer em Morro de São Paulo personalizado de acordo com as suas preferências?",
+        en: "Congratulations! You have completed the tutorial! Would you like to create a personalized activity itinerary for Morro de São Paulo based on your preferences?",
+        es: "¡Felicitaciones! ¡Has completado el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado para Morro de São Paulo según tus preferencias?",
+        he: "מזל טוב! סיימת את המדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית למורו דה סאו פאולו בהתבסס על ההעדפות שלך?"
+    },
+    action: () => {
+        document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+        document.getElementById('create-itinerary-btn').style.display = 'inline-block';
+        document.getElementById('tutorial-yes-btn').style.display = 'none';
+        document.getElementById('tutorial-next-btn').style.display = 'none';
+        document.getElementById('tutorial-prev-btn').style.display = 'none';
+        document.getElementById('tutorial-end-btn').style.display = 'none';
     }
+},
+  
 ];
 
 function showTutorialStep(step) {
@@ -876,7 +875,6 @@ function showTutorialStep(step) {
         action();
     }
 }
-
 
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
@@ -924,8 +922,23 @@ function speakText(text) {
     if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
     }
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
+    
+    // Seleciona uma voz feminina se disponível
+    const voices = speechSynthesis.getVoices();
+    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
+    if (femaleVoices.length > 0) {
+        utterance.voice = femaleVoices[0];
+    } else {
+        // Caso não encontre uma voz feminina específica, seleciona a primeira voz disponível com o idioma correto
+        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
+        if (defaultVoices.length > 0) {
+            utterance.voice = defaultVoices[0];
+        }
+    }
+
     speechSynthesis.speak(utterance);
 }
 
@@ -1080,10 +1093,3 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
-
-function closeSideMenu() {
-    const menu = document.getElementById('menu');
-    menu.style.display = 'none';
-    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-    currentSubMenu = null;
-}
