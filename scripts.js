@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
-    initializeCarousel();
     loadSearchHistory();
     checkAchievements();
     loadFavorites();
@@ -216,6 +215,7 @@ function requestLocationPermission() {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
             };
+            console.log('Localização atual definida:', currentLocation);
             adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
             L.popup()
                 .setLatLng([currentLocation.latitude, currentLocation.longitude])
@@ -313,45 +313,16 @@ function displayOSMData(data, subMenuId) {
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
             btn.onclick = () => {
+                console.log('Botão do submenu clicado para:', element.tags.name, 'Lat:', element.lat, 'Lon:', element.lon);
                 createRouteTo(element.lat, element.lon);
-                closeSideMenu();
-            };
-            btn.oncontextmenu = (e) => {
-                e.preventDefault();
-                showInfoModal(element.tags.name, element.lat, element.lon, element.id);
             };
             subMenu.appendChild(btn);
-
-            // Adicionar carrossel de imagens
-            const carousel = document.createElement('div');
-            carousel.className = 'carousel';
-            // Adicionar imagens fictícias para o exemplo
-            for (let i = 1; i <= 3; i++) {
-                const img = document.createElement('img');
-                img.src = `https://via.placeholder.com/300x200?text=Imagem+${i}`;
-                img.className = 'carousel-item';
-                carousel.appendChild(img);
-            }
-            subMenu.appendChild(carousel);
         }
     });
 }
 
-function showInfoModal(name, lat, lon, osmId) {
-    const infoModal = document.getElementById('info-modal');
-    const modalContent = infoModal.querySelector('.modal-content');
-
-    modalContent.innerHTML = `
-        <h2>${name}</h2>
-        <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
-        <button id="highlight-create-route-btn" onclick="createRouteTo(${lat}, ${lon})">${translations[selectedLanguage].createRoute}</button>
-        <button id="add-to-favorites-btn" onclick="addToFavorites('${name}', ${lat}, ${lon}, ${osmId})">${translations[selectedLanguage].addToFavorites}</button>
-    `;
-
-    infoModal.style.display = 'block';
-}
-
 function createRouteTo(lat, lon) {
+    console.log('createRouteTo chamada com lat:', lat, 'e lon:', lon);
     const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
     if (!currentLocation) {
         console.log(translations[selectedLanguage].locationNotAvailable);
@@ -360,10 +331,17 @@ function createRouteTo(lat, lon) {
 
     showLoadingSpinner(true);
 
-    fetch(`https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}`)
-        .then(response => response.json())
+    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}`;
+    console.log('URL da API:', url);
+
+    fetch(url)
+        .then(response => {
+            console.log('Resposta da API recebida:', response);
+            return response.json();
+        })
         .then(data => {
             showLoadingSpinner(false);
+            console.log('Dados da API:', data);
             const coords = data.features[0].geometry.coordinates;
             const latlngs = coords.map(coord => [coord[1], coord[0]]);
             L.polyline(latlngs, { color: 'blue' }).addTo(map);
@@ -937,31 +915,11 @@ function closeSideMenu() {
     currentSubMenu = null;
 }
 
-function showCarouselInAssistantModal(name) {
-    const assistantModal = document.getElementById('assistant-modal');
-    const modalContent = assistantModal.querySelector('.modal-content');
+document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
 
-    modalContent.innerHTML = `
-        <h2>${name}</h2>
-        <div class="carousel">
-            <img src="https://via.placeholder.com/300x200?text=Imagem+1" class="carousel-item">
-            <img src="https://via.placeholder.com/300x200?text=Imagem+2" class="carousel-item">
-            <img src="https://via.placeholder.com/300x200?text=Imagem+3" class="carousel-item">
-        </div>
-    `;
-
-    assistantModal.style.display = 'block';
-
-    initializeCarousel();
-}
-
-function initializeCarousel() {
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    let currentItemIndex = 0;
-
-    setInterval(() => {
-        carouselItems[currentItemIndex].classList.remove('active');
-        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
-        carouselItems[currentItemIndex].classList.add('active');
-    }, 3000);
+function closeSideMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = 'none';
+    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+    currentSubMenu = null;
 }

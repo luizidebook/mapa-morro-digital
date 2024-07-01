@@ -330,6 +330,18 @@ body, html {
     background-color: #45a049;
 }
 
+.close-menu-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+
 #assistant-modal {
     position: absolute;
     top: 20%;
@@ -357,27 +369,6 @@ body, html {
 }
 
 /* Adicione esses estilos ao seu arquivo styles.css */
-
-
-
-.carousel {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    overflow: hidden;
-}
-
-.carousel-item {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 1s;
-}
-
-.carousel-item.active {
-    opacity: 1;
-}
 
 
 #menu {
@@ -453,6 +444,19 @@ h2 {
     font-weight: bold;
     unicode-bidi: isolate;
 }
+
+.close-menu-btn {
+    position: fixed;
+    top: 1px;
+    right: 151px;
+    background-color: #fff;
+    border: none;
+    font-size: 10px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+
 
 
 #tutorial-btn {
