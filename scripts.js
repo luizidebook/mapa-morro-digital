@@ -932,10 +932,6 @@ function speakText(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
 
-    // Ajustar velocidade e tom para uma fala mais natural
-    utterance.rate = 1.3; // Velocidade mais lenta para parecer mais natural
-    utterance.pitch = 1.0; // Tom padrão
-
     // Seleciona uma voz feminina disponível
     const voices = speechSynthesis.getVoices();
     let femaleVoice = voices.find(voice => voice.lang === utterance.lang && voice.name.toLowerCase().includes('female'));
@@ -945,17 +941,16 @@ function speakText(text) {
         femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
     }
 
-    if (!femaleVoice) {
-        // Caso ainda não encontre, usa a primeira voz disponível do idioma
-        femaleVoice = voices.find(voice => voice.lang === utterance.lang);
-    }
-
     if (femaleVoice) {
         utterance.voice = femaleVoice;
     } else {
         // Caso não encontre nenhuma voz correspondente, usa a primeira voz disponível
         utterance.voice = voices[0];
     }
+
+       // Ajustar velocidade e tom para uma fala mais natural
+    utterance.rate = 1.3; // Velocidade mais lenta para parecer mais natural
+    utterance.pitch = 1.0; // Tom padrão
 
     // Evento para logar quando a fala começar e terminar
     utterance.onstart = () => {
