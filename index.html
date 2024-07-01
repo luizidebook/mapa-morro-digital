@@ -23,10 +23,13 @@
     <div id="blocked-overlay"></div>
     <div id="map-container">
         <div id="map"></div>
-        <div id="assistant-modal" class="modal">
-            <span class="close-btn" aria-label="Fechar">&times;</span>
-            <div class="modal-content"></div>
-        </div>
+      <div id="assistant-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="hideAssistantModal()">&times;</span>
+        <div class="content"></div>
+    </div>
+</div>
+
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
@@ -53,7 +56,7 @@
             <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
             <button class="menu-btn locate-user" aria-label="Localizar Usuário"><i class="fas fa-map-marker-alt"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="endTutorial()"></i></button>
+            <button class="menu-btn" onclick="nextTutorialStep()" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
 
         <div id="menu" class="menu">
@@ -69,11 +72,11 @@
         </div>
 
         <div class="control-buttons">
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;">Sim</button>
-            <button id="tutorial-no-btn" class="control-btn" style="display:none;">Não</button>
+           <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()">Não</button>
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()">Sim</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
+            <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
             <button class="control-btn" id="create-route-btn" style="display: none;">Criar Rota</button>
             <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
         </div>
@@ -86,10 +89,55 @@
             </div>
         </div>
 
-        <div id="tutorial-overlay" class="hidden">
-            <div id="tutorial-progress-bar"></div>
+        <div id="tutorial-overlay">
+        <div id="tutorial-progress-bar"></div>
+        <div class="tutorial-controls">
+       
         </div>
     </div>
+    </div>
+    
+    <!-- Notificações -->
+    <div id="notification-container"></div>
+
+    <!-- Modal de Contato -->
+        <div id="questionnaire-modal" class="modal">
+        <form id="questionnaire-form">
+            <div class="modal-content">
+                <h2>Questionário de Interesses</h2>
+                <!-- Perguntas do questionário -->
+                <div id="question-container">
+                    <label for="interest1">Qual seu interesse principal?</label>
+                    <input type="text" id="interest1" name="interest1" required>
+                    <label for="interest2">Qual seu segundo interesse?</label>
+                    <input type="text" id="interest2" name="interest2" required>
+                </div>
+                <button type="button" onclick="previousQuestion()">Anterior</button>
+                <button type="button" onclick="nextQuestion()">Próximo</button>
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="survey-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Pesquisa de Satisfação</h2>
+            <!-- Conteúdo da pesquisa -->
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Enviar Feedback</h2>
+            <form id="feedback-form">
+                <textarea name="feedback" required></textarea>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </div>
+
     <script src="scripts.js" defer></script>
 </body>
 </html>

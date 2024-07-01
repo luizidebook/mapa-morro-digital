@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
+    initializeCarousel();
+    loadSearchHistory();
+    checkAchievements();
+    loadFavorites();
 });
 
 let currentSubMenu = null;
@@ -11,6 +15,9 @@ let currentLocation = null;
 let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
 let currentStep = 0;
 let tutorialIsActive = false;
+let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
@@ -25,13 +32,14 @@ function setupEventListeners() {
 
     menuToggle.addEventListener('click', () => {
         floatingMenu.classList.toggle('hidden');
-        if (tutorialIsActive && currentStep === 0) {
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
             nextTutorialStep();
         }
     });
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
         map.zoomIn();
+          closeSideMenu(); // Fechar menu lateral
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
             nextTutorialStep();
         }
@@ -39,6 +47,7 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
+           closeSideMenu(); // Fechar menu lateral
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
             nextTutorialStep();
         }
@@ -46,19 +55,22 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
         requestLocationPermission();
+           closeSideMenu(); // Fechar menu lateral
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
             nextTutorialStep();
         }
     });
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
+               closeSideMenu(); // Fechar menu lateral
             handleFeatureSelection(feature);
+            event.stopPropagation();
 
-                    nextTutorialStep();
-                
-            
+            if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
+                nextTutorialStep();
+            }
         });
     });
 
@@ -73,7 +85,7 @@ function setupEventListeners() {
         if (tutorialIsActive) {
             endTutorial();
         } else {
-            startTutorial();
+            showTutorialStep('start-tutorial');
         }
     });
 
@@ -82,28 +94,36 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+}
 
-    // Eventos para "Emergências", "Dicas", "Ensino"
-    document.querySelector('.menu-btn[data-feature="emergencias"]').addEventListener('click', () => {
-        showInfoInSidebar('Emergências', 'Informações de emergência...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'emergencias') {
-            nextTutorialStep();
-        }
-    });
+function showNotification(message, type = 'success') {
+    const notificationContainer = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerText = message;
+    notificationContainer.appendChild(notification);
+    setTimeout(() => {
+        notification.style.opacity = 0;
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
 
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
-        showInfoInSidebar('Dicas', 'Dicas úteis...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
-            nextTutorialStep();
-        }
-    });
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('visible');
+    setTimeout(() => {
+        modal.style.opacity = 1;
+    }, 10);
+}
 
-    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', () => {
-        showInfoInSidebar('Ensino', 'Informações de ensino...');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'ensino') {
-            endTutorial();
-        }
-    });
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.opacity = 0;
+    setTimeout(() => {
+        modal.classList.remove('visible');
+    }, 300);
 }
 
 function showInfoInSidebar(title, content) {
@@ -120,22 +140,6 @@ function showInfoInSidebar(title, content) {
     document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.remove('inactive');
     document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.add('active');
     currentSubMenu = `${title.toLowerCase()}-submenu`;
-}
-
-function transitionAssistantModalToEnsino() {
-    const assistantModal = document.getElementById('assistant-modal');
-    const ensinoButton = document.querySelector('.menu-btn[data-feature="ensino"]');
-    const rect = ensinoButton.getBoundingClientRect();
-
-    assistantModal.style.transition = 'all 1s ease';
-    assistantModal.style.transform = `translate(${rect.left}px, ${rect.top}px) scale(0.1)`;
-    assistantModal.style.opacity = '0';
-
-    setTimeout(() => {
-        assistantModal.style.display = 'none';
-        highlightElement(ensinoButton);
-        nextTutorialStep();
-    }, 1000);
 }
 
 function highlightElement(element) {
@@ -174,7 +178,7 @@ function setLanguage(lang) {
     selectedLanguage = lang;
     translatePageContent(lang);
     document.getElementById('welcome-modal').style.display = 'none';
-    startTutorial();
+    showTutorialStep('start-tutorial');
 }
 
 function translatePageContent(lang) {
@@ -308,7 +312,6 @@ function displayOSMData(data, subMenuId) {
         if (element.type === 'node' && element.tags.name) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
-            btn.setAttribute('aria-label', element.tags.name);
             btn.textContent = element.tags.name;
             btn.onclick = () => createRouteTo(element.lat, element.lon);
             btn.oncontextmenu = (e) => {
@@ -316,6 +319,18 @@ function displayOSMData(data, subMenuId) {
                 showInfoModal(element.tags.name, element.lat, element.lon, element.id);
             };
             subMenu.appendChild(btn);
+
+            // Adicionar carrossel de imagens
+            const carousel = document.createElement('div');
+            carousel.className = 'carousel';
+            // Adicionar imagens fictícias para o exemplo
+            for (let i = 1; i <= 3; i++) {
+                const img = document.createElement('img');
+                img.src = `https://via.placeholder.com/300x200?text=Imagem+${i}`;
+                img.className = 'carousel-item';
+                carousel.appendChild(img);
+            }
+            subMenu.appendChild(carousel);
         }
     });
 }
@@ -328,6 +343,7 @@ function showInfoModal(name, lat, lon, osmId) {
         <h2>${name}</h2>
         <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
         <button id="highlight-create-route-btn" onclick="createRouteTo(${lat}, ${lon})">${translations[selectedLanguage].createRoute}</button>
+        <button id="add-to-favorites-btn" onclick="addToFavorites('${name}', ${lat}, ${lon}, ${osmId})">${translations[selectedLanguage].addToFavorites}</button>
     `;
 
     infoModal.style.display = 'block';
@@ -340,15 +356,19 @@ function createRouteTo(lat, lon) {
         return;
     }
 
+    showLoadingSpinner(true);
+
     fetch(`https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}`)
         .then(response => response.json())
         .then(data => {
+            showLoadingSpinner(false);
             const coords = data.features[0].geometry.coordinates;
             const latlngs = coords.map(coord => [coord[1], coord[0]]);
             L.polyline(latlngs, { color: 'blue' }).addTo(map);
             map.fitBounds(L.polyline(latlngs).getBounds());
         })
         .catch(error => {
+            showLoadingSpinner(false);
             console.error(translations[selectedLanguage].routeCreationError, error);
         });
 }
@@ -462,6 +482,19 @@ function updateAssistantModalContent(content) {
 }
 
 const tutorialSteps = [
+    {
+        step: 'start-tutorial',
+        message: {
+            pt: "Bem-vindo ao tutorial! Deseja iniciar o tutorial?",
+            en: "Welcome to the tutorial! Do you want to start the tutorial?",
+            es: "¡Bienvenido al tutorial! ¿Quieres comenzar el tutorial?",
+            he: "ברוך הבא למדריך! האם אתה רוצה להתחיל במדריך?"
+        },
+        action: () => {
+            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+        }
+    },
     {
         step: 'menu-toggle',
         element: '#menu-btn',
@@ -671,6 +704,19 @@ const tutorialSteps = [
             const element = document.querySelector('.menu-btn[data-feature="ensino"]');
             highlightElement(element);
         }
+    },
+    {
+        step: 'end-tutorial',
+        message: {
+            pt: "Obrigado por seguir o tutorial! Gostaria de repetir o tutorial?",
+            en: "Thank you for following the tutorial! Would you like to repeat the tutorial?",
+            es: "¡Gracias por seguir el tutorial! ¿Te gustaría repetir el tutorial?",
+            he: "תודה על ההשתתפות במדריך! האם תרצה לחזור על המדריך?"
+        },
+        action: () => {
+             document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+        }
     }
 ];
 
@@ -679,6 +725,15 @@ function showTutorialStep(step) {
     const targetElement = element ? document.querySelector(element) : null;
 
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
+
+    // Verifica se é o primeiro passo do tutorial
+    if (step === 'start-tutorial') {
+        // Exibe os botões "Sim" e "Não"
+        document.querySelector('.control-buttons').style.display = 'block';
+    } else {
+        // Oculta os botões "Sim" e "Não"
+        document.querySelector('.control-buttons').style.display = 'none';
+    }
 
     if (targetElement) {
         highlightElement(targetElement);
@@ -689,27 +744,11 @@ function showTutorialStep(step) {
     }
 }
 
-function highlightElement(element) {
-    removeExistingHighlights();
-
-    const rect = element.getBoundingClientRect();
-    const circleHighlight = document.createElement('div');
-    circleHighlight.className = 'circle-highlight';
-    circleHighlight.style.position = 'absolute';
-    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
-    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
-    circleHighlight.style.width = `${rect.width}px`;
-    circleHighlight.style.height = `${rect.height}px`;
-    circleHighlight.style.border = '2px solid red';
-    circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.zIndex = '999';
-
-    document.body.appendChild(circleHighlight);
+function hideAssistantModal() {
+    const modal = document.getElementById('assistant-modal');
+    modal.style.display = 'none';
 }
 
-function removeExistingHighlights() {
-    document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
-}
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
@@ -729,7 +768,7 @@ function previousTutorialStep() {
 }
 
 function startTutorial() {
-    currentStep = 0;
+    currentStep = 1;
     tutorialIsActive = true;
     showTutorialStep(tutorialSteps[currentStep].step);
     document.getElementById('tutorial-overlay').style.display = 'flex';
@@ -739,6 +778,8 @@ function endTutorial() {
     document.getElementById('tutorial-overlay').style.display = 'none';
     tutorialIsActive = false;
     removeExistingHighlights();
+    document.querySelector('.control-buttons').style.display = 'none';
+    hideAssistantModal();
 }
 
 function updateProgressBar(current, total) {
@@ -746,10 +787,182 @@ function updateProgressBar(current, total) {
     progressBar.style.width = `${(current / total) * 100}%`;
 }
 
-function showMessage(message, type) {
-    const messageBox = document.createElement('div');
-    messageBox.className = `message-box ${type}`;
-    messageBox.innerText = message;
-    document.body.appendChild(messageBox);
-    setTimeout(() => messageBox.remove(), 3000);
+// Funções adicionadas
+
+function initializeCarousel() {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    let currentItemIndex = 0;
+
+    setInterval(() => {
+        carouselItems[currentItemIndex].classList.remove('active');
+        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
+        carouselItems[currentItemIndex].classList.add('active');
+    }, 3000);
 }
+
+function addInteractiveMarker(lat, lon, message) {
+    const marker = L.marker([lat, lon]).addTo(map);
+    marker.bindPopup(`<b>${message}</b>`).openPopup();
+    marker.on('click', () => {
+        showNotification('Você clicou em um marcador!', 'info');
+    });
+}
+
+function loadSearchHistory() {
+    const searchHistoryContainer = document.getElementById('searchResults');
+    searchHistoryContainer.innerHTML = '';
+
+    searchHistory.forEach(search => {
+        const searchItem = document.createElement('div');
+        searchItem.textContent = search;
+        searchItem.addEventListener('click', () => {
+            performSearch(search);
+        });
+        searchHistoryContainer.appendChild(searchItem);
+    });
+}
+
+function saveSearchQuery(query) {
+    searchHistory.push(query);
+    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+    loadSearchHistory();
+}
+
+function performSearch(query) {
+    console.log(`Buscando por: ${query}`);
+    showLoadingSpinner(true);
+
+    setTimeout(() => {
+        showLoadingSpinner(false);
+        showNotification(`Resultados da busca por: ${query}`, 'info');
+        saveSearchQuery(query);
+    }, 2000);
+}
+
+function checkAchievements() {
+    console.log('Verificando conquistas...');
+    achievements.forEach(achievement => {
+        showNotification(`Conquista desbloqueada: ${achievement}`, 'success');
+    });
+}
+
+function addAchievement(achievement) {
+    achievements.push(achievement);
+    localStorage.setItem('achievements', JSON.stringify(achievements));
+    checkAchievements();
+}
+
+function showLoadingSpinner(show) {
+    const spinner = document.getElementById('loading-spinner');
+    if (show) {
+        spinner.style.display = 'block';
+    } else {
+        spinner.style.display = 'none';
+    }
+}
+
+function addToFavorites(name, lat, lon, osmId) {
+    const favorite = { name, lat, lon, osmId };
+    favorites.push(favorite);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    showNotification(`Adicionado aos favoritos: ${name}`, 'success');
+    loadFavorites();
+}
+
+function loadFavorites() {
+    const favoritesContainer = document.getElementById('favorites-container');
+    favoritesContainer.innerHTML = '';
+
+    favorites.forEach(favorite => {
+        const favoriteItem = document.createElement('div');
+        favoriteItem.className = 'favorite-item';
+        favoriteItem.innerHTML = `<b>${favorite.name}</b><br>Latitude: ${favorite.lat}<br>Longitude: ${favorite.lon}`;
+        favoriteItem.onclick = () => {
+            map.setView([favorite.lat, favorite.lon], 16);
+        };
+        favoritesContainer.appendChild(favoriteItem);
+    });
+}
+
+function showRoteiroAndPrice(roteiro, totalPrice) {
+    const modalContent = document.querySelector('#info-modal .modal-content');
+    modalContent.innerHTML = `
+        <h2>Roteiro Personalizado</h2>
+        <ul>
+            ${roteiro.map(item => `<li>${item}</li>`).join('')}
+        </ul>
+        <p>Total: ${totalPrice}</p>
+        <button onclick="purchaseRoteiro()">Comprar</button>
+    `;
+    showModal('info-modal');
+}
+
+function purchaseRoteiro() {
+    console.log('Compra realizada com sucesso!');
+    showNotification('Compra realizada com sucesso!', 'success');
+    hideModal('info-modal');
+}
+
+function collectInterestData() {
+    const questionnaireModal = document.getElementById('questionnaire-modal');
+    questionnaireModal.style.display = 'block';
+}
+
+function generateRoteiroFromInterests(interests) {
+    const roteiro = interests.map(interest => `<li>${interest}</li>`); // Exemplo simplificado de geração de roteiro com base nos interesses
+    const totalPrice = interests.length * 50; // Exemplo simplificado de cálculo de preço total
+    showRoteiroAndPrice(roteiro, totalPrice);
+}
+
+document.getElementById('questionnaire-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const interests = Array.from(new FormData(this).entries()).map(entry => entry[1]);
+    generateRoteiroFromInterests(interests);
+    hideModal('questionnaire-modal');
+});
+
+function nextQuestion() {
+    console.log('Próxima pergunta');
+}
+
+function previousQuestion() {
+    console.log('Pergunta anterior');
+}
+
+function closeSideMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = 'none';
+    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+    currentSubMenu = null;
+}
+
+function showCarouselInAssistantModal(name) {
+    const assistantModal = document.getElementById('assistant-modal');
+    const modalContent = assistantModal.querySelector('.modal-content');
+
+    modalContent.innerHTML = `
+        <h2>${name}</h2>
+        <div class="carousel">
+            <img src="https://via.placeholder.com/300x200?text=Imagem+1" class="carousel-item">
+            <img src="https://via.placeholder.com/300x200?text=Imagem+2" class="carousel-item">
+            <img src="https://via.placeholder.com/300x200?text=Imagem+3" class="carousel-item">
+        </div>
+    `;
+
+    assistantModal.style.display = 'block';
+
+    // Inicializa o carrossel
+    initializeCarousel();
+}
+
+function initializeCarousel() {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    let currentItemIndex = 0;
+
+    setInterval(() => {
+        carouselItems[currentItemIndex].classList.remove('active');
+        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
+        carouselItems[currentItemIndex].classList.add('active');
+    }, 3000);
+}
+
