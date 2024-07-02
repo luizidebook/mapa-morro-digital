@@ -928,30 +928,21 @@ function speakText(text) {
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
-
-    function setVoice() {
-        const voices = speechSynthesis.getVoices();
-        const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && 
-            (voice.name.includes("Female") || voice.name.includes("Feminina") || voice.name.includes("Woman") || voice.name.includes("Mulher")));
-        
-        if (femaleVoices.length > 0) {
-            utterance.voice = femaleVoices[0];
-        } else {
-            const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
-            if (defaultVoices.length > 0) {
-                utterance.voice = defaultVoices[0];
-            }
-        }
-
-        speechSynthesis.speak(utterance);
-    }
-
-    // Verifica se as vozes já estão carregadas, caso contrário aguarda o evento 'voiceschanged'
-    if (speechSynthesis.getVoices().length === 0) {
-        speechSynthesis.addEventListener('voiceschanged', setVoice);
+    
+    // Seleciona uma voz feminina se disponível
+    const voices = speechSynthesis.getVoices();
+    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
+    if (femaleVoices.length > 0) {
+        utterance.voice = femaleVoices[0];
     } else {
-        setVoice();
+        // Caso não encontre uma voz feminina específica, seleciona a primeira voz disponível com o idioma correto
+        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
+        if (defaultVoices.length > 0) {
+            utterance.voice = defaultVoices[0];
+        }
     }
+
+    speechSynthesis.speak(utterance);
 }
 
 
