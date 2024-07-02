@@ -60,25 +60,25 @@ function closeSideMenu()">&times;</span>
         </div>
         <button id="menu-btn" class="menu-toggle" aria-label="Menu">&#9776;</button>
         <div id="floating-menu" class="floating-menu hidden">
-            <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos"><i class="fas fa-landmark"></i></button>
-            <button class="menu-btn" data-feature="passeios" aria-label="Passeios"><i class="fas fa-walking"></i></button>
-            <button class="menu-btn" data-feature="praias" aria-label="Praias"><i class="fas fa-umbrella-beach"></i></button>
-            <button class="menu-btn" data-feature="festas" aria-label="Festas"><i class="fas fa-glass-cheers"></i></button>
-            <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes"><i class="fas fa-utensils"></i></button>
-            <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas"><i class="fas fa-bed"></i></button>
-            <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store"></i></button>
-            <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
-            <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
-            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
-            <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user" aria-label="Localizar Usuário"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos"><i class="fas fa-landmark" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="passeios" aria-label="Passeios"><i class="fas fa-walking" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="praias" aria-label="Praias"><i class="fas fa-umbrella-beach" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="festas" aria-label="Festas" onclick="nextTutorialStep()"><i class="fas fa-glass-cheers"></i></button>
+            <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes" onclick="nextTutorialStep()"><i class="fas fa-utensils"></i></button>
+            <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas"><i class="fas fa-bed" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn" data-feature="emergencias" aria-label="Emergências" onclick="nextTutorialStep()"><i class="fas fa-ambulance"></i></button>
+            <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb" onclick="nextTutorialStep()"></i></button>
+            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="nextTutorialStep()"><i class="fas fa-plus"></i></button>
+            <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="nextTutorialStep()"><i class="fas fa-minus"></i></button>
+            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="nextTutorialStep()"><i class="fas fa-map-marker-alt"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
             <button class="menu-btn" onclick="nextTutorialStep()" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
 
         <div id="menu" class="menu">
             <button id="close-menu-btn" class="close-menu-btn">X</button>
-            <div id="touristSpots-submenu" class="submenu" onclick="createRouteTo(lat, lon)"></div>
+            <div id="touristSpots-submenu" class="submenu" onclick="createRouteTo()"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
             <div id="nightlife-submenu" class="submenu"></div>
@@ -193,11 +193,6 @@ function closeSideMenu()">&times;</span>
     </div>
 
 <script src="scripts.js" defer></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        loadVoices();
-    });
-</script>
 </body>
 </html>
 

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSearchHistory();
     checkAchievements();
     loadFavorites();
+    initializeVoices();
 });
 
 let map;
@@ -179,6 +180,7 @@ function setupEventListeners() {
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
+            speechSynthesis.cancel(); // Interrompe a leitura
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
             event.stopPropagation();
@@ -213,6 +215,10 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+}
+
+function initializeVoices() {
+    voices = speechSynthesis.getVoices();
 }
 
 function showNotification(message, type = 'success') {
@@ -319,6 +325,9 @@ function initializeMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    L.marker([-13.377778, -38.9125]).addTo(map)
+    .bindPopup('<b>Morro de São Paulo</b><br>Um lugar incrível!')
+    .openPopup();
 }
 
 function loadResources() {
@@ -374,11 +383,7 @@ function handleFeatureSelection(feature) {
         'festas': 'nightlife-submenu',
         'restaurantes': 'restaurants-submenu',
         'pousadas': 'inns-submenu',
-        'lojas': 'shops-submenu',
-        'emergencias': 'emergencies-submenu',
-        'dicas': 'tips-submenu',
-        'sobre': 'about-submenu',
-        'ensino': 'education-submenu'
+        'lojas': 'shops-submenu'
     };
 
     const subMenuId = featureMappings[feature];
@@ -394,7 +399,7 @@ function handleFeatureSelection(feature) {
     } else {
         loadSubMenu(subMenuId);
         document.getElementById('menu').style.display = 'block';
-        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
+        document.querySelectorAll('.menu-btn').forEach(btn.classList.add('inactive'));
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
         currentSubMenu = subMenuId;
@@ -926,18 +931,12 @@ function speakText(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
     
-    const voices = speechSynthesis.getVoices();
-    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
-    if (femaleVoices.length > 0) {
-        utterance.voice = femaleVoices[0];
-    } else {
-        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
-        if (defaultVoices.length > 0) {
-            utterance.voice = defaultVoices[0];
-        }
+    const selectedVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
+    if (selectedVoices.length > 0) {
+        utterance.voice = selectedVoices[0];
     }
 
-    utterance.rate = 2.0;
+    utterance.rate = 1.0;
     utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
@@ -1086,3 +1085,4 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
+
