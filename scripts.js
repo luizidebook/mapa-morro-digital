@@ -20,13 +20,7 @@ let achievements = getLocalStorageItem('achievements', []);
 let favorites = getLocalStorageItem('favorites', []);
 let routingControl = null;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
-let customTourPoints = [];
-const voiceSettings = {
-    pt: { rate: 1.8, pitch: 1, volume: 1 },
-    en: { rate: 1.5, pitch: 1, volume: 1 },
-    es: { rate: 1, pitch: 1, volume: 1 },
-    he: { rate: 1, pitch: 1, volume: 1 }
-};
+let voices = [];
 
 const translations = {
     pt: {
@@ -219,12 +213,6 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
-
-    document.body.addEventListener('click', () => {
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-        }
-    });
 }
 
 function showNotification(message, type = 'success') {
@@ -949,10 +937,8 @@ function speakText(text) {
         }
     }
 
-    const { rate, pitch, volume } = voiceSettings[selectedLanguage];
-    utterance.rate = rate;
-    utterance.pitch = pitch;
-    utterance.volume = volume;
+    utterance.rate = 2.0;
+    utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
 }
@@ -1100,51 +1086,3 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
-
-function addCustomTourPoint(lat, lon, name) {
-    customTourPoints.push({ lat, lon, name });
-    const tourContainer = document.getElementById('custom-tour-points');
-    const tourItem = document.createElement('div');
-    tourItem.className = 'custom-tour-point';
-    tourItem.textContent = name;
-    tourItem.onclick = () => {
-        map.setView([lat, lon], 16);
-    };
-    tourContainer.appendChild(tourItem);
-}
-
-function startCustomTour() {
-    if (customTourPoints.length === 0) {
-        showNotification('Nenhum ponto adicionado para o tour personalizado.', 'error');
-        return;
-    }
-
-    let pointIndex = 0;
-    const showNextPoint = () => {
-        if (pointIndex < customTourPoints.length) {
-            const point = customTourPoints[pointIndex];
-            map.setView([point.lat, point.lon], 16);
-            L.marker([point.lat, point.lon]).addTo(map)
-                .bindPopup(`<b>${point.name}</b>`)
-                .openPopup();
-            speakText(point.name);
-            pointIndex++;
-            setTimeout(showNextPoint, 5000);
-        } else {
-            showNotification('Tour personalizado concluído!', 'success');
-        }
-    };
-
-    showNextPoint();
-}
-
-document.getElementById('add-tour-point-btn').addEventListener('click', () => {
-    const name = prompt('Nome do ponto turístico:');
-    if (name) {
-        const lat = parseFloat(prompt('Latitude:'));
-        const lon = parseFloat(prompt('Longitude:'));
-        addCustomTourPoint(lat, lon, name);
-    }
-});
-
-document.getElementById('start-custom-tour-btn').addEventListener('click', startCustomTour);
