@@ -12,14 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
 let map;
 let currentSubMenu = null;
 let currentLocation = null;
-let selectedLanguage = localStorage.getItem('preferredLanguage') || 'pt';
+let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt');
 let currentStep = 0;
 let tutorialIsActive = false;
-let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
-let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let searchHistory = getLocalStorageItem('searchHistory', []);
+let achievements = getLocalStorageItem('achievements', []);
+let favorites = getLocalStorageItem('favorites', []);
 let routingControl = null;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
+let customTourPoints = [];
+const voiceSettings = {
+    pt: { rate: 1.8, pitch: 1, volume: 1 },
+    en: { rate: 1.5, pitch: 1, volume: 1 },
+    es: { rate: 1, pitch: 1, volume: 1 },
+    he: { rate: 1, pitch: 1, volume: 1 }
+};
 
 const translations = {
     pt: {
@@ -124,6 +131,16 @@ const translations = {
     }
 };
 
+function getLocalStorageItem(key, defaultValue) {
+    try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : defaultValue;
+    } catch (error) {
+        console.error(`Erro ao obter ${key} do localStorage:`, error);
+        return defaultValue;
+    }
+}
+
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -202,11 +219,12 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
-}
 
-function collectInterestData() {
-    const questionnaireModal = document.getElementById('questionnaire-modal');
-    questionnaireModal.style.display = 'assistant-modal';
+    document.body.addEventListener('click', () => {
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+        }
+    });
 }
 
 function showNotification(message, type = 'success') {
@@ -301,7 +319,6 @@ function translatePageContent(lang) {
         el.textContent = translations[lang][key];
     });
 
-    // Atualizar textos dos botões "Sim" e "Não"
     document.getElementById('tutorial-yes-btn').textContent = translations[lang].yes;
     document.getElementById('tutorial-no-btn').textContent = translations[lang].no;
 }
@@ -360,6 +377,7 @@ function adjustMapWithLocation(lat, lon) {
         .bindPopup(translations[selectedLanguage].youAreHere)
         .openPopup();
 }
+
 function handleFeatureSelection(feature) {
     const featureMappings = {
         'pontos-turisticos': 'touristSpots-submenu',
@@ -409,7 +427,11 @@ function loadSubMenu(subMenuId) {
         'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;'
     };
 
-    fetchOSMData(queries[subMenuId]).then(data => displayOSMData(data, subMenuId));
+    fetchOSMData(queries[subMenuId]).then(data => {
+        if (data) {
+            displayOSMData(data, subMenuId);
+        }
+    });
 }
 
 async function fetchOSMData(query) {
@@ -421,6 +443,8 @@ async function fetchOSMData(query) {
         return data;
     } catch (error) {
         console.error(translations[selectedLanguage].osmFetchError, error);
+        showNotification(translations[selectedLanguage].osmFetchError, 'error');
+        return null;
     }
 }
 
@@ -460,7 +484,10 @@ function createRouteTo(lat, lon) {
     console.log('URL da API:', url);
 
     fetch(url)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
             showLoadingSpinner(false);
             console.log('Dados da API:', data);
@@ -482,20 +509,14 @@ function createRouteTo(lat, lon) {
         .catch(error => {
             showLoadingSpinner(false);
             console.error(translations[selectedLanguage].routeCreationError, error);
+            showNotification(translations[selectedLanguage].routeCreationError, 'error');
         });
 }
 
-function showInfoModal(name, lat, lon, osmId) {
+function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
-    const modalContent = infoModal.querySelector('.modal-content');
-
-    modalContent.innerHTML = `
-        <h2>${name}</h2>
-        <p>${translations[selectedLanguage][name.toLowerCase().replace(/\s+/g, '')] || `${translations[selectedLanguage].detailedInfo} ${name}`}</p>
-        <button id="highlight-create-route-btn" onclick="createRouteTo(${lat}, ${lon})">${translations[selectedLanguage].createRoute}</button>
-        <button id="add-to-favorites-btn" onclick="addToFavorites('${name}', ${lat}, ${lon}, ${osmId})">${translations[selectedLanguage].addToFavorites()}</button>
-    `;
-
+    infoModal.querySelector('.modal-title').innerText = title;
+    infoModal.querySelector('.modal-content').innerHTML = content;
     infoModal.style.display = 'block';
 }
 
@@ -508,7 +529,7 @@ function saveEditedItinerary() {
     const name = document.querySelector('input[name="name"]').value;
     const description = document.querySelector('textarea[name="description"]').value;
     console.log(translations[selectedLanguage].itinerarySaved, { name, description });
-    closeModal('itinerary-form-modal');
+    hideModal('itinerary-form-modal');
 }
 
 function suggestGuidedTour() {
@@ -594,13 +615,6 @@ function updateMapView(lat, lon, zoom) {
     map.setView([lat, lon], zoom);
 }
 
-function showInfoModal(title, content) {
-    var infoModal = document.getElementById('info-modal');
-    infoModal.querySelector('.modal-title').innerText = title;
-    infoModal.querySelector('.modal-content').innerHTML = content;
-    infoModal.style.display = 'block';
-}
-
 function updateAssistantModalContent(content) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
     modalContent.innerHTML = content;
@@ -608,20 +622,19 @@ function updateAssistantModalContent(content) {
 }
 
 const tutorialSteps = [
-{
-    step: 'start-tutorial',
-    message: {
-        pt: "Olá, seja bem-vindo! Eu me chamo 'Sol' e sou a inteligência artificial da Morro Digital, desenvolvida para te ajudar a experimentar todas as maravilhas de Morro de São Paulo. Você gostaria que eu te ensinasse a como utilizar as ferramentas do site através de um tutorial guiado?",
-        en: "Hello, welcome! I am 'Sol', the artificial intelligence of Morro Digital, developed to help you experience all the wonders of Morro de São Paulo. Would you like me to teach you how to use the site’s tools through a guided tutorial?",
-        es: "Hola, ¡bienvenido! Soy 'Sol', la inteligencia artificial de Morro Digital, desarrollada para ayudarte a experimentar todas las maravillas de Morro de São Paulo. ¿Te gustaría que te enseñara a usar las herramientas del sitio a través de un tutorial guiado?",
-        he: "שלום, ברוך הבא! אני 'סול', הבינה המלאכותית של מורו דיגיטל, פותחה כדי לעזור לך לחוות את כל נפלאות מורו דה סאו פאולו. האם תרצה שאלמד אותך כיצד להשתמש בכלי האתר דרך מדריך מודרך?"
+    {
+        step: 'start-tutorial',
+        message: {
+            pt: "Olá, seja bem-vindo! Eu sou a inteligência artificial da Morro Digital e meu objetivo é te ajudar a viver todas as melhores experiências em Morro de São Paulo. Você gostaria de iniciar um tutorial que explique o passo a passo de como utilizar todas as ferramentas da Morro Digital?",
+            en: "Hello, welcome! I am the artificial intelligence of Morro Digital, and my goal is to help you experience all the best that Morro de São Paulo has to offer. Would you like to start a tutorial that explains step-by-step how to use all the tools of Morro Digital?",
+            es: "Hola, ¡bienvenido! Soy la inteligencia artificial de Morro Digital, y mi objetivo es ayudarte a vivir todas las mejores experiencias en Morro de São Paulo. ¿Te gustaría comenzar un tutorial que explique paso a paso cómo utilizar todas las herramientas de Morro Digital?",
+            he: "שלום, ברוך הבא! אני הבינה המלאכותית של מורו דיגיטל, והמטרה שלי היא לעזור לך לחוות את כל החוויות הטובות ביותר במורו דה סאו פאולו. האם תרצה להתחיל מדריך שמסביר שלב אחר שלב כיצד להשתמש בכלי מורו דיגיטל?"
+        },
+        action: () => {
+            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+        }
     },
-    action: () => {
-        document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-        document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
-    }
-}
-,
     {
         step: 'menu-toggle',
         element: '#menu-btn',
@@ -832,24 +845,23 @@ const tutorialSteps = [
             highlightElement(element);
         }
     },
-   {
-    step: 'end-tutorial',
-    message: {
-        pt: "Parabéns! Você concluiu o tutorial! Você gostaria de criar um roteiro de atividades para se fazer em Morro de São Paulo personalizado de acordo com as suas preferências?",
-        en: "Congratulations! You have completed the tutorial! Would you like to create a personalized activity itinerary for Morro de São Paulo based on your preferences?",
-        es: "¡Felicitaciones! ¡Has completado el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado para Morro de São Paulo según tus preferencias?",
-        he: "מזל טוב! סיימת את המדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית למורו דה סאו פאולו בהתבסס על ההעדפות שלך?"
+    {
+        step: 'end-tutorial',
+        message: {
+            pt: "Parabéns! Você concluiu o tutorial! Você gostaria de criar um roteiro de atividades para se fazer em Morro de São Paulo personalizado de acordo com as suas preferências?",
+            en: "Congratulations! You have completed the tutorial! Would you like to create a personalized activity itinerary for Morro de São Paulo based on your preferences?",
+            es: "¡Felicitaciones! ¡Has completado el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado para Morro de São Paulo según tus preferencias?",
+            he: "מזל טוב! סיימת את המדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית למורו דה סאו פאולו בהתבסס על ההעדפות שלך?"
+        },
+        action: () => {
+            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+            document.getElementById('create-itinerary-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'none';
+            document.getElementById('tutorial-next-btn').style.display = 'none';
+            document.getElementById('tutorial-prev-btn').style.display = 'none';
+            document.getElementById('tutorial-end-btn').style.display = 'none';
+        }
     },
-    action: () => {
-        document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-        document.getElementById('create-itinerary-btn').style.display = 'inline-block';
-        document.getElementById('tutorial-yes-btn').style.display = 'none';
-        document.getElementById('tutorial-next-btn').style.display = 'none';
-        document.getElementById('tutorial-prev-btn').style.display = 'none';
-        document.getElementById('tutorial-end-btn').style.display = 'none';
-    }
-},
-  
 ];
 
 function showTutorialStep(step) {
@@ -859,14 +871,11 @@ function showTutorialStep(step) {
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
     speakText(message[selectedLanguage]);
 
-    // Verifica se é o primeiro ou o último passo do tutorial
     if (step === 'start-tutorial' || step === 'end-tutorial') {
-        // Exibe os botões "Sim" e "Não"
         document.querySelector('.control-buttons').style.display = 'block';
         document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
         document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
     } else {
-        // Oculta os botões "Sim" e "Não"
         document.querySelector('.control-buttons').style.display = 'none';
     }
 
@@ -929,24 +938,24 @@ function speakText(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
     
-    // Seleciona uma voz feminina se disponível
     const voices = speechSynthesis.getVoices();
     const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
     if (femaleVoices.length > 0) {
         utterance.voice = femaleVoices[0];
     } else {
-        // Caso não encontre uma voz feminina específica, seleciona a primeira voz disponível com o idioma correto
         const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
         if (defaultVoices.length > 0) {
             utterance.voice = defaultVoices[0];
         }
     }
 
+    const { rate, pitch, volume } = voiceSettings[selectedLanguage];
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+    utterance.volume = volume;
+
     speechSynthesis.speak(utterance);
 }
-
-
-// Funções adicionais
 
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
@@ -1062,14 +1071,9 @@ function purchaseRoteiro() {
     hideModal('info-modal');
 }
 
-function collectInterestData() {
-    const questionnaireModal = document.getElementById('questionnaire-modal');
-    questionnaireModal.style.display = 'block';
-}
-
 function generateRoteiroFromInterests(interests) {
-    const roteiro = interests.map(interest => `<li>${interest}</li>`); // Exemplo simplificado de geração de roteiro com base nos interesses
-    const totalPrice = interests.length * 50; // Exemplo simplificado de cálculo de preço total
+    const roteiro = interests.map(interest => `<li>${interest}</li>`);
+    const totalPrice = interests.length * 50;
     showRoteiroAndPrice(roteiro, totalPrice);
 }
 
@@ -1096,3 +1100,51 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
+
+function addCustomTourPoint(lat, lon, name) {
+    customTourPoints.push({ lat, lon, name });
+    const tourContainer = document.getElementById('custom-tour-points');
+    const tourItem = document.createElement('div');
+    tourItem.className = 'custom-tour-point';
+    tourItem.textContent = name;
+    tourItem.onclick = () => {
+        map.setView([lat, lon], 16);
+    };
+    tourContainer.appendChild(tourItem);
+}
+
+function startCustomTour() {
+    if (customTourPoints.length === 0) {
+        showNotification('Nenhum ponto adicionado para o tour personalizado.', 'error');
+        return;
+    }
+
+    let pointIndex = 0;
+    const showNextPoint = () => {
+        if (pointIndex < customTourPoints.length) {
+            const point = customTourPoints[pointIndex];
+            map.setView([point.lat, point.lon], 16);
+            L.marker([point.lat, point.lon]).addTo(map)
+                .bindPopup(`<b>${point.name}</b>`)
+                .openPopup();
+            speakText(point.name);
+            pointIndex++;
+            setTimeout(showNextPoint, 5000);
+        } else {
+            showNotification('Tour personalizado concluído!', 'success');
+        }
+    };
+
+    showNextPoint();
+}
+
+document.getElementById('add-tour-point-btn').addEventListener('click', () => {
+    const name = prompt('Nome do ponto turístico:');
+    if (name) {
+        const lat = parseFloat(prompt('Latitude:'));
+        const lon = parseFloat(prompt('Longitude:'));
+        addCustomTourPoint(lat, lon, name);
+    }
+});
+
+document.getElementById('start-custom-tour-btn').addEventListener('click', startCustomTour);
