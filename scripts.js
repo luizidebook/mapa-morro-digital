@@ -4,9 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
-    loadSearchHistory();
-    checkAchievements();
-    loadFavorites();
 });
 
 let map;
@@ -180,11 +177,14 @@ function setupEventListeners() {
     });
 
     document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
-        requestLocationPermission();
-        closeSideMenu();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
-            nextTutorialStep();
-        }
+        requestLocationPermission().then(() => {
+            closeSideMenu();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+                nextTutorialStep();
+            }
+        }).catch(error => {
+            console.error("Erro ao solicitar permissão de localização:", error);
+        });
     });
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
@@ -203,6 +203,13 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
+            requestLocationPermission().then(() => {
+                loadSearchHistory();
+                checkAchievements();
+                loadFavorites();
+            }).catch(error => {
+                console.error("Erro ao solicitar permissão de localização:", error);
+            });
         });
     });
 
@@ -307,7 +314,13 @@ function setLanguage(lang) {
     selectedLanguage = lang;
     translatePageContent(lang);
     document.getElementById('welcome-modal').style.display = 'none';
-    showTutorialStep('start-tutorial');
+    requestLocationPermission().then(() => {
+        loadSearchHistory();
+        checkAchievements();
+        loadFavorites();
+    }).catch(error => {
+        console.error("Erro ao solicitar permissão de localização:", error);
+    });
 }
 
 function translatePageContent(lang) {
@@ -340,33 +353,51 @@ function activateAssistant() {
 }
 
 function requestLocationPermission() {
-    const assistantModal = document.getElementById('assistant-modal');
-    assistantModal.classList.add('location-permission');
+    return new Promise((resolve, reject) => {
+        const assistantModal = document.getElementById('assistant-modal');
+        assistantModal.classList.add('location-permission');
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            currentLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
-            adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-            L.popup()
-                .setLatLng([currentLocation.latitude, currentLocation.longitude])
-                .setContent(translations[selectedLanguage].youAreHere)
-                .openOn(map);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                currentLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
+                L.popup()
+                    .setLatLng([currentLocation.latitude, currentLocation.longitude])
+                    .setContent(translations[selectedLanguage].youAreHere)
+                    .openOn(map);
+                assistantModal.classList.remove('location-permission');
+                if (!tutorialIsActive) {
+                    showTutorialStep('start-tutorial');
+                }
+                showLocationMessage();
+                resolve();
+            }, () => {
+                console.log(translations[selectedLanguage].locationPermissionDenied);
+                assistantModal.classList.remove('location-permission');
+                if (!tutorialIsActive) {
+                    showTutorialStep('start-tutorial');
+                }
+                reject();
+            });
+        } else {
+            console.log(translations[selectedLanguage].geolocationNotSupported);
             assistantModal.classList.remove('location-permission');
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
-                nextTutorialStep();
+            if (!tutorialIsActive) {
+                showTutorialStep('start-tutorial');
             }
-            showLocationMessage();
-        }, () => {
-            console.log(translations[selectedLanguage].locationPermissionDenied);
-            assistantModal.classList.remove('location-permission');
-        });
-    } else {
-        console.log(translations[selectedLanguage].geolocationNotSupported);
-        assistantModal.classList.remove('location-permission');
-    }
+            reject();
+        }
+    });
+}
+
+function startTutorial() {
+    currentStep = 1;
+    tutorialIsActive = true;
+    showTutorialStep(tutorialSteps[currentStep].step);
+    document.getElementById('tutorial-overlay').style.display = 'flex';
 }
 
 function adjustMapWithLocation(lat, lon) {
@@ -465,7 +496,15 @@ function createRouteTo(lat, lon) {
             L.latLng(currentLocation.latitude, currentLocation.longitude),
             L.latLng(lat, lon)
         ],
-        routeWhileDragging: true
+        routeWhileDragging: true,
+        createMarker: () => null, 
+        lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
+        show: false, 
+        addWaypoints: false,
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'car'
+        })
     }).addTo(map);
 }
 
@@ -558,13 +597,6 @@ function provideContinuousAssistance() {
 
 function answerQuestions(question) {
     console.log(translations[selectedLanguage].answerQuestions, question);
-}
-
-function addMarkersToMap(locations) {
-    locations.forEach(location => {
-        L.marker([location.lat, location.lon]).addTo(map)
-            .bindPopup(`<b>${location.name}</b><br>${location.description}`);
-    });
 }
 
 function updateMapView(lat, lon, zoom) {
@@ -905,7 +937,7 @@ function speakText(text) {
         }
     }
 
-    utterance.rate = 1.2;
+    utterance.rate = 1.0;
     utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
@@ -1054,3 +1086,22 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
+
+function collectInterestData() {
+    const interests = [
+        'Praias', 'Pontos Turísticos', 'Passeios', 'Restaurantes', 'Vida Noturna'
+    ];
+    showQuestionnaireForm(interests);
+}
+
+function showQuestionnaireForm(interests) {
+    const form = document.getElementById('questionnaire-form');
+    const formContainer = document.getElementById('questionnaire-modal');
+    form.innerHTML = interests.map(interest => `
+        <label>
+            <input type="checkbox" name="interests" value="${interest}">
+            ${interest}
+        </label>
+    `).join('');
+    formContainer.style.display = 'block';
+}
