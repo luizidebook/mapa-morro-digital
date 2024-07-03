@@ -70,8 +70,8 @@ function closeSideMenu()">&times;</span>
     <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
     <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
     <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="requestLocationPermission(); closeSideMenu();"><i class="fas fa-map-marker-alt"></i></button>
-    <button class="menu-btn" data-feature="sobre" aria-label="Sobre" onclick="loadSubMenu('about-submenu')"><i class="fas fa-info-circle"></i></button>
-    <button class="menu-btn" data-feature="ensino" aria-label="Ensino" onclick="loadSubMenu('education-submenu')"><i class="fas fa-chalkboard-teacher"></i></button>
+    <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
+    <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="nextTutorialStep()"></i></button>
 </div>
 
 <div id="menu" class="menu">
