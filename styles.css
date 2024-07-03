@@ -371,7 +371,8 @@ body, html {
 /* Adicione esses estilos ao seu arquivo styles.css */
 
 
-#menu {
+/* Menu lateral */
+.menu {
     position: fixed;
     top: 0;
     right: 0;
@@ -390,48 +391,33 @@ body, html {
     to { right: 0; }
 }
 
-#menu .menu-btn {
-    width: 100%;
-    padding: 0px;
-    background: #007BFF;
+.close-menu-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #fff;
     border: none;
-    border-bottom: 0px solid #ddd;
-    text-align: left;
+    font-size: 20px;
     cursor: pointer;
+    z-index: 1000;
 }
 
-#menu .menu-btn:hover {
-    background: #ddd;
-}
-
-#menu .submenu {
+.submenu {
     display: none;
-    padding: 1px;
+    padding: 10px;
 }
 
-#menu .submenu h2 {
-    margin-top: 0;
-}
-
-#menu .submenu img {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 10px;
-}
-
-#menu .submenu-item {
+.submenu-item {
     width: 100%;
-    padding: 3px;
+    padding: 10px;
     background: #f4f4f4;
     border: none;
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    font-size: 0.8em;
 }
 
-
-#menu .submenu-item:hover {
+.submenu-item:hover {
     background: #ddd;
 }
 

@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSearchHistory();
     checkAchievements();
     loadFavorites();
-    initializeVoices();
 });
 
 let map;
@@ -126,6 +125,16 @@ const translations = {
     }
 };
 
+const queries = {
+    'touristSpots-submenu': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
+    'tours-submenu': '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
+    'beaches-submenu': '[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;',
+    'nightlife-submenu': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
+    'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
+    'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
+    'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;'
+};
+
 function getLocalStorageItem(key, defaultValue) {
     try {
         const value = localStorage.getItem(key);
@@ -180,7 +189,6 @@ function setupEventListeners() {
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
-            speechSynthesis.cancel(); // Interrompe a leitura
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
             event.stopPropagation();
@@ -215,10 +223,6 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
-}
-
-function initializeVoices() {
-    voices = speechSynthesis.getVoices();
 }
 
 function showNotification(message, type = 'success') {
@@ -325,9 +329,6 @@ function initializeMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    L.marker([-13.377778, -38.9125]).addTo(map)
-    .bindPopup('<b>Morro de São Paulo</b><br>Um lugar incrível!')
-    .openPopup();
 }
 
 function loadResources() {
@@ -354,7 +355,7 @@ function requestLocationPermission() {
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
             assistantModal.classList.remove('location-permission');
-            if (tutorialIsActive && currentStep === 'locate-user') {
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
                 nextTutorialStep();
             }
             showLocationMessage();
@@ -371,8 +372,8 @@ function requestLocationPermission() {
 function adjustMapWithLocation(lat, lon) {
     map.setView([lat, lon], 16);
     L.marker([lat, lon]).addTo(map)
-        .bindPopup(translations[selectedLanguage].youAreHere)
-        .openPopup();
+        .bindPopup()
+        .openPopup(translations[selectedLanguage].youAreHere);
 }
 
 function handleFeatureSelection(feature) {
@@ -383,7 +384,11 @@ function handleFeatureSelection(feature) {
         'festas': 'nightlife-submenu',
         'restaurantes': 'restaurants-submenu',
         'pousadas': 'inns-submenu',
-        'lojas': 'shops-submenu'
+        'lojas': 'shops-submenu',
+        'emergencias': 'emergencies-submenu',
+        'dicas': 'tips-submenu',
+        'sobre': 'about-submenu',
+        'ensino': 'education-submenu'
     };
 
     const subMenuId = featureMappings[feature];
@@ -399,7 +404,7 @@ function handleFeatureSelection(feature) {
     } else {
         loadSubMenu(subMenuId);
         document.getElementById('menu').style.display = 'block';
-        document.querySelectorAll('.menu-btn').forEach(btn.classList.add('inactive'));
+        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
         currentSubMenu = subMenuId;
@@ -409,16 +414,6 @@ function handleFeatureSelection(feature) {
 function loadSubMenu(subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.style.display = 'block';
-
-    const queries = {
-        'touristSpots-submenu': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
-        'tours-submenu': '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
-        'beaches-submenu': '[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;',
-        'nightlife-submenu': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
-        'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
-        'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
-        'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;'
-    };
 
     fetchOSMData(queries[subMenuId]).then(data => {
         if (data) {
@@ -433,6 +428,7 @@ async function fetchOSMData(query) {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
+        if (!data.elements) throw new Error('Invalid data format');
         return data;
     } catch (error) {
         console.error(translations[selectedLanguage].osmFetchError, error);
@@ -449,61 +445,31 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon);
+            btn.onclick = () => createRouteTo(element.lat, element.lon);
             subMenu.appendChild(btn);
         }
     });
 }
 
-function handleSubmenuButtonClick(lat, lon) {
-    if (!currentLocation) {
-        requestLocationPermission(() => createRouteTo(lat, lon));
-    } else {
-        createRouteTo(lat, lon);
-    }
-}
-
 function createRouteTo(lat, lon) {
-    console.log('createRouteTo chamada com lat:', lat, 'e lon:', lon);
-    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
     if (!currentLocation) {
         console.log(translations[selectedLanguage].locationNotAvailable);
         return;
     }
 
-    showLoadingSpinner(true);
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(currentLocation.latitude, currentLocation.longitude),
+            L.latLng(lat, lon)
+        ],
+        routeWhileDragging: true,
+        lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
+        show: false, // Não exibe as instruções da rota
 
-    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}`;
-    console.log('URL da API:', url);
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            showLoadingSpinner(false);
-            console.log('Dados da API:', data);
-            const coords = data.features[0].geometry.coordinates;
-            const latlngs = coords.map(coord => [coord[1], coord[0]]);
-            if (routingControl) {
-                map.removeControl(routingControl);
-            }
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(currentLocation.latitude, currentLocation.longitude),
-                    L.latLng(lat, lon)
-                ],
-                createMarker: () => null,
-                routeWhileDragging: true
-            }).addTo(map);
-            map.fitBounds(L.polyline(latlngs).getBounds());
-        })
-        .catch(error => {
-            showLoadingSpinner(false);
-            console.error(translations[selectedLanguage].routeCreationError, error);
-            showNotification(translations[selectedLanguage].routeCreationError, 'error');
-        });
+    }).addTo(map);
 }
 
 function showInfoModal(title, content) {
@@ -569,8 +535,8 @@ function submitFeedback() {
 }
 
 function shareOnSocialMedia(platform) {
-    var url = window.location.href;
-    var shareUrl;
+    const url = window.location.href;
+    let shareUrl;
 
     switch(platform) {
         case 'facebook':
@@ -931,12 +897,18 @@ function speakText(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
     
-    const selectedVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
-    if (selectedVoices.length > 0) {
-        utterance.voice = selectedVoices[0];
+    const voices = speechSynthesis.getVoices();
+    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
+    if (femaleVoices.length > 0) {
+        utterance.voice = femaleVoices[0];
+    } else {
+        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
+        if (defaultVoices.length > 0) {
+            utterance.voice = defaultVoices[0];
+        }
     }
 
-    utterance.rate = 1.0;
+    utterance.rate = 2.0;
     utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
@@ -1085,4 +1057,3 @@ function closeSideMenu() {
 }
 
 document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
-

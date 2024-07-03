@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morro Digital</title>
+    <title>Morro de São Paulo Digital</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="scripts.js" defer></script>
+</head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" defer></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js" defer></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js" defer></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
     <meta name="author" content="Morro Digital">
@@ -58,36 +56,37 @@ function closeSideMenu()">&times;</span>
                 </div>
             </div>
         </div>
-        <button id="menu-btn" class="menu-toggle" aria-label="Menu">&#9776;</button>
-        <div id="floating-menu" class="floating-menu hidden">
-            <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos"><i class="fas fa-landmark" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="passeios" aria-label="Passeios"><i class="fas fa-walking" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="praias" aria-label="Praias"><i class="fas fa-umbrella-beach" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="festas" aria-label="Festas" onclick="nextTutorialStep()"><i class="fas fa-glass-cheers"></i></button>
-            <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes" onclick="nextTutorialStep()"><i class="fas fa-utensils"></i></button>
-            <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas"><i class="fas fa-bed" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="emergencias" aria-label="Emergências" onclick="nextTutorialStep()"><i class="fas fa-ambulance"></i></button>
-            <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="nextTutorialStep()"><i class="fas fa-plus"></i></button>
-            <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="nextTutorialStep()"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="nextTutorialStep()"><i class="fas fa-map-marker-alt"></i></button>
-            <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" onclick="nextTutorialStep()" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
-        </div>
+<button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">&#9776;</button>
+<div id="floating-menu" class="floating-menu hidden">
+    <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos" onclick="loadSubMenu('touristSpots-submenu')"><i class="fas fa-landmark"></i></button>
+    <button class="menu-btn" data-feature="passeios" aria-label="Passeios" onclick="loadSubMenu('tours-submenu')"><i class="fas fa-walking"></i></button>
+    <button class="menu-btn" data-feature="praias" aria-label="Praias" onclick="loadSubMenu('beaches-submenu')"><i class="fas fa-umbrella-beach"></i></button>
+    <button class="menu-btn" data-feature="festas" aria-label="Festas" onclick="loadSubMenu('nightlife-submenu')"><i class="fas fa-glass-cheers"></i></button>
+    <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes" onclick="loadSubMenu('restaurants-submenu')"><i class="fas fa-utensils"></i></button>
+    <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas" onclick="loadSubMenu('inns-submenu')"><i class="fas fa-bed"></i></button>
+    <button class="menu-btn" data-feature="lojas" aria-label="Lojas" onclick="loadSubMenu('shops-submenu')"><i class="fas fa-store"></i></button>
+    <button class="menu-btn" data-feature="emergencias" aria-label="Emergências" onclick="loadSubMenu('emergencies-submenu')"><i class="fas fa-ambulance"></i></button>
+    <button class="menu-btn" data-feature="dicas" aria-label="Dicas" onclick="loadSubMenu('tips-submenu')"><i class="fas fa-lightbulb"></i></button>
+    <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
+    <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
+    <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="requestLocationPermission(); closeSideMenu();"><i class="fas fa-map-marker-alt"></i></button>
+    <button class="menu-btn" data-feature="sobre" aria-label="Sobre" onclick="loadSubMenu('about-submenu')"><i class="fas fa-info-circle"></i></button>
+    <button class="menu-btn" data-feature="ensino" aria-label="Ensino" onclick="loadSubMenu('education-submenu')"><i class="fas fa-chalkboard-teacher"></i></button>
+</div>
 
-        <div id="menu" class="menu">
-            <button id="close-menu-btn" class="close-menu-btn">X</button>
-            <div id="touristSpots-submenu" class="submenu" onclick="createRouteTo()"></div>
-            <div id="tours-submenu" class="submenu"></div>
-            <div id="beaches-submenu" class="submenu"></div>
-            <div id="nightlife-submenu" class="submenu"></div>
-            <div id="restaurants-submenu" class="submenu"></div>
-            <div id="inns-submenu" class="submenu"></div>
-            <div id="shops-submenu" class="submenu"></div>
-            <div id="emergencies-submenu" class="submenu"></div>
-            <div id="tips-submenu" class="submenu"></div>
-        </div>
+<div id="menu" class="menu">
+    <button id="close-menu-btn" class="close-menu-btn" onclick="closeSideMenu()">X</button>
+    <div id="touristSpots-submenu" class="submenu"></div>
+    <div id="tours-submenu" class="submenu"></div>
+    <div id="beaches-submenu" class="submenu"></div>
+    <div id="nightlife-submenu" class="submenu"></div>
+    <div id="restaurants-submenu" class="submenu"></div>
+    <div id="inns-submenu" class="submenu"></div>
+    <div id="shops-submenu" class="submenu"></div>
+    <div id="emergencies-submenu" class="submenu"></div>
+    <div id="tips-submenu" class="submenu"></div>
+</div>
+
 
         <div class="control-buttons">
            <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
