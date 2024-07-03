@@ -905,7 +905,7 @@ function speakText(text) {
         }
     }
 
-    utterance.rate = 2.0;
+    utterance.rate = 1.2;
     utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
