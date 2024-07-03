@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initializeMap();
     loadResources();
+    requestLocationPermission(); // Solicitar localização antes de ativar o assistente
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
@@ -355,18 +356,31 @@ function requestLocationPermission() {
                 .setContent(translations[selectedLanguage].youAreHere)
                 .openOn(map);
             assistantModal.classList.remove('location-permission');
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
-                nextTutorialStep();
+            if (!tutorialIsActive) { // Verifica se o tutorial não está ativo
+                showTutorialStep('start-tutorial'); // Inicia o tutorial
             }
             showLocationMessage();
         }, () => {
             console.log(translations[selectedLanguage].locationPermissionDenied);
             assistantModal.classList.remove('location-permission');
+            if (!tutorialIsActive) { // Verifica se o tutorial não está ativo
+                showTutorialStep('start-tutorial'); // Inicia o tutorial
+            }
         });
     } else {
         console.log(translations[selectedLanguage].geolocationNotSupported);
         assistantModal.classList.remove('location-permission');
+        if (!tutorialIsActive) { // Verifica se o tutorial não está ativo
+            showTutorialStep('start-tutorial'); // Inicia o tutorial
+        }
     }
+}
+
+function startTutorial() {
+    currentStep = 1;
+    tutorialIsActive = true;
+    showTutorialStep(tutorialSteps[currentStep].step);
+    document.getElementById('tutorial-overlay').style.display = 'flex';
 }
 
 function adjustMapWithLocation(lat, lon) {
@@ -908,7 +922,7 @@ function speakText(text) {
         }
     }
 
-    utterance.rate = 2.0;
+    utterance.rate = 1.0;
     utterance.pitch = 1.0;
 
     speechSynthesis.speak(utterance);
