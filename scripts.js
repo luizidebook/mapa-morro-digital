@@ -566,7 +566,7 @@ function createRouteTo(lat, lon) {
         addWaypoints: false,
         router: L.Routing.osrmv1({
             serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'car'
+            profile: 'footway'
         })
     }).addTo(map);
 }
