@@ -148,7 +148,8 @@ function setupEventListeners() {
     const menuToggle = document.getElementById('menu-btn');
     const floatingMenu = document.getElementById('floating-menu');
     const tutorialBtn = document.getElementById('tutorial-btn');
-
+    const createItineraryBtn = document.getElementById('create-itinerary-btn');
+    
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
     });
@@ -223,7 +224,7 @@ function setupEventListeners() {
 
     document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
     document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
-    document.getElementById('create-itinerary-btn').addEventListener('click', () => {
+    createItineraryBtn.addEventListener('click', () => {
         endTutorial();
         collectInterestData();
     });
@@ -446,11 +447,15 @@ function loadSubMenu(subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.style.display = 'block';
 
-    fetchOSMData(queries[subMenuId]).then(data => {
-        if (data) {
-            displayOSMData(data, subMenuId);
-        }
-    });
+    if (subMenuId === 'tours-submenu') {
+        displayCustomTours();
+    } else {
+        fetchOSMData(queries[subMenuId]).then(data => {
+            if (data) {
+                displayOSMData(data, subMenuId);
+            }
+        });
+    }
 }
 
 async function fetchOSMData(query) {
@@ -479,6 +484,26 @@ function displayOSMData(data, subMenuId) {
             btn.onclick = () => createRouteTo(element.lat, element.lon);
             subMenu.appendChild(btn);
         }
+    });
+}
+
+function displayCustomTours() {
+    const tours = [
+        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3800, lon: -38.9100 },
+        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3600, lon: -38.9400 },
+        { name: "Passeio 4X4 para Garapuá", lat: -13.3500, lon: -38.9500 },
+        { name: "Passeio de Barco para Gamboa", lat: -13.3700, lon: -38.9000 }
+    ];
+
+    const subMenu = document.getElementById('tours-submenu');
+    subMenu.innerHTML = '';
+    
+    tours.forEach(tour => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item';
+        btn.textContent = tour.name;
+        btn.onclick = () => createRouteTo(tour.lat, tour.lon);
+        subMenu.appendChild(btn);
     });
 }
 
@@ -1096,7 +1121,7 @@ function collectInterestData() {
 
 function showQuestionnaireForm(interests) {
     const form = document.getElementById('questionnaire-form');
-    const formContainer = document.getElementById('questionnaire-modal');
+    const formContainer = document.getElementById('assistant-modal');
     form.innerHTML = interests.map(interest => `
         <label>
             <input type="checkbox" name="interests" value="${interest}">
@@ -1105,3 +1130,7 @@ function showQuestionnaireForm(interests) {
     `).join('');
     formContainer.style.display = 'block';
 }
+
+document.getElementById('create-itinerary-btn').addEventListener('click', () => {
+    showModal('questionnaire-modal');
+});
