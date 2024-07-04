@@ -305,7 +305,7 @@ function highlightElement(element) {
     arrowHighlight.style.height = '0';
     arrowHighlight.style.borderLeft = '20px solid transparent';
     arrowHighlight.style.borderRight = '20px solid transparent';
-    arrowHighlight.style.zIndex = '99200';
+    arrowHighlight.style.zIndex = '100000';
     arrowHighlight.style.animation = 'bounce 1s infinite';
 
     document.body.appendChild(circleHighlight);
@@ -554,21 +554,6 @@ function createRouteTo(lat, lon) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
-
-    const routingOptions = {
-        serviceUrl: 'https://router.project-osrm.org/route/v1',
-        profile: 'foot',
-        alternatives: true,
-        steps: true,
-        annotations: true,
-        geometries: 'geojson',
-        overview: 'full',
-        language: selectedLanguage,
-    };
-
-    const customRouter = L.Routing.osrmv1(routingOptions);
-    customRouter.options.serviceUrl = 'https://router.project-osrm.org/route/v1/foot';
-
     routingControl = L.Routing.control({
         waypoints: [
             L.latLng(currentLocation.latitude, currentLocation.longitude),
@@ -579,8 +564,20 @@ function createRouteTo(lat, lon) {
         lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
         show: false, 
         addWaypoints: false,
-        router: customRouter,
-        fitSelectedRoutes: true
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'foot',
+            options: {
+                walkingOptions: {
+                    alternatives: false,
+                    steps: true,
+                    includeMotorways: false,
+                    allowUTurns: true,
+                    avoidHighways: true,
+                    avoidTolls: true,
+                },
+            },
+        })
     }).addTo(map);
 }
 
