@@ -554,6 +554,21 @@ function createRouteTo(lat, lon) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
+
+    const routingOptions = {
+        serviceUrl: 'https://router.project-osrm.org/route/v1',
+        profile: 'foot',
+        alternatives: true,
+        steps: true,
+        annotations: true,
+        geometries: 'geojson',
+        overview: 'full',
+        language: selectedLanguage,
+    };
+
+    const customRouter = L.Routing.osrmv1(routingOptions);
+    customRouter.options.serviceUrl = 'https://router.project-osrm.org/route/v1/foot';
+
     routingControl = L.Routing.control({
         waypoints: [
             L.latLng(currentLocation.latitude, currentLocation.longitude),
@@ -564,10 +579,8 @@ function createRouteTo(lat, lon) {
         lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
         show: false, 
         addWaypoints: false,
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'footway'
-        })
+        router: customRouter,
+        fitSelectedRoutes: true
     }).addTo(map);
 }
 
