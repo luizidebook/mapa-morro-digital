@@ -129,7 +129,8 @@ const queries = {
     'nightlife-submenu': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
     'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
     'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
-    'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;'
+    'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;',
+    'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;'
 };
 
 function getLocalStorageItem(key, defaultValue) {
@@ -284,6 +285,8 @@ function highlightElement(element) {
 
     const rect = element.getBoundingClientRect();
     const circleHighlight = document.createElement('div');
+    const arrowHighlight = document.createElement('div');
+
     circleHighlight.className = 'circle-highlight';
     circleHighlight.style.position = 'absolute';
     circleHighlight.style.top = `${rect.top + window.scrollY}px`;
@@ -294,10 +297,23 @@ function highlightElement(element) {
     circleHighlight.style.borderRadius = '50%';
     circleHighlight.style.zIndex = '999';
 
+    arrowHighlight.className = 'arrow-highlight';
+    arrowHighlight.style.position = 'absolute';
+    arrowHighlight.style.top = `${rect.top + window.scrollY - 20}px`;
+    arrowHighlight.style.left = `${rect.left + window.scrollX + rect.width / 2 - 20}px`;
+    arrowHighlight.style.width = '0';
+    arrowHighlight.style.height = '0';
+    arrowHighlight.style.borderLeft = '20px solid transparent';
+    arrowHighlight.style.borderRight = '20px solid transparent';
+    arrowHighlight.style.zIndex = '99200';
+    arrowHighlight.style.animation = 'bounce 1s infinite';
+
     document.body.appendChild(circleHighlight);
+    document.body.appendChild(arrowHighlight);
 }
 
 function removeExistingHighlights() {
+    document.querySelectorAll('.arrow-highlight').forEach(el => el.remove());
     document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
 }
 
@@ -449,6 +465,8 @@ function loadSubMenu(subMenuId) {
 
     if (subMenuId === 'tours-submenu') {
         displayCustomTours();
+    } else if (subMenuId === 'emergencies-submenu') {
+        displayCustomEmergencies();
     } else {
         fetchOSMData(queries[subMenuId]).then(data => {
             if (data) {
@@ -503,6 +521,26 @@ function displayCustomTours() {
         btn.className = 'submenu-item';
         btn.textContent = tour.name;
         btn.onclick = () => createRouteTo(tour.lat, tour.lon);
+        subMenu.appendChild(btn);
+    });
+}
+
+function displayCustomEmergencies() {
+    const emergencies = [
+        { name: "Ambulância", lat: -13.3800, lon: -38.9100 },
+        { name: "Unidade de Saúde", lat: -13.3600, lon: -38.9400 },
+        { name: "Polícia Cívil", lat: -13.3500, lon: -38.9500 },
+        { name: "Polícia Militar", lat: -13.3700, lon: -38.9000 }
+    ];
+
+    const subMenu = document.getElementById('emergencies-submenu');
+    subMenu.innerHTML = '';
+    
+    emergencies.forEach(emergency => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item';
+        btn.textContent = emergency.name;
+        btn.onclick = () => createRouteTo(emergency.lat, emergency.lon);
         subMenu.appendChild(btn);
     });
 }
