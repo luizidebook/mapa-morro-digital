@@ -15,7 +15,7 @@ let tutorialIsActive = false;
 let searchHistory = getLocalStorageItem('searchHistory', []);
 let achievements = getLocalStorageItem('achievements', []);
 let favorites = getLocalStorageItem('favorites', []);
-let routingControl = null;
+let routingControl;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
 
