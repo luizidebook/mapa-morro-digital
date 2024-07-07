@@ -1,3 +1,6 @@
+/* styles.css */
+
+/* Estilos gerais */
 body, html {
     margin: 0;
     padding: 0;
@@ -6,42 +9,19 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
-#tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
-}
-
-
-
-#welcome-modal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 100000;
-}
-
-#language-selection {
-    position: relative;
-    z-index: 1001;
-}
-
 #map-container {
     position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-#map {
     width: 100%;
     height: 100%;
     background-color: #eaeaea;
 }
 
-.welcome-modal {
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.welcome-modal, .modal {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -56,10 +36,6 @@ body, html {
     z-index: 100000;
     display: none;
     text-align: center;
-}
-
-#language-selection {
-    margin-top: 20px;
 }
 
 .lang-btn {
@@ -77,21 +53,225 @@ body, html {
     background-color: #0056b3;
 }
 
-/* Animação para fechar o modal */
-@keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
+.menu-toggle {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 2em;
+    z-index: 99000;
+}
+
+.floating-menu {
+    position: absolute;
+    top: 45%;
+    right: 20px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 99100;
+}
+
+.floating-menu.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #007BFF, #0056b3);
+    color: white;
+    border: none;
+    margin: 1px 0;
+    padding: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5em;
+    transition: background 0.3s;
+}
+
+.menu-btn:hover {
+    background: linear-gradient(135deg, #0056b3, #004494);
+}
+
+.control-btn {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 10px;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
+
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* Estilos para mensagens do tutorial */
+.tutorial-message {
+    position: absolute;
+    background-color: #fff;
+    border: 2px solid #007BFF;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 10001;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.highlight {
+    border: 3px solid red;
+    animation: highlight-animation 1s infinite;
+}
+
+@keyframes highlight-animation {
+    0% { box-shadow: 0 0 5px red; }
+    50% { box-shadow: 0 0 20px red; }
+    100% { box-shadow: 0 0 5px red; }
+}
+
+.tutorial-next-btn {
+    display: block;
+    margin-top: 10px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.tutorial-next-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .menu-toggle {
+        bottom: 10px;
+        right: 10px;
+        padding: 15px;
+        font-size: 1.5em;
     }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
+
+    .menu-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1em;
+    }
+
+    .control-btn {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+
+    .tutorial-message {
+        font-size: 0.9em;
+    }
+
+    .tutorial-next-btn {
+        padding: 5px 8px;
     }
 }
 
-.animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+@media (max-width: 480px) {
+    .menu-toggle {
+        bottom: 5px;
+        right: 5px;
+        padding: 10px;
+        font-size: 1.2em;
+    }
+
+    .menu-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8em;
+    }
+
+    .control-btn {
+        font-size: 14px;
+        padding: 4px 8px;
+    }
+
+    .tutorial-message {
+        font-size: 0.7em;
+    }
+
+    .tutorial-next-btn {
+        padding: 4px 6px;
+    }
 }
+
+/* Estilos para a seção de perfil de usuário */
+#user-profile {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+#user-profile h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+#user-profile ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#user-profile ul li {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para botões de compartilhamento social */
+.social-share {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.share-btn {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.share-btn:hover {
+    background-color: #0056b3;
+}
+
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
@@ -142,6 +322,8 @@ body, html {
     background-color: #4CAF50;
     width: 0;
 }
+
+
 
 .arrow-highlight {
     position: fixed;

@@ -66,7 +66,8 @@ function closeSideMenu()">&times;</span>
     <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas" onclick="loadSubMenu('inns-submenu')"><i class="fas fa-bed"></i></button>
     <button class="menu-btn" data-feature="lojas" aria-label="Lojas" onclick="loadSubMenu('shops-submenu')"><i class="fas fa-store"></i></button>
     <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
-    <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb" onclick="showInfoModal(title, content)"></i></button>
+     <button class="menu-btn" data-feature="dicas" aria-label="Dicas" onclick="showTips()"><i class="fas fa-lightbulb"></i></button>
+     
     <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
     <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
     <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="adjustMapWithLocation(); closeSideMenu(); nextTutorialStep()"><i class="fas fa-map-marker-alt"></i></button>

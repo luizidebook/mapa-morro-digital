@@ -15,7 +15,7 @@ let tutorialIsActive = false;
 let searchHistory = getLocalStorageItem('searchHistory', []);
 let achievements = getLocalStorageItem('achievements', []);
 let favorites = getLocalStorageItem('favorites', []);
-let routingControl;
+let routingControl = null;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
 
@@ -305,7 +305,8 @@ function highlightElement(element) {
     arrowHighlight.style.height = '0';
     arrowHighlight.style.borderLeft = '20px solid transparent';
     arrowHighlight.style.borderRight = '20px solid transparent';
-    arrowHighlight.style.zIndex = '100000';
+    arrowHighlight.style.borderBottom = '20px solid red';
+    arrowHighlight.style.zIndex = '999';
     arrowHighlight.style.animation = 'bounce 1s infinite';
 
     document.body.appendChild(circleHighlight);
@@ -554,32 +555,24 @@ function createRouteTo(lat, lon) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
-    routingControl = L.Routing.control({
-        waypoints: [
-            L.latLng(currentLocation.latitude, currentLocation.longitude),
-            L.latLng(lat, lon)
-        ],
-        routeWhileDragging: true,
-        createMarker: () => null, 
-        lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
-        show: false, 
-        addWaypoints: false,
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'foot',
-            options: {
-                walkingOptions: {
-                    alternatives: false,
-                    steps: true,
-                    includeMotorways: false,
-                    allowUTurns: true,
-                    avoidHighways: true,
-                    avoidTolls: true,
-                },
-            },
+    
+    // Utilize OpenRouteService API para traçar a rota
+    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
+    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}&preference=shortest&options={"avoid_features":["highways"],"avoid_polygons":{},"avoid_borders":"all","avoid_countries":[],"profile_params":{"weighting_method":"fastest","walking":{"speed":5}}}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const routeCoordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            const routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+            map.fitBounds(routeLine.getBounds());
         })
-    }).addTo(map);
+        .catch(error => {
+            console.error("Error fetching route from ORS:", error);
+            showNotification("Error fetching route. Please try again.", 'error');
+        });
 }
+
 
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
