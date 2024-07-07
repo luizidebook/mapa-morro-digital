@@ -1,198 +1,97 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morro de São Paulo Digital</title>
+    <title>Interactive Map</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="scripts.js" defer></script>
-</head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <meta name="description" content="Descrição do site Morro Digital.">
-    <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
-    <meta name="author" content="Morro Digital">
-    <meta property="og:title" content="Morro Digital">
-    <meta property="og:description" content="Descrição do site Morro Digital.">
-    <meta property="og:image" content="link_da_imagem">
-    <meta property="og:url" content="URL do site">
 </head>
 <body>
-    <div id="blocked-overlay"></div>
-    <div id="map-container">
-        <div id="map"></div>
-      <div id="assistant-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="
-function closeSideMenu()">&times;</span>
-        <div class="content"></div>
-    </div>
-</div>
-
-        <div id="welcome-modal" class="welcome-modal">
-            <div class="modal-content">
-                <p id="welcome-message"></p>
-                <h2> Seja Bem Vindo ao Morro Digital!</h2> 
-                <p> Escolha seu idioma: </p>
-                <div id="language-selection">
-                  <!-- Exemplo de botão de idioma com bandeira -->
-<button class="lang-btn" data-lang="pt">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Bandeira do Brasil" style="width:30px;height:20px;">
-</button>
-<button class="lang-btn" data-lang="es">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Bandeira da Espanha" style="width:30px;height:20px;">
-</button>
-<button class="lang-btn" data-lang="en">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg" alt="Bandeira dos Estados Unidos" style="width:30px;height:20px;">
-</button>
-<button class="lang-btn" data-lang="he">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Bandeira de Israel" style="width:30px;height:20px;">
-</button>
-
-                </div>
-            </div>
-        </div>
-<button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">&#9776;</button>
-<div id="floating-menu" class="floating-menu hidden">
-    <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos" onclick="loadSubMenu('touristSpots-submenu')"><i class="fas fa-landmark"></i></button>
-    <button class="menu-btn" data-feature="passeios" aria-label="Passeios" onclick="loadSubMenu('tours-submenu')"><i class="fas fa-walking"></i></button>
-    <button class="menu-btn" data-feature="praias" aria-label="Praias" onclick="loadSubMenu('beaches-submenu')"><i class="fas fa-umbrella-beach"></i></button>
-    <button class="menu-btn" data-feature="festas" aria-label="Festas" onclick="loadSubMenu('nightlife-submenu')"><i class="fas fa-glass-cheers"></i></button>
-    <button class="menu-btn" data-feature="restaurantes" aria-label="Restaurantes" onclick="loadSubMenu('restaurants-submenu')"><i class="fas fa-utensils"></i></button>
-    <button class="menu-btn" data-feature="pousadas" aria-label="Pousadas" onclick="loadSubMenu('inns-submenu')"><i class="fas fa-bed"></i></button>
-    <button class="menu-btn" data-feature="lojas" aria-label="Lojas" onclick="loadSubMenu('shops-submenu')"><i class="fas fa-store"></i></button>
-    <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
-     <button class="menu-btn" data-feature="dicas" aria-label="Dicas" onclick="showTips()"><i class="fas fa-lightbulb"></i></button>
-     
-    <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
-    <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
-    <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="adjustMapWithLocation(); closeSideMenu(); nextTutorialStep()"><i class="fas fa-map-marker-alt"></i></button>
-    <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
-    <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="nextTutorialStep()"></i></button>
-</div>
-
-<div id="menu" class="menu">
-    <button id="close-menu-btn" class="close-menu-btn" onclick="closeSideMenu()">X</button>
-    <div id="touristSpots-submenu" class="submenu"></div>
-    <div id="tours-submenu" class="submenu"></div>
-    <div id="beaches-submenu" class="submenu"></div>
-    <div id="nightlife-submenu" class="submenu"></div>
-    <div id="restaurants-submenu" class="submenu"></div>
-    <div id="inns-submenu" class="submenu"></div>
-    <div id="shops-submenu" class="submenu"></div>
-    <div id="emergencies-submenu" class="submenu"></div>
-    <div id="tips-submenu" class="submenu"></div>
-</div>
-
-
-        <div class="control-buttons">
-           <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()" data-translate="yes">>Sim</button>
-            <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
-            <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
-            <button id="create-itinerary-btn" class="control-btn" style="display: none;" onclick="showQuestionnaireForm(interests)">Criar Roteiro</button>
-            <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
-        </div>
-
-        <div id="info-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" aria-label="Fechar">&times;</span>
-                <div class="modal-title"></div>
-                <div class="modal-content"></div>
-            </div>
-        </div>
-
-        <div id="tutorial-overlay">
-        <div id="tutorial-progress-bar"></div>
-        <div class="tutorial-controls">
-       
+    <div id="welcome-modal" class="modal">
+        <div class="modal-content">
+            <h2 data-translate="welcome">Welcome to our site!</h2>
+            <p>Select your preferred language:</p>
+            <button class="lang-btn" data-lang="pt">Português</button>
+            <button class="lang-btn" data-lang="en">English</button>
+            <button class="lang-btn" data-lang="es">Español</button>
+            <button class="lang-btn" data-lang="he">עברית</button>
         </div>
     </div>
-    </div>
 
-<div id="tour-guide-modal" class="modal">
-    <div class="modal-content">
-        <h2 data-translate="tourGuideTitle">Sugestão de Tour Guiado</h2>
-        <p data-translate="tourGuideMessage">Gostaria de iniciar um tour guiado pelos pontos de interesse?</p>
-        <button id="start-tour-btn" class="btn" data-translate="startTour">Iniciar Tour</button>
-        <button class="btn close-btn" data-translate="noThanks">Não, Obrigado</button>
-    </div>
-</div>
-
-<div id="satisfaction-survey-modal" class="modal">
-    <div class="modal-content">
-        <h2 data-translate="surveyTitle">Pesquisa de Satisfação</h2>
-        <p data-translate="surveyMessage">Por favor, avalie seu tour:</p>
-        <div class="star-rating">
-            <!-- Adicione estrelas para avaliação -->
-            <span class="star" data-value="1">&#9733;</span>
-            <span class="star" data-value="2">&#9733;</span>
-            <span class="star" data-value="3">&#9733;</span>
-            <span class="star" data-value="4">&#9733;</span>
-            <span class="star" data-value="5">&#9733;</span>
+    <div id="assistant-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn">&times;</button>
+            <div class="modal-body"></div>
         </div>
-        <button class="btn close-btn" data-translate="submitSurvey">Enviar</button>
     </div>
-</div>
 
-<div id="activity-summary-modal" class="modal">
-    <div class="modal-content">
-        <h2 data-translate="activitySummaryTitle">Resumo das Atividades</h2>
-        <p data-translate="activitySummaryMessage">Gostaria de realizar as atividades do roteiro?</p>
-        <div id="activity-summary"></div>
-        <button class="btn" id="confirm-activities-btn" data-translate="confirmActivities">Confirmar Atividades</button>
-        <button class="btn close-btn" data-translate="noThanks">Não, Obrigado</button>
+    <div id="tutorial-modal" class="modal tutorial-modal">
+        <div class="modal-content">
+            <div class="modal-body"></div>
+        </div>
     </div>
-</div>
 
-    
-    <!-- Notificações -->
+    <div id="menu" class="sidebar">
+        <button id="close-menu-btn">&times;</button>
+        <div class="sidebar-content">
+            <!-- Dynamic content -->
+        </div>
+    </div>
+
+    <div id="floating-menu">
+        <button id="menu-btn">Menu</button>
+        <button class="menu-btn zoom-in">+</button>
+        <button class="menu-btn zoom-out">-</button>
+        <button class="menu-btn locate-user" data-feature="locate-user">Locate Me</button>
+        <button class="menu-btn" data-feature="pontos-turisticos">Pontos Turísticos</button>
+        <button class="menu-btn" data-feature="passeios">Passeios</button>
+        <button class="menu-btn" data-feature="praias">Praias</button>
+        <button class="menu-btn" data-feature="festas">Festas</button>
+        <button class="menu-btn" data-feature="restaurantes">Restaurantes</button>
+        <button class="menu-btn" data-feature="pousadas">Pousadas</button>
+        <button class="menu-btn" data-feature="lojas">Lojas</button>
+        <button class="menu-btn" data-feature="emergencias">Emergências</button>
+        <button class="menu-btn" data-feature="dicas">Dicas</button>
+        <button class="menu-btn" data-feature="sobre">Sobre</button>
+        <button class="menu-btn" data-feature="ensino">Ensino</button>
+    </div>
+
+    <div id="map" style="height: 100vh; width: 100%;"></div>
+
     <div id="notification-container"></div>
 
-    <!-- Modal de Contato -->
-        <div id="questionnaire-modal" class="modal">
-        <form id="questionnaire-form">
-            <div class="modal-content">
-                <h2>Questionário de Interesses</h2>
-                <!-- Perguntas do questionário -->
-                <div id="question-container">
-                    <label for="interest1">Qual seu interesse principal?</label>
-                    <input type="text" id="interest1" name="interest1" required>
-                    <label for="interest2">Qual seu segundo interesse?</label>
-                    <input type="text" id="interest2" name="interest2" required>
-                </div>
-                <button type="button" onclick="previousQuestion()">Anterior</button>
-                <button type="button" onclick="nextQuestion()">Próximo</button>
-                <button type="submit">Enviar</button>
-            </div>
-        </form>
+    <div id="tutorial-overlay" class="overlay">
+        <div class="control-buttons">
+            <button id="tutorial-yes-btn">Yes</button>
+            <button id="tutorial-no-btn">No</button>
+        </div>
+        <div class="tutorial-navigation">
+            <button id="tutorial-prev-btn">Previous</button>
+            <button id="tutorial-next-btn">Next</button>
+            <button id="tutorial-end-btn">End Tutorial</button>
+        </div>
+        <div id="tutorial-progress-bar" class="progress-bar"></div>
     </div>
 
-    <div id="survey-modal" class="modal">
+    <div id="info-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>Pesquisa de Satisfação</h2>
-            <!-- Conteúdo da pesquisa -->
+            <h2 class="modal-title"></h2>
+            <div class="modal-body">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </div>
 
-    <div id="feedback-modal" class="modal">
+    <div id="itinerary-form-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Enviar Feedback</h2>
-            <form id="feedback-form">
-                <textarea name="feedback" required></textarea>
-                <button type="submit">Enviar</button>
+            <form id="questionnaire-form">
+                <!-- Dynamic content -->
+                <button type="submit">Save</button>
             </form>
         </div>
     </div>
 
-<script src="scripts.js" defer></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
-

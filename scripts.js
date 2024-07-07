@@ -43,7 +43,19 @@ const translations = {
         search: "Buscar",
         favorite: "Favorito",
         yes: "Sim",
-        no: "Não"
+        no: "Não",
+        locationNotAvailable: "Localização não disponível",
+        tipsContent: `Dicas finais de Morro de São Paulo
+1. Caso viaje pelo mar, tente tomar alguns cuidados para evitar o enjoo na embarcação. Faça refeições leves antes de embarcar ou tome um remédio de enjoo, seguindo orientação médica;
+2. Leve roupas leves, protetor solar e calçados confortáveis para caminhar. O clima por lá é quente e o astral descontraído, sem formalidades, com direito a roupas frescas e chinelo sempre no pé;
+3. Procure também viajar com pouca bagagem para que o deslocamento até sua pousada seja mais fácil e sem complicações. Dê preferência para mochilas, que facilitam o transporte nas ruas de pedra e trechos de areia;
+4. Ao desembarcar em Morro de São Paulo, você verá pessoas oferecendo para carregar suas malas. Esse serviço pode ser uma boa alternativa se você tiver malas pesadas, mas é sempre bom combinar o valor previamente e não depois do serviço;
+5. Hoje em dia é possível pagar com cartão e pix diversos serviços em Morro de São Paulo, entretanto é sempre bom ter dinheiro em espécie para alguns gastos menores, em especial porque os caixas eletrônicos da ilha podem não funcionar. Sendo assim, leve dinheiro do continente e não conte com os caixas eletrônicos de Morro de São Paulo;
+6. É comum falta de luz em Morro de São Paulo. Uma lanterna não será demais;
+7. Prepare-se para caminhar… a maioria das atividades em Morro de São Paulo é feita a pé e há algumas ladeiras a vencer;
+8. O serviço médico e as farmácias de Morro de São Paulo são bem limitadas. Leve todo medicamento que considerar necessário;
+9. O sinal de celular funciona bem em Morro de São Paulo e é comum a oferta de Wi-Fi nas pousadas e restaurantes;
+10. Há a cobrança de uma taxa na chegada a Morro de São Paulo. A tarifa por uso do patrimônio do arquipélago – TUPA tem custo de R$ 50 por pessoa. Crianças com menos de 5 anos e pessoas com mais de 60 anos estão isentas da taxa. O pagamento pode ser realizado na hora do desembarque, pelo aplicativo da TUPA ou pelo site tupadigital.com.br. Em período de alta temporada ou finais de semana, recomendamos o pagamento antecipado da taxa para evitar filas.`
     },
     en: {
         welcome: "Welcome to our site!",
@@ -68,7 +80,19 @@ const translations = {
         search: "Search",
         favorite: "Favorite",
         yes: "Yes",
-        no: "No"
+        no: "No",
+        locationNotAvailable: "Location not available",
+        tipsContent: `Final tips for Morro de São Paulo
+1. If you travel by sea, take some precautions to avoid seasickness. Eat light meals before boarding or take seasickness medication following medical advice;
+2. Bring light clothes, sunscreen, and comfortable shoes for walking. The weather there is hot and the atmosphere is relaxed, with no formalities, allowing fresh clothes and flip-flops always on your feet;
+3. Also, try to travel with little luggage to make it easier to move to your inn without complications. Prefer backpacks, which facilitate transportation on cobblestone streets and sandy sections;
+4. Upon disembarking in Morro de São Paulo, you will see people offering to carry your bags. This service can be a good alternative if you have heavy bags, but it is always good to agree on the price beforehand and not after the service;
+5. Nowadays, it is possible to pay with cards and pix for various services in Morro de São Paulo, but it is always good to have cash for some minor expenses, especially since the island's ATMs may not work. So, bring cash from the mainland and do not rely on Morro de São Paulo's ATMs;
+6. Power outages are common in Morro de São Paulo. A flashlight will not be too much;
+7. Be prepared to walk... most activities in Morro de São Paulo are done on foot and there are some hills to climb;
+8. Medical services and pharmacies in Morro de São Paulo are very limited. Bring all the medication you consider necessary;
+9. The cell phone signal works well in Morro de São Paulo and Wi-Fi is commonly offered in inns and restaurants;
+10. There is a fee charged upon arrival in Morro de São Paulo. The fee for using the archipelago's heritage - TUPA costs R$ 50 per person. Children under 5 and people over 60 are exempt from the fee. Payment can be made at the time of disembarkation, through the TUPA app, or on the website tupadigital.com.br. During the high season or weekends, we recommend paying the fee in advance to avoid lines.`
     },
     es: {
         welcome: "¡Bienvenido a nuestro sitio!",
@@ -93,7 +117,19 @@ const translations = {
         search: "Buscar",
         favorite: "Favorito",
         yes: "Sí",
-        no: "No"
+        no: "No",
+        locationNotAvailable: "Ubicación no disponible",
+        tipsContent: `Consejos finales para Morro de São Paulo
+1. Si viajas por mar, toma algunas precauciones para evitar el mareo. Come comidas ligeras antes de embarcar o toma medicamentos para el mareo siguiendo el consejo médico;
+2. Lleva ropa ligera, protector solar y zapatos cómodos para caminar. El clima allí es cálido y el ambiente relajado, sin formalidades, permitiendo ropa fresca y sandalias siempre en tus pies;
+3. También, intenta viajar con poco equipaje para que sea más fácil moverte hasta tu posada sin complicaciones. Prefiere mochilas, que facilitan el transporte en calles empedradas y tramos de arena;
+4. Al desembarcar en Morro de São Paulo, verás personas ofreciendo llevar tus maletas. Este servicio puede ser una buena alternativa si tienes maletas pesadas, pero siempre es bueno acordar el precio de antemano y no después del servicio;
+5. Hoy en día es posible pagar con tarjetas y pix varios servicios en Morro de São Paulo, pero siempre es bueno tener efectivo para algunos gastos menores, especialmente porque los cajeros automáticos de la isla pueden no funcionar. Así que, lleva dinero del continente y no confíes en los cajeros automáticos de Morro de São Paulo;
+6. Los cortes de luz son comunes en Morro de São Paulo. Una linterna no estará de más;
+7. Prepárate para caminar... la mayoría de las actividades en Morro de São Paulo se realizan a pie y hay algunas colinas para subir;
+8. Los servicios médicos y las farmacias en Morro de São Paulo son muy limitados. Lleva toda la medicación que consideres necesaria;
+9. La señal de celular funciona bien en Morro de São Paulo y es común que se ofrezca Wi-Fi en las posadas y restaurantes;
+10. Se cobra una tarifa al llegar a Morro de São Paulo. La tarifa por uso del patrimonio del archipiélago - TUPA cuesta R$ 50 por persona. Los niños menores de 5 años y las personas mayores de 60 están exentos de la tarifa. El pago se puede realizar en el momento del desembarque, a través de la aplicación TUPA o en el sitio web tupadigital.com.br. Durante la temporada alta o los fines de semana, recomendamos pagar la tarifa con anticipación para evitar filas.`
     },
     he: {
         welcome: "ברוך הבא לאתר שלנו!",
@@ -118,7 +154,19 @@ const translations = {
         search: "לחפש",
         favorite: "מועדף",
         yes: "כן",
-        no: "לא"
+        no: "לא",
+        locationNotAvailable: "מיקום לא זמין",
+        tipsContent: `טיפים אחרונים למורו דה סאו פאולו
+1. אם אתה נוסע דרך הים, נקט באמצעי זהירות כדי להימנע ממחלת ים. אכול ארוחות קלות לפני העלייה לסיפון או קח תרופות למחלת ים לפי עצת רופא;
+2. הבא בגדים קלים, קרם הגנה ונעליים נוחות להליכה. מזג האוויר שם חם והאווירה רגועה, ללא פורמליות, המאפשרת בגדים קלילים וכפכפים תמיד על הרגליים;
+3. כמו כן, נסה לנסוע עם מעט מזוודות כדי להקל על המעבר לפונדק שלך ללא סיבוכים. העדיפו תרמילים, שמקלים על ההובלה ברחובות מרוצפי אבן ובקטעי חול;
+4. עם הירידה מהספינה במורו דה סאו פאולו, תראה אנשים שמציעים לשאת את התיקים שלך. שירות זה יכול להיות חלופה טובה אם יש לך תיקים כבדים, אבל תמיד כדאי להסכים על המחיר מראש ולא לאחר השירות;
+5. כיום, ניתן לשלם בכרטיסים וב-Pix עבור שירותים שונים במורו דה סאו פאולו, אך תמיד כדאי להחזיק מזומן עבור כמה הוצאות קטנות, במיוחד מכיוון שכספומטים באי עלולים לא לפעול. לכן, הביאו מזומן מהיבשת ואל תסתמכו על כספומטים של מורו דה סאו פאולו;
+6. הפסקות חשמל נפוצות במורו דה סאו פאולו. פנס לא יהיה יותר מדי;
+7. היו מוכנים ללכת... רוב הפעילויות במורו דה סאו פאולו נעשות ברגל ויש כמה גבעות לטפס עליהן;
+8. שירותים רפואיים ובתי מרקחת במורו דה סאו פאולו מוגבלים מאוד. הביאו את כל התרופות שאתם רואים לנכון;
+9. קליטת הסלולר פועלת היטב במורו דה סאו פאולו ונפוץ להציע Wi-Fi בפונדקים ובמסעדות;
+10. יש תשלום שנגבה עם ההגעה למורו דה סאו פאולו. האגרה על השימוש במורשת הארכיפלג - TUPA עולה 50 ריאל לאדם. ילדים מתחת לגיל 5 ואנשים מעל גיל 60 פטורים מהאגרה. ניתן לשלם בזמן הירידה, דרך אפליקציית TUPA או באתר tupadigital.com.br. בעונת השיא או בסופי שבוע, אנו ממליצים לשלם את האגרה מראש כדי להימנע מתורים.`
     }
 };
 
@@ -232,6 +280,8 @@ function setupEventListeners() {
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
 }
 
 function showNotification(message, type = 'success') {
@@ -305,7 +355,6 @@ function highlightElement(element) {
     arrowHighlight.style.height = '0';
     arrowHighlight.style.borderLeft = '20px solid transparent';
     arrowHighlight.style.borderRight = '20px solid transparent';
-    arrowHighlight.style.borderBottom = '20px solid red';
     arrowHighlight.style.zIndex = '999';
     arrowHighlight.style.animation = 'bounce 1s infinite';
 
@@ -451,12 +500,19 @@ function handleFeatureSelection(feature) {
         document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
         currentSubMenu = null;
     } else {
-        loadSubMenu(subMenuId);
-        document.getElementById('menu').style.display = 'block';
-        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
-        document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
-        document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
-        currentSubMenu = subMenuId;
+        if (feature === 'dicas') {
+            showTips();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
+                nextTutorialStep();
+            }
+        } else {
+            loadSubMenu(subMenuId);
+            document.getElementById('menu').style.display = 'block';
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
+            document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
+            document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
+            currentSubMenu = subMenuId;
+        }
     }
 }
 
@@ -699,6 +755,7 @@ const tutorialSteps = [
         action: () => {
             const element = document.querySelector('#menu-btn');
             highlightElement(element);
+            showTutorialModal(translations[selectedLanguage].tutorialSteps.startTutorial);
         }
     },
     {
@@ -713,6 +770,7 @@ const tutorialSteps = [
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="pontos-turisticos"]');
             highlightElement(element);
+            showTutorialModal(translations[selectedLanguage].tutorialSteps.pontosTuristicos);
         }
     },
     {
@@ -945,6 +1003,25 @@ function hideAssistantModal() {
     modal.style.display = 'none';
 }
 
+function showTutorialModal(message) {
+    const modal = document.getElementById('tutorial-modal');
+    const modalContent = modal.querySelector('.modal-body');
+    modalContent.innerHTML = `<p>${message}</p>`;
+    modal.style.display = 'block';
+    modal.style.fontSize = '14px'; // Smaller font size for tutorial messages
+    setTimeout(() => {
+        modal.style.opacity = 1;
+    }, 10);
+}
+
+function hideTutorialModal() {
+    const modal = document.getElementById('tutorial-modal');
+    modal.style.opacity = 0;
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
         currentStep++;
@@ -1168,6 +1245,46 @@ function showQuestionnaireForm(interests) {
         </label>
     `).join('');
     formContainer.style.display = 'block';
+}
+
+function showTips() {
+    const tipsContent = `
+        <h2>Dicas finais de Morro de São Paulo</h2>
+        <ol>
+            <li>
+                Caso viaje pelo mar, tente tomar alguns cuidados para evitar o enjoo na embarcação. Faça refeições leves antes de embarcar ou tome um remédio de enjoo, seguindo orientação médica;
+            </li>
+            <li>
+                Leve roupas leves, protetor solar e calçados confortáveis para caminhar. O clima por lá é quente e o astral descontraído, sem formalidades, com direito a roupas frescas e chinelo sempre no pé;
+            </li>
+            <li>
+                Procure também viajar com pouca bagagem para que o deslocamento até sua pousada seja mais fácil e sem complicações. Dê preferência para mochilas, que facilitam o transporte nas ruas de pedra e trechos de areia;
+            </li>
+            <li>
+                Ao desembarcar em Morro de São Paulo, você verá pessoas oferecendo para carregar suas malas. Esse serviço pode ser uma boa alternativa se você tiver malas pesadas, mas é sempre bom combinar o valor previamente e não depois do serviço;
+            </li>
+            <li>
+                Hoje em dia é possível pagar com cartão e pix diversos serviços em Morro de São Paulo, entretanto é sempre bom ter dinheiro em espécie para alguns gastos menores, em especial porque os caixas eletrônicos da ilha podem não funcionar. Sendo assim, leve dinheiro do continente e não conte com os caixas eletrônicos de Morro de São Paulo;
+            </li>
+            <li>
+                É comum falta de luz em Morro de São Paulo. Uma lanterna não será demais;
+            </li>
+            <li>
+                Prepare-se para caminhar… a maioria das atividades em Morro de São Paulo é feita a pé e há algumas ladeiras a vencer;
+            </li>
+            <li>
+                O serviço médico e as farmácias de Morro de São Paulo são bem limitadas. Leve todo medicamento que considerar necessário;
+            </li>
+            <li>
+                O sinal de celular funciona bem em Morro de São Paulo e é comum a oferta de Wi-Fi nas pousadas e restaurantes;
+            </li>
+            <li>
+                Há a cobrança de uma taxa na chegada a Morro de São Paulo. A tarifa por uso do patrimônio do arquipélago – TUPA tem custo de R$ 50 por pessoa. Crianças com menos de 5 anos e pessoas com mais de 60 anos estão isentas da taxa. O pagamento pode ser realizado na hora do desembarque, pelo aplicativo da TUPA ou pelo site tupadigital.com.br. Em período de alta temporada ou finais de semana, recomendamos o pagamento antecipado da taxa para evitar filas.
+            </li>
+        </ol>
+    `;
+    updateAssistantModalContent(tipsContent);
+    document.getElementById('assistant-modal').style.display = 'block';
 }
 
 document.getElementById('create-itinerary-btn').addEventListener('click', () => {
