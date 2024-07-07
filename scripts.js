@@ -555,24 +555,22 @@ function createRouteTo(lat, lon) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
-    
-    // Utilize OpenRouteService API para traçar a rota
-    const apiKey = 'SPpJlh8xSR-sOCuXeGrXPSpjGK03T4J-qVLw9twXy7s';
-    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${currentLocation.longitude},${currentLocation.latitude}&end=${lon},${lat}&preference=shortest&options={"avoid_features":["highways"],"avoid_polygons":{},"avoid_borders":"all","avoid_countries":[],"profile_params":{"weighting_method":"fastest","walking":{"speed":5}}}`;
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            const routeCoordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-            const routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
-            map.fitBounds(routeLine.getBounds());
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(currentLocation.latitude, currentLocation.longitude),
+            L.latLng(lat, lon)
+        ],
+        routeWhileDragging: true,
+        createMarker: () => null, 
+        lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
+        show: false, 
+        addWaypoints: false,
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'foot'
         })
-        .catch(error => {
-            console.error("Error fetching route from ORS:", error);
-            showNotification("Error fetching route. Please try again.", 'error');
-        });
+    }).addTo(map);
 }
-
 
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
