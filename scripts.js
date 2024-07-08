@@ -355,7 +355,7 @@ function highlightElement(element) {
     arrowHighlight.style.height = '0';
     arrowHighlight.style.borderLeft = '20px solid transparent';
     arrowHighlight.style.borderRight = '20px solid transparent';
-    arrowHighlight.style.zIndex = '999';
+    arrowHighlight.style.zIndex = '99999';
     arrowHighlight.style.animation = 'bounce 1s infinite';
 
     document.body.appendChild(circleHighlight);
@@ -1001,25 +1001,6 @@ function showTutorialStep(step) {
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
     modal.style.display = 'none';
-}
-
-function showTutorialModal(message) {
-    const modal = document.getElementById('tutorial-modal');
-    const modalContent = modal.querySelector('.modal-body');
-    modalContent.innerHTML = `<p>${message}</p>`;
-    modal.style.display = 'block';
-    modal.style.fontSize = '14px'; // Smaller font size for tutorial messages
-    setTimeout(() => {
-        modal.style.opacity = 1;
-    }, 10);
-}
-
-function hideTutorialModal() {
-    const modal = document.getElementById('tutorial-modal');
-    modal.style.opacity = 0;
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
 }
 
 function nextTutorialStep() {
