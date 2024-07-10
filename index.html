@@ -9,10 +9,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="scripts.js" defer></script>
-</head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
     <meta name="author" content="Morro Digital">
@@ -25,14 +22,18 @@
     <div id="blocked-overlay"></div>
     <div id="map-container">
         <div id="map"></div>
-      <div id="assistant-modal" class="modal">
+<!-- Modal do Assistente -->
+<div id="assistant-modal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="
-function closeSideMenu()">&times;</span>
-        <div class="content"></div>
+        <span class="close-btn" onclick="hideModal('assistant-modal')">&times;</span>
+        <div id="assistant-modal-text"></div>
+        <div id="carousel" class="carousel">
+            <div class="carousel-item active"><img src="img1.jpg" alt="Image 1"></div>
+            <div class="carousel-item"><img src="img2.jpg" alt="Image 2"></div>
+            <div class="carousel-item"><img src="img3.jpg" alt="Image 3"></div>
+        </div>
     </div>
 </div>
-
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
@@ -74,6 +75,22 @@ function closeSideMenu()">&times;</span>
     <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="nextTutorialStep()"></i></button>
 </div>
 
+<div id="route-planner">
+    <h2>Planejador de Rotas</h2>
+    <input type="text" id="start-location" placeholder="Local de Partida">
+    <input type="text" id="end-location" placeholder="Local de Destino">
+    <button onclick="calculateRoute()">Calcular Rota</button>
+    <div id="route-directions"></div>
+</div>
+
+
+<div id="ai-trip-planner">
+    <h2>Assistente de Planejamento de Viagem</h2>
+    <button onclick="planTripWithAI()">Planejar com IA</button>
+    <div id="ai-trip-plan"></div>
+</div>
+
+
 <div id="menu" class="menu">
     <button id="close-menu-btn" class="close-menu-btn" onclick="closeSideMenu()">X</button>
     <div id="touristSpots-submenu" class="submenu"></div>
@@ -95,7 +112,7 @@ function closeSideMenu()">&times;</span>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
             <button id="create-itinerary-btn" class="control-btn" style="display: none;" onclick="showQuestionnaireForm(interests)">Criar Roteiro</button>
-            <button class="control-btn" id="generate-itinerary-btn" style="display: none;">Gerar Roteiro</button>
+            <button class="control-btn" id="generate-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Gerar Roteiro</button>
         </div>
 
         <div id="info-modal" class="modal">

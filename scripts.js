@@ -7,17 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let map;
-let currentSubMenu = null;
-let currentLocation = null;
+let currentSubMenu;
+let currentLocation;
 let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt');
 let currentStep = 0;
 let tutorialIsActive = false;
 let searchHistory = getLocalStorageItem('searchHistory', []);
 let achievements = getLocalStorageItem('achievements', []);
 let favorites = getLocalStorageItem('favorites', []);
-let routingControl = null;
+let routingControl;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
+
+const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
 const translations = {
     pt: {
@@ -127,7 +129,7 @@ const translations = {
 5. Hoy en día es posible pagar con tarjetas y pix varios servicios en Morro de São Paulo, pero siempre es bueno tener efectivo para algunos gastos menores, especialmente porque los cajeros automáticos de la isla pueden no funcionar. Así que, lleva dinero del continente y no confíes en los cajeros automáticos de Morro de São Paulo;
 6. Los cortes de luz son comunes en Morro de São Paulo. Una linterna no estará de más;
 7. Prepárate para caminar... la mayoría de las actividades en Morro de São Paulo se realizan a pie y hay algunas colinas para subir;
-8. Los servicios médicos y las farmacias en Morro de São Paulo son muy limitados. Lleva toda la medicación que consideres necesaria;
+8. Los servicios médicos y las farmacias en Morro de São Paulo son muy limitadas. Lleva toda la medicación que consideres necesaria;
 9. La señal de celular funciona bien en Morro de São Paulo y es común que se ofrezca Wi-Fi en las posadas y restaurantes;
 10. Se cobra una tarifa al llegar a Morro de São Paulo. La tarifa por uso del patrimonio del archipiélago - TUPA cuesta R$ 50 por persona. Los niños menores de 5 años y las personas mayores de 60 están exentos de la tarifa. El pago se puede realizar en el momento del desembarque, a través de la aplicación TUPA o en el sitio web tupadigital.com.br. Durante la temporada alta o los fines de semana, recomendamos pagar la tarifa con anticipación para evitar filas.`
     },
@@ -227,13 +229,13 @@ function setupEventListeners() {
     });
 
     document.querySelector('.menu-btn.locate-user').addEventListener('click', () => {
-        requestLocationPermission().then(() => {
+        updateLocation().then(() => {
             closeSideMenu();
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
                 nextTutorialStep();
             }
         }).catch(error => {
-            console.error("Erro ao solicitar permissão de localização:", error);
+            console.error("Erro ao atualizar localização:", error);
         });
     });
 
@@ -253,12 +255,12 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
-            requestLocationPermission().then(() => {
+            updateLocation().then(() => {
                 loadSearchHistory();
                 checkAchievements();
                 loadFavorites();
             }).catch(error => {
-                console.error("Erro ao solicitar permissão de localização:", error);
+                console.error("Erro ao atualizar localização:", error);
             });
         });
     });
@@ -381,12 +383,12 @@ function setLanguage(lang) {
     selectedLanguage = lang;
     translatePageContent(lang);
     document.getElementById('welcome-modal').style.display = 'none';
-    requestLocationPermission().then(() => {
+    updateLocation().then(() => {
         loadSearchHistory();
         checkAchievements();
         loadFavorites();
     }).catch(error => {
-        console.error("Erro ao solicitar permissão de localização:", error);
+        console.error("Erro ao atualizar localização:", error);
     });
 }
 
@@ -419,11 +421,8 @@ function activateAssistant() {
     showWelcomeMessage();
 }
 
-function requestLocationPermission() {
+function updateLocation() {
     return new Promise((resolve, reject) => {
-        const assistantModal = document.getElementById('assistant-modal');
-        assistantModal.classList.add('location-permission');
-
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 currentLocation = {
@@ -435,7 +434,6 @@ function requestLocationPermission() {
                     .setLatLng([currentLocation.latitude, currentLocation.longitude])
                     .setContent(translations[selectedLanguage].youAreHere)
                     .openOn(map);
-                assistantModal.classList.remove('location-permission');
                 if (!tutorialIsActive) {
                     showTutorialStep('start-tutorial');
                 }
@@ -443,7 +441,6 @@ function requestLocationPermission() {
                 resolve();
             }, () => {
                 console.log(translations[selectedLanguage].locationPermissionDenied);
-                assistantModal.classList.remove('location-permission');
                 if (!tutorialIsActive) {
                     showTutorialStep('start-tutorial');
                 }
@@ -451,20 +448,12 @@ function requestLocationPermission() {
             });
         } else {
             console.log(translations[selectedLanguage].geolocationNotSupported);
-            assistantModal.classList.remove('location-permission');
             if (!tutorialIsActive) {
                 showTutorialStep('start-tutorial');
             }
             reject();
         }
     });
-}
-
-function startTutorial() {
-    currentStep = 1;
-    tutorialIsActive = true;
-    showTutorialStep(tutorialSteps[currentStep].step);
-    document.getElementById('tutorial-overlay').style.display = 'flex';
 }
 
 function adjustMapWithLocation(lat, lon) {
@@ -500,19 +489,12 @@ function handleFeatureSelection(feature) {
         document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
         currentSubMenu = null;
     } else {
-        if (feature === 'dicas') {
-            showTips();
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'dicas') {
-                nextTutorialStep();
-            }
-        } else {
-            loadSubMenu(subMenuId);
-            document.getElementById('menu').style.display = 'block';
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
-            document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
-            document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
-            currentSubMenu = subMenuId;
-        }
+        loadSubMenu(subMenuId);
+        document.getElementById('menu').style.display = 'block';
+        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
+        document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
+        document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
+        currentSubMenu = subMenuId;
     }
 }
 
@@ -547,7 +529,6 @@ async function fetchOSMData(query) {
         return null;
     }
 }
-
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; 
@@ -556,7 +537,7 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => createRouteTo(element.lat, element.lon);
+            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível', element.tags.images || []);
             subMenu.appendChild(btn);
         }
     });
@@ -564,10 +545,10 @@ function displayOSMData(data, subMenuId) {
 
 function displayCustomTours() {
     const tours = [
-        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3800, lon: -38.9100 },
-        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3600, lon: -38.9400 },
-        { name: "Passeio 4X4 para Garapuá", lat: -13.3500, lon: -38.9500 },
-        { name: "Passeio de Barco para Gamboa", lat: -13.3700, lon: -38.9000 }
+        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3800, lon: -38.9100, description: "Descrição do passeio de lancha Volta a Ilha de Tinharé", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3600, lon: -38.9400, description: "Descrição do passeio de quadriciclo para Garapuá", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio 4X4 para Garapuá", lat: -13.3500, lon: -38.9500, description: "Descrição do passeio 4X4 para Garapuá", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio de Barco para Gamboa", lat: -13.3700, lon: -38.9000, description: "Descrição do passeio de barco para Gamboa", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('tours-submenu');
@@ -577,17 +558,17 @@ function displayCustomTours() {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = tour.name;
-        btn.onclick = () => createRouteTo(tour.lat, tour.lon);
+        btn.onclick = () => handleSubmenuButtonClick(tour.lat, tour.lon, tour.name, tour.description, tour.images);
         subMenu.appendChild(btn);
     });
 }
 
 function displayCustomEmergencies() {
     const emergencies = [
-        { name: "Ambulância", lat: -13.3800, lon: -38.9100 },
-        { name: "Unidade de Saúde", lat: -13.3600, lon: -38.9400 },
-        { name: "Polícia Cívil", lat: -13.3500, lon: -38.9500 },
-        { name: "Polícia Militar", lat: -13.3700, lon: -38.9000 }
+        { name: "Ambulância", lat: -13.3800, lon: -38.9100, description: "Serviço de ambulância", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Unidade de Saúde", lat: -13.3600, lon: -38.9400, description: "Unidade de saúde local", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Polícia Cívil", lat: -13.3500, lon: -38.9500, description: "Delegacia da Polícia Cívil", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Polícia Militar", lat: -13.3700, lon: -38.9000, description: "Posto da Polícia Militar", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('emergencies-submenu');
@@ -597,35 +578,77 @@ function displayCustomEmergencies() {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = emergency.name;
-        btn.onclick = () => createRouteTo(emergency.lat, emergency.lon);
+        btn.onclick = () => handleSubmenuButtonClick(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images);
         subMenu.appendChild(btn);
     });
 }
 
-function createRouteTo(lat, lon) {
-    if (!currentLocation) {
-        console.log(translations[selectedLanguage].locationNotAvailable);
-        return;
-    }
 
+function handleSubmenuButtonClick(lat, lon, name, description, images) {
+    createRouteTo([lat, lon]);
+    showLocationDetailsInModal(name, description, images);
+}
+
+function showLocationDetailsInModal(name, description, images) {
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    modalContent.innerHTML = `
+        <h2>${name}</h2>
+        <p>${description}</p>
+        <div class="carousel">
+            ${images.map((img, index) => `
+                <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                    <img src="${img}" alt="${name} Image ${index + 1}">
+                </div>
+            `).join('')}
+        </div>
+        <button id="close-assistant-modal" class="close-btn">Fechar</button>
+    `;
+    showModal('assistant-modal');
+
+    document.getElementById('close-assistant-modal').addEventListener('click', () => {
+        hideModal('assistant-modal');
+    });
+
+    initializeCarousel();
+}
+
+function initializeCarousel() {
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    let currentItemIndex = 0;
+
+    setInterval(() => {
+        carouselItems[currentItemIndex].classList.remove('active');
+        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
+        carouselItems[currentItemIndex].classList.add('active');
+    }, 3000);
+}
+
+
+function createRouteTo(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
     routingControl = L.Routing.control({
         waypoints: [
-            L.latLng(currentLocation.latitude, currentLocation.longitude),
-            L.latLng(lat, lon)
+            L.latLng(map.getCenter()),
+            L.latLng(destination)
         ],
-        routeWhileDragging: true,
-        createMarker: () => null, 
-        lineOptions: { styles: [{ color: '#6FA1EC', weight: 4 }] },
-        show: false, 
-        addWaypoints: false,
-        router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'foot'
-        })
+        routeWhileDragging: true
     }).addTo(map);
+}
+
+function showLocationInfoModal(name) {
+    const modalContent = `
+        <h2>${name}</h2>
+        <div class="carousel">
+            <div class="carousel-item active"><img src="path/to/image1.jpg" alt="${name} image 1"></div>
+            <div class="carousel-item"><img src="path/to/image2.jpg" alt="${name} image 2"></div>
+            <div class="carousel-item"><img src="path/to/image3.jpg" alt="${name} image 3"></div>
+        </div>
+        <p>${translations[selectedLanguage].detailedInfo} ${name}</p>
+    `;
+    updateAssistantModalContent(modalContent);
+    initializeCarousel();
 }
 
 function showInfoModal(title, content) {
@@ -755,7 +778,6 @@ const tutorialSteps = [
         action: () => {
             const element = document.querySelector('#menu-btn');
             highlightElement(element);
-            showTutorialModal(translations[selectedLanguage].tutorialSteps.startTutorial);
         }
     },
     {
@@ -770,7 +792,6 @@ const tutorialSteps = [
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="pontos-turisticos"]');
             highlightElement(element);
-            showTutorialModal(translations[selectedLanguage].tutorialSteps.pontosTuristicos);
         }
     },
     {
@@ -1271,3 +1292,15 @@ function showTips() {
 document.getElementById('create-itinerary-btn').addEventListener('click', () => {
     showModal('questionnaire-modal');
 });
+
+
+function calculateRoute() {
+    const start = document.getElementById('start-location').value;
+    const end = document.getElementById('end-location').value;
+    fetch(`https://api.example.com/route?start=${start}&end=${end}`)
+        .then(response => response.json())
+        .then(directions => {
+            const directionsContainer = document.getElementById('route-directions');
+            directionsContainer.innerHTML = `<h3>Direções</h3><p>${directions.steps}</p>`;
+        });
+}
