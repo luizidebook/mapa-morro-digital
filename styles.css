@@ -122,11 +122,14 @@ body, html {
 }
 
 .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
+    position: fixed;
+    top: 1px;
+    right: 151px;
+    background-color: #fff;
+    border: none;
+    font-size: 13px;
     cursor: pointer;
-    font-size: 20px;
+    z-index: 1000;
 }
 
 /* Estilos para mensagens do tutorial */
@@ -468,10 +471,25 @@ body, html {
 }
 
 .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
+    position: fixed;
+    top: 1px;
+    right: 151px;
+    background-color: #fff;
+    border: none;
+    font-size: 13px;
     cursor: pointer;
+    z-index: 1000;
+}
+
+.close-menu-btn {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    background-color: #fff;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 1000;
 }
 
 .menu-toggle {
@@ -603,12 +621,12 @@ body, html {
 }
 
 .close-menu-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    position: fixed;
+    top: 5px;
+    right: 5px;
     background-color: #fff;
     border: none;
-    font-size: 20px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 1000;
 }
@@ -664,12 +682,12 @@ body, html {
 }
 
 .close-menu-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    position: fixed;
+    top: 5px;
+    right: 5px;
     background-color: #fff;
     border: none;
-    font-size: 20px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 1000;
 }
@@ -722,11 +740,11 @@ h2 {
 
 .close-menu-btn {
     position: fixed;
-    top: 1px;
-    right: 151px;
+    top: 5px;
+    right: 5px;
     background-color: #fff;
     border: none;
-    font-size: 10px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 1000;
 }
@@ -803,7 +821,7 @@ h2 {
 }
 
 .modal-content h2 {
-    font-size: 24px;
+    font-size: 35px;
     margin-bottom: 15px;
 }
 

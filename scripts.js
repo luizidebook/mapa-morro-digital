@@ -180,7 +180,9 @@ const queries = {
     'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
     'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
     'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;',
-    'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;'
+    'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
+    'tips-submenu': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;', // Adicionei a query para o submenu tips-submenu
+    'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;' // Adicionei a query para o submenu about-submenu
 };
 
 function getLocalStorageItem(key, defaultValue) {
@@ -200,7 +202,7 @@ function setupEventListeners() {
     const floatingMenu = document.getElementById('floating-menu');
     const tutorialBtn = document.getElementById('tutorial-btn');
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
-    
+
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
     });
@@ -232,7 +234,6 @@ function setupEventListeners() {
         updateLocation().then(() => {
             closeSideMenu();
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
-                nextTutorialStep();
             }
         }).catch(error => {
             console.error("Erro ao atualizar localização:", error);
@@ -283,7 +284,13 @@ function setupEventListeners() {
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
+        showTips();
+    });
+
+    document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
+        showAbout();
+    });
 }
 
 function showNotification(message, type = 'success') {
@@ -314,6 +321,11 @@ function hideModal(modalId) {
     setTimeout(() => {
         modal.classList.remove('visible');
     }, 300);
+    document.getElementById('tutorial-overlay').style.display = 'none';
+    tutorialIsActive = false;
+    removeExistingHighlights();
+    document.querySelector('.control-buttons').style.display = 'none';
+    hideAssistantModal();
 }
 
 function showInfoInSidebar(title, content) {
@@ -506,6 +518,10 @@ function loadSubMenu(subMenuId) {
         displayCustomTours();
     } else if (subMenuId === 'emergencies-submenu') {
         displayCustomEmergencies();
+    } else if (subMenuId === 'tips-submenu') {
+        displayCustomTips();
+    } else if (subMenuId === 'about-submenu') {
+        displayCustomAbout();
     } else {
         fetchOSMData(queries[subMenuId]).then(data => {
             if (data) {
@@ -529,6 +545,7 @@ async function fetchOSMData(query) {
         return null;
     }
 }
+
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; 
@@ -565,10 +582,10 @@ function displayCustomTours() {
 
 function displayCustomEmergencies() {
     const emergencies = [
-        { name: "Ambulância", lat: -13.3800, lon: -38.9100, description: "Serviço de ambulância", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Unidade de Saúde", lat: -13.3600, lon: -38.9400, description: "Unidade de saúde local", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Polícia Cívil", lat: -13.3500, lon: -38.9500, description: "Delegacia da Polícia Cívil", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Polícia Militar", lat: -13.3700, lon: -38.9000, description: "Posto da Polícia Militar", images: ["image1.jpg", "image2.jpg"] }
+        { name: "Ambulância", lat: -13.3800, lon: -38.9100, description: "Serviço de ambulância: +55 75-99894-5017", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Unidade de Saúde", lat: -13.3600, lon: -38.9400, description: "Unidade de saúde local: +55 75-3652-1798", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Polícia Cívil", lat: -13.3500, lon: -38.9500, description: "Delegacia da Polícia Cívil: +55 75-3652-1645", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Polícia Militar", lat: -13.3700, lon: -38.9000, description: "Posto da Polícia Militar: +55 75-99925-0856", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('emergencies-submenu');
@@ -583,6 +600,56 @@ function displayCustomEmergencies() {
     });
 }
 
+function displayCustomTips() {
+    const tips = [
+        { name: "Melhores Pontos Turísticos", lat: -13.3700, lon: -38.9000, description: "Descrição dos melhores pontos turísticos", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Passeios", lat: -13.3600, lon: -38.9400, description: "Descrição dos melhores passeios", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Praias", lat: -13.3500, lon: -38.9500, description: "Descrição das melhores praias", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Restaurantes", lat: -13.3800, lon: -38.9100, description: "Descrição dos melhores restaurantes", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Pousadas", lat: -13.3700, lon: -38.9000, description: "Descrição das melhores pousadas", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Lojas", lat: -13.3600, lon: -38.9400, description: "Descrição das melhores lojas", images: ["image1.jpg", "image2.jpg"] }
+    ];
+
+    const subMenu = document.getElementById('tips-submenu');
+    subMenu.innerHTML = '';
+    
+    tips.forEach(tip => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item';
+        btn.textContent = tip.name;
+        btn.onclick = () => handleSubmenuButtonClick(tip.lat, tip.lon, tip.name, tip.description, tip.images);
+        subMenu.appendChild(btn);
+    });
+}
+
+function displayCustomAbout() {
+    const about = [
+        { name: "Missão", lat: -13.3700, lon: -38.9000, description: "Descrição da missão", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Serviços", lat: -13.3600, lon: -38.9400, description: "Descrição dos serviços", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Turistas", lat: -13.3500, lon: -38.9500, description: "Descrição dos benefícios para turistas", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Moradores", lat: -13.3800, lon: -38.9100, description: "Descrição dos benefícios para moradores", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Pousadas", lat: -13.3700, lon: -38.9000, description: "Descrição dos benefícios para pousadas", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Restaurantes", lat: -13.3600, lon: -38.9400, description: "Descrição dos benefícios para restaurantes", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Agências de Turismo", lat: -13.3500, lon: -38.9500, description: "Descrição dos benefícios para agências de turismo", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Lojas e Comércios", lat: -13.3800, lon: -38.9100, description: "Descrição dos benefícios para lojas e comércios", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Transportes", lat: -13.3700, lon: -38.9000, description: "Descrição dos benefícios para transportes", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Impacto em MSP", lat: -13.3600, lon: -38.9400, description: "Descrição do impacto em MSP", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Impacto na Bahia", lat: -13.3500, lon: -38.9500, description: "Descrição do impacto na Bahia", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Impacto no Brasil", lat: -13.3800, lon: -38.9100, description: "Descrição do impacto no Brasil", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Impacto no Mundo", lat: -13.3700, lon: -38.9000, description: "Descrição do impacto no mundo", images: ["image1.jpg", "image2.jpg"] }
+    ];
+
+    const subMenu = document.getElementById('about-submenu');
+    subMenu.innerHTML = '';
+    
+    about.forEach(info => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item';
+        btn.textContent = info.name;
+        btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+        subMenu.appendChild(btn);
+    });
+}
 
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
     createRouteTo([lat, lon]);
@@ -601,7 +668,7 @@ function showLocationDetailsInModal(name, description, images) {
                 </div>
             `).join('')}
         </div>
-        <button id="close-assistant-modal" class="close-btn">Fechar</button>
+        <button id="close-menu-btn" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
     `;
     showModal('assistant-modal');
 
@@ -623,14 +690,13 @@ function initializeCarousel() {
     }, 3000);
 }
 
-
 function createRouteTo(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
     }
     routingControl = L.Routing.control({
         waypoints: [
-            L.latLng(map.getCenter()),
+            L.latLng(currentLocation.latitude, currentLocation.longitude),
             L.latLng(destination)
         ],
         routeWhileDragging: true
@@ -1250,57 +1316,19 @@ function showQuestionnaireForm(interests) {
 }
 
 function showTips() {
-    const tipsContent = `
-        <h2>Dicas finais de Morro de São Paulo</h2>
-        <ol>
-            <li>
-                Caso viaje pelo mar, tente tomar alguns cuidados para evitar o enjoo na embarcação. Faça refeições leves antes de embarcar ou tome um remédio de enjoo, seguindo orientação médica;
-            </li>
-            <li>
-                Leve roupas leves, protetor solar e calçados confortáveis para caminhar. O clima por lá é quente e o astral descontraído, sem formalidades, com direito a roupas frescas e chinelo sempre no pé;
-            </li>
-            <li>
-                Procure também viajar com pouca bagagem para que o deslocamento até sua pousada seja mais fácil e sem complicações. Dê preferência para mochilas, que facilitam o transporte nas ruas de pedra e trechos de areia;
-            </li>
-            <li>
-                Ao desembarcar em Morro de São Paulo, você verá pessoas oferecendo para carregar suas malas. Esse serviço pode ser uma boa alternativa se você tiver malas pesadas, mas é sempre bom combinar o valor previamente e não depois do serviço;
-            </li>
-            <li>
-                Hoje em dia é possível pagar com cartão e pix diversos serviços em Morro de São Paulo, entretanto é sempre bom ter dinheiro em espécie para alguns gastos menores, em especial porque os caixas eletrônicos da ilha podem não funcionar. Sendo assim, leve dinheiro do continente e não conte com os caixas eletrônicos de Morro de São Paulo;
-            </li>
-            <li>
-                É comum falta de luz em Morro de São Paulo. Uma lanterna não será demais;
-            </li>
-            <li>
-                Prepare-se para caminhar… a maioria das atividades em Morro de São Paulo é feita a pé e há algumas ladeiras a vencer;
-            </li>
-            <li>
-                O serviço médico e as farmácias de Morro de São Paulo são bem limitadas. Leve todo medicamento que considerar necessário;
-            </li>
-            <li>
-                O sinal de celular funciona bem em Morro de São Paulo e é comum a oferta de Wi-Fi nas pousadas e restaurantes;
-            </li>
-            <li>
-                Há a cobrança de uma taxa na chegada a Morro de São Paulo. A tarifa por uso do patrimônio do arquipélago – TUPA tem custo de R$ 50 por pessoa. Crianças com menos de 5 anos e pessoas com mais de 60 anos estão isentas da taxa. O pagamento pode ser realizado na hora do desembarque, pelo aplicativo da TUPA ou pelo site tupadigital.com.br. Em período de alta temporada ou finais de semana, recomendamos o pagamento antecipado da taxa para evitar filas.
-            </li>
-        </ol>
-    `;
-    updateAssistantModalContent(tipsContent);
-    document.getElementById('assistant-modal').style.display = 'block';
+    const modal = document.getElementById('tips-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const tips = translations[selectedLanguage].tipsContent;
+    
+    modalContent.innerHTML = `<pre>${tips}</pre>`;
+    modal.style.display = 'block';
 }
 
-document.getElementById('create-itinerary-btn').addEventListener('click', () => {
-    showModal('questionnaire-modal');
-});
-
-
-function calculateRoute() {
-    const start = document.getElementById('start-location').value;
-    const end = document.getElementById('end-location').value;
-    fetch(`https://api.example.com/route?start=${start}&end=${end}`)
-        .then(response => response.json())
-        .then(directions => {
-            const directionsContainer = document.getElementById('route-directions');
-            directionsContainer.innerHTML = `<h3>Direções</h3><p>${directions.steps}</p>`;
-        });
+function showAbout() {
+    const modal = document.getElementById('about-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const about = translations[selectedLanguage].aboutContent;
+    
+    modalContent.innerHTML = `<pre>${about}</pre>`;
+    modal.style.display = 'block';
 }
