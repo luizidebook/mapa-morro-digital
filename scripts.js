@@ -181,9 +181,9 @@ const queries = {
     'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
     'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;',
     'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
-    'tips-submenu': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;', // Adicionei a query para o submenu tips-submenu
-    'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;', // Adicionei a query para o submenu about-submenu
-    'education-submenu': '[out:json];node["education"](around:10000,-13.376,-38.913);out body;' // Adicionei a query para o submenu education-submenu
+    'tips-submenu': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;',
+    'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;',
+    'education-submenu': '[out:json];node["education"](around:10000,-13.376,-38.913);out body;'
 };
 
 function getLocalStorageItem(key, defaultValue) {
@@ -287,6 +287,7 @@ function setupEventListeners() {
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
+    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 }
 
 function showNotification(message, type = 'success') {
@@ -374,7 +375,7 @@ function highlightElement(element) {
 
 function removeExistingHighlights() {
     document.querySelectorAll('.arrow-highlight').forEach(el => el.remove());
-    document.querySelectorAll('.circle-highlight').forEach(el.remove());
+    document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
 }
 
 function showWelcomeMessage() {
@@ -718,7 +719,8 @@ function createRouteTo(destination) {
             L.latLng(currentLocation.latitude, currentLocation.longitude),
             L.latLng(destination)
         ],
-        routeWhileDragging: true
+        routeWhileDragging: true,
+        position: 'topleft'
     }).addTo(map);
 }
 
@@ -1171,17 +1173,6 @@ function speakText(text) {
     speechSynthesis.speak(utterance);
 }
 
-function initializeCarousel() {
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    let currentItemIndex = 0;
-
-    setInterval(() => {
-        carouselItems[currentItemIndex].classList.remove('active');
-        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
-        carouselItems[currentItemIndex].classList.add('active');
-    }, 3000);
-}
-
 function addInteractiveMarker(lat, lon, message) {
     const marker = L.marker([lat, lon]).addTo(map);
     marker.bindPopup(`<b>${message}</b>`).openPopup();
@@ -1349,5 +1340,13 @@ function showAbout() {
     const about = translations[selectedLanguage].aboutContent;
     
     modalContent.innerHTML = `<pre>${about}</pre>`;
+    modal.style.display = 'block';
+}
+
+function showEducation() {
+    const modal = document.getElementById('education-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    displayCustomEducation();
+    modalContent.innerHTML = ''; // Limpa o conteúdo do modal
     modal.style.display = 'block';
 }

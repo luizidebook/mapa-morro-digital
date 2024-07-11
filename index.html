@@ -68,9 +68,9 @@
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
             <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
             <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="updateLocation(); closeSideMenu();"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="updateLocation(); closeSideMenu(); nextTutorialStep()"><i class="fas fa-map-marker-alt"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
-            <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
+            <button class="menu-btn" data-feature="ensino" aria-label="Ensino" onclick="nextTutorialStep()"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
         <div id="menu" class="menu">
             <button id="close-btn" class="close-btn" onclick="closeSideMenu()">X</button>
@@ -84,6 +84,8 @@
             <div id="emergencies-submenu" class="submenu"></div>
             <div id="tips-submenu" class="submenu"></div>
             <div id="about-submenu" class="submenu"></div>
+            <div id="education-submenu" class="submenu"></div>
+
         </div>
         <div class="control-buttons">
             <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
