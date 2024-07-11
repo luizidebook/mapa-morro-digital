@@ -182,7 +182,8 @@ const queries = {
     'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;',
     'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
     'tips-submenu': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;', // Adicionei a query para o submenu tips-submenu
-    'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;' // Adicionei a query para o submenu about-submenu
+    'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;', // Adicionei a query para o submenu about-submenu
+    'education-submenu': '[out:json];node["education"](around:10000,-13.376,-38.913);out body;' // Adicionei a query para o submenu education-submenu
 };
 
 function getLocalStorageItem(key, defaultValue) {
@@ -234,6 +235,7 @@ function setupEventListeners() {
         updateLocation().then(() => {
             closeSideMenu();
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'locate-user') {
+                nextTutorialStep();
             }
         }).catch(error => {
             console.error("Erro ao atualizar localização:", error);
@@ -284,13 +286,7 @@ function setupEventListeners() {
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', () => {
-        showTips();
-    });
-
-    document.querySelector('.menu-btn[data-feature="sobre"]').addEventListener('click', () => {
-        showAbout();
-    });
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
 }
 
 function showNotification(message, type = 'success') {
@@ -378,7 +374,7 @@ function highlightElement(element) {
 
 function removeExistingHighlights() {
     document.querySelectorAll('.arrow-highlight').forEach(el => el.remove());
-    document.querySelectorAll('.circle-highlight').forEach(el => el.remove());
+    document.querySelectorAll('.circle-highlight').forEach(el.remove());
 }
 
 function showWelcomeMessage() {
@@ -522,6 +518,8 @@ function loadSubMenu(subMenuId) {
         displayCustomTips();
     } else if (subMenuId === 'about-submenu') {
         displayCustomAbout();
+    } else if (subMenuId === 'education-submenu') {
+        displayCustomEducation();
     } else {
         fetchOSMData(queries[subMenuId]).then(data => {
             if (data) {
@@ -647,6 +645,27 @@ function displayCustomAbout() {
         btn.className = 'submenu-item';
         btn.textContent = info.name;
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+        subMenu.appendChild(btn);
+    });
+}
+
+function displayCustomEducation() {
+    const educationOptions = [
+        { name: "Iniciar Tutorial", lat: -13.3800, lon: -38.9100, description: "Descrição do tutorial", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Planejar Viagem com IA", lat: -13.3600, lon: -38.9400, description: "Descrição do planejamento de viagem com IA", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Falar com IA", lat: -13.3500, lon: -38.9500, description: "Descrição do recurso de falar com IA", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Falar com Suporte", lat: -13.3700, lon: -38.9000, description: "Descrição do recurso de falar com suporte", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Configurações", lat: -13.3700, lon: -38.9000, description: "Descrição das configurações disponíveis", images: ["image1.jpg", "image2.jpg"] }
+    ];
+
+    const subMenu = document.getElementById('education-submenu');
+    subMenu.innerHTML = '';
+    
+    educationOptions.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item';
+        btn.textContent = option.name;
+        btn.onclick = () => handleSubmenuButtonClick(option.lat, option.lon, option.name, option.description, option.images);
         subMenu.appendChild(btn);
     });
 }

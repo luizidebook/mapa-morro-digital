@@ -24,10 +24,9 @@
         <div id="map"></div>
         <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
-            <button id="close-menu-btn" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
-            <div class="modal-content">
-                <div id="assistant-modal-text"></div>
-                <div id="carousel" class="carousel">
+            <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
+            <div class="modal-content" id="assistant-modal-text">
+                <div class="carousel">
                     <div class="carousel-item active"><img src="img1.jpg" alt="Image 1"></div>
                     <div class="carousel-item"><img src="img2.jpg" alt="Image 2"></div>
                     <div class="carousel-item"><img src="img3.jpg" alt="Image 3"></div>
@@ -37,12 +36,10 @@
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
-                <h2> BEM-VINDO!</h2> 
-                <p> Sua aventura inesquecível e personalizada em Morro 
-                    de São Paulo começa aqui! </p>
-                    <p> Escolha seu idioma: </p>
+                <h2>BEM-VINDO!</h2> 
+                <p>Sua aventura inesquecível e personalizada em Morro de São Paulo começa aqui!</p>
+                <p>Escolha seu idioma:</p>
                 <div id="language-selection">
-                    <!-- Exemplo de botão de idioma com bandeira -->
                     <button class="lang-btn" data-lang="pt">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Bandeira do Brasil" style="width:30px;height:20px;">
                     </button>
@@ -71,9 +68,9 @@
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
             <button class="menu-btn zoom-in" aria-label="Aumentar Zoom" onclick="map.zoomIn(); closeSideMenu();"><i class="fas fa-plus"></i></button>
             <button class="menu-btn zoom-out" aria-label="Diminuir Zoom" onclick="map.zoomOut(); closeSideMenu();"><i class="fas fa-minus"></i></button>
-            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="nextTutorialStep(); closeSideMenu();"><i class="fas fa-map-marker-alt"></i></button>
-            <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle" onclick="nextTutorialStep()"></i></button>
-            <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher" onclick="nextTutorialStep();"></i></button>
+            <button class="menu-btn locate-user" aria-label="Localizar Usuário" onclick="updateLocation(); closeSideMenu();"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
+            <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
         <div id="menu" class="menu">
             <button id="close-btn" class="close-btn" onclick="closeSideMenu()">X</button>
@@ -91,14 +88,14 @@
         <div class="control-buttons">
             <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
             <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()" data-translate="yes">Sim</button>
-            <button class="control-btn" id="tutorial-next-btn" style="display:none;">Próximo</button>
-            <button class="control-btn" id="tutorial-prev-btn" style="display:none;">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;">Encerrar Tutorial</button>
+            <button class="control-btn" id="tutorial-next-btn" style="display:none;" onclick="nextTutorialStep()">Próximo</button>
+            <button class="control-btn" id="tutorial-prev-btn" style="display:none;" onclick="previousTutorialStep()">Voltar</button>
+            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button id="create-itinerary-btn" class="control-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
         </div>
         <div id="info-modal" class="modal">
             <div class="modal-content">
-                <button id="close-menu-btn" class="close-menu-btn" onclick="hideModal('info-modal')">X</button>
+                <button id="close-info-modal" class="close-menu-btn" onclick="hideModal('info-modal')">X</button>
                 <div class="modal-title"></div>
                 <div class="modal-content"></div>
             </div>
@@ -158,13 +155,13 @@
     </div>
     <div id="survey-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
+            <span class="close-btn" onclick="hideModal('survey-modal')">&times;</span>
             <h2>Pesquisa de Satisfação</h2>
         </div>
     </div>
     <div id="feedback-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
+            <span class="close-btn" onclick="hideModal('feedback-modal')">&times;</span>
             <h2>Enviar Feedback</h2>
             <form id="feedback-form">
                 <textarea name="feedback" required></textarea>
