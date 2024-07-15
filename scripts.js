@@ -271,31 +271,30 @@ function setupLanguageEventListeners() {
 }
 
 function setupTutorialEventListeners() {
-        const tutorialBtn = document.getElementById('tutorial-btn');
-        const createItineraryBtn = document.getElementById('create-itinerary-btn');
+    const tutorialBtn = document.getElementById('tutorial-btn');
+    const createItineraryBtn = document.getElementById('create-itinerary-btn');
 
-        tutorialBtn.addEventListener('click', () => {
-            if (tutorialIsActive) {
-                endTutorial();
-            } else {
-                showTutorialStep('start-tutorial');
-            }
-        });
-
-        document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
-        document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
-        createItineraryBtn.addEventListener('click', () => {
+    tutorialBtn.addEventListener('click', () => {
+        if (tutorialIsActive) {
             endTutorial();
-            collectInterestData();
-        });
-        document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
-        document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-        document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
+        } else {
+            showTutorialStep('start-tutorial');
+        }
+    });
 
-        document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
-        document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
-    }
+    document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
+    document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
+    createItineraryBtn.addEventListener('click', () => {
+        endTutorial();
+        collectInterestData();
+    });
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
+    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
+    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
+}
 
 function handleTutorialStep(step) {
     if (tutorialIsActive && tutorialSteps[currentStep].step === step) {
@@ -982,10 +981,10 @@ const tutorialSteps = [
         step: 'restaurantes',
         element: '.menu-btn[data-feature="restaurantes"]',
         message: {
-            pt: "Descubra os melhores restaurantes de Morro de São Paulo. Clique em um restaurante para ver o menu, horários de funcionamento e fazer uma reserva.",
-            en: "Discover the best restaurants in Morro de São Paulo. Click on a restaurant to see the menu, opening hours, and make a reservation.",
-            es: "Descubre los mejores restaurantes de Morro de São Paulo. Haz clic en un restaurante para ver el menú, horarios de apertura y hacer una reserva.",
-            he: "גלה את המסעדות הטובות ביותר במורו דה סאו פאולו. לחץ על מסעדה כדי לראות את התפריט, שעות הפתיחה ולהזמין מקום."
+            pt: "Descubra os melhores restaurantes de Morro de São Paulo. Clique em um restaurante para ver o menu, horários de funcionamento e fazer reservas.",
+            en: "Discover the best restaurants in Morro de São Paulo. Click on a restaurant to see the menu, opening hours, and make reservations.",
+            es: "Descubre los mejores restaurantes de Morro de São Paulo. Haz clic en un restaurante para ver el menú, horarios de apertura y hacer reservas.",
+            he: "גלה את המסעדות הטובות ביותר במורו דה סאו פאולו. לחץ על מסעדה כדי לראות את התפריט, שעות הפתיחה ולהזמין."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="restaurantes"]');
@@ -996,10 +995,10 @@ const tutorialSteps = [
         step: 'pousadas',
         element: '.menu-btn[data-feature="pousadas"]',
         message: {
-            pt: "Veja as pousadas disponíveis em Morro de São Paulo. Clique em uma pousada para ver detalhes, fotos e fazer uma reserva.",
-            en: "See the inns available in Morro de São Paulo. Click on an inn to see details, photos, and make a reservation.",
-            es: "Ve las posadas disponibles en Morro de São Paulo. Haz clic en una posada para ver detalles, fotos y hacer una reserva.",
-            he: "ראה את האכסניות הזמינות במורו דה סאו פאולו. לחץ על אכסניה כדי לראות פרטים, תמונות ולהזמין מקום."
+            pt: "Veja uma lista de pousadas e hospedagens em Morro de São Paulo. Clique em uma pousada para ver mais informações e opções de reserva.",
+            en: "See a list of inns and accommodations in Morro de São Paulo. Click on an inn for more information and booking options.",
+            es: "Ve una lista de posadas y alojamientos en Morro de São Paulo. Haz clic en una posada para ver más información y opciones de reserva.",
+            he: "ראה רשימה של אכסניות ולינות במורו דה סאו פאולו. לחץ על פונדק למידע נוסף ואפשרויות הזמנה."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="pousadas"]');
@@ -1010,10 +1009,10 @@ const tutorialSteps = [
         step: 'lojas',
         element: '.menu-btn[data-feature="lojas"]',
         message: {
-            pt: "Encontre as melhores lojas de Morro de São Paulo. Clique em uma loja para ver detalhes, produtos e horários de funcionamento.",
-            en: "Find the best shops in Morro de São Paulo. Click on a shop to see details, products, and opening hours.",
-            es: "Encuentra las mejores tiendas de Morro de São Paulo. Haz clic en una tienda para ver detalles, productos y horarios de apertura.",
-            he: "מצא את החנויות הטובות ביותר במורו דה סאו פאולו. לחץ על חנות כדי לראות פרטים, מוצרים ושעות פתיחה."
+            pt: "Descubra as lojas e comércios em Morro de São Paulo. Clique em uma loja para ver mais informações.",
+            en: "Discover the shops and businesses in Morro de São Paulo. Click on a shop to see more information.",
+            es: "Descubre las tiendas y comercios en Morro de São Paulo. Haz clic en una tienda para ver más información.",
+            he: "גלה את החנויות והעסקים במורו דה סאו פאולו. לחץ על חנות כדי לראות מידע נוסף."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="lojas"]');
@@ -1024,10 +1023,10 @@ const tutorialSteps = [
         step: 'emergencias',
         element: '.menu-btn[data-feature="emergencias"]',
         message: {
-            pt: "Veja informações importantes sobre emergências em Morro de São Paulo. Clique em uma opção para mais detalhes.",
-            en: "See important emergency information in Morro de São Paulo. Click on an option for more details.",
-            es: "Ve información importante sobre emergencias en Morro de São Paulo. Haz clic en una opción para más detalles.",
-            he: "ראה מידע חשוב על חירום במורו דה סאו פאולו. לחץ על אפשרות לקבלת פרטים נוספים."
+            pt: "Aqui você encontra contatos e informações importantes sobre serviços de emergência em Morro de São Paulo.",
+            en: "Here you find contacts and important information about emergency services in Morro de São Paulo.",
+            es: "Aquí encuentras contactos e información importante sobre servicios de emergencia en Morro de São Paulo.",
+            he: "כאן תמצא אנשי קשר ומידע חשוב על שירותי חירום במורו דה סאו פאולו."
         },
         action: () => {
             const element = document.querySelector('.menu-btn[data-feature="emergencias"]');
@@ -1035,344 +1034,83 @@ const tutorialSteps = [
         }
     },
     {
-        step: 'dicas',
-        element: '.menu-btn[data-feature="dicas"]',
+        step: 'final-tips',
         message: {
-            pt: "Veja dicas úteis para aproveitar ao máximo sua visita a Morro de São Paulo. Clique em uma dica para mais informações.",
-            en: "See useful tips to make the most of your visit to Morro de São Paulo. Click on a tip for more information.",
-            es: "Ve consejos útiles para aprovechar al máximo tu visita a Morro de São Paulo. Haz clic en un consejo para más información.",
-            he: "ראה טיפים שימושיים כדי להפיק את המרב מהביקור שלך במורו דה סאו פאולו. לחץ על טיפ לקבלת מידע נוסף."
+            pt: translations[selectedLanguage].tipsContent,
+            en: translations[selectedLanguage].tipsContent,
+            es: translations[selectedLanguage].tipsContent,
+            he: translations[selectedLanguage].tipsContent
         },
         action: () => {
-            const element = document.querySelector('.menu-btn[data-feature="dicas"]');
-            highlightElement(element);
-        }
-    },
-    {
-        step: 'sobre',
-        element: '.menu-btn[data-feature="sobre"]',
-        message: {
-            pt: "Saiba mais sobre o projeto Morro Digital e como ele pode te ajudar a aproveitar ao máximo sua visita a Morro de São Paulo.",
-            en: "Learn more about the Morro Digital project and how it can help you make the most of your visit to Morro de São Paulo.",
-            es: "Conoce más sobre el proyecto Morro Digital y cómo puede ayudarte a aprovechar al máximo tu visita a Morro de São Paulo.",
-            he: "למד עוד על פרויקט מורו דיגיטל וכיצד הוא יכול לעזור לך להפיק את המרב מהביקור שלך במורו דה סאו פאולו."
-        },
-        action: () => {
-            const element = document.querySelector('.menu-btn[data-feature="sobre"]');
-            highlightElement(element);
-        }
-    },
-    {
-        step: 'ensino',
-        element: '.menu-btn[data-feature="ensino"]',
-        message: {
-            pt: "Veja opções de aprendizado e treinamento disponíveis no Morro Digital. Clique em uma opção para mais detalhes.",
-            en: "See learning and training options available at Morro Digital. Click on an option for more details.",
-            es: "Ve opciones de aprendizaje y capacitación disponibles en Morro Digital. Haz clic en una opción para más detalles.",
-            he: "ראה אפשרויות למידה והכשרה זמינות במורו דיגיטל. לחץ על אפשרות לקבלת פרטים נוספים."
-        },
-        action: () => {
-            const element = document.querySelector('.menu-btn[data-feature="ensino"]');
-            highlightElement(element);
-        }
-    },
-    {
-        step: 'zoom-in',
-        element: '.menu-btn.zoom-in',
-        message: {
-            pt: "Use este botão para aumentar o zoom no mapa. Você pode ver mais detalhes sobre áreas específicas.",
-            en: "Use this button to zoom in on the map. You can see more details about specific areas.",
-            es: "Usa este botón para acercar el mapa. Puedes ver más detalles sobre áreas específicas.",
-            he: "השתמש בלחצן זה כדי להגדיל את המפה. אתה יכול לראות פרטים נוספים על אזורים ספציפיים."
-        },
-        action: () => {
-            const element = document.querySelector('.menu-btn.zoom-in');
-            highlightElement(element);
-        }
-    },
-    {
-        step: 'zoom-out',
-        element: '.menu-btn.zoom-out',
-        message: {
-            pt: "Use este botão para diminuir o zoom no mapa. Você pode ver uma área mais ampla.",
-            en: "Use this button to zoom out on the map. You can see a wider area.",
-            es: "Usa este botón para alejar el mapa. Puedes ver una área más amplia.",
-            he: "השתמש בלחצן זה כדי להקטין את המפה. אתה יכול לראות אזור רחב יותר."
-        },
-        action: () => {
-            const element = document.querySelector('.menu-btn.zoom-out');
-            highlightElement(element);
-        }
-    },
-    {
-        step: 'locate-user',
-        element: '.menu-btn.locate-user',
-        message: {
-            pt: "Use este botão para localizar sua posição atual no mapa. Isso pode ajudar você a se orientar em Morro de São Paulo.",
-            en: "Use this button to locate your current position on the map. This can help you orient yourself in Morro de São Paulo.",
-            es: "Usa este botón para localizar tu posición actual en el mapa. Esto puede ayudarte a orientarte en Morro de São Paulo.",
-            he: "השתמש בלחצן זה כדי לאתר את המיקום הנוכחי שלך במפה. זה יכול לעזור לך להתמצא במורו דה סאו פאולו."
-        },
-        action: () => {
-            const element = document.querySelector('.menu-btn.locate-user');
-            highlightElement(element);
+            showNotification(translations[selectedLanguage].tipsContent, 'info');
+            endTutorial();
         }
     }
 ];
 
-function showTutorialStep(step) {
-    const stepData = tutorialSteps.find(s => s.step === step);
-    if (!stepData) return;
-
-    document.getElementById('assistant-modal').style.display = 'block';
-    const modalContent = document.querySelector('#assistant-modal .modal-content');
-    modalContent.innerHTML = `
-        <h2>${stepData.message[selectedLanguage]}</h2>
-    `;
-
-    if (stepData.element) {
-        const element = document.querySelector(stepData.element);
-        if (element) highlightElement(element);
-    }
-
-    document.querySelector('.control-buttons').style.display = 'block';
+function startTutorial() {
     tutorialIsActive = true;
+    showTutorialStep('menu-toggle');
 }
 
-function startTutorial() {
-    currentStep = 1;
-    showTutorialStep(tutorialSteps[currentStep].step);
+function showTutorialStep(step) {
+    const tutorialStep = tutorialSteps.find(s => s.step === step);
+    if (!tutorialStep) return;
+
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    modalContent.innerHTML = `
+        <p>${tutorialStep.message[selectedLanguage]}</p>
+        <button id="tutorial-prev-btn">Anterior</button>
+        <button id="tutorial-next-btn">Próximo</button>
+        <button id="tutorial-end-btn">Finalizar</button>
+    `;
+
+    document.getElementById('assistant-modal').style.display = 'block';
+    document.querySelector('.control-buttons').style.display = 'block';
+
+    tutorialStep.action();
+
+    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
+    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
+    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
 }
 
 function nextTutorialStep() {
-    currentStep++;
-    if (currentStep >= tutorialSteps.length) {
-        endTutorial();
+    if (currentStep < tutorialSteps.length - 1) {
+        currentStep++;
+        const nextStep = tutorialSteps[currentStep].step;
+        showTutorialStep(nextStep);
     } else {
-        showTutorialStep(tutorialSteps[currentStep].step);
+        endTutorial();
     }
 }
 
 function previousTutorialStep() {
-    currentStep--;
-    if (currentStep < 0) {
-        endTutorial();
-    } else {
-        showTutorialStep(tutorialSteps[currentStep].step);
+    if (currentStep > 0) {
+        currentStep--;
+        const prevStep = tutorialSteps[currentStep].step;
+        showTutorialStep(prevStep);
     }
 }
 
 function endTutorial() {
+    tutorialIsActive = false;
     currentStep = 0;
     hideModal('assistant-modal');
-    tutorialIsActive = false;
 }
 
-function updateProgressBar(current, total) {
-    const progressBar = document.getElementById('tutorial-progress-bar');
-    progressBar.style.width = `${(current / total) * 100}%`;
-}
-
-function speakText(text) {
-    if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-    }
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
-    
-    const voices = speechSynthesis.getVoices();
-    const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
-    if (femaleVoices.length > 0) {
-        utterance.voice = femaleVoices[0];
-    } else {
-        const defaultVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang));
-        if (defaultVoices.length > 0) {
-            utterance.voice = defaultVoices[0];
-        }
-    }
-
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    speechSynthesis.speak(utterance);
-}
-
-function addInteractiveMarker(lat, lon, message) {
-    const marker = L.marker([lat, lon]).addTo(map);
-    marker.bindPopup(`<b>${message}</b>`).openPopup();
-    marker.on('click', () => {
-        showNotification('Você clicou em um marcador!', 'info');
-    });
+function collectInterestData() {
+    console.log("Coletando dados de interesse...");
 }
 
 function loadSearchHistory() {
-    const searchHistoryContainer = document.getElementById('searchResults');
-    searchHistoryContainer.innerHTML = '';
-
-    searchHistory.forEach(search => {
-        const searchItem = document.createElement('div');
-        searchItem.textContent = search;
-        searchItem.addEventListener('click', () => {
-            performSearch(search);
-        });
-        searchHistoryContainer.appendChild(searchItem);
-    });
-}
-
-function saveSearchQuery(query) {
-    searchHistory.push(query);
-    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-    loadSearchHistory();
-}
-
-function performSearch(query) {
-    console.log(`Buscando por: ${query}`);
-    showLoadingSpinner(true);
-
-    setTimeout(() => {
-        showLoadingSpinner(false);
-        showNotification(`Resultados da busca por: ${query}`, 'info');
-        saveSearchQuery(query);
-    }, 2000);
+    console.log("Carregando histórico de busca...");
 }
 
 function checkAchievements() {
-    console.log('Verificando conquistas...');
-    achievements.forEach(achievement => {
-        showNotification(`Conquista desbloqueada: ${achievement}`, 'success');
-    });
-}
-
-function addAchievement(achievement) {
-    achievements.push(achievement);
-    localStorage.setItem('achievements', JSON.stringify(achievements));
-    checkAchievements();
-}
-
-function showLoadingSpinner(show) {
-    const spinner = document.getElementById('loading-spinner');
-    if (show) {
-        spinner.style.display = 'block';
-    } else {
-        spinner.style.display = 'none';
-    }
-}
-
-function addToFavorites(name, lat, lon, osmId) {
-    const favorite = { name, lat, lon, osmId };
-    favorites.push(favorite);
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    showNotification(`Adicionado aos favoritos: ${name}`, 'success');
-    loadFavorites();
+    console.log("Verificando conquistas...");
 }
 
 function loadFavorites() {
-    const favoritesContainer = document.getElementById('favorites-container');
-    favoritesContainer.innerHTML = '';
-
-    favorites.forEach(favorite => {
-        const favoriteItem = document.createElement('div');
-        favoriteItem.className = 'favorite-item';
-        favoriteItem.innerHTML = `<b>${favorite.name}</b><br>Latitude: ${favorite.lat}<br>Longitude: ${favorite.lon}`;
-        favoriteItem.onclick = () => {
-            map.setView([favorite.lat, favorite.lon], 16);
-        };
-        favoritesContainer.appendChild(favoriteItem);
-    });
+    console.log("Carregando favoritos...");
 }
-
-function showRoteiroAndPrice(roteiro, totalPrice) {
-    const modalContent = document.querySelector('#info-modal .modal-content');
-    modalContent.innerHTML = `
-        <h2>Roteiro Personalizado</h2>
-        <ul>
-            ${roteiro.map(item => `<li>${item}</li>`).join('')}
-        </ul>
-        <p>Total: ${totalPrice}</p>
-        <button onclick="purchaseRoteiro()">${translations[selectedLanguage].purchase}</button>
-    `;
-    showModal('info-modal');
-}
-
-function purchaseRoteiro() {
-    console.log(translations[selectedLanguage].purchaseSuccess);
-    showNotification(translations[selectedLanguage].purchaseSuccess, 'success');
-    hideModal('info-modal');
-}
-
-function generateRoteiroFromInterests(interests) {
-    const roteiro = interests.map(interest => `<li>${interest}</li>`);
-    const totalPrice = interests.length * 50;
-    showRoteiroAndPrice(roteiro, totalPrice);
-}
-
-document.getElementById('questionnaire-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const interests = Array.from(new FormData(this).entries()).map(entry => entry[1]);
-    generateRoteiroFromInterests(interests);
-    hideModal('questionnaire-modal');
-});
-
-function nextQuestion() {
-    console.log('Próxima pergunta');
-}
-
-function previousQuestion() {
-    console.log('Pergunta anterior');
-}
-
-function closeSideMenu() {
-    const menu = document.getElementById('menu');
-    menu.style.display = 'none';
-    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-    currentSubMenu = null;
-}
-
-document.getElementById('close-menu-btn').addEventListener('click', closeSideMenu);
-
-function collectInterestData() {
-    const interests = [
-        'Praias', 'Pontos Turísticos', 'Passeios', 'Restaurantes', 'Vida Noturna'
-    ];
-    showQuestionnaireForm(interests);
-}
-
-function showQuestionnaireForm(interests) {
-    const form = document.getElementById('questionnaire-form');
-    const formContainer = document.getElementById('assistant-modal');
-    form.innerHTML = interests.map(interest => `
-        <label>
-            <input type="checkbox" name="interests" value="${interest}">
-            ${interest}
-        </label>
-    `).join('');
-    formContainer.style.display = 'block';
-}
-
-function showTips() {
-    const modal = document.getElementById('tips-modal');
-    const modalContent = modal.querySelector('.modal-content');
-    const tips = translations[selectedLanguage].tipsContent;
-    
-    modalContent.innerHTML = `<pre>${tips}</pre>`;
-    modal.style.display = 'block';
-}
-
-function showAbout() {
-    const modal = document.getElementById('about-modal');
-    const modalContent = modal.querySelector('.modal-content');
-    const about = translations[selectedLanguage].aboutContent;
-    
-    modalContent.innerHTML = `<pre>${about}</pre>`;
-    modal.style.display = 'block';
-}
-
-function showEducation() {
-    const modal = document.getElementById('education-modal');
-    const modalContent = modal.querySelector('.modal-content');
-    displayCustomEducation();
-    modalContent.innerHTML = ''; // Limpa o conteúdo do modal
-    modal.style.display = 'block';
-}
-
