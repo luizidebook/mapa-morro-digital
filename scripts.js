@@ -219,7 +219,6 @@ function setupMenuEventListeners() {
         menuToggle.addEventListener('click', () => {
             floatingMenu.classList.toggle('hidden');
             handleTutorialStep('menu-toggle');
-            nextTutorialStep()
         });
 
         document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
@@ -248,9 +247,7 @@ function setupMenuEventListeners() {
             button.addEventListener('click', event => {
                 const feature = button.getAttribute('data-feature');
                 handleFeatureSelection(feature);
-                event.stopPropagation();
                 handleTutorialStep(feature);
-                nextTutorialStep()
             });
         });
     }
@@ -906,6 +903,7 @@ const tutorialSteps = [
         },
         action: () => {
             document.getElementById('tutorial-yes-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial)
             document.getElementById('tutorial-no-btn').style.display = 'inline-block';
         }
     },
@@ -1140,8 +1138,10 @@ const tutorialSteps = [
 ];
 
 function startTutorial() {
+    currentStep = 1;
     tutorialIsActive = true;
-    showTutorialStep('menu-toggle');
+    showTutorialStep(tutorialSteps[currentStep].step);
+    document.getElementById('tutorial-overlay').style.display = 'flex';
 }
 
 function showTutorialStep(step) {
@@ -1176,8 +1176,7 @@ function nextTutorialStep() {
 function previousTutorialStep() {
     if (currentStep > 0) {
         currentStep--;
-        const prevStep = tutorialSteps[currentStep].step;
-        showTutorialStep(prevStep);
+        showTutorialStep(tutorialSteps[currentStep].step);
     }
 }
 
