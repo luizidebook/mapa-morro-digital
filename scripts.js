@@ -213,46 +213,43 @@ function setupModalEventListeners() {
 }
 
 function setupMenuEventListeners() {
-        const menuToggle = document.getElementById('menu-btn');
-        const floatingMenu = document.getElementById('floating-menu');
-        
-        menuToggle.addEventListener('click', () => {
-            floatingMenu.classList.toggle('hidden');
-            handleTutorialStep('menu-toggle');
-        });
+    const menuToggle = document.getElementById('menu-btn');
+    const floatingMenu = document.getElementById('floating-menu');
 
-        document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
-            map.zoomIn();
+    menuToggle.addEventListener('click', () => {
+        floatingMenu.classList.toggle('hidden');
+        handleTutorialStep('menu-toggle');
+    });
+
+    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
+        map.zoomIn();
+        closeSideMenu();
+        handleTutorialStep('zoom-in');
+    });
+
+    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
+        map.zoomOut();
+        closeSideMenu();
+        handleTutorialStep('zoom-out');
+    });
+
+
+
+    document.querySelector('.menu-btn.locate-user').addEventListener('click', async () => {
+            updateLocation();
             closeSideMenu();
-            handleTutorialStep('zoom-in');
-            nextTutorialStep();
-        });
+            handleTutorialStep('locate-user');
+    });
 
-        document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
-            map.zoomOut();
-            closeSideMenu();
-            handleTutorialStep('zoom-out');
-            nextTutorialStep();
+    document.querySelectorAll('.menu-btn[data-feature]').forEach(button => {
+        button.addEventListener('click', event => {
+            const feature = button.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            handleTutorialStep(feature);
         });
+    });
+}
 
-        document.querySelector('.menu-btn.locate-user').addEventListener('click', async () => {
-            try {
-                await updateLocation();
-                closeSideMenu();
-                handleTutorialStep('locate-user');
-            } catch (error) {
-                console.error("Erro ao atualizar localização:", error);
-            }
-        });
-
-        document.querySelectorAll('.menu-btn[data-feature]').forEach(button => {
-            button.addEventListener('click', event => {
-                const feature = button.getAttribute('data-feature');
-                handleFeatureSelection(feature);
-                handleTutorialStep(feature);
-            });
-        });
-    }
 
 function setupLanguageEventListeners() {
     document.querySelectorAll('.lang-btn').forEach(button => {
@@ -1202,4 +1199,11 @@ function checkAchievements() {
 
 function loadFavorites() {
     console.log("Carregando favoritos...");
+}
+
+    function closeSideMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = 'none';
+    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+    currentSubMenu = null;
 }
