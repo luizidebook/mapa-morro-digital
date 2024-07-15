@@ -225,12 +225,14 @@ function setupMenuEventListeners() {
             map.zoomIn();
             closeSideMenu();
             handleTutorialStep('zoom-in');
+            nextTutorialStep();
         });
 
         document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
             map.zoomOut();
             closeSideMenu();
             handleTutorialStep('zoom-out');
+            nextTutorialStep();
         });
 
         document.querySelector('.menu-btn.locate-user').addEventListener('click', async () => {
