@@ -66,9 +66,9 @@
             <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store"></i></button>
             <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
-        <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
-<button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
-<button class="menu-btn locate-user" aria-label="Localizar Usuário"><i class="fas fa-map-marker-alt"></i></button>
+            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
+            <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
+          <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
 
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
             <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
@@ -86,10 +86,11 @@
             <div id="tips-submenu" class="submenu"></div>
             <div id="about-submenu" class="submenu"></div>
             <div id="education-submenu" class="submenu"></div>
+
         </div>
         <div class="control-buttons">
-          <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()" data-translate="yes">Sim</button>
+            <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial()" data-translate="yes">Sim</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;" onclick="nextTutorialStep()">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;" onclick="previousTutorialStep()">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
