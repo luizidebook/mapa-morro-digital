@@ -124,7 +124,7 @@ body, html {
 .close-btn {
     position: fixed;
     top: 1px;
-    right: 141px;
+    right: 111px;
     background-color: #fff;
     border: none;
     font-size: 13px;
@@ -487,7 +487,7 @@ body, html {
 .close-btn {
     position: fixed;
     top: 1px;
-    right: 141px;
+    right: 111px;
     background-color: #fff;
     border: none;
     font-size: 13px;
@@ -680,7 +680,7 @@ body, html {
     position: fixed;
     top: 0;
     right: 0;
-    width: 140px;
+    width: 110px;
     height: 100%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
@@ -975,16 +975,17 @@ h2 {
 
 
 @media (max-width: 600px) {
-    .control-buttons {
+        .control-buttons {
         position: absolute;
         top: 92%;
-        left: 35%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
+}
 
     #assistant-modal {
         position: absolute;
@@ -1151,15 +1152,16 @@ h2 {
     }
 
 
-   .control-buttons {
+    .control-buttons {
         position: absolute;
         top: 92%;
-        left: 35%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
+    }
 }
 
 #tutorial-btn {
@@ -1296,16 +1298,17 @@ h2 {
         text-align: center;
     }
 
-    .control-buttons {
+     .control-buttons {
         position: absolute;
         top: 92%;
-        left: 35%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
+}
 
 
 #tutorial-btn {
@@ -1440,16 +1443,17 @@ h2 {
         text-align: center;
     }
 
-    .control-buttons {
+      .control-buttons {
         position: absolute;
         top: 92%;
-        left: 35%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
+}
 
 
 #tutorial-btn {
@@ -1585,16 +1589,17 @@ h2 {
         text-align: center;
     }
 
-    .control-buttons {
+     .control-buttons {
         position: absolute;
         top: 92%;
-        left: 35%;
+        left: 30%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
+}
 
 
 #tutorial-btn {
