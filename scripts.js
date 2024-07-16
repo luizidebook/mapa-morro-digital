@@ -20,6 +20,7 @@ let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
+const YANDEX_API_KEY = 'YOUR_YANDEX_API_KEY_HERE'; // Substitua pela sua chave da API Yandex
 
 const translations = {
     pt: {
@@ -276,7 +277,7 @@ function setupEventListeners() {
                         "url-to-image9.jpg"
                     ];
                     break;
-                                case 'festas':
+                case 'festas':
                     title = "Festas e Eventos";
                     description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
                     images = [
@@ -475,7 +476,7 @@ function showAssistantModal(title, description, images) {
 
 // Função para carregar imagens do Yandex
 async function loadImagesFromYandex(query) {
-    const url = `https://yandex.com/images/search?text=${encodeURIComponent(query)}`;
+    const url = `https://yandex.com/images/search?text=${encodeURIComponent(query)}&key=${YANDEX_API_KEY}`;
     const response = await fetch(url);
     const text = await response.text();
     const parser = new DOMParser();
@@ -726,11 +727,12 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível', element.tags.images || []);
+            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível');
             subMenu.appendChild(btn);
         }
     });
 }
+
 
 function displayCustomTours() {
     const tours = [
@@ -889,6 +891,7 @@ function initializeCarousel() {
     }, 3000);
 }
 
+
 function createRouteTo(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
@@ -903,19 +906,24 @@ function createRouteTo(destination) {
     }).addTo(map);
 }
 
-function showLocationInfoModal(name) {
-    const modalContent = `
+function showLocationDetailsInModal(name, description, images) {
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    modalContent.innerHTML = `
         <h2>${name}</h2>
+        <p>${description}</p>
         <div class="carousel">
-            <div class="carousel-item active"><img src="path/to/image1.jpg" alt="${name} image 1"></div>
-            <div class="carousel-item"><img src="path/to/image2.jpg" alt="${name} image 2"></div>
-            <div class="carousel-item"><img src="path/to/image3.jpg" alt="${name} image 3"></div>
+            ${images.map((img, index) => `
+                <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                    <img src="${img}" alt="${name} Image ${index + 1}">
+                </div>
+            `).join('')}
         </div>
-        <p>${translations[selectedLanguage].detailedInfo} ${name}</p>
+        <button id="close-menu-btn" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
     `;
-    updateAssistantModalContent(modalContent);
+    showModal('assistant-modal');
     initializeCarousel();
 }
+
 
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
