@@ -56,7 +56,7 @@ body, html {
 .menu-toggle {
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    right: 5px;
     background: #007BFF;
     color: white;
     border: none;
@@ -70,7 +70,7 @@ body, html {
 .floating-menu {
     position: absolute;
     top: 45%;
-    right: 20px;
+    right: 10px;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -124,7 +124,7 @@ body, html {
 .close-btn {
     position: fixed;
     top: 1px;
-    right: 151px;
+    right: 181px;
     background-color: #fff;
     border: none;
     font-size: 13px;
@@ -209,12 +209,19 @@ body, html {
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .menu-toggle {
-        bottom: 10px;
-        right: 10px;
-        padding: 15px;
-        font-size: 1.5em;
-    }
+.menu-toggle {
+    position: absolute;
+    bottom: 20px;
+    right: 5px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 2em;
+    z-index: 99000;
+}
 
     .menu-btn {
         width: 40px;
@@ -237,12 +244,19 @@ body, html {
 }
 
 @media (max-width: 480px) {
-    .menu-toggle {
-        bottom: 5px;
-        right: 5px;
-        padding: 10px;
-        font-size: 1.2em;
-    }
+ .menu-toggle {
+    position: absolute;
+    bottom: 20px;
+    right: 5px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 2em;
+    z-index: 99000;
+}
 
     .menu-btn {
         width: 35px;
@@ -473,7 +487,7 @@ body, html {
 .close-btn {
     position: fixed;
     top: 1px;
-    right: 151px;
+    right: 181px;
     background-color: #fff;
     border: none;
     font-size: 13px;
@@ -495,7 +509,7 @@ body, html {
 .menu-toggle {
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    right: 5px;
     background: #007BFF;
     color: white;
     border: none;
@@ -557,7 +571,7 @@ body, html {
 .floating-menu {
     position: absolute;
     top: 45%;
-    right: 20px;
+    right: 10px;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -633,21 +647,21 @@ body, html {
 
 
 #assistant-modal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+        position: absolute;
+        top: 50%;
+        left: 30%;
+        transform: translate(-50%, -50%);
+        width: 50%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
 @keyframes highlight-animation {
     from {
@@ -666,10 +680,10 @@ body, html {
     position: fixed;
     top: 0;
     right: 0;
-    width: 150px;
+    width: 180px;
     height: 100%;
     background-color: #fff;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
     overflow-y: auto;
     z-index: 999;
     display: none;
@@ -700,6 +714,7 @@ body, html {
 .submenu-item {
     width: 100%;
     padding: 10px;
+    padding-right: 40px;
     background: #f4f4f4;
     border: none;
     border-bottom: 1px solid #ddd;
@@ -960,12 +975,12 @@ h2 {
         flex-direction: row-reverse;
     }
 
-    #assistant-modal {
+ #assistant-modal {
         position: absolute;
         top: 50%;
-        left: 40%;
+        left: 30%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 50%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1106,12 +1121,12 @@ h2 {
 }
 
 @media (max-width: 768px) {
-    #assistant-modal {
+  #assistant-modal {
         position: absolute;
         top: 50%;
-        left: 40%;
+        left: 30%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 50%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1251,12 +1266,12 @@ h2 {
 
 }
 @media (max-width: 1024px) {
-    #assistant-modal {
+   #assistant-modal {
         position: absolute;
         top: 50%;
-        left: 40%;
+        left: 30%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 50%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1394,12 +1409,12 @@ h2 {
 
 
 @media (max-width: 1200px) {
-    #assistant-modal {
+   #assistant-modal {
         position: absolute;
         top: 50%;
-        left: 40%;
+        left: 30%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 50%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1538,12 +1553,12 @@ h2 {
 }
 
 @media (min-width: 1201px) {
-    #assistant-modal {
+  #assistant-modal {
         position: absolute;
         top: 50%;
-        left: 40%;
+        left: 30%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 50%;
         max-width: 600px;
         background: white;
         padding: 20px;

@@ -246,10 +246,114 @@ function setupEventListeners() {
             handleFeatureSelection(feature);
             event.stopPropagation();
 
-            // Exemplo de informações para o modal
-            const title = "Título do Modal";
-            const description = "Descrição detalhada sobre o tópico selecionado.";
-            const images = ["path/to/image1.jpg", "path/to/image2.jpg"]; // Adicione URLs reais das imagens
+            // Adicionando imagens específicas para cada feature
+            let title, description, images;
+            switch (feature) {
+                case 'pontos-turisticos':
+                    title = "Pontos Turísticos";
+                    description = "Explore os pontos turísticos mais populares de Morro de São Paulo.";
+                    images = [
+                        "url-to-image1.jpg", 
+                        "url-to-image2.jpg", 
+                        "url-to-image3.jpg"
+                    ];
+                    break;
+                case 'passeios':
+                    title = "Passeios";
+                    description = "Descubra os passeios disponíveis em Morro de São Paulo.";
+                    images = [
+                        "url-to-image4.jpg", 
+                        "url-to-image5.jpg", 
+                        "url-to-image6.jpg"
+                    ];
+                    break;
+                case 'praias':
+                    title = "Praias";
+                    description = "Encontre as melhores praias de Morro de São Paulo.";
+                    images = [
+                        "url-to-image7.jpg", 
+                        "url-to-image8.jpg", 
+                        "url-to-image9.jpg"
+                    ];
+                    break;
+                                case 'festas':
+                    title = "Festas e Eventos";
+                    description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
+                    images = [
+                        "url-to-image10.jpg", 
+                        "url-to-image11.jpg", 
+                        "url-to-image12.jpg"
+                    ];
+                    break;
+                case 'restaurantes':
+                    title = "Restaurantes";
+                    description = "Descubra os melhores restaurantes de Morro de São Paulo.";
+                    images = [
+                        "url-to-image13.jpg", 
+                        "url-to-image14.jpg", 
+                        "url-to-image15.jpg"
+                    ];
+                    break;
+                case 'pousadas':
+                    title = "Pousadas";
+                    description = "Encontre as melhores pousadas para sua estadia em Morro de São Paulo.";
+                    images = [
+                        "url-to-image16.jpg", 
+                        "url-to-image17.jpg", 
+                        "url-to-image18.jpg"
+                    ];
+                    break;
+                case 'lojas':
+                    title = "Lojas";
+                    description = "Descubra as lojas locais de Morro de São Paulo.";
+                    images = [
+                        "url-to-image19.jpg", 
+                        "url-to-image20.jpg", 
+                        "url-to-image21.jpg"
+                    ];
+                    break;
+                case 'emergencias':
+                    title = "Emergências";
+                    description = "Informações importantes para situações de emergência.";
+                    images = [
+                        "url-to-image22.jpg", 
+                        "url-to-image23.jpg", 
+                        "url-to-image24.jpg"
+                    ];
+                    break;
+                case 'dicas':
+                    title = "Dicas";
+                    description = "Dicas úteis para aproveitar ao máximo sua visita a Morro de São Paulo.";
+                    images = [
+                        "url-to-image25.jpg", 
+                        "url-to-image26.jpg", 
+                        "url-to-image27.jpg"
+                    ];
+                    break;
+                case 'sobre':
+                    title = "Sobre";
+                    description = "Informações sobre a Morro Digital, nossa missão e serviços.";
+                    images = [
+                        "url-to-image28.jpg", 
+                        "url-to-image29.jpg", 
+                        "url-to-image30.jpg"
+                    ];
+                    break;
+                case 'ensino':
+                    title = "Ensino";
+                    description = "Informações sobre opções de ensino disponíveis em Morro de São Paulo.";
+                    images = [
+                        "url-to-image31.jpg", 
+                        "url-to-image32.jpg", 
+                        "url-to-image33.jpg"
+                    ];
+                    break;
+                default:
+                    title = "Título do Modal";
+                    description = "Descrição detalhada sobre o tópico selecionado.";
+                    images = ["url-to-default-image1.jpg", "url-to-default-image2.jpg"];
+                    break;
+            }
 
             showAssistantModal(title, description, images);
 
@@ -283,8 +387,10 @@ function setupEventListeners() {
 
     document.getElementById('tutorial-yes-btn').addEventListener('click', startTutorial);
     document.getElementById('tutorial-no-btn').addEventListener('click', endTutorial);
+    
     createItineraryBtn.addEventListener('click', () => {
         endTutorial();
+        closeSideMenu();
         collectInterestData();
     });
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
@@ -294,6 +400,7 @@ function setupEventListeners() {
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 }
+
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
@@ -366,6 +473,18 @@ function showAssistantModal(title, description, images) {
     initializeCarousel();
 }
 
+// Função para carregar imagens do Yandex
+async function loadImagesFromYandex(query) {
+    const url = `https://yandex.com/images/search?text=${encodeURIComponent(query)}`;
+    const response = await fetch(url);
+    const text = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const imageElements = doc.querySelectorAll('.serp-item__thumb');
+    const imageUrls = Array.from(imageElements).slice(0, 10).map(el => el.src);
+    return imageUrls;
+}
+
 // Função para inicializar o carrossel de imagens
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
@@ -377,6 +496,7 @@ function initializeCarousel() {
         carouselItems[currentItemIndex].classList.add('active');
     }, 3000);
 }
+
 
 function showInfoInSidebar(title, content) {
     const sidebar = document.getElementById('menu');
@@ -756,6 +876,7 @@ function showLocationDetailsInModal(name, description, images) {
 
     initializeCarousel();
 }
+
 
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');

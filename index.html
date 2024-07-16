@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <meta name="description" content="Descrição do site Morro Digital.">
@@ -26,11 +27,7 @@
         <div id="assistant-modal" class="modal">
             <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
             <div class="modal-content" id="assistant-modal-text">
-                <div class="carousel">
-                    <div class="carousel-item active"><img src="img1.jpg" alt="Image 1"></div>
-                    <div class="carousel-item"><img src="img2.jpg" alt="Image 2"></div>
-                    <div class="carousel-item"><img src="img3.jpg" alt="Image 3"></div>
-                </div>
+                <div class="carousel"></div>
             </div>
         </div>
         <div id="welcome-modal" class="welcome-modal">
@@ -68,8 +65,7 @@
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
             <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
             <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
-          <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
-
+            <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
             <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
@@ -86,7 +82,6 @@
             <div id="tips-submenu" class="submenu"></div>
             <div id="about-submenu" class="submenu"></div>
             <div id="education-submenu" class="submenu"></div>
-
         </div>
         <div class="control-buttons">
             <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial()" data-translate="no">Não</button>
