@@ -67,46 +67,22 @@ body, html {
     z-index: 99000;
 }
 
-#route-modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 400px;
-    background-color: white;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
-    border-radius: 10px;
-  }
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    padding: 6px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #ccc;
+    max-width: 280px;
+    overflow-y: auto;
+    transition: all 0.2s ease;
+    max-height: 300px; /* Ajuste a altura máxima conforme necessário */
+    overflow-y: auto;
+    width: 270px; /* Ajuste a largura conforme necessário */
+    z-index: 999;
+}
 
-  #route-modal .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-  }
 
-  #route-modal-content {
-    margin-top: 20px;
-  }
-
-  #route-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-  }
-  
 .floating-menu {
     position: absolute;
     top: 45%;
