@@ -70,7 +70,7 @@
             <button class="menu-btn" data-feature="ensino" aria-label="Ensino"><i class="fas fa-chalkboard-teacher"></i></button>
         </div>
         <div id="menu" class="menu">
-            <button id="close-btn" class="close-btn" onclick="closeSideMenu()">X</button>
+            <button id="close-side-btn" class="close-side-btn" onclick="closeSideMenu()">X</button>
             <div id="touristSpots-submenu" class="submenu"></div>
             <div id="tours-submenu" class="submenu"></div>
             <div id="beaches-submenu" class="submenu"></div>
@@ -99,7 +99,13 @@
             </div>
         </div>
 
-  <div id="route-modal" style="display: none;">
+        <div id="tutorial-overlay">
+            <div id="tutorial-progress-bar"></div>
+            <div class="tutorial-controls"></div>
+        </div>
+    </div>
+
+  <div id="route-modal" class="leaflet-routing-container" style="display: none;">
     <button class="close-btn" onclick="hideRouteModal()">X</button>
     <div id="route-steps"></div>
 </div>

@@ -69,17 +69,20 @@ body, html {
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
-    padding: 6px;
-    margin-top: 2px;
-    margin-bottom: 6px;
-    border-bottom: 1px solid #ccc;
-    max-width: 280px;
-    overflow-y: auto;
-    transition: all 0.2s ease;
-    max-height: 300px; /* Ajuste a altura máxima conforme necessário */
-    overflow-y: auto;
-    width: 270px; /* Ajuste a largura conforme necessário */
-    z-index: 999;
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
 }
 
 
@@ -139,13 +142,13 @@ body, html {
 
 .close-btn {
     position: fixed;
-    top: 0;
-    right: 38%;
+    top: 4%;
+    right: 2%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 /* Estilos para mensagens do tutorial */
@@ -259,6 +262,24 @@ body, html {
     }
 }
 
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
+}
+
 @media (max-width: 480px) {
  .menu-toggle {
     position: absolute;
@@ -272,6 +293,24 @@ body, html {
     cursor: pointer;
     font-size: 2em;
     z-index: 99000;
+}
+
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
 }
 
     .menu-btn {
@@ -500,26 +539,39 @@ body, html {
     text-align: center;
 }
 
-.close-btn {
+
+.close-side-btn {
     position: fixed;
-    top: 0;
-    right: 38%;
+    top: 2%;
+    right: 38.7%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
+}
+    
+}
+.close-btn {
+    position: fixed;
+    top: 4%;
+    right: 2%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 10000;
 }
 
 .close-menu-btn {
     position: fixed;
-    top: 5px;
-    right: 5px;
+    top: 5%;
+    right: 1%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 .menu-toggle {
@@ -652,13 +704,13 @@ body, html {
 
 .close-menu-btn {
     position: fixed;
-    top: 5px;
-    right: 5px;
+    top: 5%;
+    right: 1%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 
@@ -701,7 +753,7 @@ body, html {
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
     overflow-y: auto;
-    z-index: 999;
+    z-index: 9999;
     display: none;
     animation: slideIn 0.3s forwards;
 }
@@ -713,13 +765,13 @@ body, html {
 
 .close-menu-btn {
     position: fixed;
-    top: 5px;
-    right: 5px;
+    top: 5%;
+    right: 1%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 .submenu {
@@ -737,6 +789,7 @@ body, html {
     text-align: left;
     cursor: pointer;
     font-size: 12px;
+    z-index: 1000;
 }
 
 .submenu-item:hover {
@@ -782,13 +835,13 @@ h2 {
 
 .close-menu-btn {
     position: fixed;
-    top: 5px;
-    right: 5px;
+    top: 5%;
+    right: 1%;
     background-color: #fff;
-    border: none;
+    border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 
@@ -1003,6 +1056,24 @@ h2 {
     }
 }
 
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
+}
+
     #assistant-modal {
         position: absolute;
         top: 50%;
@@ -1167,6 +1238,24 @@ h2 {
         text-align: center;
     }
 
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
+}
+
 
     .control-buttons {
         position: absolute;
@@ -1326,6 +1415,23 @@ h2 {
     }
 }
 
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 1px;
+    top: 4px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
+}
 
 #tutorial-btn {
     position: fixed;
@@ -1458,6 +1564,24 @@ h2 {
         display: none;
         text-align: center;
     }
+
+/* Estilos para o controle de rota */
+.leaflet-routing-container {
+    position: relative;
+    max-height: 320px;
+    max-width: 261px;
+    z-index: 99;
+}
+
+.leaflet-control-container .leaflet-routing-container-hide {
+    position: relative;
+    left: 5px;
+    top: 1px;
+    display: block;
+    width: 29px;
+    height: 29px;
+    background-image: url(routing-icon.png);
+}
 
       .control-buttons {
         position: absolute;
@@ -1860,6 +1984,17 @@ h2 {
     }
 }
 
+    .control-buttons {
+        position: absolute;
+        top: 92%;
+        left: 30%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 10000;
+        flex-direction: row-reverse;
+    }
+}
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 

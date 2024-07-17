@@ -246,6 +246,7 @@ function setupEventListeners() {
             handleFeatureSelection(feature);
             event.stopPropagation();
 
+            // Adicionando imagens específicas para cada feature
             let title, description, images;
             switch (feature) {
                 case 'pontos-turisticos':
@@ -275,7 +276,7 @@ function setupEventListeners() {
                         "url-to-image9.jpg"
                     ];
                     break;
-                case 'festas':
+                                case 'festas':
                     title = "Festas e Eventos";
                     description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
                     images = [
@@ -366,7 +367,7 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
-            requestLocationPermission().then(() => {
+            requestLocationPermission.then(() => {
                 loadSearchHistory();
                 checkAchievements();
                 loadFavorites();
@@ -472,17 +473,6 @@ function showAssistantModal(title, description, images) {
     initializeCarousel();
 }
 
-// Função para carregar imagens do Yandex
-async function loadImagesFromYandex(query) {
-    const url = `https://yandex.com/images/search?text=${encodeURIComponent(query)}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/html');
-    const imageElements = doc.querySelectorAll('.serp-item__thumb');
-    const imageUrls = Array.from(imageElements).slice(0, 10).map(el => el.src);
-    return imageUrls;
-}
 
 // Função para inicializar o carrossel de imagens
 function initializeCarousel() {
@@ -876,7 +866,6 @@ function showLocationDetailsInModal(name, description, images) {
     initializeCarousel();
 }
 
-
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
     let currentItemIndex = 0;
@@ -886,25 +875,6 @@ function initializeCarousel() {
         currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
         carouselItems[currentItemIndex].classList.add('active');
     }, 3000);
-}
-
-function showRouteModal(steps) {
-    const routeModal = document.getElementById('route-modal');
-    const routeStepsContainer = document.getElementById('route-steps');
-    routeStepsContainer.innerHTML = ''; // Limpa o conteúdo anterior
-
-    steps.forEach(step => {
-        const stepElement = document.createElement('div');
-        stepElement.className = 'route-step';
-        stepElement.innerHTML = `<strong>${step.instruction}</strong><br>${step.distance} metros, ${step.duration} segundos`;
-        routeStepsContainer.appendChild(stepElement);
-    });
-
-    routeModal.style.display = 'block';
-}
-
-function hideRouteModal() {
-    document.getElementById('route-modal').style.display = 'none';
 }
 
 function createRouteTo(destination) {
@@ -917,26 +887,7 @@ function createRouteTo(destination) {
             L.latLng(destination)
         ],
         routeWhileDragging: true,
-        position: 'topleft',
-        showAlternatives: true,
-        lineOptions: {
-            styles: [{color: 'blue', opacity: 1, weight: 5}]
-        },
-        createMarker: function(i, waypoint, n) {
-            var markerOptions = {
-                draggable: true,
-                icon: L.icon({
-                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                })
-            };
-            return L.marker(waypoint.latLng, markerOptions);
-        },
-        addWaypoints: false
+        position: 'topleft'
     }).addTo(map);
 }
 
