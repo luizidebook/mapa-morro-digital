@@ -319,11 +319,6 @@ body, html {
         font-size: 0.8em;
     }
 
-    .control-btn {
-        font-size: 14px;
-        padding: 4px 8px;
-    }
-
     .tutorial-message {
         font-size: 0.7em;
     }
@@ -568,7 +563,7 @@ body, html {
     right: 1%;
     background-color: #fff;
     border: 10px;
-    font-size: 13px;
+    font-size: 11px;
     cursor: pointer;
     z-index: 10000;
 }
@@ -688,7 +683,7 @@ body, html {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 30px;
+    font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;
@@ -768,7 +763,7 @@ body, html {
     right: 1%;
     background-color: #fff;
     border: 10px;
-    font-size: 13px;
+    font-size: 11px;
     cursor: pointer;
     z-index: 10000;
 }
@@ -838,7 +833,7 @@ h2 {
     right: 1%;
     background-color: #fff;
     border: 10px;
-    font-size: 13px;
+    font-size: 11px;
     cursor: pointer;
     z-index: 10000;
 }

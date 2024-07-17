@@ -518,7 +518,7 @@ function highlightElement(element) {
     circleHighlight.style.height = `${rect.height}px`;
     circleHighlight.style.border = '2px solid red';
     circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.zIndex = '999';
+    circleHighlight.style.zIndex = '9999';
 
     arrowHighlight.className = 'arrow-highlight';
     arrowHighlight.style.position = 'absolute';
