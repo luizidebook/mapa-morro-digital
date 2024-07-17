@@ -437,6 +437,7 @@ body, html {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 
@@ -943,6 +944,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1010,6 +1012,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1193,6 +1196,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1369,6 +1373,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1543,6 +1548,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1717,6 +1723,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1892,6 +1899,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -1933,14 +1941,14 @@ h2 {
 
 
 
-.tutorial-progress-bar {
-    width: 100%;
-    height: 5px;
-    background-color: #f3f3f3;
-    position: fixed;
+#tutorial-progress-bar {
+    position: absolute;
     top: 0;
     left: 0;
-    z-index: 10000;
+    height: 5px;
+    background-color: #4CAF50;
+    width: 0;
+    z-index: 1000000;
 }
 
 .progress-bar-inner {
@@ -1948,6 +1956,7 @@ h2 {
     background-color: #007BFF;
     width: 0%;
     transition: width 0.5s;
+    z-index: 100000;
 }
 
 
@@ -2055,6 +2064,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
@@ -2213,6 +2223,7 @@ h2 {
     height: 5px;
     background-color: #4CAF50;
     width: 0;
+    z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
