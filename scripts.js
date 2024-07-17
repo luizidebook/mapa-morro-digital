@@ -19,7 +19,7 @@ let routingControl;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
 let selectedDestination = null; // Variável global para armazenar o destino selecionado
-
+let markers = []; // Array para armazenar os marcadores
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
@@ -208,6 +208,15 @@ function setupEventListeners() {
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
+    // Adicionando event listeners para os botões dos submenus
+        const subMenuButtons = document.querySelectorAll('.submenu-button');
+    subMenuButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const feature = button.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            event.stopPropagation();
+        });
+    });
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -503,7 +512,6 @@ function initializeCarousel() {
     }, 3000);
 }
 
-
 function showInfoInSidebar(title, content) {
     const sidebar = document.getElementById('menu');
     const sidebarContent = sidebar.querySelector('.sidebar-content');
@@ -529,23 +537,23 @@ function highlightElement(element) {
 
     circleHighlight.className = 'circle-highlight';
     circleHighlight.style.position = 'absolute';
-    circleHighlight.style.top = `${rect.top + window.scrollY}px`;
-    circleHighlight.style.left = `${rect.left + window.scrollX}px`;
+    circleHighlight.style.top = `${rect.top + window.scrollY - 3}px`;
+    circleHighlight.style.left = `${rect.left + window.scrollX - 3}px`;
     circleHighlight.style.width = `${rect.width}px`;
     circleHighlight.style.height = `${rect.height}px`;
-    circleHighlight.style.border = '2px solid red';
+    circleHighlight.style.border = '3px solid red';
     circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.zIndex = '999';
+    circleHighlight.style.zIndex = '9999';
 
     arrowHighlight.className = 'arrow-highlight';
     arrowHighlight.style.position = 'absolute';
-    arrowHighlight.style.top = `${rect.top + window.scrollY - 20}px`;
-    arrowHighlight.style.left = `${rect.left + window.scrollX + rect.width / 2 - 20}px`;
+    arrowHighlight.style.top = `${rect.top + window.scrollY - 24}px`;
+    arrowHighlight.style.left = `${rect.left + window.scrollX + rect.width / 2 - 15}px`;
     arrowHighlight.style.width = '0';
     arrowHighlight.style.height = '0';
-    arrowHighlight.style.borderLeft = '20px solid transparent';
-    arrowHighlight.style.borderRight = '20px solid transparent';
-    arrowHighlight.style.zIndex = '99999';
+    arrowHighlight.style.borderLeft = '15px solid transparent';
+    arrowHighlight.style.borderRight = '15px solid transparent';
+    arrowHighlight.style.zIndex = '999999';
     arrowHighlight.style.animation = 'bounce 1s infinite';
 
     document.body.appendChild(circleHighlight);
@@ -672,6 +680,8 @@ function handleFeatureSelection(feature) {
         subMenu.style.display = 'none';
     });
 
+    clearMarkers();
+
     if (currentSubMenu === subMenuId) {
         document.getElementById('menu').style.display = 'none';
         document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
@@ -725,6 +735,7 @@ async function fetchOSMData(query) {
     }
 }
 
+
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; 
@@ -735,6 +746,10 @@ function displayOSMData(data, subMenuId) {
             btn.textContent = element.tags.name;
             btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível', element.tags.images || []);
             subMenu.appendChild(btn);
+
+            // Adicionando marcador ao mapa
+            const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(element.tags.name);
+            markers.push(marker);
         }
     });
 }
@@ -756,9 +771,12 @@ function displayCustomTours() {
         btn.textContent = tour.name;
         btn.onclick = () => handleSubmenuButtonClick(tour.lat, tour.lon, tour.name, tour.description, tour.images);
         subMenu.appendChild(btn);
+
+        // Adicionando marcador ao mapa
+        const marker = L.marker([tour.lat, tour.lon]).addTo(map).bindPopup(tour.name);
+        markers.push(marker);
     });
 }
-
 
 function displayCustomEmergencies() {
     const emergencies = [
@@ -777,9 +795,12 @@ function displayCustomEmergencies() {
         btn.textContent = emergency.name;
         btn.onclick = () => handleSubmenuButtonClick(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images);
         subMenu.appendChild(btn);
+
+        // Adicionando marcador ao mapa
+        const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(emergency.name);
+        markers.push(marker);
     });
 }
-
 
 function displayCustomTips() {
     const tips = [
@@ -800,9 +821,12 @@ function displayCustomTips() {
         btn.textContent = tip.name;
         btn.onclick = () => handleSubmenuButtonClick(tip.lat, tip.lon, tip.name, tip.description, tip.images);
         subMenu.appendChild(btn);
+
+        // Adicionando marcador ao mapa
+        const marker = L.marker([tip.lat, tip.lon]).addTo(map).bindPopup(tip.name);
+        markers.push(marker);
     });
 }
-
 
 function displayCustomAbout() {
     const about = [
@@ -815,10 +839,7 @@ function displayCustomAbout() {
         { name: "Benefícios para Agências de Turismo", lat: -13.3500, lon: -38.9500, description: "Agências de turismo têm acesso a ferramentas e recursos que facilitam a organização de passeios e atividades para os visitantes.", images: ["image1.jpg", "image2.jpg"] },
         { name: "Benefícios para Lojas e Comércios", lat: -13.3800, lon: -38.9100, description: "Lojas e comércios locais oferecem produtos e serviços exclusivos com descontos para visitantes de Morro de São Paulo.", images: ["image1.jpg", "image2.jpg"] },
         { name: "Benefícios para Transportes", lat: -13.3700, lon: -38.9000, description: "Facilite seu deslocamento com serviços de transporte confiáveis e acessíveis disponíveis para turistas e moradores.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Impacto em MSP", lat: -13.3600, lon: -38.9400, description: "Entenda o impacto positivo de nossas ações e serviços em Morro de São Paulo e como estamos contribuindo para a comunidade local.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Impacto na Bahia", lat: -13.3500, lon: -38.9500, description: "Saiba mais sobre como estamos promovendo o turismo e o desenvolvimento sustentável na Bahia.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Impacto no Brasil", lat: -13.3800, lon: -38.9100, description: "Nosso trabalho está ajudando a fortalecer o turismo e a economia em todo o Brasil. Descubra mais sobre nossos projetos nacionais.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Impacto no Mundo", lat: -13.3700, lon: -38.9000, description: "Veja como estamos levando o nome de Morro de São Paulo e do Brasil para o mundo, promovendo o turismo internacional.", images: ["image1.jpg", "image2.jpg"] }
+        { name: "Impacto em MSP", lat: -13.3600, lon: -38.9400, description: "Entenda o impacto positivo de nossas iniciativas na comunidade local e no meio ambiente.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('about-submenu');
@@ -830,37 +851,55 @@ function displayCustomAbout() {
         btn.textContent = info.name;
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
+
+        // Adicionando marcador ao mapa
+        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
+        markers.push(marker);
     });
 }
 
-
 function displayCustomEducation() {
-    const educationOptions = [
-        { name: "Iniciar Tutorial", lat: -13.3800, lon: -38.9100, description: "Comece seu tutorial para aprender a usar todas as ferramentas e recursos que oferecemos. Ideal para novos visitantes e usuários.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Planejar Viagem com IA", lat: -13.3600, lon: -38.9400, description: "Utilize a inteligência artificial para planejar sua viagem de forma personalizada e eficiente. Receba recomendações e dicas exclusivas.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Falar com IA", lat: -13.3500, lon: -38.9500, description: "Interaja com nossa inteligência artificial para obter informações, fazer perguntas e receber assistência em tempo real.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Falar com Suporte", lat: -13.3700, lon: -38.9000, description: "Precisa de ajuda? Fale com nosso suporte para resolver dúvidas e obter assistência rápida e eficiente.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Configurações", lat: -13.3700, lon: -38.9000, description: "Personalize sua experiência ajustando as configurações de acordo com suas preferências e necessidades.", images: ["image1.jpg", "image2.jpg"] }
+    const education = [
+        { name: "Escola Municipal", lat: -13.3700, lon: -38.9000, description: "Escola Municipal de Morro de São Paulo oferece educação de qualidade para crianças e adolescentes da região.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Centro de Educação Infantil", lat: -13.3600, lon: -38.9400, description: "Centro de Educação Infantil proporciona um ambiente acolhedor e estimulante para o desenvolvimento das crianças.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Faculdade de Turismo", lat: -13.3500, lon: -38.9500, description: "Faculdade de Turismo oferece cursos superiores voltados para a capacitação profissional na área de turismo.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('education-submenu');
     subMenu.innerHTML = '';
     
-    educationOptions.forEach(option => {
+    education.forEach(info => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
-        btn.textContent = option.name;
-        btn.onclick = () => handleSubmenuButtonClick(option.lat, option.lon, option.name, option.description, option.images);
+        btn.textContent = info.name;
+        btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
+
+        // Adicionando marcador ao mapa
+        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
+        markers.push(marker);
     });
 }
 
-
+// Função para lidar com o clique dos botões de submenus
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
-    selectedDestination = { lat, lon }; // Armazena a localização selecionada
-    showLocationDetailsInModal(name, description, images);
-      showControlButtons();
+    const imageUrls = [
+        "https://example.com/image1.jpg",
+        "https://example.com/image2.jpg",
+        "https://example.com/image3.jpg"
+    ];
+    showLocationDetailsInModal(name, description, imageUrls);
+    showControlButtons();
 }
+
+
+function clearMarkers() {
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    markers = [];
+}
+
 
 function showLocationDetailsInModal(name, description, images) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
@@ -885,17 +924,12 @@ function showLocationDetailsInModal(name, description, images) {
     initializeCarousel();
 }
 
-function initializeCarousel() {
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    let currentItemIndex = 0;
-
-    setInterval(() => {
-        carouselItems[currentItemIndex].classList.remove('active');
-        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
-        carouselItems[currentItemIndex].classList.add('active');
-    }, 3000);
+function clearMarkers() {
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    markers = [];
 }
-
 
 function createRouteTo(destination) {
     if (routingControl) {
@@ -910,7 +944,7 @@ function createRouteTo(destination) {
         position: 'topleft'
     }).addTo(map);
 }
-  
+
 function showLocationInfoModal(name) {
     const modalContent = `
         <h2>${name}</h2>
@@ -1398,6 +1432,7 @@ function showControlButtons() {
             document.getElementById('tutorial-no-btn').style.display = 'none';
             document.getElementById('create-route-btn').style.display = 'inline-block';
             document.getElementById('tutorial-yes-btn').style.display = 'none';
+            document.getElementById('create-itinerary-btn').style.display = 'none';
     controlButtons.style.display = 'block';
 }
 

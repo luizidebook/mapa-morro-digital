@@ -140,13 +140,13 @@ body, html {
     background-color: #0056b3;
 }
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -547,18 +547,17 @@ body, html {
 }
 
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
 
-}
 .close-btn {
     position: fixed;
     top: 4%;
@@ -721,22 +720,22 @@ body, html {
 }
 
 
-#assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
 @keyframes highlight-animation {
     from {
@@ -755,7 +754,7 @@ body, html {
     position: fixed;
     top: 0;
     right: 0;
-    width: 38%;
+    width: 25%;
     height: 100%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
@@ -788,14 +787,14 @@ body, html {
 
 .submenu-item {
     width: 100%;
-    padding: 10px;
-    padding-right: 40px;
+    padding: 8px;
+    padding-right: 25px;
     background: #f4f4f4;
     border: none;
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 8px;
     z-index: 1000;
 }
 
@@ -1053,25 +1052,24 @@ h2 {
 
 
 @media (max-width: 600px) {
-        .control-buttons {
+    .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -1094,22 +1092,22 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-   #assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
 
     .menu-toggle-btn {
@@ -1242,30 +1240,30 @@ h2 {
 }
 
 @media (max-width: 768px) {
-   #assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
-.close-side-btn {
+   .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -1292,14 +1290,13 @@ h2 {
     .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
 #tutorial-btn {
     position: fixed;
@@ -1419,45 +1416,44 @@ h2 {
 
 }
 @media (max-width: 1024px) {
-#assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
 
-     .control-buttons {
+    .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1593,30 +1589,30 @@ h2 {
 
 
 @media (max-width: 1200px) {
-   #assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -1639,17 +1635,16 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-      .control-buttons {
+    .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
 
 #tutorial-btn {
@@ -1769,30 +1764,30 @@ h2 {
 }
 
 @media (min-width: 1201px) {
-   #assistant-modal {
-    position: absolute;
-    top: 25%;
-    left: 31%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
-}
+    #assistant-modal {
+        position: absolute;
+        top: 25%;
+        left: 38%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        max-width: 600px;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 100000;
+        display: none;
+        text-align: center;
+    }
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -1815,17 +1810,16 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-     .control-buttons {
+      .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
 
 #tutorial-btn {
@@ -1962,13 +1956,13 @@ h2 {
 
 @media (max-width: 768px) {
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
@@ -2104,14 +2098,13 @@ h2 {
     .control-buttons {
         position: absolute;
         top: 92%;
-        left: 30%;
+        left: 38%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
     }
-}
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
@@ -2123,13 +2116,13 @@ h2 {
 
 @media (max-width: 480px) {
 
-.close-side-btn {
+  .close-side-btn {
         position: fixed;
-        top: 1%;
-        right: 1%;
+        top: 0.2%;
+        right: 25.3%;
         background-color: #fff;
         border: 10px;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         z-index: 10000;
     }
