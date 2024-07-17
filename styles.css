@@ -720,9 +720,9 @@ body, html {
 }
 
 
-    #assistant-modal {
+            #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
@@ -1092,9 +1092,9 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-    #assistant-modal {
+        #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
@@ -1240,9 +1240,9 @@ h2 {
 }
 
 @media (max-width: 768px) {
-    #assistant-modal {
+        #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
@@ -1416,9 +1416,9 @@ h2 {
 
 }
 @media (max-width: 1024px) {
-    #assistant-modal {
+            #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
@@ -1589,9 +1589,9 @@ h2 {
 
 
 @media (max-width: 1200px) {
-    #assistant-modal {
+            #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
@@ -1764,9 +1764,9 @@ h2 {
 }
 
 @media (min-width: 1201px) {
-    #assistant-modal {
+         #assistant-modal {
         position: absolute;
-        top: 25%;
+        top: 40%;
         left: 38%;
         transform: translate(-50%, -50%);
         width: 60%;
