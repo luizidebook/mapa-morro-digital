@@ -140,6 +140,17 @@ body, html {
     background-color: #0056b3;
 }
 
+.close-side-btn {
+    position: fixed;
+    top: 1%;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+
 .close-btn {
     position: fixed;
     top: 1%;
@@ -537,6 +548,7 @@ body, html {
 
 .close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1052,6 +1064,7 @@ h2 {
 
 .close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1244,6 +1257,7 @@ h2 {
 
 .close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1417,8 +1431,9 @@ h2 {
         text-align: center;
     }
 
-    .close-side-btn {
+.close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1589,8 +1604,9 @@ h2 {
         text-align: center;
     }
 
-    .close-side-btn {
+.close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1763,8 +1779,9 @@ h2 {
         text-align: center;
     }
 
-    .close-side-btn {
+.close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -1936,8 +1953,9 @@ h2 {
 
 @media (max-width: 768px) {
 
-  .close-side-btn {
+.close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
@@ -2095,8 +2113,9 @@ h2 {
 
 @media (max-width: 480px) {
 
-    .close-side-btn {
+.close-side-btn {
     position: fixed;
+    top: 1%;
     right: 38.3%;
     background-color: #fff;
     border: 10px;
