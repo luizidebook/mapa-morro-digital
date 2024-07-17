@@ -141,15 +141,15 @@ body, html {
 }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 .close-btn {
     position: fixed;
@@ -547,15 +547,15 @@ body, html {
 
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 }
 .close-btn {
@@ -1063,15 +1063,15 @@ h2 {
 }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1256,15 +1256,15 @@ h2 {
     }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1432,15 +1432,15 @@ h2 {
     }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
      .control-buttons {
         position: absolute;
@@ -1605,15 +1605,15 @@ h2 {
     }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1780,15 +1780,15 @@ h2 {
     }
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
     /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1954,15 +1954,15 @@ h2 {
 @media (max-width: 768px) {
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
 
 #tutorial-btn {
     position: fixed;
@@ -2114,15 +2114,15 @@ h2 {
 @media (max-width: 480px) {
 
 .close-side-btn {
-    position: fixed;
-    top: 0.2%;
-    right: 38.3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 10000;
-}
+        position: fixed;
+        top: 1%;
+        right: 1%;
+        background-color: #fff;
+        border: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10000;
+    }
  
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
