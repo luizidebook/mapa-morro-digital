@@ -1265,6 +1265,7 @@ const tutorialSteps = [
             document.getElementById('tutorial-next-btn').style.display = 'none';
             document.getElementById('tutorial-prev-btn').style.display = 'none';
             document.getElementById('tutorial-end-btn').style.display = 'none';
+            document.getElementById('create-route-btn').style.display = 'none';
         }
     },
 ];

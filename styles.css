@@ -722,21 +722,21 @@ body, html {
 
 
 #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 30%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 @keyframes highlight-animation {
     from {
@@ -1094,22 +1094,22 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-    #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 31%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+   #assistant-modal {
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 
     .menu-toggle-btn {
@@ -1242,22 +1242,22 @@ h2 {
 }
 
 @media (max-width: 768px) {
-    #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 31%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+   #assistant-modal {
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 .close-side-btn {
         position: fixed;
@@ -1419,22 +1419,22 @@ h2 {
 
 }
 @media (max-width: 1024px) {
-     #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 31%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+#assistant-modal {
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 .close-side-btn {
         position: fixed;
@@ -1593,22 +1593,22 @@ h2 {
 
 
 @media (max-width: 1200px) {
-      #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 31%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+   #assistant-modal {
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 .close-side-btn {
         position: fixed;
@@ -1769,22 +1769,22 @@ h2 {
 }
 
 @media (min-width: 1201px) {
-     #assistant-modal {
-        position: absolute;
-        top: 50%;
-        left: 31%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        background: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        z-index: 100000;
-        display: none;
-        text-align: center;
-    }
+   #assistant-modal {
+    position: absolute;
+    top: 25%;
+    left: 31%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 600px;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    display: none;
+    text-align: center;
+}
 
 .close-side-btn {
         position: fixed;
