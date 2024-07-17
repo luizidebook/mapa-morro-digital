@@ -18,6 +18,8 @@ let favorites = getLocalStorageItem('favorites', []);
 let routingControl;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
+let selectedDestination = null; // Variável global para armazenar o destino selecionado
+
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
@@ -204,6 +206,8 @@ function setupEventListeners() {
     const floatingMenu = document.getElementById('floating-menu');
     const tutorialBtn = document.getElementById('tutorial-btn');
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
+    const createRouteBtn = document.getElementById('create-route-btn');
+    const noBtn = document.getElementById('no-btn');
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -276,7 +280,7 @@ function setupEventListeners() {
                         "url-to-image9.jpg"
                     ];
                     break;
-                                case 'festas':
+                case 'festas':
                     title = "Festas e Eventos";
                     description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
                     images = [
@@ -399,8 +403,21 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
-}
+  
+    // Adicionando os event listeners para os botões de "Criar Rota" e "Não"
+    createRouteBtn.addEventListener('click', () => {
+        if (selectedDestination) {
+            createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
+        } else {
+            alert("Por favor, selecione um destino primeiro.");
+        }
+        hideControlButtons();
+    });
 
+    noBtn.addEventListener('click', () => {
+        hideControlButtons();
+    });
+}
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
@@ -518,7 +535,7 @@ function highlightElement(element) {
     circleHighlight.style.height = `${rect.height}px`;
     circleHighlight.style.border = '2px solid red';
     circleHighlight.style.borderRadius = '50%';
-    circleHighlight.style.zIndex = '9999';
+    circleHighlight.style.zIndex = '999';
 
     arrowHighlight.className = 'arrow-highlight';
     arrowHighlight.style.position = 'absolute';
@@ -666,6 +683,7 @@ function handleFeatureSelection(feature) {
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.remove('inactive');
         document.querySelector(`.menu-btn[data-feature="${feature}"]`).classList.add('active');
         currentSubMenu = subMenuId;
+
     }
 }
 
@@ -839,8 +857,9 @@ function displayCustomEducation() {
 
 
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
-    createRouteTo([lat, lon]);
+    selectedDestination = { lat, lon }; // Armazena a localização selecionada
     showLocationDetailsInModal(name, description, images);
+      showControlButtons();
 }
 
 function showLocationDetailsInModal(name, description, images) {
@@ -877,6 +896,7 @@ function initializeCarousel() {
     }, 3000);
 }
 
+
 function createRouteTo(destination) {
     if (routingControl) {
         map.removeControl(routingControl);
@@ -884,13 +904,13 @@ function createRouteTo(destination) {
     routingControl = L.Routing.control({
         waypoints: [
             L.latLng(currentLocation.latitude, currentLocation.longitude),
-            L.latLng(destination)
+            L.latLng(destination.lat, destination.lon)
         ],
         routeWhileDragging: true,
         position: 'topleft'
     }).addTo(map);
 }
-
+  
 function showLocationInfoModal(name) {
     const modalContent = `
         <h2>${name}</h2>
@@ -1371,3 +1391,34 @@ function searchLocation() {
             });
     }
 }
+
+function showControlButtons() {
+    const controlButtons = document.querySelector('.control-buttons');
+            document.getElementById('tutorial-no-btn').style.display = 'none';
+            document.getElementById('create-route-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-yes-btn').style.display = 'none';
+    controlButtons.style.display = 'block';
+}
+
+function hideControlButtons() {
+    const controlButtons = document.querySelector('.control-buttons');
+    controlButtons.style.display = 'none';
+}
+
+function addCreateRouteButton() {
+    const createRouteButton = document.createElement('button');
+    createRouteButton.className = 'control-btn';
+    createRouteButton.id = 'create-route-btn';
+    createRouteButton.style.display = 'none';
+    createRouteButton.textContent = translations[selectedLanguage].createRoute;
+    createRouteButton.addEventListener('click', collectInterestData);
+
+    document.body.appendChild(createRouteButton);
+}
+
+function collectInterestData() {
+    // Implement your logic to collect user data through a questionnaire
+    console.log('Collecting interest data to create a custom route...');
+}
+
+addCreateRouteButton();
