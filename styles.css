@@ -71,7 +71,7 @@ body, html {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 261px;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -266,7 +266,7 @@ body, html {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -299,7 +299,7 @@ body, html {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1060,7 +1060,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1242,7 +1242,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1419,7 +1419,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1569,7 +1569,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1733,7 +1733,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -1917,7 +1917,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
@@ -2046,7 +2046,7 @@ h2 {
 .leaflet-routing-container {
     position: relative;
     max-height: 320px;
-    max-width: 80%;
+    max-width: 65%;
     z-index: 99;
 }
 
