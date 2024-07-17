@@ -142,7 +142,7 @@ body, html {
 
 .close-btn {
     position: fixed;
-    top: 4%;
+    top: 1%;
     right: 2%;
     background-color: #fff;
     border: 10px;
@@ -542,11 +542,10 @@ body, html {
 
 .close-side-btn {
     position: fixed;
-    top: 2%;
-    right: 38.7%;
+    right: 38.3%;
     background-color: #fff;
     border: 10px;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     z-index: 10000;
 }
@@ -1056,6 +1055,16 @@ h2 {
     }
 }
 
+.close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
     position: relative;
@@ -1238,6 +1247,16 @@ h2 {
         text-align: center;
     }
 
+.close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
     position: relative;
@@ -1403,6 +1422,16 @@ h2 {
         text-align: center;
     }
 
+    .close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+
      .control-buttons {
         position: absolute;
         top: 92%;
@@ -1564,6 +1593,16 @@ h2 {
         display: none;
         text-align: center;
     }
+
+    .close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
 
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
@@ -1729,6 +1768,16 @@ h2 {
         text-align: center;
     }
 
+    .close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
+
     /* Estilos para o controle de rota */
 .leaflet-routing-container {
     position: relative;
@@ -1891,7 +1940,16 @@ h2 {
 
 
 @media (max-width: 768px) {
-  
+
+  .close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
 
 #tutorial-btn {
     position: fixed;
@@ -2041,6 +2099,16 @@ h2 {
 }
 
 @media (max-width: 480px) {
+
+    .close-side-btn {
+    position: fixed;
+    right: 38.3%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10000;
+}
  
 /* Estilos para o controle de rota */
 .leaflet-routing-container {
