@@ -215,26 +215,48 @@ body, html {
     line-height: 1.6;
 }
 
-/* Estilo do Carrossel */
-.carousel {
-    position: relative;
-    max-width: 100%;
-    margin: auto;
-    overflow: hidden;
-}
+    .carousel {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        overflow: hidden;
+    }
 
-.carousel-item {
-    display: none;
-    width: 100%;
-}
+    .carousel-inner {
+        display: flex;
+        transition: transform 0.5s ease;
+    }
 
-.carousel-item.active {
-    display: block;
-}
+    .carousel-item {
+        min-width: 100%;
+        box-sizing: border-box;
+    }
 
-.carousel img {
-    width: 100%;
-}
+    .carousel-item img {
+        width: 100%;
+        display: block;
+    }
+
+    .carousel-control {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    .carousel-control.prev {
+        left: 0;
+    }
+
+    .carousel-control.next {
+        right: 0;
+    }
 
 
 /* Responsividade */
@@ -571,11 +593,11 @@ body, html {
 
 .close-menu-btn {
     position: fixed;
-    top: 5%;
-    right: 1%;
+    top: 3%;
+    right: 3%;
     background-color: #fff;
     border: 10px;
-    font-size: 11px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 10000;
 }
@@ -710,8 +732,8 @@ body, html {
 
 .close-menu-btn {
     position: fixed;
-    top: 5%;
-    right: 1%;
+    top: 3%;
+    right: 3%;
     background-color: #fff;
     border: 10px;
     font-size: 13px;
@@ -771,11 +793,11 @@ body, html {
 
 .close-menu-btn {
     position: fixed;
-    top: 5%;
-    right: 1%;
+    top: 3%;
+    right: 3%;
     background-color: #fff;
     border: 10px;
-    font-size: 11px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 10000;
 }
@@ -841,11 +863,11 @@ h2 {
 
 .close-menu-btn {
     position: fixed;
-    top: 5%;
-    right: 1%;
+    top: 3%;
+    right: 3%;
     background-color: #fff;
     border: 10px;
-    font-size: 11px;
+    font-size: 13px;
     cursor: pointer;
     z-index: 10000;
 }
