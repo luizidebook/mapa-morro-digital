@@ -209,6 +209,9 @@ function setupEventListeners() {
     const noBtn = document.getElementById('no-btn');
     const subMenuButtons = document.querySelectorAll('.submenu-button');
 
+    // Oculta o botão de alternância do menu inicialmente
+    menuToggle.style.display = 'none';
+
     subMenuButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             const feature = button.getAttribute('data-feature');
@@ -252,7 +255,7 @@ function setupEventListeners() {
         }
     });
 
-    document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
+     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
@@ -410,7 +413,7 @@ function setupEventListeners() {
 
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
-  
+
     // Adicionando os event listeners para os botões de "Criar Rota" e "Não"
     createRouteBtn.addEventListener('click', () => {
         if (selectedDestination) {
@@ -1260,11 +1263,8 @@ const tutorialSteps = [
     },
     action: () => {
         document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-        document.getElementById('create-itinerary-btn').style.display = 'inline-block';
         document.getElementById('tutorial-yes-btn').style.display = 'none';
-        document.getElementById('tutorial-next-btn').style.display = 'none';
-        document.getElementById('tutorial-prev-btn').style.display = 'none';
-        document.getElementById('tutorial-end-btn').style.display = 'none';
+        document.getElementById('create-itinerary-btn').style.display = 'inline-block';
         document.getElementById('create-route-btn').style.display = 'none';
     }
   }
@@ -1282,14 +1282,15 @@ function showTutorialStep(step) {
         document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
         document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
 
+        // Oculta o botão de alternância do menu até o usuário clicar em "sim"
         const menuToggle = document.getElementById('menu-btn');
         menuToggle.style.display = 'none';
     } else if (step === 'menu-toggle') {
         const menuToggle = document.getElementById('menu-btn');
         menuToggle.style.display = 'block';
         highlightElement(menuToggle);
-    } else {
-        document.querySelector('.control-buttons').style.display = 'none';
+    } else if (step === 'end-tutorial') {
+        document.querySelector('.control-buttons').style.display = 'block';
     }
 
     if (targetElement) {
@@ -1301,16 +1302,36 @@ function showTutorialStep(step) {
     }
 }
 
+
 function endTutorial() {
-    document.getElementById('tutorial-overlay').style.display = 'none';
     tutorialIsActive = false;
     removeExistingHighlights();
-    document.querySelector('.control-buttons').style.display = 'none';
     hideAssistantModal();
+    closeSideMenu();
 
-    const menuToggle = document.getElementById('menu-btn');
-    menuToggle.style.display = 'block';
+    const overlay = document.getElementById('tutorial-overlay');
+    overlay.style.display = 'none';
+
+    const controlButtons = document.querySelector('.control-buttons');
+    controlButtons.style.display = 'none';
+
+    // Reseta o progresso da barra de progresso
+    const progressBar = document.getElementById('tutorial-progress-bar');
+    progressBar.style.width = '0%';
+
+    // Oculta botões específicos
+    document.getElementById('tutorial-no-btn').style.display = 'none';
+    document.getElementById('create-itinerary-btn').style.display = 'none';
+    document.getElementById('tutorial-yes-btn').style.display = 'none';
+    document.getElementById('tutorial-next-btn').style.display = 'none';
+    document.getElementById('tutorial-prev-btn').style.display = 'none';
+    document.getElementById('tutorial-end-btn').style.display = 'none';
+    document.getElementById('create-route-btn').style.display = 'none';
+
+    // Reseta a etapa atual do tutorial
+    currentStep = 0;
 }
+
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
@@ -1318,9 +1339,11 @@ function nextTutorialStep() {
         showTutorialStep(tutorialSteps[currentStep].step);
         updateProgressBar(currentStep, tutorialSteps.length);
     } else {
-        endTutorial();
+        endTutorial(); // Encerra o tutorial corretamente
     }
 }
+
+
 
 function previousTutorialStep() {
     if (currentStep > 0) {
@@ -1407,8 +1430,12 @@ function showControlButtons() {
     document.getElementById('create-route-btn').style.display = 'inline-block';
     document.getElementById('tutorial-yes-btn').style.display = 'none';
     document.getElementById('create-itinerary-btn').style.display = 'none';
+    document.getElementById('tutorial-next-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
+    document.getElementById('tutorial-prev-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
+    document.getElementById('tutorial-end-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
     controlButtons.style.display = 'block';
 }
+
 
 function hideControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');
@@ -1431,3 +1458,4 @@ function collectInterestData() {
 }
 
 addCreateRouteButton();
+

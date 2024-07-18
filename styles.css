@@ -281,10 +281,16 @@ body, html {
         font-size: 1em;
     }
 
-    .control-btn {
-        font-size: 18px;
-        padding: 8px 16px;
-    }
+   .control-btn {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
 
     .tutorial-message {
         font-size: 0.9em;
@@ -742,7 +748,7 @@ body, html {
 }
 
 
-        #assistant-modal {
+ #assistant-modal {
         position: absolute;
         top: 40%;
         left: 38%;
@@ -1079,7 +1085,7 @@ h2 {
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
@@ -1309,12 +1315,12 @@ h2 {
 }
 
 
-    .control-buttons {
+       .control-buttons {
         position: absolute;
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
@@ -1471,7 +1477,7 @@ h2 {
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
@@ -1662,7 +1668,7 @@ h2 {
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
@@ -1832,12 +1838,12 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-      .control-buttons {
+    .control-buttons {
         position: absolute;
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
@@ -2122,7 +2128,7 @@ h2 {
         top: 92%;
         left: 38%;
         transform: translate(-50%, -50%);
-        display: flex;
+        display: none;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
         flex-direction: row-reverse;
