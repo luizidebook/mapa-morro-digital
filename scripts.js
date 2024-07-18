@@ -21,7 +21,6 @@ let voices = [];
 let selectedDestination = null; // Variável global para armazenar o destino selecionado
 let markers = []; // Array para armazenar os marcadores
 let currentCarouselIndex = 0;
-
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
 const translations = {
@@ -134,7 +133,7 @@ const translations = {
 7. Prepárate para caminar... la mayoría de las actividades en Morro de São Paulo se realizan a pie y hay algunas colinas para subir;
 8. Los servicios médicos y las farmacias en Morro de São Paulo son muy limitadas. Lleva toda la medicación que consideres necesaria;
 9. La señal de celular funciona bien en Morro de São Paulo y es común que se ofrezca Wi-Fi en las posadas y restaurantes;
-10. Se cobra una tarifa al llegar a Morro de São Paulo. La tarifa por uso del patrimonio del archipiélago - TUPA cuesta R$ 50 por persona. Los niños menores de 5 años y las personas mayores de 60 están exentos de la tarifa. El pago se puede realizar en el momento del desembarque, a través de la aplicación TUPA o en el sitio web tupadigital.com.br. Durante la temporada alta o los fines de semana, recomendamos pagar la tarifa con anticipación para evitar filas.`
+10. Se cobra una tarifa al llegar a Morro de São Paulo. La tarifa por uso del patrimonio del archipiélago - TUPA cuesta R$ 50 por persona. Los niños menores de 5 y las personas mayores de 60 están exentos de la tarifa. El pago se puede realizar en el momento del desembarque, a través de la aplicación TUPA o en el sitio web tupadigital.com.br. Durante la temporada alta o los fines de semana, recomendamos pagar la tarifa con anticipación para evitar filas.`
     },
     he: {
         welcome: "ברוך הבא לאתר שלנו!",
@@ -199,8 +198,6 @@ function getLocalStorageItem(key, defaultValue) {
     }
 }
 
-// Modificação do setupEventListeners para chamar showAssistantModal nos cliques dos botões
-// Modificação do setupEventListeners para chamar showAssistantModal nos cliques dos botões
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -210,10 +207,8 @@ function setupEventListeners() {
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
-     // Oculta o botão de alternância do menu inicialmente
-    menuToggle.style.display = 'none';
-
     const subMenuButtons = document.querySelectorAll('.submenu-button');
+
     subMenuButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             const feature = button.getAttribute('data-feature');
@@ -263,7 +258,6 @@ function setupEventListeners() {
             handleFeatureSelection(feature);
             event.stopPropagation();
 
-            // Adicionando imagens específicas para cada feature
             let title, description, images;
             switch (feature) {
                 case 'pontos-turisticos':
@@ -384,7 +378,7 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
-            requestLocationPermission.then(() => {
+            requestLocationPermission().then(() => {
                 loadSearchHistory();
                 checkAchievements();
                 loadFavorites();
@@ -446,17 +440,20 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Função de permissão de localização do usuário
 function requestLocationPermission() {
-    navigator.geolocation.getCurrentPosition(position => {
-        currentLocation = position.coords;
-        adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-        showUserLocationPopup(currentLocation.latitude, currentLocation.longitude);
-        if (!tutorialIsActive) {
-            showTutorialStep('start-tutorial');
-        }
-    }, error => {
-        alert(translations[selectedLanguage].locationPermissionDenied);
+    return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(position => {
+            currentLocation = position.coords;
+            adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
+            showUserLocationPopup(currentLocation.latitude, currentLocation.longitude);
+            if (!tutorialIsActive) {
+                showTutorialStep('start-tutorial');
+            }
+            resolve();
+        }, error => {
+            alert(translations[selectedLanguage].locationPermissionDenied);
+            reject(error);
+        });
     });
 }
 
@@ -480,7 +477,6 @@ function showUserLocationPopup(lat, lon) {
         .openOn(map);
 }
 
-
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     modal.classList.add('visible');
@@ -502,12 +498,10 @@ function hideModal(modalId) {
     hideAssistantModal();
 }
 
-// Função para mostrar o modal do assistente com as informações
 function showAssistantModal(title, description, images) {
     const modal = document.getElementById('assistant-modal');
     const modalContent = modal.querySelector('.modal-content');
     
-    // Cria o conteúdo do modal
     let content = `
         <h2>${title}</h2>
         <p>${description}</p>
@@ -526,8 +520,6 @@ function showAssistantModal(title, description, images) {
     initializeCarousel();
 }
 
-
-// Função para inicializar o carrossel de imagens
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
     let currentItemIndex = 0;
@@ -727,7 +719,6 @@ async function fetchOSMData(query) {
     }
 }
 
-
 function displayOSMData(data, subMenuId) {
     const subMenu = document.getElementById(subMenuId);
     subMenu.innerHTML = ''; 
@@ -739,7 +730,6 @@ function displayOSMData(data, subMenuId) {
             btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível', element.tags.images || []);
             subMenu.appendChild(btn);
 
-            // Adicionando marcador ao mapa
             const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(element.tags.name);
             markers.push(marker);
         }
@@ -764,7 +754,6 @@ function displayCustomTours() {
         btn.onclick = () => handleSubmenuButtonClick(tour.lat, tour.lon, tour.name, tour.description, tour.images);
         subMenu.appendChild(btn);
 
-        // Adicionando marcador ao mapa
         const marker = L.marker([tour.lat, tour.lon]).addTo(map).bindPopup(tour.name);
         markers.push(marker);
     });
@@ -788,7 +777,6 @@ function displayCustomEmergencies() {
         btn.onclick = () => handleSubmenuButtonClick(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images);
         subMenu.appendChild(btn);
 
-        // Adicionando marcador ao mapa
         const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(emergency.name);
         markers.push(marker);
     });
@@ -814,7 +802,6 @@ function displayCustomTips() {
         btn.onclick = () => handleSubmenuButtonClick(tip.lat, tip.lon, tip.name, tip.description, tip.images);
         subMenu.appendChild(btn);
 
-        // Adicionando marcador ao mapa
         const marker = L.marker([tip.lat, tip.lon]).addTo(map).bindPopup(tip.name);
         markers.push(marker);
     });
@@ -844,7 +831,6 @@ function displayCustomAbout() {
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
 
-        // Adicionando marcador ao mapa
         const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
         markers.push(marker);
     });
@@ -869,13 +855,11 @@ function displayCustomEducation() {
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
 
-        // Adicionando marcador ao mapa
         const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
         markers.push(marker);
     });
 }
 
-// Função para lidar com o clique dos botões de submenus
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
     const imageUrls = [
         "https://example.com/image1.jpg",
@@ -887,14 +871,12 @@ function handleSubmenuButtonClick(lat, lon, name, description, images) {
     showControlButtons();
 }
 
-
 function clearMarkers() {
     markers.forEach(marker => {
         map.removeLayer(marker);
     });
     markers = [];
 }
-
 
 function showLocationDetailsInModal(name, description, images) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
@@ -917,13 +899,6 @@ function showLocationDetailsInModal(name, description, images) {
     });
 
     initializeCarousel();
-}
-
-function clearMarkers() {
-    markers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-    markers = [];
 }
 
 function createRouteTo(destination) {
@@ -1276,23 +1251,23 @@ const tutorialSteps = [
         }
     },
     {
-        step: 'end-tutorial',
-        message: {
-            pt: "Parabéns! Você concluiu o tutorial! Você gostaria de criar um roteiro de atividades para se fazer em Morro de São Paulo personalizado de acordo com as suas preferências?",
-            en: "Congratulations! You have completed the tutorial! Would you like to create a personalized activity itinerary for Morro de São Paulo based on your preferences?",
-            es: "¡Felicitaciones! ¡Has completado el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado para Morro de São Paulo según tus preferencias?",
-            he: "מזל טוב! סיימת את המדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית למורו דה סאו פאולו בהתבסס על ההעדפות שלך?"
-        },
-        action: () => {
-            document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-            document.getElementById('create-itinerary-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-yes-btn').style.display = 'none';
-            document.getElementById('tutorial-next-btn').style.display = 'none';
-            document.getElementById('tutorial-prev-btn').style.display = 'none';
-            document.getElementById('tutorial-end-btn').style.display = 'none';
-            document.getElementById('create-route-btn').style.display = 'none';
-        }
+            step: 'end-tutorial',
+    message: {
+        pt: "Parabéns! Você concluiu o tutorial! Você gostaria de criar um roteiro de atividades para se fazer em Morro de São Paulo personalizado de acordo com as suas preferências?",
+        en: "Congratulations! You have completed the tutorial! Would you like to create a personalized activity itinerary for Morro de São Paulo based on your preferences?",
+        es: "¡Felicitaciones! ¡Has completado el tutorial! ¿Te gustaría crear un itinerario de actividades personalizado para Morro de São Paulo según tus preferencias?",
+        he: "מזל טוב! סיימת את המדריך! האם תרצה ליצור מסלול פעילויות מותאם אישית למורו דה סאו פאולו בהתבסס על ההעדפות שלך?"
     },
+    action: () => {
+        document.getElementById('tutorial-no-btn').style.display = 'inline-block';
+        document.getElementById('create-itinerary-btn').style.display = 'inline-block';
+        document.getElementById('tutorial-yes-btn').style.display = 'none';
+        document.getElementById('tutorial-next-btn').style.display = 'none';
+        document.getElementById('tutorial-prev-btn').style.display = 'none';
+        document.getElementById('tutorial-end-btn').style.display = 'none';
+        document.getElementById('create-route-btn').style.display = 'none';
+    }
+  }
 ];
 
 function showTutorialStep(step) {
@@ -1307,7 +1282,6 @@ function showTutorialStep(step) {
         document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
         document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
 
-        // Oculta o botão de alternância do menu até o usuário clicar em "sim"
         const menuToggle = document.getElementById('menu-btn');
         menuToggle.style.display = 'none';
     } else if (step === 'menu-toggle') {
@@ -1334,11 +1308,9 @@ function endTutorial() {
     document.querySelector('.control-buttons').style.display = 'none';
     hideAssistantModal();
 
-    // Exibe o botão de alternância do menu ao final do tutorial
     const menuToggle = document.getElementById('menu-btn');
     menuToggle.style.display = 'block';
 }
-
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
@@ -1368,7 +1340,6 @@ function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
     modal.style.display = 'none';
 }
-
 
 function updateProgressBar(current, total) {
     const progressBar = document.getElementById('tutorial-progress-bar');
@@ -1408,7 +1379,6 @@ function closeSideMenu() {
 }
 
 function searchLocation() {
-    // Exemplo básico de pesquisa por localização usando OSM Nominatim API
     var searchQuery = prompt("Digite o local que deseja buscar:");
     if (searchQuery) {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`)
@@ -1418,7 +1388,7 @@ function searchLocation() {
                     var firstResult = data[0];
                     var lat = firstResult.lat;
                     var lon = firstResult.lon;
-                    map.setView([lat, lon], 14); // Centraliza o mapa no resultado da busca
+                    map.setView([lat, lon], 14);
                     L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                 } else {
                     alert("Local não encontrado.");
@@ -1433,10 +1403,10 @@ function searchLocation() {
 
 function showControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');
-            document.getElementById('tutorial-no-btn').style.display = 'none';
-            document.getElementById('create-route-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-yes-btn').style.display = 'none';
-            document.getElementById('create-itinerary-btn').style.display = 'none';
+    document.getElementById('tutorial-no-btn').style.display = 'none';
+    document.getElementById('create-route-btn').style.display = 'inline-block';
+    document.getElementById('tutorial-yes-btn').style.display = 'none';
+    document.getElementById('create-itinerary-btn').style.display = 'none';
     controlButtons.style.display = 'block';
 }
 
@@ -1457,7 +1427,6 @@ function addCreateRouteButton() {
 }
 
 function collectInterestData() {
-    // Implement your logic to collect user data through a questionnaire
     console.log('Collecting interest data to create a custom route...');
 }
 
