@@ -18,8 +18,8 @@ let favorites = getLocalStorageItem('favorites', []);
 let routingControl;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
-let selectedDestination = null;
-let markers = [];
+let selectedDestination = null; // Variável global para armazenar o destino selecionado
+let markers = []; // Array para armazenar os marcadores
 let currentCarouselIndex = 0;
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
@@ -199,6 +199,8 @@ function getLocalStorageItem(key, defaultValue) {
     }
 }
 
+// Modificação do setupEventListeners para chamar showAssistantModal nos cliques dos botões
+// Modificação do setupEventListeners para chamar showAssistantModal nos cliques dos botões
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -208,6 +210,8 @@ function setupEventListeners() {
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
+     // Oculta o botão de alternância do menu inicialmente
+    menuToggle.style.display = 'none';
 
     const subMenuButtons = document.querySelectorAll('.submenu-button');
     subMenuButtons.forEach(button => {
@@ -259,66 +263,112 @@ function setupEventListeners() {
             handleFeatureSelection(feature);
             event.stopPropagation();
 
+            // Adicionando imagens específicas para cada feature
             let title, description, images;
             switch (feature) {
                 case 'pontos-turisticos':
                     title = "Pontos Turísticos";
                     description = "Explore os pontos turísticos mais populares de Morro de São Paulo.";
                     images = [
-                        "https://yandex.com/images/search?text=mirante%20tirolesa",
-                        "https://yandex.com/images/search?text=mirante%20tirolesa",
-                        "https://yandex.com/images/search?text=mirante%20tirolesa"
+                        "url-to-image1.jpg", 
+                        "url-to-image2.jpg", 
+                        "url-to-image3.jpg"
+                    ];
+                    break;
+                case 'passeios':
+                    title = "Passeios";
+                    description = "Descubra os passeios disponíveis em Morro de São Paulo.";
+                    images = [
+                        "url-to-image4.jpg", 
+                        "url-to-image5.jpg", 
+                        "url-to-image6.jpg"
                     ];
                     break;
                 case 'praias':
                     title = "Praias";
-                    description = "Descubra as praias mais belas de Morro de São Paulo.";
+                    description = "Encontre as melhores praias de Morro de São Paulo.";
                     images = [
-                        "https://freepik.com/images/search?query=praia",
-                        "https://freepik.com/images/search?query=praia",
-                        "https://freepik.com/images/search?query=praia"
+                        "url-to-image7.jpg", 
+                        "url-to-image8.jpg", 
+                        "url-to-image9.jpg"
                     ];
                     break;
                 case 'festas':
                     title = "Festas e Eventos";
                     description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
                     images = [
-                        "https://freepik.com/images/search?query=festa",
-                        "https://freepik.com/images/search?query=festa",
-                        "https://freepik.com/images/search?query=festa"
+                        "url-to-image10.jpg", 
+                        "url-to-image11.jpg", 
+                        "url-to-image12.jpg"
                     ];
                     break;
                 case 'restaurantes':
                     title = "Restaurantes";
                     description = "Descubra os melhores restaurantes de Morro de São Paulo.";
                     images = [
-                        "https://freepik.com/images/search?query=restaurante",
-                        "https://freepik.com/images/search?query=restaurante",
-                        "https://freepik.com/images/search?query=restaurante"
+                        "url-to-image13.jpg", 
+                        "url-to-image14.jpg", 
+                        "url-to-image15.jpg"
                     ];
                     break;
                 case 'pousadas':
                     title = "Pousadas";
                     description = "Encontre as melhores pousadas para sua estadia em Morro de São Paulo.";
                     images = [
-                        "https://yandex.com/images/search?text=pousada",
-                        "https://yandex.com/images/search?text=pousada",
-                        "https://yandex.com/images/search?text=pousada"
+                        "url-to-image16.jpg", 
+                        "url-to-image17.jpg", 
+                        "url-to-image18.jpg"
                     ];
                     break;
                 case 'lojas':
                     title = "Lojas";
                     description = "Descubra as lojas locais de Morro de São Paulo.";
                     images = [
-                        "https://freepik.com/images/search?query=loja",
-                        "https://freepik.com/images/search?query=loja",
-                        "https://freepik.com/images/search?query=loja"
+                        "url-to-image19.jpg", 
+                        "url-to-image20.jpg", 
+                        "url-to-image21.jpg"
+                    ];
+                    break;
+                case 'emergencias':
+                    title = "Emergências";
+                    description = "Informações importantes para situações de emergência.";
+                    images = [
+                        "url-to-image22.jpg", 
+                        "url-to-image23.jpg", 
+                        "url-to-image24.jpg"
+                    ];
+                    break;
+                case 'dicas':
+                    title = "Dicas";
+                    description = "Dicas úteis para aproveitar ao máximo sua visita a Morro de São Paulo.";
+                    images = [
+                        "url-to-image25.jpg", 
+                        "url-to-image26.jpg", 
+                        "url-to-image27.jpg"
+                    ];
+                    break;
+                case 'sobre':
+                    title = "Sobre";
+                    description = "Informações sobre a Morro Digital, nossa missão e serviços.";
+                    images = [
+                        "url-to-image28.jpg", 
+                        "url-to-image29.jpg", 
+                        "url-to-image30.jpg"
+                    ];
+                    break;
+                case 'ensino':
+                    title = "Ensino";
+                    description = "Informações sobre opções de ensino disponíveis em Morro de São Paulo.";
+                    images = [
+                        "url-to-image31.jpg", 
+                        "url-to-image32.jpg", 
+                        "url-to-image33.jpg"
                     ];
                     break;
                 default:
                     title = "Título do Modal";
                     description = "Descrição detalhada sobre o tópico selecionado.";
-                    images = ["https://yandex.com/images/search?text=default", "https://yandex.com/images/search?text=default"];
+                    images = ["url-to-default-image1.jpg", "url-to-default-image2.jpg"];
                     break;
             }
 
@@ -334,7 +384,7 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
             document.getElementById('welcome-modal').style.display = 'none';
-            requestLocationPermission().then(() => {
+            requestLocationPermission.then(() => {
                 loadSearchHistory();
                 checkAchievements();
                 loadFavorites();
@@ -367,9 +417,10 @@ function setupEventListeners() {
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
   
+    // Adicionando os event listeners para os botões de "Criar Rota" e "Não"
     createRouteBtn.addEventListener('click', () => {
         if (selectedDestination) {
-            createRouteTo(selectedDestination);
+            createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
         } else {
             alert("Por favor, selecione um destino primeiro.");
         }
@@ -395,16 +446,40 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+// Função de permissão de localização do usuário
 function requestLocationPermission() {
     navigator.geolocation.getCurrentPosition(position => {
         currentLocation = position.coords;
-        initializeMap();
-        closeModal('location-permission-modal');
-        startTutorial();
+        adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
+        showUserLocationPopup(currentLocation.latitude, currentLocation.longitude);
+        if (!tutorialIsActive) {
+            showTutorialStep('start-tutorial');
+        }
     }, error => {
-        alert('Não foi possível obter sua localização.');
+        alert(translations[selectedLanguage].locationPermissionDenied);
     });
 }
+
+function adjustMapWithLocation(lat, lon, name) {
+    map.setView([lat, lon], 18); // Zoom máximo
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
+    map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
+}
+
+function clearMarkers() {
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    markers = [];
+}
+
+function showUserLocationPopup(lat, lon) {
+    L.popup()
+        .setLatLng([lat, lon])
+        .setContent(translations[selectedLanguage].youAreHere)
+        .openOn(map);
+}
+
 
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -427,10 +502,12 @@ function hideModal(modalId) {
     hideAssistantModal();
 }
 
+// Função para mostrar o modal do assistente com as informações
 function showAssistantModal(title, description, images) {
     const modal = document.getElementById('assistant-modal');
     const modalContent = modal.querySelector('.modal-content');
     
+    // Cria o conteúdo do modal
     let content = `
         <h2>${title}</h2>
         <p>${description}</p>
@@ -449,6 +526,8 @@ function showAssistantModal(title, description, images) {
     initializeCarousel();
 }
 
+
+// Função para inicializar o carrossel de imagens
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
     let currentItemIndex = 0;
@@ -527,7 +606,7 @@ function setLanguage(lang) {
     selectedLanguage = lang;
     translatePageContent(lang);
     document.getElementById('welcome-modal').style.display = 'none';
-    updateLocation().then(() => {
+    requestLocationPermission().then(() => {
         loadSearchHistory();
         checkAchievements();
         loadFavorites();
@@ -565,46 +644,11 @@ function activateAssistant() {
     showWelcomeMessage();
 }
 
-function updateLocation() {
-    return new Promise((resolve, reject) => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                currentLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-                adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-                L.popup()
-                    .setLatLng([currentLocation.latitude, currentLocation.longitude])
-                    .setContent(translations[selectedLanguage].youAreHere)
-                    .openOn(map);
-                if (!tutorialIsActive) {
-                    showTutorialStep('start-tutorial');
-                }
-                showLocationMessage();
-                resolve();
-            }, () => {
-                console.log(translations[selectedLanguage].locationPermissionDenied);
-                if (!tutorialIsActive) {
-                    showTutorialStep('start-tutorial');
-                }
-                reject();
-            });
-        } else {
-            console.log(translations[selectedLanguage].geolocationNotSupported);
-            if (!tutorialIsActive) {
-                showTutorialStep('start-tutorial');
-            }
-            reject();
-        }
-    });
-}
-
-function adjustMapWithLocation(lat, lon) {
-    map.setView([lat, lon], 16);
-    L.marker([lat, lon]).addTo(map)
-        .bindPopup(translations[selectedLanguage].youAreHere)
-        .openPopup();
+function showUserLocationPopup(lat, lon) {
+    L.popup()
+        .setLatLng([lat, lon])
+        .setContent(translations[selectedLanguage].youAreHere)
+        .openOn(map);
 }
 
 function handleFeatureSelection(feature) {
@@ -704,10 +748,10 @@ function displayOSMData(data, subMenuId) {
 
 function displayCustomTours() {
     const tours = [
-        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3800, lon: -38.9100, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé. Veja paisagens deslumbrantes e descubra segredos escondidos desta bela ilha.", images: ["https://freepik.com/images/search?query=passeio%20lancha", "https://freepik.com/images/search?query=passeio%20lancha"] },
-        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3600, lon: -38.9400, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá. Aproveite o caminho cheio de adrenalina e as paisagens naturais de tirar o fôlego.", images: ["https://freepik.com/images/search?query=quadriciclo", "https://freepik.com/images/search?query=quadriciclo"] },
-        { name: "Passeio 4X4 para Garapuá", lat: -13.3500, lon: -38.9500, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá. Desfrute de uma experiência off-road única com vistas espetaculares e muita diversão.", images: ["https://freepik.com/images/search?query=passeio%204x4", "https://freepik.com/images/search?query=passeio%204x4"] },
-        { name: "Passeio de Barco para Gamboa", lat: -13.3700, lon: -38.9000, description: "Relaxe em um agradável passeio de barco até Gamboa. Desfrute da tranquilidade do mar e da beleza natural ao longo do caminho.", images: ["https://freepik.com/images/search?query=passeio%20barco", "https://freepik.com/images/search?query=passeio%20barco"] }
+        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3800, lon: -38.9100, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé. Veja paisagens deslumbrantes e descubra segredos escondidos desta bela ilha.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3600, lon: -38.9400, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá. Aproveite o caminho cheio de adrenalina e as paisagens naturais de tirar o fôlego.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio 4X4 para Garapuá", lat: -13.3500, lon: -38.9500, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá. Desfrute de uma experiência off-road única com vistas espetaculares e muita diversão.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Passeio de Barco para Gamboa", lat: -13.3700, lon: -38.9000, description: "Relaxe em um agradável passeio de barco até Gamboa. Desfrute da tranquilidade do mar e da beleza natural ao longo do caminho.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('tours-submenu');
@@ -752,12 +796,12 @@ function displayCustomEmergencies() {
 
 function displayCustomTips() {
     const tips = [
-        { name: "Melhores Pontos Turísticos", lat: -13.3700, lon: -38.9000, description: "Explore os pontos turísticos mais icônicos de Morro de São Paulo. Descubra locais históricos, vistas panorâmicas e atrações imperdíveis que tornarão sua visita inesquecível.", images: ["https://yandex.com/images/search?text=pontos%20turísticos", "https://yandex.com/images/search?text=pontos%20turísticos"] },
-        { name: "Melhores Passeios", lat: -13.3600, lon: -38.9400, description: "Descubra os passeios mais recomendados para aproveitar ao máximo Morro de São Paulo. Inclui opções de aventura e relaxamento.", images: ["https://freepik.com/images/search?query=melhores%20passeios", "https://freepik.com/images/search?query=melhores%20passeios"] },
-        { name: "Melhores Praias", lat: -13.3500, lon: -38.9500, description: "Explore as praias mais bonitas e relaxantes. Encontre o lugar perfeito para desfrutar do sol, areia e mar.", images: ["https://yandex.com/images/search?text=melhores%20praias", "https://yandex.com/images/search?text=melhores%20praias"] },
-        { name: "Melhores Restaurantes", lat: -13.3800, lon: -38.9100, description: "Desfrute da gastronomia local nos melhores restaurantes. Delicie-se com pratos típicos e sabores únicos.", images: ["https://freepik.com/images/search?query=melhores%20restaurantes", "https://freepik.com/images/search?query=melhores%20restaurantes"] },
-        { name: "Melhores Pousadas", lat: -13.3700, lon: -38.9000, description: "Hospede-se nas melhores pousadas que combinam conforto e charme. Encontre o lugar perfeito para relaxar após um dia de aventuras.", images: ["https://yandex.com/images/search?text=melhores%20pousadas", "https://yandex.com/images/search?text=melhores%20pousadas"] },
-        { name: "Melhores Lojas", lat: -13.3600, lon: -38.9400, description: "Descubra as melhores lojas para compras. Encontre souvenirs únicos e produtos locais que você só encontrará aqui.", images: ["https://freepik.com/images/search?query=melhores%20lojas", "https://freepik.com/images/search?query=melhores%20lojas"] }
+        { name: "Melhores Pontos Turísticos", lat: -13.3700, lon: -38.9000, description: "Explore os pontos turísticos mais icônicos de Morro de São Paulo. Descubra locais históricos, vistas panorâmicas e atrações imperdíveis que tornarão sua visita inesquecível.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Passeios", lat: -13.3600, lon: -38.9400, description: "Descubra os passeios mais recomendados para aproveitar ao máximo Morro de São Paulo. Inclui opções de aventura e relaxamento.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Praias", lat: -13.3500, lon: -38.9500, description: "Explore as praias mais bonitas e relaxantes. Encontre o lugar perfeito para desfrutar do sol, areia e mar.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Restaurantes", lat: -13.3800, lon: -38.9100, description: "Desfrute da gastronomia local nos melhores restaurantes. Delicie-se com pratos típicos e sabores únicos.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Pousadas", lat: -13.3700, lon: -38.9000, description: "Hospede-se nas melhores pousadas que combinam conforto e charme. Encontre o lugar perfeito para relaxar após um dia de aventuras.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Melhores Lojas", lat: -13.3600, lon: -38.9400, description: "Descubra as melhores lojas para compras. Encontre souvenirs únicos e produtos locais que você só encontrará aqui.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('tips-submenu');
@@ -778,16 +822,16 @@ function displayCustomTips() {
 
 function displayCustomAbout() {
     const about = [
-        { name: "Missão", lat: -13.3700, lon: -38.9000, description: "Nossa missão é proporcionar a melhor experiência possível para os visitantes de Morro de São Paulo, destacando suas belezas naturais e culturais.", images: ["https://freepik.com/images/search?query=missão", "https://freepik.com/images/search?query=missão"] },
-        { name: "Serviços", lat: -13.3600, lon: -38.9400, description: "Oferecemos uma ampla gama de serviços para tornar sua estadia mais confortável e agradável, desde guias turísticos até serviços de emergência.", images: ["https://yandex.com/images/search?text=serviços", "https://yandex.com/images/search?text=serviços"] },
-        { name: "Benefícios para Turistas", lat: -13.3500, lon: -38.9500, description: "Aproveite ao máximo sua visita com nossos benefícios exclusivos para turistas, incluindo descontos em passeios e restaurantes.", images: ["https://freepik.com/images/search?query=benefícios%20turistas", "https://freepik.com/images/search?query=benefícios%20turistas"] },
-        { name: "Benefícios para Moradores", lat: -13.3800, lon: -38.9100, description: "Moradores de Morro de São Paulo têm acesso a uma série de benefícios, como programas de fidelidade e descontos especiais.", images: ["https://yandex.com/images/search?text=benefícios%20moradores", "https://yandex.com/images/search?text=benefícios%20moradores"] },
-        { name: "Benefícios para Pousadas", lat: -13.3700, lon: -38.9000, description: "Parcerias com pousadas locais garantem vantagens e descontos para os hóspedes, promovendo uma estadia confortável e econômica.", images: ["https://freepik.com/images/search?query=benefícios%20pousadas", "https://freepik.com/images/search?query=benefícios%20pousadas"] },
-        { name: "Benefícios para Restaurantes", lat: -13.3600, lon: -38.9400, description: "Restaurantes parceiros oferecem experiências gastronômicas inesquecíveis com descontos e menus exclusivos para nossos visitantes.", images: ["https://yandex.com/images/search?text=benefícios%20restaurantes", "https://yandex.com/images/search?text=benefícios%20restaurantes"] },
-        { name: "Benefícios para Agências de Turismo", lat: -13.3500, lon: -38.9500, description: "Agências de turismo têm acesso a ferramentas e recursos que facilitam a organização de passeios e atividades para os visitantes.", images: ["https://freepik.com/images/search?query=benefícios%20agências%20turismo", "https://freepik.com/images/search?query=benefícios%20agências%20turismo"] },
-        { name: "Benefícios para Lojas e Comércios", lat: -13.3800, lon: -38.9100, description: "Lojas e comércios locais oferecem produtos e serviços exclusivos com descontos para visitantes de Morro de São Paulo.", images: ["https://freepik.com/images/search?query=benefícios%20lojas", "https://freepik.com/images/search?query=benefícios%20lojas"] },
-        { name: "Benefícios para Transportes", lat: -13.3700, lon: -38.9000, description: "Facilite seu deslocamento com serviços de transporte confiáveis e acessíveis disponíveis para turistas e moradores.", images: ["https://freepik.com/images/search?query=benefícios%20transportes", "https://freepik.com/images/search?query=benefícios%20transportes"] },
-        { name: "Impacto em MSP", lat: -13.3600, lon: -38.9400, description: "Entenda o impacto positivo de nossas iniciativas na comunidade local e no meio ambiente.", images: ["https://yandex.com/images/search?text=impacto%20MSP", "https://yandex.com/images/search?text=impacto%20MSP"] }
+        { name: "Missão", lat: -13.3700, lon: -38.9000, description: "Nossa missão é proporcionar a melhor experiência possível para os visitantes de Morro de São Paulo, destacando suas belezas naturais e culturais.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Serviços", lat: -13.3600, lon: -38.9400, description: "Oferecemos uma ampla gama de serviços para tornar sua estadia mais confortável e agradável, desde guias turísticos até serviços de emergência.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Turistas", lat: -13.3500, lon: -38.9500, description: "Aproveite ao máximo sua visita com nossos benefícios exclusivos para turistas, incluindo descontos em passeios e restaurantes.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Moradores", lat: -13.3800, lon: -38.9100, description: "Moradores de Morro de São Paulo têm acesso a uma série de benefícios, como programas de fidelidade e descontos especiais.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Pousadas", lat: -13.3700, lon: -38.9000, description: "Parcerias com pousadas locais garantem vantagens e descontos para os hóspedes, promovendo uma estadia confortável e econômica.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Restaurantes", lat: -13.3600, lon: -38.9400, description: "Restaurantes parceiros oferecem experiências gastronômicas inesquecíveis com descontos e menus exclusivos para nossos visitantes.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Agências de Turismo", lat: -13.3500, lon: -38.9500, description: "Agências de turismo têm acesso a ferramentas e recursos que facilitam a organização de passeios e atividades para os visitantes.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Lojas e Comércios", lat: -13.3800, lon: -38.9100, description: "Lojas e comércios locais oferecem produtos e serviços exclusivos com descontos para visitantes de Morro de São Paulo.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Benefícios para Transportes", lat: -13.3700, lon: -38.9000, description: "Facilite seu deslocamento com serviços de transporte confiáveis e acessíveis disponíveis para turistas e moradores.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Impacto em MSP", lat: -13.3600, lon: -38.9400, description: "Entenda o impacto positivo de nossas iniciativas na comunidade local e no meio ambiente.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
     const subMenu = document.getElementById('about-submenu');
@@ -807,7 +851,7 @@ function displayCustomAbout() {
 }
 
 function displayCustomEducation() {
-    const educationOptions = [
+    const education = [
         { name: "Iniciar Tutorial", lat: -13.3800, lon: -38.9100, description: "Comece seu tutorial para aprender a usar todas as ferramentas e recursos que oferecemos. Ideal para novos visitantes e usuários.", images: ["image1.jpg", "image2.jpg"] },
         { name: "Planejar Viagem com IA", lat: -13.3600, lon: -38.9400, description: "Utilize a inteligência artificial para planejar sua viagem de forma personalizada e eficiente. Receba recomendações e dicas exclusivas.", images: ["image1.jpg", "image2.jpg"] },
         { name: "Falar com IA", lat: -13.3500, lon: -38.9500, description: "Interaja com nossa inteligência artificial para obter informações, fazer perguntas e receber assistência em tempo real.", images: ["image1.jpg", "image2.jpg"] },
@@ -831,16 +875,18 @@ function displayCustomEducation() {
     });
 }
 
+// Função para lidar com o clique dos botões de submenus
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
     const imageUrls = [
-        "https://yandex.com/images/search?text=" + name.replace(" ", "%20"),
-        "https://yandex.com/images/search?text=" + name.replace(" ", "%20"),
-        "https://yandex.com/images/search?text=" + name.replace(" ", "%20")
+        "https://example.com/image1.jpg",
+        "https://example.com/image2.jpg",
+        "https://example.com/image3.jpg"
     ];
-    adjustMapWithLocation(lat, lon);
+    adjustMapWithLocation(lat, lon, name);
     showLocationDetailsInModal(name, description, imageUrls);
     showControlButtons();
 }
+
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -848,6 +894,7 @@ function clearMarkers() {
     });
     markers = [];
 }
+
 
 function showLocationDetailsInModal(name, description, images) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
@@ -870,6 +917,13 @@ function showLocationDetailsInModal(name, description, images) {
     });
 
     initializeCarousel();
+}
+
+function clearMarkers() {
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    markers = [];
 }
 
 function createRouteTo(destination) {
@@ -989,10 +1043,6 @@ function provideContinuousAssistance() {
 
 function answerQuestions(question) {
     console.log(translations[selectedLanguage].answerQuestions, question);
-}
-
-function updateMapView(lat, lon, zoom) {
-    map.setView([lat, lon], zoom);
 }
 
 function updateAssistantModalContent(content) {
@@ -1252,10 +1302,18 @@ function showTutorialStep(step) {
     updateAssistantModalContent(`<p>${message[selectedLanguage]}</p>`);
     speakText(message[selectedLanguage]);
 
-    if (step === 'start-tutorial' || step === 'end-tutorial') {
+    if (step === 'start-tutorial') {
         document.querySelector('.control-buttons').style.display = 'block';
         document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
         document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
+
+        // Oculta o botão de alternância do menu até o usuário clicar em "sim"
+        const menuToggle = document.getElementById('menu-btn');
+        menuToggle.style.display = 'none';
+    } else if (step === 'menu-toggle') {
+        const menuToggle = document.getElementById('menu-btn');
+        menuToggle.style.display = 'block';
+        highlightElement(menuToggle);
     } else {
         document.querySelector('.control-buttons').style.display = 'none';
     }
@@ -1268,6 +1326,19 @@ function showTutorialStep(step) {
         action();
     }
 }
+
+function endTutorial() {
+    document.getElementById('tutorial-overlay').style.display = 'none';
+    tutorialIsActive = false;
+    removeExistingHighlights();
+    document.querySelector('.control-buttons').style.display = 'none';
+    hideAssistantModal();
+
+    // Exibe o botão de alternância do menu ao final do tutorial
+    const menuToggle = document.getElementById('menu-btn');
+    menuToggle.style.display = 'block';
+}
+
 
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
@@ -1291,14 +1362,6 @@ function startTutorial() {
     tutorialIsActive = true;
     showTutorialStep(tutorialSteps[currentStep].step);
     document.getElementById('tutorial-overlay').style.display = 'flex';
-}
-
-function endTutorial() {
-    document.getElementById('tutorial-overlay').style.display = 'none';
-    tutorialIsActive = false;
-    removeExistingHighlights();
-    document.querySelector('.control-buttons').style.display = 'none';
-    hideAssistantModal();
 }
 
 function hideAssistantModal() {
@@ -1345,6 +1408,7 @@ function closeSideMenu() {
 }
 
 function searchLocation() {
+    // Exemplo básico de pesquisa por localização usando OSM Nominatim API
     var searchQuery = prompt("Digite o local que deseja buscar:");
     if (searchQuery) {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`)
@@ -1354,7 +1418,7 @@ function searchLocation() {
                     var firstResult = data[0];
                     var lat = firstResult.lat;
                     var lon = firstResult.lon;
-                    map.setView([lat, lon], 14);
+                    map.setView([lat, lon], 14); // Centraliza o mapa no resultado da busca
                     L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                 } else {
                     alert("Local não encontrado.");
@@ -1393,6 +1457,7 @@ function addCreateRouteButton() {
 }
 
 function collectInterestData() {
+    // Implement your logic to collect user data through a questionnaire
     console.log('Collecting interest data to create a custom route...');
 }
 
