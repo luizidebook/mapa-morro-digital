@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     adjustModalAndControls();  // Adicione esta linha
 });
 
-
 let map;
 let currentSubMenu;
 let currentLocation;
@@ -316,7 +315,6 @@ function setupEventListeners() {
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 
-    // Adicionando os event listeners para os botões de "Criar Rota" e "Não"
     createRouteBtn.addEventListener('click', () => {
         if (selectedDestination) {
             createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
@@ -399,7 +397,6 @@ function adjustModalStyles() {
     }
 }
 
-
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
     const notification = document.createElement('div');
@@ -433,7 +430,8 @@ function requestLocationPermission() {
 function adjustMapWithLocation(lat, lon, name) {
     map.setView([lat, lon], 14); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
-    map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
+    map.panTo([lat, lon]);
+     // Centraliza o mapa no ponto selecionado
 }
 
 function clearMarkers() {
@@ -462,7 +460,6 @@ function showMenuToggleButton() {
     const menuToggle = document.getElementById('menu-btn');
     menuToggle.style.display = 'block';
 }
-
 
 function hideModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -822,11 +819,11 @@ function handleSubmenuButtonClick(lat, lon, name, description, images) {
         "https://example.com/image2.jpg",
         "https://example.com/image3.jpg"
     ];
+    clearMarkers();
     adjustMapWithLocation(lat, lon, name);
     showLocationDetailsInModal(name, description, imageUrls);
     showControlButtons();
     selectedDestination = { lat, lon, name }; // Armazena o destino selecionado
-    createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
 }
 
 function clearMarkers() {
@@ -886,7 +883,6 @@ function createRouteTo(destination) {
         router: L.Routing.openrouteservice(OPENROUTESERVICE_API_KEY)
     }).addTo(map);
 }
-
 
 function showLocationInfoModal(name) {
     const modalContent = `
@@ -1272,7 +1268,6 @@ function showTutorialStep(step) {
     }
 }
 
-
 function endTutorial() {
     tutorialIsActive = false;
     removeExistingHighlights();
@@ -1303,7 +1298,6 @@ function endTutorial() {
     currentStep = 0;
 }
 
-
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
         currentStep++;
@@ -1313,8 +1307,6 @@ function nextTutorialStep() {
         endTutorial(); // Encerra o tutorial corretamente
     }
 }
-
-
 
 function previousTutorialStep() {
     if (currentStep > 0) {
@@ -1404,9 +1396,9 @@ function showControlButtons() {
     document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-yes-btn').style.display = 'none';
     document.getElementById('create-itinerary-btn').style.display = 'none';
-    document.getElementById('tutorial-next-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
-    document.getElementById('tutorial-prev-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
-    document.getElementById('tutorial-end-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
+    document.getElementById('tutorial-next-btn').style.display = 'none';
+    document.getElementById('tutorial-prev-btn').style.display = 'none';
+    document.getElementById('tutorial-end-btn').style.display = 'none';
     controlButtons.style.display = 'flex';
 }
 
@@ -1420,24 +1412,21 @@ function addCreateRouteButton() {
     createRouteButton.className = 'control-btn';
     createRouteButton.id = 'create-route-btn';
     createRouteButton.style.display = 'none';
-           createRouteButton.textContent = translations[selectedLanguage].createRoute;
-       createRouteButton.addEventListener('click', () => {
-           if (selectedDestination) {
-               createRouteTo(selectedDestination);
-           } else {
-               alert("Por favor, selecione um destino primeiro.");
-           }
-           hideControlButtons();
-       });
+    createRouteButton.textContent = translations[selectedLanguage].createRoute;
+    createRouteButton.addEventListener('click', () => {
+        if (selectedDestination) {
+            createRouteTo(selectedDestination);
+        } else {
+            alert("Por favor, selecione um destino primeiro.");
+        }
+        hideControlButtons();
+    });
 
-       document.body.appendChild(createRouteButton);
-   }
+    document.body.appendChild(createRouteButton);
+}
 
-   addCreateRouteButton();
-
+addCreateRouteButton();
 
 function collectInterestData() {
     console.log('Collecting interest data to create a custom route...');
 }
-
-addCreateRouteButton();
