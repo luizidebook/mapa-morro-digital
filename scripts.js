@@ -377,6 +377,16 @@ function setupEventListeners() {
         });
     });
 
+document.getElementById('create-route-btn').addEventListener('click', () => {
+    if (selectedDestination) {
+        createRouteTo(selectedDestination);
+    } else {
+        alert("Por favor, selecione um destino primeiro.");
+    }
+    hideControlButtons();
+});
+
+
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             setLanguage(btn.getAttribute('data-lang'));
@@ -448,7 +458,6 @@ function requestLocationPermission() {
         navigator.geolocation.getCurrentPosition(position => {
             currentLocation = position.coords;
             adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
-            showUserLocationPopup(currentLocation.latitude, currentLocation.longitude);
             if (!tutorialIsActive) {
                 showTutorialStep('start-tutorial');
             }
@@ -461,7 +470,7 @@ function requestLocationPermission() {
 }
 
 function adjustMapWithLocation(lat, lon, name) {
-    map.setView([lat, lon], 18); // Zoom máximo
+    map.setView([lat, lon], 14); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
     map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
 }
@@ -487,6 +496,12 @@ function showModal(modalId) {
         modal.style.opacity = 1;
     }, 10);
 }
+
+function showMenuToggleButton() {
+    const menuToggle = document.getElementById('menu-btn');
+    menuToggle.style.display = 'block';
+}
+
 
 function hideModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -624,7 +639,7 @@ function translatePageContent(lang) {
 function initializeMap() {
     map = L.map('map', {
         zoomControl: false
-    }).setView([-13.376, -38.913], 13);
+    }).setView([-13.410, -38.913], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -872,7 +887,9 @@ function handleSubmenuButtonClick(lat, lon, name, description, images) {
     adjustMapWithLocation(lat, lon, name);
     showLocationDetailsInModal(name, description, imageUrls);
     showControlButtons();
+    selectedDestination = { lat, lon, name }; // Armazena o destino selecionado
 }
+
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -914,9 +931,24 @@ function createRouteTo(destination) {
             L.latLng(destination.lat, destination.lon)
         ],
         routeWhileDragging: true,
-        position: 'topleft'
+        position: 'topleft',
+        createMarker: function(i, waypoint, n) {
+            const markerOptions = {
+                draggable: false,
+                icon: L.icon({
+                    iconUrl: i === 0 ? 'start-icon.png' : 'end-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            };
+            return L.marker(waypoint.latLng, markerOptions).bindPopup(i === 0 ? 'Ponto de Partida' : 'Destino');
+        },
+        router: L.Routing.openrouteservice(OPENROUTESERVICE_API_KEY)
     }).addTo(map);
 }
+
 
 function showLocationInfoModal(name) {
     const modalContent = `
@@ -1306,6 +1338,7 @@ function showTutorialStep(step) {
 function endTutorial() {
     tutorialIsActive = false;
     removeExistingHighlights();
+    showMenuToggleButton();
     hideAssistantModal();
     closeSideMenu();
 
@@ -1362,6 +1395,7 @@ function startTutorial() {
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
     modal.style.display = 'none';
+    showMenuToggleButton();
 }
 
 function updateProgressBar(current, total) {
@@ -1447,11 +1481,21 @@ function addCreateRouteButton() {
     createRouteButton.className = 'control-btn';
     createRouteButton.id = 'create-route-btn';
     createRouteButton.style.display = 'none';
-    createRouteButton.textContent = translations[selectedLanguage].createRoute;
-    createRouteButton.addEventListener('click', collectInterestData);
+           createRouteButton.textContent = translations[selectedLanguage].createRoute;
+       createRouteButton.addEventListener('click', () => {
+           if (selectedDestination) {
+               createRouteTo(selectedDestination);
+           } else {
+               alert("Por favor, selecione um destino primeiro.");
+           }
+           hideControlButtons();
+       });
 
-    document.body.appendChild(createRouteButton);
-}
+       document.body.appendChild(createRouteButton);
+   }
+
+   addCreateRouteButton();
+
 
 function collectInterestData() {
     console.log('Collecting interest data to create a custom route...');
