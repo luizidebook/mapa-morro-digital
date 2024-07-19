@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
+    adjustModalAndControls();  // Adicione esta linha
 });
+
 
 let map;
 let currentSubMenu;
@@ -216,6 +218,7 @@ function setupEventListeners() {
         button.addEventListener('click', (event) => {
             const feature = button.getAttribute('data-feature');
             handleFeatureSelection(feature);
+            adjustModalAndControls(); // Ajuste modal e controles ao abrir submenu
             event.stopPropagation();
         });
     });
@@ -255,137 +258,26 @@ function setupEventListeners() {
         }
     });
 
-     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
+    document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
+            adjustModalAndControls();
             event.stopPropagation();
-
-            let title, description, images;
-            switch (feature) {
-                case 'pontos-turisticos':
-                    title = "Pontos Turísticos";
-                    description = "Explore os pontos turísticos mais populares de Morro de São Paulo.";
-                    images = [
-                        "url-to-image1.jpg", 
-                        "url-to-image2.jpg", 
-                        "url-to-image3.jpg"
-                    ];
-                    break;
-                case 'passeios':
-                    title = "Passeios";
-                    description = "Descubra os passeios disponíveis em Morro de São Paulo.";
-                    images = [
-                        "url-to-image4.jpg", 
-                        "url-to-image5.jpg", 
-                        "url-to-image6.jpg"
-                    ];
-                    break;
-                case 'praias':
-                    title = "Praias";
-                    description = "Encontre as melhores praias de Morro de São Paulo.";
-                    images = [
-                        "url-to-image7.jpg", 
-                        "url-to-image8.jpg", 
-                        "url-to-image9.jpg"
-                    ];
-                    break;
-                case 'festas':
-                    title = "Festas e Eventos";
-                    description = "Veja as festas e eventos acontecendo em Morro de São Paulo.";
-                    images = [
-                        "url-to-image10.jpg", 
-                        "url-to-image11.jpg", 
-                        "url-to-image12.jpg"
-                    ];
-                    break;
-                case 'restaurantes':
-                    title = "Restaurantes";
-                    description = "Descubra os melhores restaurantes de Morro de São Paulo.";
-                    images = [
-                        "url-to-image13.jpg", 
-                        "url-to-image14.jpg", 
-                        "url-to-image15.jpg"
-                    ];
-                    break;
-                case 'pousadas':
-                    title = "Pousadas";
-                    description = "Encontre as melhores pousadas para sua estadia em Morro de São Paulo.";
-                    images = [
-                        "url-to-image16.jpg", 
-                        "url-to-image17.jpg", 
-                        "url-to-image18.jpg"
-                    ];
-                    break;
-                case 'lojas':
-                    title = "Lojas";
-                    description = "Descubra as lojas locais de Morro de São Paulo.";
-                    images = [
-                        "url-to-image19.jpg", 
-                        "url-to-image20.jpg", 
-                        "url-to-image21.jpg"
-                    ];
-                    break;
-                case 'emergencias':
-                    title = "Emergências";
-                    description = "Informações importantes para situações de emergência.";
-                    images = [
-                        "url-to-image22.jpg", 
-                        "url-to-image23.jpg", 
-                        "url-to-image24.jpg"
-                    ];
-                    break;
-                case 'dicas':
-                    title = "Dicas";
-                    description = "Dicas úteis para aproveitar ao máximo sua visita a Morro de São Paulo.";
-                    images = [
-                        "url-to-image25.jpg", 
-                        "url-to-image26.jpg", 
-                        "url-to-image27.jpg"
-                    ];
-                    break;
-                case 'sobre':
-                    title = "Sobre";
-                    description = "Informações sobre a Morro Digital, nossa missão e serviços.";
-                    images = [
-                        "url-to-image28.jpg", 
-                        "url-to-image29.jpg", 
-                        "url-to-image30.jpg"
-                    ];
-                    break;
-                case 'ensino':
-                    title = "Ensino";
-                    description = "Informações sobre opções de ensino disponíveis em Morro de São Paulo.";
-                    images = [
-                        "url-to-image31.jpg", 
-                        "url-to-image32.jpg", 
-                        "url-to-image33.jpg"
-                    ];
-                    break;
-                default:
-                    title = "Título do Modal";
-                    description = "Descrição detalhada sobre o tópico selecionado.";
-                    images = ["url-to-default-image1.jpg", "url-to-default-image2.jpg"];
-                    break;
-            }
-
-            showAssistantModal(title, description, images);
-
             if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
                 nextTutorialStep();
             }
         });
     });
 
-document.getElementById('create-route-btn').addEventListener('click', () => {
-    if (selectedDestination) {
-        createRouteTo(selectedDestination);
-    } else {
-        alert("Por favor, selecione um destino primeiro.");
-    }
-    hideControlButtons();
-});
-
+    document.getElementById('create-route-btn').addEventListener('click', () => {
+        if (selectedDestination) {
+            createRouteTo(selectedDestination);
+        } else {
+            alert("Por favor, selecione um destino primeiro.");
+        }
+        hideControlButtons();
+    });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -439,6 +331,75 @@ document.getElementById('create-route-btn').addEventListener('click', () => {
     });
 }
 
+// Função para ajustar o modal e a posição dos botões de controle
+function restoreModalAndControlsStyles() {
+    const modal = document.getElementById('assistant-modal');
+    const controlButtons = document.querySelector('.control-buttons');
+
+    Object.assign(modal.style, {
+        position: 'absolute',
+        top: '40%',
+        left: '47%',
+        transform: 'translate(-50%, -50%)',
+        width: '70%',
+        maxWidth: '600px',
+        background: 'white',
+        padding: '20px',
+        border: '1px solid #ccc',
+        borderRadius: '12px',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+        zIndex: '100000',
+        textAlign: 'center'
+    });
+
+    Object.assign(controlButtons.style, {
+        left: '50%'
+    });
+}
+
+function adjustModalAndControls() {
+    const modal = document.getElementById('assistant-modal');
+    const sideMenu = document.querySelector('.menu');
+    const controlButtons = document.querySelector('.control-buttons');
+
+    if (!sideMenu.classList.contains('hidden')) {
+        Object.assign(modal.style, {
+            left: `${sideMenu.offsetWidth}px`
+        });
+        Object.assign(controlButtons.style, {
+            left: `37%`
+        });
+        adjustModalStyles();
+    } else {
+        restoreModalAndControlsStyles();
+    }
+}
+
+function adjustModalStyles() {
+    const modal = document.getElementById('assistant-modal');
+    const sideMenu = document.querySelector('.menu');
+
+    if (!sideMenu.classList.contains('hidden')) {
+        Object.assign(modal.style, {
+            top: '40%',
+            left: '37%',
+            transform: 'translate(-50%, -50%)',
+            width: '60%',
+            maxWidth: '600px',
+            background: 'white',
+            padding: '20px',
+            border: '1px solid #ccc',
+            borderRadius: '12px',
+            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+            zIndex: '100000',
+            textAlign: 'center'
+        });
+    } else {
+        restoreModalAndControlsStyles();
+    }
+}
+
+
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
     const notification = document.createElement('div');
@@ -470,7 +431,7 @@ function requestLocationPermission() {
 }
 
 function adjustMapWithLocation(lat, lon, name) {
-    map.setView([lat, lon], 14.6); // Zoom máximo
+    map.setView([lat, lon], 14); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
     map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
 }
@@ -523,14 +484,7 @@ function showAssistantModal(title, description, images) {
     let content = `
         <h2>${title}</h2>
         <p>${description}</p>
-        <div class="carousel">
-            ${images.map((img, index) => `
-                <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                    <img src="${img}" alt="${title} Image ${index + 1}">
-                </div>
-            `).join('')}
-        </div>
-    `;
+            `;
     
     modalContent.innerHTML = content;
     modal.style.display = 'block';
@@ -547,22 +501,6 @@ function initializeCarousel() {
         currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
         carouselItems[currentItemIndex].classList.add('active');
     }, 3000);
-}
-
-function showInfoInSidebar(title, content) {
-    const sidebar = document.getElementById('menu');
-    const sidebarContent = sidebar.querySelector('.sidebar-content');
-
-    sidebarContent.innerHTML = `
-        <h2>${title}</h2>
-        <p>${content}</p>
-    `;
-
-    sidebar.style.display = 'block';
-    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.add('inactive'));
-    document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.remove('inactive');
-    document.querySelector(`.menu-btn[data-feature="${title.toLowerCase()}"]`).classList.add('active');
-    currentSubMenu = `${title.toLowerCase()}-submenu`;
 }
 
 function highlightElement(element) {
@@ -888,8 +826,8 @@ function handleSubmenuButtonClick(lat, lon, name, description, images) {
     showLocationDetailsInModal(name, description, imageUrls);
     showControlButtons();
     selectedDestination = { lat, lon, name }; // Armazena o destino selecionado
+    createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
 }
-
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -1433,6 +1371,7 @@ function closeSideMenu() {
     menu.style.display = 'none';
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
     currentSubMenu = null;
+    restoreModalAndControlsStyles();
 }
 
 function searchLocation() {
@@ -1502,4 +1441,3 @@ function collectInterestData() {
 }
 
 addCreateRouteButton();
-
