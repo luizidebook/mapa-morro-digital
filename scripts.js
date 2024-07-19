@@ -411,11 +411,33 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+function fetchOSMDescription(lat, lon) {
+    const query = `[out:json];node(around:100,${lat},${lon})["description"];out body;`;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(descriptionData => {
+            if (descriptionData.elements.length > 0 && descriptionData.elements[0].tags.description) {
+                return descriptionData.elements[0].tags.description;
+            } else {
+                return 'Descrição não disponível';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar descrição do OSM:', error);
+            return 'Descrição não disponível';
+        });
+}
+
+
 function requestLocationPermission() {
     return new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(position => {
             currentLocation = position.coords;
-            adjustMapWithLocation(currentLocation.latitude, currentLocation.longitude);
+            adjustMapWithLocationUser(currentLocation.latitude, currentLocation.longitude);
             if (!tutorialIsActive) {
                 showTutorialStep('start-tutorial');
             }
@@ -427,12 +449,19 @@ function requestLocationPermission() {
     });
 }
 
-function adjustMapWithLocation(lat, lon, name) {
+function adjustMapWithLocationUser(lat, lon, name) {
     map.setView([lat, lon], 14); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
     map.panTo([lat, lon]);
      // Centraliza o mapa no ponto selecionado
 }
+
+function adjustMapWithLocation(lat, lon, name, description) {
+    map.setView([lat, lon], 14); // Zoom máximo
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
+    map.panTo([lat, lon]);
+}
+
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -489,6 +518,7 @@ function showAssistantModal(title, description, images) {
     initializeCarousel();
 }
 
+// Função para inicializar o carrossel
 function initializeCarousel() {
     const carouselItems = document.querySelectorAll('.carousel-item');
     let currentItemIndex = 0;
@@ -499,6 +529,7 @@ function initializeCarousel() {
         carouselItems[currentItemIndex].classList.add('active');
     }, 3000);
 }
+
 
 function highlightElement(element) {
     removeExistingHighlights();
@@ -680,14 +711,17 @@ function displayOSMData(data, subMenuId) {
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
-            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, element.tags.description || 'Descrição não disponível', element.tags.images || []);
+            const description = element.tags.description || 'Descrição não disponível';
+            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
             subMenu.appendChild(btn);
 
-            const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(element.tags.name);
+            const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(`<b>${element.tags.name}</b><br>${description}`);
             markers.push(marker);
         }
     });
 }
+
+
 
 function displayCustomTours() {
     const tours = [
@@ -707,7 +741,7 @@ function displayCustomTours() {
         btn.onclick = () => handleSubmenuButtonClick(tour.lat, tour.lon, tour.name, tour.description, tour.images);
         subMenu.appendChild(btn);
 
-        const marker = L.marker([tour.lat, tour.lon]).addTo(map).bindPopup(tour.name);
+        const marker = L.marker([tour.lat, tour.lon]).addTo(map).bindPopup(tour.name, tour.description);
         markers.push(marker);
     });
 }
@@ -730,7 +764,7 @@ function displayCustomEmergencies() {
         btn.onclick = () => handleSubmenuButtonClick(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images);
         subMenu.appendChild(btn);
 
-        const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(emergency.name);
+        const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(emergency.name, emergency.description);
         markers.push(marker);
     });
 }
@@ -755,7 +789,7 @@ function displayCustomTips() {
         btn.onclick = () => handleSubmenuButtonClick(tip.lat, tip.lon, tip.name, tip.description, tip.images);
         subMenu.appendChild(btn);
 
-        const marker = L.marker([tip.lat, tip.lon]).addTo(map).bindPopup(tip.name);
+        const marker = L.marker([tip.lat, tip.lon]).addTo(map).bindPopup(tip.name, tip.description);
         markers.push(marker);
     });
 }
@@ -784,7 +818,7 @@ function displayCustomAbout() {
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
 
-        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
+        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name, info.description);
         markers.push(marker);
     });
 }
@@ -808,23 +842,20 @@ function displayCustomEducation() {
         btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
         subMenu.appendChild(btn);
 
-        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name);
+        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name, info.description);
         markers.push(marker);
     });
 }
 
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
-    const imageUrls = [
-        "https://example.com/image1.jpg",
-        "https://example.com/image2.jpg",
-        "https://example.com/image3.jpg"
-    ];
+    adjustMapWithLocation(lat, lon, name, description);
     clearMarkers();
-    adjustMapWithLocation(lat, lon, name);
-    showLocationDetailsInModal(name, description, imageUrls);
+    showLocationDetailsInModal(name, description, images); // Passe a array de imagens correta
     showControlButtons();
     selectedDestination = { lat, lon, name }; // Armazena o destino selecionado
 }
+
+
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -855,6 +886,7 @@ function showLocationDetailsInModal(name, description, images) {
 
     initializeCarousel();
 }
+
 
 function createRouteTo(destination) {
     if (routingControl) {
