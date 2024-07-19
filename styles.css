@@ -124,16 +124,17 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 10px 20px;
+    padding: 5px 20px;
     text-align: center;
     text-decoration: none;
-    display: inline-block;
-    font-size: 20px;
-    margin: 5px;
+    /* display: inline-block; */
+    font-size: 25px;
+    margin: 2px 1px;
     cursor: pointer;
-    border-radius: 10px;
+    border-radius: 15px;
     border: none;
     transition: background-color 0.3s ease;
+    z-index: 1000;
 }
 
 .control-btn:hover {
@@ -281,15 +282,20 @@ body, html {
         font-size: 1em;
     }
 
-   .control-btn {
-    display: inline-block;
-    margin: 5px;
-    padding: 10px;
-    background-color: #007bff;
+.control-btn {
+    background-color: #007BFF;
     color: white;
-    border: none;
-    border-radius: 5px;
+    padding: 5px 20px;
+    text-align: center;
+    text-decoration: none;
+    /* display: inline-block; */
+    font-size: 25px;
+    margin: 2px 1px;
     cursor: pointer;
+    border-radius: 15px;
+    border: none;
+    transition: background-color 0.3s ease;
+    z-index: 1000;
 }
 
     .tutorial-message {
@@ -722,7 +728,7 @@ body, html {
     padding: 5px 20px;
     text-align: center;
     text-decoration: none;
-    display: inline-block;
+    /* display: inline-block; */
     font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
@@ -748,12 +754,12 @@ body, html {
 }
 
 
- #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1082,13 +1088,19 @@ h2 {
 @media (max-width: 600px) {
     .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
   .close-side-btn {
@@ -1120,12 +1132,12 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-        #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1268,12 +1280,12 @@ h2 {
 }
 
 @media (max-width: 768px) {
-        #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1314,16 +1326,21 @@ h2 {
     background-image: url(routing-icon.png);
 }
 
-
-       .control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
 #tutorial-btn {
@@ -1444,12 +1461,12 @@ h2 {
 
 }
 @media (max-width: 1024px) {
-            #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1474,13 +1491,19 @@ h2 {
 
     .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
 /* Estilos para o controle de rota */
@@ -1617,12 +1640,12 @@ h2 {
 
 
 @media (max-width: 1200px) {
-            #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1665,13 +1688,19 @@ h2 {
 
     .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
 
@@ -1792,12 +1821,12 @@ h2 {
 }
 
 @media (min-width: 1201px) {
-         #assistant-modal {
+    #assistant-modal {
         position: absolute;
         top: 40%;
-        left: 38%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 60%;
+        width: 80%;
         max-width: 600px;
         background: white;
         padding: 20px;
@@ -1840,13 +1869,19 @@ h2 {
 
     .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
 
@@ -2125,13 +2160,19 @@ h2 {
 
     .control-buttons {
         position: absolute;
-        top: 92%;
-        left: 38%;
+        top: 90%;
+        left: 50%;
+        width: 100%;
         transform: translate(-50%, -50%);
-        display: none;
+        display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: row-reverse;
+        flex-direction: column-reverse;
+        align-content: center;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
 /* Adicione esses estilos ao seu arquivo styles.css */
@@ -2224,7 +2265,7 @@ h2 {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0,0,0,0.);
     padding-top: 60px;
 }
 

@@ -470,7 +470,7 @@ function requestLocationPermission() {
 }
 
 function adjustMapWithLocation(lat, lon, name) {
-    map.setView([lat, lon], 14); // Zoom máximo
+    map.setView([lat, lon], 14.6); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
     map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
 }
@@ -1310,7 +1310,7 @@ function showTutorialStep(step) {
     speakText(message[selectedLanguage]);
 
     if (step === 'start-tutorial') {
-        document.querySelector('.control-buttons').style.display = 'block';
+        document.querySelector('.control-buttons').style.display = 'flex';
         document.querySelector('#tutorial-yes-btn').textContent = translations[selectedLanguage].yes;
         document.querySelector('#tutorial-no-btn').textContent = translations[selectedLanguage].no;
 
@@ -1322,7 +1322,7 @@ function showTutorialStep(step) {
         menuToggle.style.display = 'block';
         highlightElement(menuToggle);
     } else if (step === 'end-tutorial') {
-        document.querySelector('.control-buttons').style.display = 'block';
+        document.querySelector('.control-buttons').style.display = 'flex';
     }
 
     if (targetElement) {
@@ -1461,15 +1461,15 @@ function searchLocation() {
 function showControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');
     document.getElementById('tutorial-no-btn').style.display = 'none';
-    document.getElementById('create-route-btn').style.display = 'inline-block';
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-yes-btn').style.display = 'none';
     document.getElementById('create-itinerary-btn').style.display = 'none';
     document.getElementById('tutorial-next-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
     document.getElementById('tutorial-prev-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
     document.getElementById('tutorial-end-btn').style.display = 'none'; // Certifique-se de que este botão seja exibido se necessário
-    controlButtons.style.display = 'block';
+    controlButtons.style.display = 'flex';
 }
-
 
 function hideControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');
