@@ -373,9 +373,10 @@ function adjustModalAndControls() {
     const mapContainer = document.getElementById('map');
 
     if (!sideMenu.classList.contains('hidden')) {
-        Object.assign(controlButtons.style, {
-        left: '40%',
-    });
+        Object.assign(modal.style, {
+            left: `40%`
+        });
+
         Object.assign(controlButtons.style, {
         left: '40%',
     });
@@ -402,7 +403,7 @@ function adjustModalStyles() {
     if (!sideMenu.classList.contains('hidden')) {
         Object.assign(modal.style, {
             top: '40%',
-            left: `${sideMenu.offsetWidth + modal.offsetWidth / 2}px`,
+            left: `37%`,
             transform: 'translate(-50%, -50%)',
             width: '60%',
             maxWidth: '600px',
