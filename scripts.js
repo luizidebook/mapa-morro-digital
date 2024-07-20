@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     activateAssistant();
     setupEventListeners();
     showWelcomeMessage();
-    adjustModalAndControls();  // Adicione esta linha
+    adjustModalAndControls();
+    initializeCarousel(); // Inicializa o carrossel
 });
 
 let map;
@@ -233,6 +234,14 @@ function setupEventListeners() {
         }
     });
 
+    document.getElementById('about-more-btn').addEventListener('click', () => {
+        if (selectedDestination) {
+            showAssistantModalWithCarousel(selectedDestination.name, selectedDestination.description, selectedDestination.images);
+        } else {
+            alert("Por favor, selecione um destino primeiro.");
+        }
+    });
+
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
         map.zoomIn();
         closeSideMenu();
@@ -269,14 +278,17 @@ function setupEventListeners() {
         });
     });
 
-    document.getElementById('create-route-btn').addEventListener('click', () => {
-        if (selectedDestination) {
-            createRouteTo(selectedDestination);
-        } else {
-            alert("Por favor, selecione um destino primeiro.");
-        }
-        hideControlButtons();
-    });
+document.getElementById('create-route-btn').addEventListener('click', () => {
+    if (selectedDestination) {
+        const locationImages = getImagesForLocation(selectedDestination); // Obtém as imagens com base no nome do local
+        showLocationDetailsInModal(selectedDestination, '', locationImages); // Exibe o modal com o carrossel de imagens
+        createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
+    } else {
+        alert("Por favor, selecione um destino primeiro.");
+    }
+    hideControlButtons();
+});
+
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -485,9 +497,9 @@ function adjustMapWithLocationUser(lat, lon, name) {
 function adjustMapWithLocation(lat, lon, name, description) {
     map.setView([lat, lon], 14); // Zoom máximo
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
-    map.panTo([lat, lon]);
+    markers.push(marker); // Adicionar o marcador à array markers
+    map.panTo([lat, lon]); // Centraliza o mapa no ponto selecionado
 }
-
 
 function clearMarkers() {
     markers.forEach(marker => {
@@ -503,12 +515,9 @@ function showUserLocationPopup(lat, lon) {
         .openOn(map);
 }
 
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.classList.add('visible');
-    setTimeout(() => {
-        modal.style.opacity = 1;
-    }, 10);
+function showModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'block';
 }
 
 function showMenuToggleButton() {
@@ -516,45 +525,156 @@ function showMenuToggleButton() {
     menuToggle.style.display = 'block';
 }
 
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.opacity = 0;
-    setTimeout(() => {
-        modal.classList.remove('visible');
-    }, 300);
-    document.getElementById('tutorial-overlay').style.display = 'none';
-    tutorialIsActive = false;
-    removeExistingHighlights();
-    document.querySelector('.control-buttons').style.display = 'none';
-    hideAssistantModal();
+function hideModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'none';
 }
 
-function showAssistantModal(title, description, images) {
+function addImagesToCarousel(location) {
+    const images = getImagesForLocation(location); // Função para obter imagens do local
+    const name = location.name;
+    const description = location.description;
+
+    showLocationDetailsInModal(name, description, images);
+}
+
+function getImagesForLocation(location) {
+    // Função simulada para obter imagens com base no local
+    // Em um caso real, você pode fazer uma chamada de API ou usar um banco de dados para obter essas imagens
+    const imageDatabase = {
+        'Toca do Morcego': [
+            'https://example.com/image1.jpg',
+            'https://example.com/image2.jpg',
+            'https://example.com/image3.jpg'
+        ],
+        'Farol do Morro': [
+            'https://example.com/farol1.jpg',
+            'https://example.com/farol2.jpg'
+        ],
+        // Adicione mais locais e imagens conforme necessário
+    };
+
+    return imageDatabase[location.name] || [];
+}
+
+function showAssistantModalWithCarousel(title, description, images) {
     const modal = document.getElementById('assistant-modal');
     const modalContent = modal.querySelector('.modal-content');
-    
-    let content = `
+    const carousel = modalContent.querySelector('.carousel');
+
+    // Limpa o conteúdo do carrossel
+    carousel.innerHTML = '';
+
+    // Adiciona imagens ao carrossel
+    images.forEach((imgSrc, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = 'carousel-item';
+        if (index === 0) {
+            carouselItem.classList.add('active');
+        }
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = `${title} Image ${index + 1}`;
+        carouselItem.appendChild(img);
+        carousel.appendChild(carouselItem);
+    });
+
+    // Adiciona título e descrição ao modal
+    const modalText = document.getElementById('assistant-modal-text');
+    modalText.innerHTML = `
         <h2>${title}</h2>
         <p>${description}</p>
-            `;
-    
-    modalContent.innerHTML = content;
+    `;
+
+    // Exibe o modal
     modal.style.display = 'block';
-    
+
+    // Inicializa o carrossel
     initializeCarousel();
 }
 
+
+
+// Função para ocultar o modal
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+}
+
+// Exemplo de chamada com dados estáticos (para teste)
+const title = "Toca do Morcego";
+const description = "Bem-vindo à Toca do Morcego, onde a magia do pôr do sol ganha vida e cria memórias inesquecíveis!";
+const images = [
+    "url_da_imagem1.jpg",
+    "url_da_imagem2.jpg",
+    "url_da_imagem3.jpg"
+];
+
 // Função para inicializar o carrossel
 function initializeCarousel() {
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    let currentItemIndex = 0;
+    const carousel = document.querySelector('.carousel');
+    const items = carousel.querySelectorAll('.carousel-item');
+    const totalItems = items.length;
+    let currentIndex = 0;
 
-    setInterval(() => {
-        carouselItems[currentItemIndex].classList.remove('active');
-        currentItemIndex = (currentItemIndex + 1) % carouselItems.length;
-        carouselItems[currentItemIndex].classList.add('active');
-    }, 3000);
+    function showItem(index) {
+        items.forEach((item, i) => {
+            item.classList.remove('active');
+            if (i === index) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    function nextItem() {
+        currentIndex = (currentIndex + 1) % totalItems;
+        showItem(currentIndex);
+    }
+
+    function prevItem() {
+        currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+        showItem(currentIndex);
+    }
+
+    // Navegação automática a cada 3 segundos
+    setInterval(nextItem, 3000);
+
+    // Adicionar botões de navegação
+    const prevButton = document.createElement('button');
+    prevButton.classList.add('prev');
+    prevButton.innerHTML = '&#10094;';
+    prevButton.addEventListener('click', prevItem);
+    carousel.appendChild(prevButton);
+
+    const nextButton = document.createElement('button');
+    nextButton.classList.add('next');
+    nextButton.innerHTML = '&#10095;';
+    nextButton.addEventListener('click', nextItem);
+    carousel.appendChild(nextButton);
+
+    // Adicionar indicadores
+    const indicators = document.createElement('div');
+    indicators.classList.add('carousel-indicators');
+    items.forEach((item, index) => {
+        const indicator = document.createElement('button');
+        indicator.addEventListener('click', () => {
+            showItem(index);
+            currentIndex = index;
+        });
+        indicators.appendChild(indicator);
+    });
+    carousel.appendChild(indicators);
+
+    showItem(currentIndex);
 }
+
+// Função para ocultar o modal
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+}
+
+
 
 
 function highlightElement(element) {
@@ -738,7 +858,10 @@ function displayOSMData(data, subMenuId) {
             btn.className = 'submenu-item';
             btn.textContent = element.tags.name;
             const description = element.tags.description || 'Descrição não disponível';
-            btn.onclick = () => handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+            btn.onclick = () => {
+                clearMarkers(); // Limpar marcadores antes de adicionar um novo
+                handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+            };
             subMenu.appendChild(btn);
 
             const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(`<b>${element.tags.name}</b><br>${description}`);
@@ -746,6 +869,7 @@ function displayOSMData(data, subMenuId) {
         }
     });
 }
+
 
 
 
@@ -874,13 +998,13 @@ function displayCustomEducation() {
 }
 
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
+    clearMarkers(); // Limpar marcadores antes de adicionar um novo
     adjustMapWithLocation(lat, lon, name, description);
-    clearMarkers();
-    showLocationDetailsInModal(name, description, images); // Passe a array de imagens correta
     showControlButtons();
-    selectedDestination = { lat, lon, name }; // Armazena o destino selecionado
+    const locationImages = getImagesForLocation(name); // Obtém as imagens com base no nome do local
+    showLocationDetailsInModal(name, description, images); // Passe a array de imagens correta
+    selectedDestination = name;
 }
-
 
 
 function clearMarkers() {
@@ -892,27 +1016,33 @@ function clearMarkers() {
 
 function showLocationDetailsInModal(name, description, images) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
-    modalContent.innerHTML = `
+    const carouselContainer = modalContent.querySelector('.carousel');
+    
+    // Limpar o carrossel existente
+    carouselContainer.innerHTML = '';
+
+    // Adicionar novas imagens ao carrossel
+    images.forEach((image, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+        const imgElement = document.createElement('img');
+        imgElement.src = image;
+        imgElement.alt = `${name} Image ${index + 1}`;
+        carouselItem.appendChild(imgElement);
+        carouselContainer.appendChild(carouselItem);
+    });
+
+    // Adicionar título e descrição
+    const infoContent = document.createElement('div');
+    infoContent.innerHTML = `
         <h2>${name}</h2>
         <p>${description}</p>
-        <div class="carousel">
-            ${images.map((img, index) => `
-                <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                    <img src="${img}" alt="${name} Image ${index + 1}">
-                </div>
-            `).join('')}
-        </div>
-        <button id="close-menu-btn" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
     `;
+    modalContent.appendChild(infoContent);
     showModal('assistant-modal');
-
-    document.getElementById('close-assistant-modal').addEventListener('click', () => {
-        hideModal('assistant-modal');
-    });
 
     initializeCarousel();
 }
-
 
 function createRouteTo(destination) {
     if (routingControl) {
@@ -940,20 +1070,6 @@ function createRouteTo(destination) {
         },
         router: L.Routing.openrouteservice(OPENROUTESERVICE_API_KEY)
     }).addTo(map);
-}
-
-function showLocationInfoModal(name) {
-    const modalContent = `
-        <h2>${name}</h2>
-        <div class="carousel">
-            <div class="carousel-item active"><img src="path/to/image1.jpg" alt="${name} image 1"></div>
-            <div class="carousel-item"><img src="path/to/image2.jpg" alt="${name} image 2"></div>
-            <div class="carousel-item"><img src="path/to/image3.jpg" alt="${name} image 3"></div>
-        </div>
-        <p>${translations[selectedLanguage].detailedInfo} ${name}</p>
-    `;
-    updateAssistantModalContent(modalContent);
-    initializeCarousel();
 }
 
 function showInfoModal(title, content) {
@@ -1446,6 +1562,42 @@ function searchLocation() {
             });
     }
 }
+
+// Adicione estas funções ao seu código JavaScript para aplicar os estilos e ajustar o modal
+
+// Função para ajustar o conteúdo do popup da OSM
+function customizeOSMPopup(popup) {
+    const popupContent = popup.getElement().querySelector('.leaflet-popup-content');
+    popupContent.style.fontSize = '12px';
+    popupContent.style.maxWidth = '200px'; // Reduz o tamanho máximo do modal
+
+    const popupWrapper = popup.getElement().querySelector('.leaflet-popup-content-wrapper');
+    popupWrapper.style.padding = '10px';
+
+    const popupTipContainer = popup.getElement().querySelector('.leaflet-popup-tip-container');
+    popupTipContainer.style.width = '20px';
+    popupTipContainer.style.height = '10px';
+
+    // Ajuste os botões
+    const saibaMaisBtn = document.getElementById('saiba-mais');
+    const comoChegarBtn = document.getElementById('como-chegar');
+    if (saibaMaisBtn) {
+        saibaMaisBtn.style.fontSize = '12px';
+        saibaMaisBtn.style.padding = '5px 10px';
+    }
+    if (comoChegarBtn) {
+        comoChegarBtn.style.fontSize = '12px';
+        comoChegarBtn.style.padding = '5px 10px';
+    }
+}
+
+// Certifique-se de chamar a função customizeOSMPopup ao criar ou abrir um popup
+L.marker([lat, lon]).addTo(map)
+    .bindPopup(`<b>${name}</b><br>${description}`)
+    .on('popupopen', function (e) {
+        customizeOSMPopup(e.popup);
+    });
+
 
 function showControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');

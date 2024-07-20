@@ -249,41 +249,80 @@ body, html {
     line-height: 1.6;
 }
    /* CSS para o carrossel */
+/* Estilos para o carrossel */
 .carousel {
-    display: flex;
-    overflow: hidden;
+    position: relative;
     width: 100%;
+    overflow: hidden;
 }
 
 .carousel-item {
-    flex: 0 0 100%;
-    transition: transform 0.5s ease;
-}
-
-.carousel-item img {
+    display: none;
+    position: absolute;
     width: 100%;
-    height: auto;
+    height: 300px; /* Ajuste conforme necessário */
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
 }
 
-    .carousel-control {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: rgba(0, 0, 0, 0.5);
-        border: none;
-        color: white;
-        font-size: 18px;
-        cursor: pointer;
-        padding: 10px;
-    }
+.carousel-item.active {
+    display: block;
+    opacity: 1;
+    position: relative;
+}
 
-    .carousel-control.prev {
-        left: 0;
-    }
+.carousel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
 
-    .carousel-control.next {
-        right: 0;
-    }
+/* Botões de navegação do carrossel */
+.carousel .prev, .carousel .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.carousel .prev {
+    left: 10px;
+}
+
+.carousel .next {
+    right: 10px;
+}
+
+/* Indicadores do carrossel */
+.carousel-indicators {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+}
+
+.carousel-indicators button {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.carousel-indicators .active {
+    background-color: white;
+}
 
 
 /* Responsividade */
@@ -496,6 +535,21 @@ body, html {
 
 .share-btn:hover {
     background-color: #0056b3;
+}
+
+/* Ajuste o modal de informações do OSM */
+.leaflet-popup-content {
+    font-size: 12px;
+    max-width: 200px; /* Reduz o tamanho máximo do modal */
+}
+
+.leaflet-popup-content-wrapper {
+    padding: 10px;
+}
+
+.leaflet-popup-tip-container {
+    width: 20px;
+    height: 10px;
 }
 
 

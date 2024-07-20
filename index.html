@@ -27,7 +27,17 @@
         <div id="assistant-modal" class="modal">
             <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
             <div class="modal-content" id="assistant-modal-text">
-                <div class="carousel"></div>
+                 <div class="carousel" id="assistant-carousel">
+                    <div class="carousel-item active">
+                        <img src="image1.jpg" alt="Image 1">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="image2.jpg" alt="Image 2">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="image3.jpg" alt="Image 3">
+                    </div>
+                </div>
             </div>
         </div>
         <div id="welcome-modal" class="welcome-modal">
@@ -91,7 +101,7 @@
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
              <button class="control-btn" id="create-route-btn" style="display: none;" onclick="createRouteTo(destination)">Como Chegar</button>
-              <button class="control-btn" id="about-more-btn" style="display: none;">Saiba mais</button>
+              <button class="control-btn" id="about-more-btn" style="display: none;" onclick="showAssistantModalWithCarousel()">Saiba mais</button>
         </div>
         <div id="info-modal" class="modal">
             <div class="modal-content">
