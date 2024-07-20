@@ -23,6 +23,7 @@ let voices = [];
 let selectedDestination = null; // Variável global para armazenar o destino selecionado
 let markers = []; // Array para armazenar os marcadores
 let currentCarouselIndex = 0;
+let currentMarker = null; 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
 const translations = {
@@ -225,6 +226,7 @@ function setupEventListeners() {
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
+        endTutorial();
     });
 
     menuToggle.addEventListener('click', () => {
@@ -280,13 +282,10 @@ function setupEventListeners() {
 
 document.getElementById('create-route-btn').addEventListener('click', () => {
     if (selectedDestination) {
-        const locationImages = getImagesForLocation(selectedDestination); // Obtém as imagens com base no nome do local
-        showLocationDetailsInModal(selectedDestination, '', locationImages); // Exibe o modal com o carrossel de imagens
-        createRouteTo(selectedDestination); // Cria a rota para o destino selecionado
+        createRouteTo(Destination); // Cria a rota para o destino selecionado
     } else {
         alert("Por favor, selecione um destino primeiro.");
     }
-    hideControlButtons();
 });
 
 
@@ -530,6 +529,15 @@ function showModal(id) {
 function showMenuToggleButton() {
     const menuToggle = document.getElementById('menu-btn');
     menuToggle.style.display = 'block';
+}
+
+function toggleFloatingMenu() {
+    const floatingMenu = document.getElementById('floating-menu');
+    floatingMenu.classList.toggle('hidden');
+
+    if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
+        nextTutorialStep();
+    }
 }
 
 function hideModal(id) {
@@ -951,34 +959,52 @@ function displayCustomTips() {
     });
 }
 
-function displayCustomAbout() {
-    const about = [
-        { name: "Missão", lat: -13.3766787, lon: -38.9172057, description: "Nossa missão é proporcionar a melhor experiência possível para os visitantes de Morro de São Paulo, destacando suas belezas naturais e culturais.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Serviços", lat: -13.3766787, lon: -38.9172057, description: "Oferecemos uma ampla gama de serviços para tornar sua estadia mais confortável e agradável, desde guias turísticos até serviços de emergência.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Turistas", lat: -13.3766787, lon: -38.9172057, description: "Aproveite ao máximo sua visita com nossos benefícios exclusivos para turistas, incluindo descontos em passeios e restaurantes.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Moradores", lat: -13.3766787, lon: -38.9172057, description: "Moradores de Morro de São Paulo têm acesso a uma série de benefícios, como programas de fidelidade e descontos especiais.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Pousadas", lat: -13.3766787, lon: -38.9172057, description: "Parcerias com pousadas locais garantem vantagens e descontos para os hóspedes, promovendo uma estadia confortável e econômica.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Restaurantes", lat: -13.3766787, lon: -38.9172057, description: "Restaurantes parceiros oferecem experiências gastronômicas inesquecíveis com descontos e menus exclusivos para nossos visitantes.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Agências de Turismo", lat: -13.3766787, lon: -38.9172057, description: "Agências de turismo têm acesso a ferramentas e recursos que facilitam a organização de passeios e atividades para os visitantes.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Lojas e Comércios", lat: -13.3766787, lon: -38.9172057, description: "Lojas e comércios locais oferecem produtos e serviços exclusivos com descontos para visitantes de Morro de São Paulo.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Benefícios para Transportes", lat: -13.3766787, lon: -38.9172057, description: "Facilite seu deslocamento com serviços de transporte confiáveis e acessíveis disponíveis para turistas e moradores.", images: ["image1.jpg", "image2.jpg"] },
-        { name: "Impacto em MSP", lat: -13.3766787, lon: -38.9172057, description: "Entenda o impacto positivo de nossas iniciativas na comunidade local e no meio ambiente.", images: ["image1.jpg", "image2.jpg"] }
+function displayCustomEducation() {
+    const education = [
+        { name: "Iniciar Tutorial", lat: -13.3766787, lon: -38.9172057, description: "Comece seu tutorial para aprender a usar todas as ferramentas e recursos que oferecemos. Ideal para novos visitantes e usuários.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Planejar Viagem com IA", lat: -13.3766787, lon: -38.9172057, description: "Utilize a inteligência artificial para planejar sua viagem de forma personalizada e eficiente. Receba recomendações e dicas exclusivas.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Falar com IA", lat: -13.3766787, lon: -38.9172057, description: "Interaja com nossa inteligência artificial para obter informações, fazer perguntas e receber assistência em tempo real.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Falar com Suporte", lat: -13.3766787, lon: -38.9172057, description: "Precisa de ajuda? Fale com nosso suporte para resolver dúvidas e obter assistência rápida e eficiente.", images: ["image1.jpg", "image2.jpg"] },
+        { name: "Configurações", lat: -13.3766787, lon: -38.9172057, description: "Personalize sua experiência ajustando as configurações de acordo com suas preferências e necessidades.", images: ["image1.jpg", "image2.jpg"] }
     ];
 
-    const subMenu = document.getElementById('about-submenu');
+    const subMenu = document.getElementById('education-submenu');
     subMenu.innerHTML = '';
     
-    about.forEach(info => {
+    education.forEach(info => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = info.name;
-        btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+        btn.onclick = () => {
+            if (info.name === "Iniciar Tutorial") {
+                hideSideMenuAndFloatingMenu();
+                startTutorial();
+            } else {
+                handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+            }
+        };
         subMenu.appendChild(btn);
 
         const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name, info.description);
         markers.push(marker);
     });
 }
+
+
+function closeSideMenu() {
+    const menu = document.getElementById('menu');
+    if (menu) {
+        menu.style.display = 'none';
+    }
+}
+
+function hideFloatingMenu() {
+    const floatingMenu = document.getElementById('floating-menu');
+    if (floatingMenu) {
+        floatingMenu.style.display = 'none';
+    }
+}
+
 
 function displayCustomEducation() {
     const education = [
@@ -996,13 +1022,20 @@ function displayCustomEducation() {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = info.name;
-        btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+        btn.onclick = () => {
+            if (info.name === "Iniciar Tutorial") {
+                startTutorial();
+            } else {
+                handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description, info.images);
+            }
+        };
         subMenu.appendChild(btn);
 
         const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(info.name, info.description);
         markers.push(marker);
     });
 }
+
 
 function handleSubmenuButtonClick(lat, lon, name, description, images) {
     clearMarkers(); // Limpar marcadores antes de adicionar um novo
@@ -1082,6 +1115,7 @@ function createRouteTo(destination) {
         router: L.Routing.openrouteservice(OPENROUTESERVICE_API_KEY)
     }).addTo(map);
 }
+
 
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
@@ -1453,6 +1487,13 @@ function showTutorialStep(step) {
     }
 }
 
+function hideSideMenuAndFloatingMenu() {
+    const sideMenu = document.getElementById('menu');
+    const floatingMenu = document.getElementById('floating-menu');
+    if (sideMenu) sideMenu.style.display = 'none';
+    if (floatingMenu) floatingMenu.classList.add('hidden');
+}
+
 function endTutorial() {
     tutorialIsActive = false;
     removeExistingHighlights();
@@ -1503,6 +1544,8 @@ function previousTutorialStep() {
 function startTutorial() {
     currentStep = 1;
     tutorialIsActive = true;
+    hideFloatingMenu();
+    closeSideMenu();
     showTutorialStep(tutorialSteps[currentStep].step);
     document.getElementById('tutorial-overlay').style.display = 'flex';
 }
@@ -1552,17 +1595,37 @@ function closeSideMenu() {
 }
 
 function searchLocation() {
-    var searchQuery = prompt("Digite o local que deseja buscar:");
+    var searchQuery = prompt("Digite o local que deseja buscar em Morro de São Paulo:");
     if (searchQuery) {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`)
+        // Coordenadas aproximadas para a área de Morro de São Paulo
+        const viewBox = '-38.926, -13.369, -38.895, -13.392'; // (lon_min, lat_min, lon_max, lat_max)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=${viewBox}&bounded=1`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    var firstResult = data[0];
-                    var lat = firstResult.lat;
-                    var lon = firstResult.lon;
-                    map.setView([lat, lon], 14);
-                    L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
+                    // Filtrar resultados para garantir que estejam dentro da área de Morro de São Paulo
+                    const filteredData = data.filter(location => {
+                        const lat = parseFloat(location.lat);
+                        const lon = parseFloat(location.lon);
+                        return lon >= -38.926 && lon <= -38.895 && lat >= -13.392 && lat <= -13.369;
+                    });
+
+                    if (filteredData.length > 0) {
+                        var firstResult = filteredData[0];
+                        var lat = firstResult.lat;
+                        var lon = firstResult.lon;
+
+                        // Remove o marcador anterior, se existir
+                        if (currentMarker) {
+                            map.removeLayer(currentMarker);
+                        }
+
+                        // Adiciona o novo marcador e atualiza o mapa
+                        currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
+                        map.setView([lat, lon], 14);
+                    } else {
+                        alert("Local não encontrado em Morro de São Paulo.");
+                    }
                 } else {
                     alert("Local não encontrado.");
                 }
@@ -1573,6 +1636,7 @@ function searchLocation() {
             });
     }
 }
+
 
 // Adicione estas funções ao seu código JavaScript para aplicar os estilos e ajustar o modal
 
@@ -1628,25 +1692,6 @@ function hideControlButtons() {
     controlButtons.style.display = 'none';
 }
 
-function addCreateRouteButton() {
-    const createRouteButton = document.createElement('button');
-    createRouteButton.className = 'control-btn';
-    createRouteButton.id = 'create-route-btn';
-    createRouteButton.style.display = 'none';
-    createRouteButton.textContent = translations[selectedLanguage].createRoute;
-    createRouteButton.addEventListener('click', () => {
-        if (selectedDestination) {
-            createRouteTo(selectedDestination);
-        } else {
-            alert("Por favor, selecione um destino primeiro.");
-        }
-        hideControlButtons();
-    });
-
-    document.body.appendChild(createRouteButton);
-}
-
-addCreateRouteButton();
 
 function collectInterestData() {
     console.log('Collecting interest data to create a custom route...');
