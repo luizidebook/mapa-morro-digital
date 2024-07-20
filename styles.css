@@ -1224,9 +1224,9 @@ h2 {
 
 
 @media (max-width: 600px) {
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -1239,7 +1239,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
   .close-side-btn {
@@ -1517,9 +1517,9 @@ h2 {
     padding: 20px;
 }
 
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -1532,7 +1532,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
 #tutorial-btn {
@@ -1682,9 +1682,9 @@ h2 {
         z-index: 10000;
     }
 
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -1697,7 +1697,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
 /* Estilos para o controle de rota */
@@ -1931,9 +1931,9 @@ h2 {
     padding: 20px;
 }
 
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -1946,7 +1946,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
 #tutorial-btn {
@@ -2138,9 +2138,9 @@ h2 {
     padding: 20px;
 }
 
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -2153,7 +2153,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
 
@@ -2455,9 +2455,9 @@ h2 {
     }
 }
 
-   .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 90%;
+        top: 85%;
         left: 50%;
         width: 100%;
         transform: translate(-50%, -50%);
@@ -2470,7 +2470,7 @@ h2 {
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
-    transition: left 0.3s ease-in-out;
+        transition: left 0.3s ease-in-out;
     }
 
 /* Adicione esses estilos ao seu arquivo styles.css */

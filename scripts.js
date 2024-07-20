@@ -801,6 +801,14 @@ function displayOSMData(data, subMenuId, feature) {
                 clearMarkers(); // Limpar marcadores antes de adicionar um novo
                 if (feature === 'festas') {
                     handleSubmenuButtonClickNightlife(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+                } else if (feature === 'restaurantes') {
+                    handleSubmenuButtonClickRestaurants(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+                } else if (feature === 'pousadas') {
+                    handleSubmenuButtonClickInns(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+                } else if (feature === 'lojas') {
+                    handleSubmenuButtonClickShops(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
+                } else if (feature === 'emergencias') {
+                    handleSubmenuButtonClickEmergencies(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
                 } else {
                     handleSubmenuButtonClick(element.lat, element.lon, element.tags.name, description, element.tags.images || []);
                 }
@@ -811,6 +819,40 @@ function displayOSMData(data, subMenuId, feature) {
             markers.push(marker);
         }
     });
+}
+
+
+function showControlButtonsInns() {
+    const controlButtons = document.querySelector('.control-buttons');
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('reserve-inns-btn').style.display = 'flex';
+    controlButtons.style.display = 'flex';
+}
+
+function showControlButtonsRestaurantes() {
+    const controlButtons = document.querySelector('.control-buttons');
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('reserve-restaurants-btn').style.display = 'flex';
+    controlButtons.style.display = 'flex';
+}
+
+
+function showControlButtonsSpeakAttendent() {
+    const controlButtons = document.querySelector('.control-buttons');
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('speak-attendent-btn').style.display = 'flex';
+    controlButtons.style.display = 'flex';
+}
+
+function showControlButtonsCall() {
+    const controlButtons = document.querySelector('.control-buttons');
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('call-btn').style.display = 'flex';
+    controlButtons.style.display = 'flex';
 }
 
 
@@ -856,7 +898,10 @@ function displayCustomEmergencies() {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = emergency.name;
-        btn.onclick = () => handleSubmenuButtonClick(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images);
+        btn.onclick = () => {
+            showControlButtonsCall();
+            handleSubmenuButtonClick(tour.lat, tour.lon, tour.name, tour.description, tour.images);
+        };
         subMenu.appendChild(btn);
 
         const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(emergency.name, emergency.description);
@@ -994,8 +1039,6 @@ function handleSubmenuButtonClickNightlife(lat, lon, name, description, images) 
     showLocationDetailsInModal(name, description, images); // Passe a array de imagens correta
     selectedDestination = name;
 }
-
-
 
 // Adaptação da função displayCustomTours para utilizar handleToursSubmenuButtonClick
 function displayCustomTours() {
@@ -1663,37 +1706,38 @@ function showControlButtonsParty() {
 }
 
 
-function showControlButtonsRestaurantes() {
-    const controlButtons = document.querySelector('.control-buttons');
-    document.getElementById('create-route-btn').style.display = 'flex';
-    document.getElementById('about-more-btn').style.display = 'flex';
-    document.getElementById('reserve-restaurants-btn').style.display = 'flex';
-    controlButtons.style.display = 'flex';
+function handleSubmenuButtonClickRestaurants(lat, lon, name, description, images) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    const locationImages = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+    selectedDestination = name;
 }
 
-function showControlButtonsInns() {
-    const controlButtons = document.querySelector('.control-buttons');
-    document.getElementById('create-route-btn').style.display = 'flex';
-    document.getElementById('about-more-btn').style.display = 'flex';
-    document.getElementById('reserve-inns-btn').style.display = 'flex';
-    controlButtons.style.display = 'flex';
+function handleSubmenuButtonClickInns(lat, lon, name, description, images) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    const locationImages = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+    selectedDestination = name;
 }
 
-function showControlButtonsSpeakAttendent() {
-    const controlButtons = document.querySelector('.control-buttons');
-    document.getElementById('create-route-btn').style.display = 'flex';
-    document.getElementById('about-more-btn').style.display = 'flex';
-    document.getElementById('speak-attendent-btn').style.display = 'flex';
-    controlButtons.style.display = 'flex';
+function handleSubmenuButtonClickShops(lat, lon, name, description, images) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    const locationImages = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+    selectedDestination = name;
 }
 
-function showControlButtonsCall() {
-    const controlButtons = document.querySelector('.control-buttons');
-    document.getElementById('create-route-btn').style.display = 'flex';
-    document.getElementById('about-more-btn').style.display = 'flex';
-    document.getElementById('call-btn').style.display = 'flex';
-    controlButtons.style.display = 'flex';
+function handleSubmenuButtonClickEmergencies(lat, lon, name, description, images) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    const locationImages = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+    selectedDestination = name;
 }
+
 
 function hideControlButtons() {
     const controlButtons = document.querySelector('.control-buttons');
