@@ -333,11 +333,12 @@ function setupEventListeners() {
 function restoreModalAndControlsStyles() {
     const modal = document.getElementById('assistant-modal');
     const controlButtons = document.querySelector('.control-buttons');
+    const mapContainer = document.getElementById('map');
 
     Object.assign(modal.style, {
         position: 'absolute',
         top: '40%',
-        left: '47%',
+        left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '70%',
         maxWidth: '600px',
@@ -351,25 +352,46 @@ function restoreModalAndControlsStyles() {
     });
 
     Object.assign(controlButtons.style, {
-        left: '50%'
+        left: '50%',
     });
+
+    Object.assign(mapContainer.style, {
+        width: '100%',
+        height: '100%'
+    });
+
+    // Redimensionar o mapa
+    if (map) {
+        map.invalidateSize();
+    }
 }
 
 function adjustModalAndControls() {
     const modal = document.getElementById('assistant-modal');
     const sideMenu = document.querySelector('.menu');
     const controlButtons = document.querySelector('.control-buttons');
+    const mapContainer = document.getElementById('map');
 
     if (!sideMenu.classList.contains('hidden')) {
-        Object.assign(modal.style, {
-            left: `${sideMenu.offsetWidth}px`
-        });
         Object.assign(controlButtons.style, {
-            left: `37%`
+        left: '40%',
+    });
+        Object.assign(controlButtons.style, {
+        left: '40%',
+    });
+        Object.assign(mapContainer.style, {
+            width: `75%`,
+            height:'100%'
         });
+
         adjustModalStyles();
     } else {
         restoreModalAndControlsStyles();
+    }
+
+    // Redimensionar o mapa
+    if (map) {
+        map.invalidateSize();
     }
 }
 
@@ -380,7 +402,7 @@ function adjustModalStyles() {
     if (!sideMenu.classList.contains('hidden')) {
         Object.assign(modal.style, {
             top: '40%',
-            left: '37%',
+            left: `${sideMenu.offsetWidth + modal.offsetWidth / 2}px`,
             transform: 'translate(-50%, -50%)',
             width: '60%',
             maxWidth: '600px',
@@ -396,6 +418,9 @@ function adjustModalStyles() {
         restoreModalAndControlsStyles();
     }
 }
+
+
+
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
