@@ -211,6 +211,7 @@ function setupEventListeners() {
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
     const subMenuButtons = document.querySelectorAll('.submenu-button');
+    const floatingMenuButtons = document.querySelectorAll('#floating-menu .menu-btn');
 
     // Oculta o botão de alternância do menu inicialmente
     menuToggle.style.display = 'none';
@@ -224,8 +225,11 @@ function setupEventListeners() {
         });
     });
 
+
+
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
+        restoreModalAndControlsStyles();
     });
 
     menuToggle.addEventListener('click', () => {
@@ -878,8 +882,14 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
     adjustMapWithLocation(lat, lon, name, description);
     
     switch (feature) {
-    case 'passeios':
+        case 'pontos-turisticos':
+            showControlButtonsTouristSpots();
+            break;
+        case 'passeios':
             showControlButtonsTour();
+            break;
+        case 'praias':
+            showControlButtonsBeaches();
             break;
         case 'festas':
             showControlButtonsNightlife();
@@ -1012,16 +1022,16 @@ function displayCustomEmergencies() {
     const subMenu = document.getElementById('emergencies-submenu');
     subMenu.innerHTML = '';
 
-    emergencies.forEach(emergency => {
+    emergencies.forEach(emergencies => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
-        btn.textContent = emergency.name;
+        btn.textContent = emergencies.name;
         btn.onclick = () => {
-            handleSubmenuButtonsEmergencies(emergency.lat, emergency.lon, emergency.name, emergency.description, emergency.images, 'emergencias');
+            handleSubmenuButtonsEmergencies(emergencies.lat, emergencies.lon, emergencies.name, emergencies.description, emergencies.images, 'emergencias');
         };
         subMenu.appendChild(btn);
 
-        const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(`<b>${emergency.name}</b><br>${emergency.description}`);
+        const marker = L.marker([emergencies.lat, emergencies.lon]).addTo(map).bindPopup(`<b>${emergencies.name}</b><br>${emergencies.description}`);
         markers.push(marker);
     });
 }
@@ -1173,8 +1183,6 @@ function clearMarkers() {
     markers = [];
 
  }
-
-
 
 
 function showLocationDetailsInModal(name, description, images) {
@@ -1656,6 +1664,7 @@ function previousTutorialStep() {
 function startTutorial() {
     currentStep = 1;
     tutorialIsActive = true;
+
     showTutorialStep(tutorialSteps[currentStep].step);
     document.getElementById('tutorial-overlay').style.display = 'flex';
 }
@@ -1798,6 +1807,13 @@ function showControlButtonsNightlife() {
     document.querySelector('.control-buttons').style.display = 'flex';
 }
 
+function showControlButtonsTouristSpots() {
+    hideAllControlButtons();
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.querySelector('.control-buttons').style.display = 'flex';
+}
+
 function showControlButtonsEmergencies() {
     showControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
@@ -1822,6 +1838,12 @@ function showControlButtonsTour() {
     document.querySelector('.control-buttons').style.display = 'flex';
 }
 
+function showControlButtonsBeaches() {
+    hideAllControlButtons();
+    document.getElementById('create-route-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'flex';
+    document.querySelector('.control-buttons').style.display = 'flex';
+}
 
 function showControlButtonsInns() {
     hideAllControlButtons();
@@ -1833,7 +1855,7 @@ function showControlButtonsInns() {
 
 function showControlButtonsShops() {
     hideAllControlButtons();
-    showControlButtons()
+    showControlButtons();
     document.getElementById('speak-attendent-btn').style.display = 'flex';
     document.querySelector('.control-buttons').style.display = 'flex';
 }
@@ -1849,7 +1871,6 @@ function showControlButtons() {
     document.getElementById('about-more-btn').style.display = 'flex';
     document.querySelector('.control-buttons').style.display = 'flex';
 }
-
 
 function collectInterestData() {
     console.log('Collecting interest data to create a custom route...');
