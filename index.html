@@ -25,28 +25,25 @@
         <div id="map"></div>
         <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
-    <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
-    <div class="modal-content" id="assistant-modal-text">
-        <div class="carousel" id="assistant-carousel">
-            <div class="carousel-item active">
-                <img src="image1.jpg" alt="Image 1">
-            </div>
-            <div class="carousel-item">
-                <img src="image2.jpg" alt="Image 2">
-            </div>
-            <div class="carousel-item">
-                <img src="image3.jpg" alt="Image 3">
-            </div>
-            <button class="prev" onclick="prevSlide()">&#10094;</button>
-            <button class="next" onclick="nextSlide()">&#10095;</button>
-            <div class="carousel-indicators">
-                <button class="indicator active" onclick="currentSlide(1)"></button>
-                <button class="indicator" onclick="currentSlide(2)"></button>
-                <button class="indicator" onclick="currentSlide(3)"></button>
-            </div>
-        </div>
-    </div>
+   <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal'), endTutorial()">X</button>
+   <div class="modal-content" id="assistant-modal-text">
+       <div id="assistant-carousel" class="carousel">
+          <div class="carousel-inner">
+             <!-- Itens do carrossel serão adicionados aqui dinamicamente -->
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+             <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+             <span class="carousel-control-next-icon" aria-hidden="true"></span>
+             <span class="visually-hidden">Next</span>
+          </button>
+       </div>
+       <div class="carousel-indicators"></div>
+   </div>
 </div>
+
 
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
@@ -109,7 +106,7 @@
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
              <button class="control-btn" id="create-route-btn" style="display: none;" onclick="createRouteTo(destination)">Como Chegar</button>
-              <button class="control-btn" id="about-more-btn" style="display: none;" onclick="initializeCarousel()">Saiba mais</button>
+              <button class="control-btn" id="about-more-btn" style="display: none;">Saiba mais</button>
               <button class="control-btn" id="buy-ticket-btn" style="display: none;">Comprar Ingresso</button>
             <button class="control-btn" id="tour-btn" style="display: none;">Reservar Passeio</button>
              <button class="control-btn" id="reserve-restaurants-btn" style="display: none;">Reservar Mesa</button>

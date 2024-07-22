@@ -5,7 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     showWelcomeMessage();
     adjustModalAndControls();
-    initializeCarousel();
+
+    const destinationName = 'Toca do Morcego'; // Nome do destino que você quer recuperar
+
+    getSelectedDestination(destinationName).then(destination => {
+        if (destination) {
+            selectedDestination = destination;
+            const images = getImagesForLocation(destination.name);
+            initializeCarousel(images);
+            // Exibir outras informações do destino, se necessário
+        } else {
+            console.log('Destino não encontrado no banco de dados.');
+        }
+    }).catch(error => {
+        console.error('Erro ao recuperar destino:', error);
+    });
 });
 
 let map;
@@ -214,16 +228,14 @@ function setupEventListeners() {
 
     menuToggle.style.display = 'none';
 
-    // Assumindo que subMenuButtons está definido em algum lugar no seu código
-subMenuButtons.forEach(button => {
-    button.addEventListener('click', (event) => {
-        const feature = button.getAttribute('data-feature');
-        handleFeatureSelection(feature);
-
-        adjustModalAndControls();
-        event.stopPropagation();
+    subMenuButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const feature = button.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            adjustModalAndControls();
+            event.stopPropagation();
+        });
     });
-});
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -243,18 +255,91 @@ document.querySelectorAll('.submenu-button').forEach(button => {
         const lon = button.getAttribute('data-lon');
         const name = button.getAttribute('data-name');
         const description = button.getAttribute('data-description');
+        selectedDestination = { name, description, lat, lon };  // Definindo como objeto
         handleSubmenuButtonClick(lat, lon, name, description);
+        sendDestinationToServiceWorker(selectedDestination);  // Enviando destino para o service worker
     });
 });
 
+self.addEventListener('message', event => {
+    console.log('Service Worker: Message Received', event.data);
+    if (event.data && event.data.type === 'SAVE_DESTINATION') {
+        saveDestination(event.data.payload).then(() => {
+            console.log('Destination saved successfully.');
+        }).catch(error => {
+            console.error('Error saving destination:', error);
+        });
+    }
+});
 
-    document.getElementById('about-more-btn').addEventListener('click', () => {
-        if (selectedDestination) {
-            initializeCarousel();
-        } else {
-            alert("Por favor, selecione um destino primeiro.");
-        }
-    });
+self.addEventListener('install', event => {
+    console.log('Service Worker: Install');
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                console.log('Service Worker: Caching Files');
+                return cache.addAll(urlsToCache);
+            })
+    );
+});
+
+self.addEventListener('fetch', event => {
+    console.log('Service Worker: Fetch', event.request.url);
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => {
+                if (response) {
+                    return response;
+                }
+                return fetch(event.request).then(
+                    response => {
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME)
+                            .then(cache => {
+                                cache.put(event.request, responseToCache);
+                            });
+                        return response;
+                    }
+                );
+            })
+    );
+});
+
+self.addEventListener('activate', event => {
+    console.log('Service Worker: Activate');
+    const cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (!cacheWhitelist.includes(cacheName)) {
+                        console.log('Service Worker: Deleting Old Cache', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+if (!('indexedDB' in window)) {
+    console.error('Este navegador não suporta IndexedDB.');
+}
+
+document.getElementById('about-more-btn').addEventListener('click', () => {
+    if (selectedDestination) {
+        const images = getImagesForLocation(selectedDestination.name);
+        initializeCarousel(images);
+        showAssistantModalWithCarousel();  // Passa as imagens para inicializar o carrossel
+    } else {
+        alert("Por favor, selecione um destino primeiro.");
+    }
+});
+
+
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
         map.zoomIn();
@@ -263,6 +348,8 @@ document.querySelectorAll('.submenu-button').forEach(button => {
             nextTutorialStep();
         }
     });
+
+
 
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
@@ -357,6 +444,36 @@ document.querySelectorAll('.submenu-button').forEach(button => {
         hideControlButtons();
     });
 }
+
+function handleSubmenuButtonClick(lat, lon, name, description) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    selectedDestination = { name, description, lat, lon }; // Define como objeto
+    showControlButtons();
+    const images = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+    sendDestinationToServiceWorker({ lat, lon, name, description }); // Enviar dados para o service worker
+    
+    saveDestination({ name, description, lat, lon }).then(() => {
+        console.log('Destino salvo com sucesso.');
+    }).catch(error => {
+        console.error('Erro ao salvar destino:', error);
+    });
+}
+
+function sendDestinationToServiceWorker(destination) {
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_DESTINATION',
+            payload: destination
+        });
+    } else {
+        console.error('Service Worker controller not found.');
+    }
+}
+
+
+
 
 function hideControlButtons() {
     document.getElementById('tutorial-no-btn').style.display = 'none';
@@ -556,12 +673,63 @@ function hideModal(id) {
     modal.style.display = 'none';
 }
 
+function openDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('morroDigitalDB', 1);
+        request.onupgradeneeded = event => {
+            const db = event.target.result;
+            const store = db.createObjectStore('destinations', { keyPath: 'id', autoIncrement: true });
+            store.createIndex('name', 'name', { unique: false });
+        };
+        request.onsuccess = event => {
+            resolve(event.target.result);
+        };
+        request.onerror = event => {
+            reject(event.target.errorCode);
+        };
+    });
+}
+
+function saveDestination(data) {
+    return openDatabase().then(db => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['destinations'], 'readwrite');
+            const store = transaction.objectStore('destinations');
+            const request = store.add(data);
+            request.onsuccess = () => resolve();
+            request.onerror = event => reject(event.target.errorCode);
+        });
+    });
+}
+
+
+function getSelectedDestination(name) {
+    return openDatabase().then(db => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['destinations'], 'readonly');
+            const store = transaction.objectStore('destinations');
+            const index = store.index('name');
+            const request = index.get(name);
+
+            request.onsuccess = event => {
+                resolve(event.target.result);
+            };
+            request.onerror = event => {
+                reject(event.target.errorCode);
+            };
+        });
+    });
+}
+
+
+
 function getImagesForLocation(location) {
     const imageDatabase = {
-        'Toca do Morcego': [
-            'https://example.com/image1.jpg',
-            'https://example.com/image2.jpg',
-            'https://example.com/image3.jpg'
+ // Adicionei um link de imagem real para teste
+        'Toca do Morcego Teste': [
+            'https://upload.wikimedia.org/wikipedia/commons/1/1e/Landscape.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/4/4d/Sunrise_over_the_Sea.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg'
         ],
         'Farol do Morro': [
             'https://example.com/farol1.jpg',
@@ -581,15 +749,9 @@ function getImagesForLocation(location) {
             'https://example.com/paredao1.jpg',
             'https://example.com/paredao2.jpg'
         ],
-        // Adicionei um link de imagem real para teste
-        'Toca do Morcego Teste': [
-            'https://upload.wikimedia.org/wikipedia/commons/1/1e/Landscape.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/4/4d/Sunrise_over_the_Sea.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg'
-        ]
     };
 
-    return imageDatabase[location.name] || [];
+    return imageDatabase[location] || [];
 }
 
 
@@ -603,51 +765,64 @@ function hideModal(modalId) {
     modal.style.display = 'none';
 }
 
-function initializeCarousel() {
+function initializeCarousel(images) {
     let currentIndex = 0;
-    const items = document.querySelectorAll('#assistant-carousel .carousel-item');
-    const indicators = document.querySelectorAll('.carousel-indicators button');
+    const carouselContainer = document.querySelector('#assistant-carousel .carousel');
+    const indicators = document.querySelector('.carousel-indicators');
 
+    // Limpa o conteúdo anterior do carrossel
+    carouselContainer.innerHTML = '';
+    indicators.innerHTML = '';  // Limpa indicadores
+
+    // Adiciona as novas imagens ao carrossel
+    images.forEach((image, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+        const imgElement = document.createElement('img');
+        imgElement.src = image;
+        imgElement.alt = `${selectedDestination.name} Image ${index + 1}`;
+        carouselItem.appendChild(imgElement);
+        carouselContainer.appendChild(carouselItem);
+
+        const indicator = document.createElement('button');
+        indicator.className = `${index === 0 ? 'active' : ''}`;
+        indicator.addEventListener('click', () => {
+            currentSlide(index);
+        });
+        indicators.appendChild(indicator);
+    });
+
+    // Funções auxiliares para controle do carrossel
     function showSlide(index) {
+        const items = document.querySelectorAll('#assistant-carousel .carousel-item');
+        const indicators = document.querySelectorAll('.carousel-indicators button');
+
         items.forEach((item, i) => {
-            item.classList.remove('active');
-            indicators[i].classList.remove('active');
-            if (i === index) {
-                item.classList.add('active');
-                indicators[i].classList.add('active');
-            }
+            item.classList.toggle('active', i === index);
+            indicators[i].classList.toggle('active', i === index);
         });
     }
 
-    document.querySelector('.prev').addEventListener('click', () => {
-        prevSlide();
-    });
+    function prevSlide() {
+        currentIndex = (currentIndex === 0) ? images.length - 1 : currentIndex - 1;
+        showSlide(currentIndex);
+    }
 
-    document.querySelector('.next').addEventListener('click', () => {
-        nextSlide();
-    });
+    function nextSlide() {
+        currentIndex = (currentIndex === images.length - 1) ? 0 : currentIndex + 1;
+        showSlide(currentIndex);
+    }
 
-    indicators.forEach((indicator, i) => {
-        indicator.addEventListener('click', () => {
-            currentSlide(i);
-        });
-    });
+    function currentSlide(index) {
+        currentIndex = index;
+        showSlide(currentIndex);
+    }
 
-    showSlide(currentIndex);
-}
+    // Adiciona eventos aos botões de navegação do carrossel
+    document.querySelector('.prev').addEventListener('click', prevSlide);
+    document.querySelector('.next').addEventListener('click', nextSlide);
 
-function prevSlide() {
-    currentIndex = (currentIndex === 0) ? items.length - 1 : currentIndex - 1;
-    showSlide(currentIndex);
-}
-
-function nextSlide() {
-    currentIndex = (currentIndex === items.length - 1) ? 0 : currentIndex + 1;
-    showSlide(currentIndex);
-}
-
-function currentSlide(index) {
-    currentIndex = index;
+    // Exibe o primeiro slide
     showSlide(currentIndex);
 }
 
@@ -915,7 +1090,9 @@ function displayOSMData(data, subMenuId, feature) {
     document.querySelectorAll('.submenu-button').forEach(button => {
         button.addEventListener('click', () => {
             const destination = button.getAttribute('data-destination');
-            setSelectedDestination(destination);
+            const name = button.getAttribute('data-name');
+            selectedDestination = {name};
+            sendDestinationToServiceWorker(selectedDestination);
         });
     });
 }
@@ -1109,7 +1286,7 @@ function displayCustomEducation() {
 function handleSubmenuButtonClick(lat, lon, name, description) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
+    selectedDestination = { name, description, lat, lon }; // Definindo como objeto
     showControlButtons();
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
@@ -1294,7 +1471,7 @@ function showLocationDetailsInModal(name, description, images) {
     modalContent.appendChild(infoContent);
     showModal('assistant-modal');
 
-    initializeCarousel();
+    initializeCarousel(images);
 }
 
 
@@ -1750,13 +1927,24 @@ function updateProgressBar(current, total) {
     progressBar.style.width = `${(current / total) * 100}%`;
 }
 
-function speakText(text) {
+// Função para parar a síntese de fala
+function stopSpeaking() {
     if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
     }
+}
 
+// Função para iniciar a síntese de fala
+function speakText(text) {
+    // Primeiro, para qualquer fala em andamento
+    stopSpeaking();
+    
+    // Cria um novo utterance com o texto fornecido
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : selectedLanguage === 'en' ? 'en-US' : selectedLanguage === 'es' ? 'es-ES' : 'he-IL';
+    utterance.lang = selectedLanguage === 'pt' ? 'pt-BR' : 
+                     selectedLanguage === 'en' ? 'en-US' : 
+                     selectedLanguage === 'es' ? 'es-ES' : 
+                     'he-IL';
 
     const voices = speechSynthesis.getVoices();
     const femaleVoices = voices.filter(voice => voice.lang.startsWith(utterance.lang) && voice.name.includes("Female"));
@@ -1774,6 +1962,10 @@ function speakText(text) {
 
     speechSynthesis.speak(utterance);
 }
+
+// Exemplo de uso
+document.getElementById('stop-speaking-btn').addEventListener('click', stopSpeaking);
+
 
 function closeSideMenu() {
     const menu = document.getElementById('menu');
