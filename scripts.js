@@ -833,10 +833,11 @@ function loadSubMenu(subMenuId, feature) {
 }
 
 
+
 function handleSubmenuButtons(lat, lon, name, description, images, feature) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-
+    
     switch (feature) {
         case 'passeios':
             showControlButtonsTour();
@@ -870,8 +871,9 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
             break;
     }
     showLocationDetailsInModal(name, description, images);
-    selectedDestination = { name, description, images }; // Define o destino selecionado como um objeto
+    selectedDestination = { name, description, images };
 }
+
 
 
 async function fetchOSMData(query) {
@@ -1177,6 +1179,14 @@ function handleSubmenuButtonsTips(lat, lon, name, description) {
     showLocationDetailsInModal(name, description, images);
 }
 
+function handleSubmenuButtonsInns(lat, lon, name, description) {
+    clearMarkers();
+    adjustMapWithLocation(lat, lon, name, description);
+    selectedDestination = name;
+    showControlButtonsInns();
+    const images = getImagesForLocation(name);
+    showLocationDetailsInModal(name, description, images);
+}
 
 function showControlButtons() {
     document.getElementById('create-route-btn').style.display = 'flex';
@@ -1286,6 +1296,7 @@ function showLocationDetailsInModal(name, description, images) {
 
     initializeCarousel();
 }
+
 
 function createRouteTo(destination) {
     if (currentLocation && destination) {
