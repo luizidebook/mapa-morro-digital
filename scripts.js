@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const destinationName = 'Toca do Morcego'; // Nome do destino que você quer recuperar
 
-    getSelectedDestination(destinationName).then(destination => {
+ getSelectedDestination(destinationName).then(destination => {
         if (destination) {
             selectedDestination = destination;
             const images = getImagesForLocation(destination.name);
@@ -261,17 +261,6 @@ document.querySelectorAll('.submenu-button').forEach(button => {
     });
 });
 
-self.addEventListener('message', event => {
-    console.log('Service Worker: Message Received', event.data);
-    if (event.data && event.data.type === 'SAVE_DESTINATION') {
-        saveDestination(event.data.payload).then(() => {
-            console.log('Destination saved successfully.');
-        }).catch(error => {
-            console.error('Error saving destination:', error);
-        });
-    }
-});
-
 self.addEventListener('install', event => {
     console.log('Service Worker: Install');
     event.waitUntil(
@@ -325,20 +314,28 @@ self.addEventListener('activate', event => {
     );
 });
 
-if (!('indexedDB' in window)) {
-    console.error('Este navegador não suporta IndexedDB.');
-}
+self.addEventListener('message', event => {
+    console.log('Service Worker: Message Received', event.data);
+    if (event.data && event.data.type === 'SAVE_DESTINATION') {
+        saveDestination(event.data.payload).then(() => {
+            console.log('Destination saved successfully.');
+        }).catch(error => {
+            console.error('Error saving destination:', error);
+        });
+    }
+});
+
+
 
 document.getElementById('about-more-btn').addEventListener('click', () => {
     if (selectedDestination) {
         const images = getImagesForLocation(selectedDestination.name);
         initializeCarousel(images);
-        showAssistantModalWithCarousel();  // Passa as imagens para inicializar o carrossel
+        showAssistantModalWithCarousel(); // Passa as imagens para inicializar o carrossel
     } else {
         alert("Por favor, selecione um destino primeiro.");
     }
 });
-
 
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
@@ -725,7 +722,6 @@ function getSelectedDestination(name) {
 
 function getImagesForLocation(location) {
     const imageDatabase = {
- // Adicionei um link de imagem real para teste
         'Toca do Morcego Teste': [
             'https://upload.wikimedia.org/wikipedia/commons/1/1e/Landscape.jpg',
             'https://upload.wikimedia.org/wikipedia/commons/4/4d/Sunrise_over_the_Sea.jpg',
@@ -754,9 +750,7 @@ function getImagesForLocation(location) {
     return imageDatabase[location] || [];
 }
 
-
 function showAssistantModalWithCarousel() {
-    initializeCarousel();
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
@@ -767,12 +761,12 @@ function hideModal(modalId) {
 
 function initializeCarousel(images) {
     let currentIndex = 0;
-    const carouselContainer = document.querySelector('#assistant-carousel .carousel');
+    const carouselInner = document.querySelector('#assistant-carousel .carousel-inner');
     const indicators = document.querySelector('.carousel-indicators');
 
     // Limpa o conteúdo anterior do carrossel
-    carouselContainer.innerHTML = '';
-    indicators.innerHTML = '';  // Limpa indicadores
+    carouselInner.innerHTML = '';
+    indicators.innerHTML = ''; 
 
     // Adiciona as novas imagens ao carrossel
     images.forEach((image, index) => {
@@ -782,9 +776,10 @@ function initializeCarousel(images) {
         imgElement.src = image;
         imgElement.alt = `${selectedDestination.name} Image ${index + 1}`;
         carouselItem.appendChild(imgElement);
-        carouselContainer.appendChild(carouselItem);
+        carouselInner.appendChild(carouselItem);
 
         const indicator = document.createElement('button');
+        indicator.type = 'button';
         indicator.className = `${index === 0 ? 'active' : ''}`;
         indicator.addEventListener('click', () => {
             currentSlide(index);
@@ -819,11 +814,21 @@ function initializeCarousel(images) {
     }
 
     // Adiciona eventos aos botões de navegação do carrossel
-    document.querySelector('.prev').addEventListener('click', prevSlide);
-    document.querySelector('.next').addEventListener('click', nextSlide);
+    document.querySelector('.carousel-control-prev').addEventListener('click', prevSlide);
+    document.querySelector('.carousel-control-next').addEventListener('click', nextSlide);
 
     // Exibe o primeiro slide
     showSlide(currentIndex);
+}
+
+function handleAboutMoreClick() {
+    if (selectedDestination) {
+        const images = getImagesForLocation(selectedDestination.name);
+        initializeCarousel(images);
+        showAssistantModalWithCarousel(); // Exibe o modal com o carrossel
+    } else {
+        alert("Por favor, selecione um destino primeiro.");
+    }
 }
 
 function highlightElement(element) {
