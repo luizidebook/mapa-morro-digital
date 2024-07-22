@@ -25,21 +25,29 @@
         <div id="map"></div>
         <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
-            <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
-            <div class="modal-content" id="assistant-modal-text">
-                 <div class="carousel" id="assistant-carousel">
-                    <div class="carousel-item active">
-                        <img src="image1.jpg" alt="Image 1">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="image2.jpg" alt="Image 2">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="image3.jpg" alt="Image 3">
-                    </div>
-                </div>
+    <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
+    <div class="modal-content" id="assistant-modal-text">
+        <div class="carousel" id="assistant-carousel">
+            <div class="carousel-item active">
+                <img src="image1.jpg" alt="Image 1">
+            </div>
+            <div class="carousel-item">
+                <img src="image2.jpg" alt="Image 2">
+            </div>
+            <div class="carousel-item">
+                <img src="image3.jpg" alt="Image 3">
+            </div>
+            <button class="prev" onclick="prevSlide()">&#10094;</button>
+            <button class="next" onclick="nextSlide()">&#10095;</button>
+            <div class="carousel-indicators">
+                <button class="indicator active" onclick="currentSlide(1)"></button>
+                <button class="indicator" onclick="currentSlide(2)"></button>
+                <button class="indicator" onclick="currentSlide(3)"></button>
             </div>
         </div>
+    </div>
+</div>
+
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
@@ -73,7 +81,7 @@
             <button class="menu-btn" data-feature="lojas" aria-label="Lojas"><i class="fas fa-store"></i></button>
             <button class="menu-btn" data-feature="emergencias" aria-label="Emergências"><i class="fas fa-ambulance"></i></button>
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
-            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
+            <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></bu'tton>
             <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
             <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
@@ -101,13 +109,11 @@
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
              <button class="control-btn" id="create-route-btn" style="display: none;" onclick="createRouteTo(destination)">Como Chegar</button>
-              <button class="control-btn" id="about-more-btn" style="display: none;" onclick="showAssistantModalWithCarousel()">Saiba mais</button>
+              <button class="control-btn" id="about-more-btn" style="display: none;" onclick="initializeCarousel()">Saiba mais</button>
               <button class="control-btn" id="buy-ticket-btn" style="display: none;">Comprar Ingresso</button>
             <button class="control-btn" id="tour-btn" style="display: none;">Reservar Passeio</button>
-             <button class="control-btn" id="restaurants-btn" style="display: none;">Reservar Mesa</button>
-             <button class="control-btn" id="reserve-inns-btn" style="display: none;">Reservar Quarto</button>
-              <button class="control-btn" id="speak-attendent-btn" style="display: none;">Falar com Atendente</button>
-              <button class="control-btn" id="call-btn" style="display: none;">Ligar</button>
+             <button class="control-btn" id="reserve-restaurants-btn" style="display: none;">Reservar Mesa</button>
+             <button class="control-btn" id="speak-attendent-btn" style="display: none;">Falar com atendente</button>
 
 
         </div>
@@ -206,13 +212,6 @@
             </form>
         </div>
     </div>
-<script src="map.js"></script>
-<script src="modals.js"></script>
-<script src="carousel.js"></script>
-<script src="tutorial.js"></script>
-<script src="ui.js"></script>
-<script src="utils.js"></script>
-<script src="main.js"></script>
-</script>
+    <script src="scripts.js" defer></script>
 </body>
 </html>
