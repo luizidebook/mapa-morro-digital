@@ -25,7 +25,7 @@
         <div id="map"></div>
         <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
-   <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal'), endTutorial()">X</button>
+   <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal'), endTutorial(), stopSpeaking()">X</button>
    <div class="modal-content" id="assistant-modal-text">
        <div id="assistant-carousel" class="carousel">
           <div class="carousel-inner">
@@ -117,6 +117,24 @@
 
 
         </div>
+
+        <div id="itinerary-form-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <form id="itinerary-form">
+                <label for="activity-types">Selecione os tipos de atividades que você gosta:</label>
+                <select id="activity-types" name="activity-types" multiple>
+                    <option value="praias">Praias</option>
+                    <option value="pontos-turisticos">Pontos Turísticos</option>
+                    <option value="passeios">Passeios</option>
+                    <option value="festas">Festas</option>
+                    <option value="restaurantes">Restaurantes</option>
+                </select>
+                <button type="button" id="save-itinerary-btn">Salvar Roteiro</button>
+            </form>
+        </div>
+    </div>
+
         <div id="info-modal" class="modal">
             <div class="modal-content">
                 <button id="close-info-modal" class="close-menu-btn" onclick="hideModal('info-modal')">X</button>
@@ -213,5 +231,15 @@
         </div>
     </div>
     <script src="scripts.js" defer></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(function(registration) {
+                console.log('Service Worker registered with scope:', registration.scope);
+            }).catch(function(error) {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
+    </script>
 </body>
 </html>

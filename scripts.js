@@ -212,6 +212,7 @@ function setupEventListeners() {
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
     const subMenuButtons = document.querySelectorAll('.submenu-button');
+    const saveItineraryBtn = document.getElementById('save-itinerary-btn');
 
     menuToggle.style.display = 'none';
 
@@ -234,26 +235,6 @@ subMenuButtons.forEach(button => {
             nextTutorialStep();
         }
     });
-
-document.querySelectorAll('.submenu-button').forEach(button => {
-    button.addEventListener('click', (event) => {
-        const destination = button.getAttribute('data-destination');
-        const lat = button.getAttribute('data-lat');
-        const lon = button.getAttribute('data-lon');
-        const name = button.getAttribute('data-name');
-        const description = button.getAttribute('data-description');
-        handleSubmenuButtonClick(lat, lon, name, description);
-    });
-});
-
-document.getElementById('about-more-btn').addEventListener('click', () => {
-    if (selectedDestination) {
-        const images = getImagesForLocation(selectedDestination.name);
-        initializeCarousel(images);  // Passa as imagens para inicializar o carrossel
-    } else {
-        alert("Por favor, selecione um destino primeiro.");
-    }
-});
 
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
@@ -299,13 +280,25 @@ document.getElementById('about-more-btn').addEventListener('click', () => {
         });
     });
 
-    document.getElementById('create-route-btn').addEventListener('click', () => {
-        if (selectedDestination) {
-            createRouteTo(selectedDestination);
-        } else {
-            alert("Por favor, selecione um destino primeiro.");
-        }
+document.getElementById('create-route-btn').addEventListener('click', function() {
+    const destination = getSelectedDestination();
+    if (destination) {
+        createRouteTo(destination);
+    }
+});
+
+document.getElementById('about-more-btn').addEventListener('click', function() {
+    startCarousel();
+});
+
+document.querySelectorAll('.submenu-button').forEach(button => {
+    button.addEventListener('click', (event) => {
+        const destinationName = button.getAttribute('data-destination');
+        setSelectedDestination(destinationName);
     });
+});
+
+
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -384,6 +377,9 @@ function sendDestinationToServiceWorker(destination) {
         console.error('Service Worker controller not found.');
     }
 }
+
+
+
 
 
 function hideControlButtons() {
@@ -584,43 +580,26 @@ function hideModal(id) {
     modal.style.display = 'none';
 }
 
-function getImagesForLocation(location) {
+function getImagesForLocation(locationName) {
     const imageDatabase = {
         'Toca do Morcego': [
-            'https://upload.wikimedia.org/wikipedia/commons/3/32/Toca_do_Morcego_Bar.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/7/73/Toca_do_Morcego_Sunset.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/4/49/Toca_do_Morcego_Panorama.jpg'
+            'https://example.com/image1.jpg',
+            'https://example.com/image2.jpg',
+            'https://example.com/image3.jpg'
         ],
         'Farol do Morro': [
-            'https://upload.wikimedia.org/wikipedia/commons/8/89/Farol_do_Morro.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/5/50/Farol_do_Morro_de_S%C3%A3o_Paulo.jpg'
+            'https://example.com/farol1.jpg',
+            'https://example.com/farol2.jpg'
         ],
-        'Mirante da Tirolesa': [
-            'https://upload.wikimedia.org/wikipedia/commons/3/31/Mirante_da_Tirolesa.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/2/2b/Mirante_da_Tirolesa_View.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/1/15/Mirante_da_Tirolesa_Panorama.jpg'
-        ],
-        'Fortaleza de Morro de São Paulo': [
-            'https://upload.wikimedia.org/wikipedia/commons/6/6a/Fortaleza_de_Morro_de_S%C3%A3o_Paulo.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/8/88/Fortaleza_Morro_de_S%C3%A3o_Paulo.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/0/0d/Fortaleza_Morro_S%C3%A3o_Paulo_View.jpg'
-        ],
-        'Paredão da Argila Morro de São Paulo': [
-            'https://upload.wikimedia.org/wikipedia/commons/3/30/Pared%C3%A3o_da_Argila.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/4/46/Pared%C3%A3o_da_Argila_View.jpg'
-        ],
-        'Toca do Morcego Teste': [
-            'https://upload.wikimedia.org/wikipedia/commons/1/1e/Landscape.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/4/4d/Sunrise_over_the_Sea.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg'
-        ]
+        // Adicione mais locais e imagens conforme necessário
     };
 
-    return imageDatabase[location.name] || [];
+    return imageDatabase[locationName] || [];
 }
 
+
 function showAssistantModalWithCarousel() {
-    initializeCarousel();
+    initializeCarousel(images);
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
@@ -628,6 +607,32 @@ function hideModal(modalId) {
     const modal = document.getElementById(modalId);
     modal.style.display = 'none';
 }
+
+function saveDestination(destination) {
+    return new Promise((resolve, reject) => {
+        try {
+            localStorage.setItem('selectedDestination', JSON.stringify(destination));
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+
+
+
+
+function startCarousel() {
+    if (selectedDestination) {
+        const images = getImagesForLocation(selectedDestination.name);
+        initializeCarousel(images);
+        showAssistantModalWithCarousel();
+    } else {
+        alert("Por favor, selecione um destino primeiro.");
+    }
+}
+
 
 function initializeCarousel(images) {
     let currentIndex = 0;
@@ -690,6 +695,9 @@ function initializeCarousel(images) {
     showSlide(currentIndex);
 }
 
+function showAssistantModalWithCarousel() {
+    document.getElementById('assistant-modal').style.display = 'block';
+}
 
 
 function highlightElement(element) {
@@ -944,7 +952,6 @@ function displayOSMData(data, subMenuId, feature) {
             const description = element.tags.description || 'Descrição não disponível';
             btn.onclick = () => {
                 handleSubmenuButtons(element.lat, element.lon, element.tags.name, description, element.tags.images || [], feature);
-                setSelectedDestination(element.tags.name); 
             };
             subMenu.appendChild(btn);
 
@@ -956,10 +963,22 @@ function displayOSMData(data, subMenuId, feature) {
     document.querySelectorAll('.submenu-button').forEach(button => {
         button.addEventListener('click', () => {
             const destination = button.getAttribute('data-destination');
-            setSelectedDestination(destination);
+            saveDestination(destination);
+            sendDestinationToServiceWorker(destination);
         });
     });
 }
+
+function getSelectedDestination() {
+    try {
+        const destination = localStorage.getItem('selectedDestination');
+        return destination ? JSON.parse(destination) : null;
+    } catch (error) {
+        console.error('Erro ao obter destino selecionado:', error);
+        return null;
+    }
+}
+
 
 function setSelectedDestination(destinationName) {
     getSelectedDestination(destinationName)
@@ -967,7 +986,9 @@ function setSelectedDestination(destinationName) {
             if (destination) {
                 selectedDestination = destination;
                 console.log('Destino selecionado:', selectedDestination);
-                // Você pode adicionar aqui qualquer outra lógica necessária ao selecionar o destino
+                saveDestination(selectedDestination).then(() => {
+                sendDestinationToServiceWorker(destination);
+                });
             } else {
                 console.log('Destino não encontrado:', destinationName);
             }
@@ -976,6 +997,8 @@ function setSelectedDestination(destinationName) {
             console.error('Erro ao definir destino selecionado:', error);
         });
 }
+
+
 
 
 function displayCustomTours() {
@@ -1152,7 +1175,8 @@ function displayCustomEducation() {
         btn.textContent = info.name;
         btn.onclick = () => {
             if (info.name === "Iniciar Tutorial") {
-                startTutorial();
+                startTutorial2();
+
             } else {
                 handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description);
             }
@@ -1167,9 +1191,9 @@ function displayCustomEducation() {
 function handleSubmenuButtonClick(lat, lon, name, description) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
+    selectedDestination = destination;
     showControlButtons();
-    const images = getImagesForLocation(name);
+    const images = getImagesForLocation(locationname);
     showLocationDetailsInModal(name, description, images);
 }
 
@@ -1350,6 +1374,12 @@ function showLocationDetailsInModal(name, description, images) {
     showModal('assistant-modal');
 
     initializeCarousel(images);
+
+    // Adiciona evento ao botão "about-more-btn" para exibir o carrossel de fotos
+    document.getElementById('about-more-btn').addEventListener('click', () => {
+        initializeCarousel(images);
+        showModal('assistant-modal');
+    });
 }
 
 
@@ -1374,6 +1404,10 @@ function createRouteTo(destination) {
     }
 }
 
+
+
+
+
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
     infoModal.querySelector('.modal-title').innerText = title;
@@ -1386,11 +1420,26 @@ function showItineraryForm() {
     formModal.style.display = 'block';
 }
 
+
 function saveEditedItinerary() {
-    const name = document.querySelector('input[name="name"]').value;
-    const description = document.querySelector('textarea[name="description"]').value;
-    console.log(translations[selectedLanguage].itinerarySaved, { name, description });
-    hideModal('itinerary-form-modal');
+    const form = document.getElementById('itinerary-form');
+    const selectedActivities = Array.from(form.elements['activity-types'].selectedOptions).map(option => option.value);
+
+    // Fetch OSM data based on selected activities
+    const promises = selectedActivities.map(activity => fetchOSMData(queries[`${activity}-submenu`]));
+
+    Promise.all(promises).then(results => {
+        const itinerary = results.flat().map(result => result.elements).flat();
+        saveItinerary(itinerary);
+        showNotification(translations[selectedLanguage].itinerarySaved, 'success');
+    }).catch(error => {
+        console.error('Erro ao salvar o roteiro:', error);
+        showNotification('Erro ao salvar o roteiro.', 'error');
+    });
+}
+
+function saveItinerary(itinerary) {
+    localStorage.setItem('itinerary', JSON.stringify(itinerary));
 }
 
 function suggestGuidedTour() {
@@ -1789,6 +1838,13 @@ function previousTutorialStep() {
 
 function startTutorial() {
     currentStep = 1;
+    tutorialIsActive = true;
+    showTutorialStep(tutorialSteps[currentStep].step);
+    document.getElementById('tutorial-overlay').style.display = 'flex';
+}
+
+function startTutorial2() {
+    currentStep = 0;
     tutorialIsActive = true;
     showTutorialStep(tutorialSteps[currentStep].step);
     document.getElementById('tutorial-overlay').style.display = 'flex';

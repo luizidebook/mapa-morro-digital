@@ -65,10 +65,19 @@ self.addEventListener('activate', event => {
 self.addEventListener('message', event => {
     console.log('Service Worker: Message Received', event.data);
     if (event.data && event.data.type === 'SAVE_DESTINATION') {
-        saveDestination(event.data.payload).then(() => {
+        saveDestinationToCache(event.data.payload).then(() => {
             console.log('Destination saved successfully.');
         }).catch(error => {
             console.error('Error saving destination:', error);
         });
     }
 });
+
+function saveDestinationToCache(destination) {
+    return caches.open(CACHE_NAME).then(cache => {
+        const request = new Request('/selectedDestination');
+        const response = new Response(JSON.stringify(destination));
+        return cache.put(request, response);
+    });
+}
+
