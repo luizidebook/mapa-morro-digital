@@ -5,21 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     showWelcomeMessage();
     adjustModalAndControls();
-
-    const destinationName = 'Toca do Morcego'; // Nome do destino que você quer recuperar
-
- getSelectedDestination(destinationName).then(destination => {
-        if (destination) {
-            selectedDestination = destination;
-            const images = getImagesForLocation(destination.name);
-            initializeCarousel(images);
-            // Exibir outras informações do destino, se necessário
-        } else {
-            console.log('Destino não encontrado no banco de dados.');
-        }
-    }).catch(error => {
-        console.error('Erro ao recuperar destino:', error);
-    });
+    initializeCarousel();
 });
 
 let map;
@@ -38,6 +24,7 @@ let selectedDestination = null;
 let markers = []; 
 let currentCarouselIndex = 0;
 let currentMarker = null; 
+
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 
 const translations = {
@@ -228,14 +215,14 @@ function setupEventListeners() {
 
     menuToggle.style.display = 'none';
 
-    subMenuButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const feature = button.getAttribute('data-feature');
-            handleFeatureSelection(feature);
-            adjustModalAndControls();
-            event.stopPropagation();
-        });
+subMenuButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+        const feature = button.getAttribute('data-feature');
+        handleFeatureSelection(feature);
+        adjustModalAndControls();
+        event.stopPropagation();
     });
+});
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -255,83 +242,14 @@ document.querySelectorAll('.submenu-button').forEach(button => {
         const lon = button.getAttribute('data-lon');
         const name = button.getAttribute('data-name');
         const description = button.getAttribute('data-description');
-        selectedDestination = { name, description, lat, lon };  // Definindo como objeto
         handleSubmenuButtonClick(lat, lon, name, description);
-        sendDestinationToServiceWorker(selectedDestination);  // Enviando destino para o service worker
     });
 });
-
-self.addEventListener('install', event => {
-    console.log('Service Worker: Install');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Service Worker: Caching Files');
-                return cache.addAll(urlsToCache);
-            })
-    );
-});
-
-self.addEventListener('fetch', event => {
-    console.log('Service Worker: Fetch', event.request.url);
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request).then(
-                    response => {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
-                        return response;
-                    }
-                );
-            })
-    );
-});
-
-self.addEventListener('activate', event => {
-    console.log('Service Worker: Activate');
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (!cacheWhitelist.includes(cacheName)) {
-                        console.log('Service Worker: Deleting Old Cache', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
-});
-
-self.addEventListener('message', event => {
-    console.log('Service Worker: Message Received', event.data);
-    if (event.data && event.data.type === 'SAVE_DESTINATION') {
-        saveDestination(event.data.payload).then(() => {
-            console.log('Destination saved successfully.');
-        }).catch(error => {
-            console.error('Error saving destination:', error);
-        });
-    }
-});
-
-
 
 document.getElementById('about-more-btn').addEventListener('click', () => {
     if (selectedDestination) {
         const images = getImagesForLocation(selectedDestination.name);
-        initializeCarousel(images);
-        showAssistantModalWithCarousel(); // Passa as imagens para inicializar o carrossel
+        initializeCarousel(images);  // Passa as imagens para inicializar o carrossel
     } else {
         alert("Por favor, selecione um destino primeiro.");
     }
@@ -346,6 +264,11 @@ document.getElementById('about-more-btn').addEventListener('click', () => {
         }
     });
 
+    document.querySelectorAll('#floating-menu button').forEach(button => {
+    button.addEventListener('click', () => {
+        closeSideMenu();
+    });
+});
 
 
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
@@ -449,13 +372,6 @@ function handleSubmenuButtonClick(lat, lon, name, description) {
     showControlButtons();
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
-    sendDestinationToServiceWorker({ lat, lon, name, description }); // Enviar dados para o service worker
-    
-    saveDestination({ name, description, lat, lon }).then(() => {
-        console.log('Destino salvo com sucesso.');
-    }).catch(error => {
-        console.error('Erro ao salvar destino:', error);
-    });
 }
 
 function sendDestinationToServiceWorker(destination) {
@@ -468,8 +384,6 @@ function sendDestinationToServiceWorker(destination) {
         console.error('Service Worker controller not found.');
     }
 }
-
-
 
 
 function hideControlButtons() {
@@ -670,87 +584,47 @@ function hideModal(id) {
     modal.style.display = 'none';
 }
 
-function openDatabase() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('morroDigitalDB', 1);
-        request.onupgradeneeded = event => {
-            const db = event.target.result;
-            const store = db.createObjectStore('destinations', { keyPath: 'id', autoIncrement: true });
-            store.createIndex('name', 'name', { unique: false });
-        };
-        request.onsuccess = event => {
-            resolve(event.target.result);
-        };
-        request.onerror = event => {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
-function saveDestination(data) {
-    return openDatabase().then(db => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['destinations'], 'readwrite');
-            const store = transaction.objectStore('destinations');
-            const request = store.add(data);
-            request.onsuccess = () => resolve();
-            request.onerror = event => reject(event.target.errorCode);
-        });
-    });
-}
-
-
-function getSelectedDestination(name) {
-    return openDatabase().then(db => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['destinations'], 'readonly');
-            const store = transaction.objectStore('destinations');
-            const index = store.index('name');
-            const request = index.get(name);
-
-            request.onsuccess = event => {
-                resolve(event.target.result);
-            };
-            request.onerror = event => {
-                reject(event.target.errorCode);
-            };
-        });
-    });
-}
-
-
-
 function getImagesForLocation(location) {
     const imageDatabase = {
+        'Toca do Morcego': [
+            'https://upload.wikimedia.org/wikipedia/commons/3/32/Toca_do_Morcego_Bar.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/7/73/Toca_do_Morcego_Sunset.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/4/49/Toca_do_Morcego_Panorama.jpg'
+        ],
+        'Farol do Morro': [
+            'https://upload.wikimedia.org/wikipedia/commons/8/89/Farol_do_Morro.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/5/50/Farol_do_Morro_de_S%C3%A3o_Paulo.jpg'
+        ],
+        'Mirante da Tirolesa': [
+            'https://upload.wikimedia.org/wikipedia/commons/3/31/Mirante_da_Tirolesa.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/2/2b/Mirante_da_Tirolesa_View.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/1/15/Mirante_da_Tirolesa_Panorama.jpg'
+        ],
+        'Fortaleza de Morro de São Paulo': [
+            'https://upload.wikimedia.org/wikipedia/commons/6/6a/Fortaleza_de_Morro_de_S%C3%A3o_Paulo.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/8/88/Fortaleza_Morro_de_S%C3%A3o_Paulo.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/0/0d/Fortaleza_Morro_S%C3%A3o_Paulo_View.jpg'
+        ],
+        'Paredão da Argila Morro de São Paulo': [
+            'https://upload.wikimedia.org/wikipedia/commons/3/30/Pared%C3%A3o_da_Argila.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/4/46/Pared%C3%A3o_da_Argila_View.jpg'
+        ],
         'Toca do Morcego Teste': [
             'https://upload.wikimedia.org/wikipedia/commons/1/1e/Landscape.jpg',
             'https://upload.wikimedia.org/wikipedia/commons/4/4d/Sunrise_over_the_Sea.jpg',
             'https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg'
-        ],
-        'Farol do Morro': [
-            'https://example.com/farol1.jpg',
-            'https://example.com/farol2.jpg'
-        ],
-        'Mirante da Tirolesa': [
-            'https://example.com/mirante1.jpg',
-            'https://example.com/mirante2.jpg',
-            'https://example.com/mirante3.jpg'
-        ],
-        'Fortaleza de Morro de São Paulo': [
-            'https://example.com/fortaleza1.jpg',
-            'https://example.com/fortaleza2.jpg',
-            'https://example.com/fortaleza3.jpg'
-        ],
-        'Paredão da Argila Morro de São Paulo': [
-            'https://example.com/paredao1.jpg',
-            'https://example.com/paredao2.jpg'
-        ],
+        ]
     };
 
-    return imageDatabase[location] || [];
+    return imageDatabase[location.name] || [];
 }
 
+
+
+
+
 function showAssistantModalWithCarousel() {
+    initializeCarousel();
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
@@ -761,12 +635,12 @@ function hideModal(modalId) {
 
 function initializeCarousel(images) {
     let currentIndex = 0;
-    const carouselInner = document.querySelector('#assistant-carousel .carousel-inner');
-    const indicators = document.querySelector('.carousel-indicators');
+    const carouselContainer = document.querySelector('#assistant-carousel .carousel');
+    const indicatorsContainer = document.querySelector('.carousel-indicators');
 
     // Limpa o conteúdo anterior do carrossel
-    carouselInner.innerHTML = '';
-    indicators.innerHTML = ''; 
+    carouselContainer.innerHTML = '';
+    indicatorsContainer.innerHTML = ''; 
 
     // Adiciona as novas imagens ao carrossel
     images.forEach((image, index) => {
@@ -776,15 +650,14 @@ function initializeCarousel(images) {
         imgElement.src = image;
         imgElement.alt = `${selectedDestination.name} Image ${index + 1}`;
         carouselItem.appendChild(imgElement);
-        carouselInner.appendChild(carouselItem);
+        carouselContainer.appendChild(carouselItem);
 
         const indicator = document.createElement('button');
-        indicator.type = 'button';
         indicator.className = `${index === 0 ? 'active' : ''}`;
         indicator.addEventListener('click', () => {
             currentSlide(index);
         });
-        indicators.appendChild(indicator);
+        indicatorsContainer.appendChild(indicator);
     });
 
     // Funções auxiliares para controle do carrossel
@@ -814,22 +687,14 @@ function initializeCarousel(images) {
     }
 
     // Adiciona eventos aos botões de navegação do carrossel
-    document.querySelector('.carousel-control-prev').addEventListener('click', prevSlide);
-    document.querySelector('.carousel-control-next').addEventListener('click', nextSlide);
+    document.querySelector('.prev').addEventListener('click', prevSlide);
+    document.querySelector('.next').addEventListener('click', nextSlide);
 
     // Exibe o primeiro slide
     showSlide(currentIndex);
 }
 
-function handleAboutMoreClick() {
-    if (selectedDestination) {
-        const images = getImagesForLocation(selectedDestination.name);
-        initializeCarousel(images);
-        showAssistantModalWithCarousel(); // Exibe o modal com o carrossel
-    } else {
-        alert("Por favor, selecione um destino primeiro.");
-    }
-}
+
 
 function highlightElement(element) {
     removeExistingHighlights();
@@ -1095,12 +960,27 @@ function displayOSMData(data, subMenuId, feature) {
     document.querySelectorAll('.submenu-button').forEach(button => {
         button.addEventListener('click', () => {
             const destination = button.getAttribute('data-destination');
-            const name = button.getAttribute('data-name');
-            selectedDestination = {name};
-            sendDestinationToServiceWorker(selectedDestination);
+            setSelectedDestination(destination);
         });
     });
 }
+
+function setSelectedDestination(destinationName) {
+    getSelectedDestination(destinationName)
+        .then(destination => {
+            if (destination) {
+                selectedDestination = destination;
+                console.log('Destino selecionado:', selectedDestination);
+                // Você pode adicionar aqui qualquer outra lógica necessária ao selecionar o destino
+            } else {
+                console.log('Destino não encontrado:', destinationName);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao definir destino selecionado:', error);
+        });
+}
+
 
 function displayCustomTours() {
     const tours = [
@@ -1291,7 +1171,7 @@ function displayCustomEducation() {
 function handleSubmenuButtonClick(lat, lon, name, description) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = { name, description, lat, lon }; // Definindo como objeto
+    selectedDestination = name;
     showControlButtons();
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
@@ -1449,7 +1329,6 @@ function hideAllControlButtons() {
     const buttons = controlButtons.querySelectorAll('button');
     buttons.forEach(button => button.style.display = 'none');
 }
-
 
 
 function showLocationDetailsInModal(name, description, images) {
