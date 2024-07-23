@@ -619,10 +619,6 @@ function getImagesForLocation(location) {
     return imageDatabase[location.name] || [];
 }
 
-
-
-
-
 function showAssistantModalWithCarousel() {
     initializeCarousel();
     document.getElementById('assistant-modal').style.display = 'block';
@@ -1251,8 +1247,6 @@ function handleSubmenuButtonsInns(lat, lon, name, description) {
 }
 
 function showControlButtons() {
-    document.getElementById('create-route-btn').style.display = 'flex';
-    document.getElementById('about-more-btn').style.display = 'flex';
     document.querySelector('.control-buttons').style.display = 'flex';
 }
 
