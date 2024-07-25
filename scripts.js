@@ -372,8 +372,7 @@ function getLocalStorageItem(key, defaultValue) {
     }
 }
 
-// Configuração dos Event Listeners
-
+// Função para configurar os event listeners
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -412,48 +411,21 @@ function setupEventListeners() {
             }
         });
     });
-// Exibir modal ao clicar no botão about-more-btn
-document.getElementById('about-more-btn').addEventListener('click', () => {
-    if (selectedDestination) {
-    } else {
-        alert('Por favor, selecione um destino primeiro.');
-    }
-});
 
     const aboutMoreBtn = document.getElementById('about-more-btn');
     if (aboutMoreBtn) {
         aboutMoreBtn.addEventListener('click', startCarousel);
     }
+
     if (createRouteBtn) {
         createRouteBtn.addEventListener('click', createRoute);
     }
 
-    createRouteBtn.addEventListener('click', () => {
-        if (!currentLocation.latitude || !currentLocation.longitude) {
-            requestLocationPermission().then(location => {
-                currentLocation.latitude = location.coords.latitude;
-                currentLocation.longitude = location.coords.longitude;
-                if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
-                    alert("Nenhum destino selecionado.");
-                    console.error('Nenhum destino selecionado.');
-                    return;
-                }
-                createRouteToDestination(selectedDestination);
-            }).catch(error => {
-                alert(translations[selectedLanguage].locationNotAvailable);
-                console.error('Current location is not available.', error);
-            });
-            return;
-        }
-
-        if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
-            alert("Nenhum destino selecionado.");
-            console.error('Nenhum destino selecionado.');
-            return;
-        }
-
-        createRouteToDestination(selectedDestination);
-    });
+    if (noBtn) {
+        noBtn.addEventListener('click', () => {
+            hideControlButtons();
+        });
+    }
 
     document.querySelectorAll('.submenu-button').forEach(btn => {
         btn.addEventListener('click', (event) => {
@@ -481,40 +453,45 @@ document.getElementById('about-more-btn').addEventListener('click', () => {
         });
     });
 
-    tutorialBtn.addEventListener('click', () => {
+    if (tutorialBtn) {
+        tutorialBtn.addEventListener('click', () => {
+            stopSpeaking();
+            if (tutorialIsActive) {
+                endTutorial();
+            } else {
+                showTutorialStep('start-tutorial');
+            }
+        });
+    }
+
+    const tutorialYesBtn = document.getElementById('tutorial-yes-btn');
+    const tutorialNoBtn = document.getElementById('tutorial-no-btn');
+    const tutorialNextBtn = document.getElementById('tutorial-next-btn');
+    const tutorialPrevBtn = document.getElementById('tutorial-prev-btn');
+    const tutorialEndBtn = document.getElementById('tutorial-end-btn');
+
+    if (tutorialYesBtn) tutorialYesBtn.addEventListener('click', startTutorial);
+    if (tutorialNoBtn) tutorialNoBtn.addEventListener('click', () => {
         stopSpeaking();
-        if (tutorialIsActive) {
+        endTutorial();
+    });
+    if (tutorialNextBtn) tutorialNextBtn.addEventListener('click', nextTutorialStep);
+    if (tutorialPrevBtn) tutorialPrevBtn.addEventListener('click', previousTutorialStep);
+    if (tutorialEndBtn) tutorialEndBtn.addEventListener('click', endTutorial);
+
+    if (createItineraryBtn) {
+        createItineraryBtn.addEventListener('click', () => {
             endTutorial();
-        } else {
-            showTutorialStep('start-tutorial');
-        }
-    });
+            closeSideMenu();
+            collectInterestData();
+        });
+    }
 
-    document.getElementById('tutorial-yes-btn').addEventListener('click', () => {
-        startTutorial();
-    });
+    const tipsBtn = document.querySelector('.menu-btn[data-feature="dicas"]');
+    const educationBtn = document.querySelector('.menu-btn[data-feature="ensino"]');
 
-    document.getElementById('tutorial-no-btn').addEventListener('click', () => {
-        stopSpeaking();
-        endTutorial();
-    });
-
-    createItineraryBtn.addEventListener('click', () => {
-        endTutorial();
-        closeSideMenu();
-        collectInterestData();
-    });
-
-    document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
-    document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
-    document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
-
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
-    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
-
-    noBtn.addEventListener('click', () => {
-        hideControlButtons();
-    });
+    if (tipsBtn) tipsBtn.addEventListener('click', showTips);
+    if (educationBtn) educationBtn.addEventListener('click', showEducation);
 }
 
 
@@ -1632,17 +1609,23 @@ function createRoute() {
     createRouteToDestination(lat, lon);
 }
 
-// Função para obter a localização atual e criar a rota
+// Função para solicitar permissão de localização e criar a rota
 function createRouteToDestination(lat, lon) {
-    requestLocationPermissionCreateRoute()
-        .then(currentLocation => {
-            const { latitude, longitude } = currentLocation.coords;
-            console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
-            plotRouteOnMap(latitude, longitude, lat, lon);
-        })
-        .catch(error => {
-            console.error('Erro ao obter localização atual:', error);
-        });
+    if (!currentLocation || !currentLocation.latitude || !currentLocation.longitude) {
+        requestLocationPermissionCreateRoute()
+            .then(currentLocation => {
+                const { latitude, longitude } = currentLocation.coords;
+                console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
+                plotRouteOnMap(latitude, longitude, lat, lon);
+            })
+            .catch(error => {
+                console.error('Erro ao obter localização atual:', error);
+            });
+    } else {
+        const { latitude, longitude } = currentLocation;
+        console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
+        plotRouteOnMap(latitude, longitude, lat, lon);
+    }
 }
 
 // Função para traçar a rota no mapa
@@ -1662,7 +1645,6 @@ function plotRouteOnMap(startLat, startLon, destLat, destLon) {
         console.error('Leaflet Routing Machine not available.');
     }
 }
-
 
 // Função para obter imagens para uma localização
 function getImagesForLocation(locationName) {
