@@ -1,33 +1,203 @@
 document.addEventListener('DOMContentLoaded', () => {
-    initializeMap();
-    loadResources();
-    activateAssistant();
-    setupEventListeners();
-    showWelcomeMessage();
-    adjustModalAndControls();
-    initializeCarousel();
+    try {
+        initializeMap();
+        loadResources();
+        activateAssistant();
+        setupEventListeners();
+        showWelcomeMessage();
+        adjustModalAndControls();
+        initializeCarousel(initialImages);
+    } catch (error) {
+        console.error('Erro ao inicializar o aplicativo:', error);
+    }
 });
 
 let map;
 let currentSubMenu;
-let currentLocation;
+let currentLocation = null;
 let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt');
 let currentStep = 0;
 let tutorialIsActive = false;
 let searchHistory = getLocalStorageItem('searchHistory', []);
 let achievements = getLocalStorageItem('achievements', []);
 let favorites = getLocalStorageItem('favorites', []);
-let routingControl;
+let routingControl = null;
 let speechSynthesisUtterance = new SpeechSynthesisUtterance();
 let voices = [];
-let selectedDestination = null; 
-let markers = []; 
-let currentCarouselIndex = 0;
-let currentMarker = null; 
+let selectedDestination = {};
+let markers = [];
+let currentIndex = 0;
+let currentMarker = null;
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
+const initialImages = [];
+const submenuItems = {
+        'touristSpots-submenu': [
+            { name: "Farol do Morro", lat: -13.377592, lon: -38.916947, description: "Um belo farol.", feature: "pontos-turisticos" },
+            { name: "Toca do Morcego", lat: -13.379369, lon: -38.918018, description: "Um lugar com uma vista espetacular.", feature: "pontos-turisticos" },
+            { name: "Mirante da Tirolesa", lat: -13.378458, lon: -38.915444, description: "Vista incrível do mar.", feature: "pontos-turisticos" },
+            { name: "Fortaleza de Morro de São Paulo", lat: -13.381585, lon: -38.912945, description: "Uma antiga fortaleza.", feature: "pontos-turisticos" },
+            { name: "Paredão da Argila", lat: -13.375169, lon: -38.911957, description: "Paredão de argila terapêutica.", feature: "pontos-turisticos" }
+        ],
+        'tours-submenu': [
+            { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.377840, lon: -38.917669, description: "Passeio de lancha pela ilha.", feature: "passeios" },
+            { name: "Passeio de Quadriciclo para Garapuá", lat: -13.385694, lon: -38.913456, description: "Aventura em quadriciclo.", feature: "passeios" },
+            { name: "Passeio 4X4 para Garapuá", lat: -13.388446, lon: -38.911657, description: "Passeio off-road.", feature: "passeios" },
+            { name: "Passeio de Barco para Gamboa", lat: -13.372316, lon: -38.914169, description: "Passeio de barco até Gamboa.", feature: "passeios" }
+        ],
+        'beaches-submenu': [
+            { name: "Primeira Praia", lat: -13.375893, lon: -38.914387, description: "Praia popular e movimentada.", feature: "praias" },
+            { name: "Segunda Praia", lat: -13.378251, lon: -38.913445, description: "Praia conhecida pelos bares e festas.", feature: "praias" },
+            { name: "Terceira Praia", lat: -13.379945, lon: -38.912566, description: "Praia tranquila para relaxar.", feature: "praias" },
+            { name: "Quarta Praia", lat: -13.382551, lon: -38.911271, description: "Praia extensa e calma.", feature: "praias" },
+            { name: "Praia do Encanto", lat: -13.387453, lon: -38.911218, description: "Praia paradisíaca e isolada.", feature: "praias" },
+            { name: "Praia do Pôrto", lat: -13.367801, lon: -38.907444, description: "Praia tranquila e bonita.", feature: "praias" },
+            { name: "Praia da Gamboa", lat: -13.367801, lon: -38.906715, description: "Praia com argila terapêutica.", feature: "praias" }
+        ],
+        'nightlife-submenu': [
+            { name: "Toca do Morcego Festas", lat: -13.379369, lon: -38.918018, description: "Festas com vista espetacular.", feature: "festas" },
+            { name: "One Love", lat: -13.378303, lon: -38.915065, description: "Casa noturna famosa.", feature: "festas" },
+            { name: "Pulsar", lat: -13.377407, lon: -38.913500, description: "Clube noturno popular.", feature: "festas" },
+            { name: "Mama Iate", lat: -13.378888, lon: -38.918629, description: "Festas em um iate.", feature: "festas" },
+            { name: "Teatro do Morro", lat: -13.378153, lon: -38.918537, description: "Eventos culturais e festas.", feature: "festas" }
+        ],
+        'restaurants-submenu': [
+            { name: "Morena Bela", lat: -13.376934, lon: -38.917420, description: "Restaurante popular.", feature: "restaurantes" },
+            { name: "Basílico", lat: -13.377748, lon: -38.915720, description: "Culinária italiana.", feature: "restaurantes" },
+            { name: "Ki Massa", lat: -13.377934, lon: -38.916907, description: "Pizzaria tradicional.", feature: "restaurantes" },
+            { name: "Tempeiro Caseiro", lat: -13.378394, lon: -38.914797, description: "Comida caseira.", feature: "restaurantes" },
+            { name: "Bizu", lat: -13.378840, lon: -38.913592, description: "Restaurante e bar.", feature: "restaurantes" },
+            { name: "Pedra Sobre Pedra", lat: -13.379196, lon: -38.912742, description: "Gastronomia regional.", feature: "restaurantes" },
+            { name: "Forno a Lenha de Mercedes", lat: -13.379552, lon: -38.911778, description: "Pizzas artesanais.", feature: "restaurantes" },
+            { name: "Ponto G", lat: -13.379891, lon: -38.910681, description: "Gourmet e bar.", feature: "restaurantes" },
+            { name: "Ponto 9,99", lat: -13.380223, lon: -38.909765, description: "Lanches rápidos.", feature: "restaurantes" },
+            { name: "Patricia", lat: -13.380567, lon: -38.908791, description: "Restaurante tradicional.", feature: "restaurantes" },
+            { name: "dizi 10", lat: -13.380895, lon: -38.907832, description: "Comida variada.", feature: "restaurantes" },
+            { name: "Papoula", lat: -13.381229, lon: -38.906853, description: "Culinária local.", feature: "restaurantes" },
+            { name: "Sabor da terra", lat: -13.381557, lon: -38.905866, description: "Pratos regionais.", feature: "restaurantes" },
+            { name: "Branco&Negro", lat: -13.381883, lon: -38.904890, description: "Bar e restaurante.", feature: "restaurantes" },
+            { name: "Six Club", lat: -13.382206, lon: -38.903918, description: "Balada.", feature: "restaurantes" },
+            { name: "Santa Villa", lat: -13.382526, lon: -38.902937, description: "Bar e restaurante.", feature: "restaurantes" },
+            { name: "Recanto do Aviador", lat: -13.382842, lon: -38.901957, description: "Restaurante e bar.", feature: "restaurantes" },
+            { name: "Sambass", lat: -13.383156, lon: -38.900979, description: "Restaurante e bar.", feature: "restaurantes" },
+            { name: "Bar e Restaurante da Morena", lat: -13.383468, lon: -38.899996, description: "Comida caseira.", feature: "restaurantes" },
+            { name: "Restaurante Alecrim", lat: -13.383776, lon: -38.899010, description: "Culinária variada.", feature: "restaurantes" },
+            { name: "Andina Cozinha Latina", lat: -13.384081, lon: -38.898027, description: "Cozinha latina.", feature: "restaurantes" },
+            { name: "Papoula Culinária Artesanal", lat: -13.384384, lon: -38.897046, description: "Culinária artesanal.", feature: "restaurantes" },
+            { name: "Minha Louca Paixão", lat: -13.384683, lon: -38.896062, description: "Restaurante temático.", feature: "restaurantes" },
+            { name: "Café das Artes", lat: -13.384980, lon: -38.895079, description: "Café charmoso com arte.", feature: "restaurantes" },
+            { name: "Canoa", lat: -13.385262, lon: -38.894165, description: "Restaurante à beira-mar.", feature: "restaurantes" },
+            { name: "Restaurante do Francisco", lat: -13.385548, lon: -38.893245, description: "Culinária local e frutos do mar.", feature: "restaurantes" },
+            { name: "La Tabla", lat: -13.385834, lon: -38.892323, description: "Restaurante especializado em carnes.", feature: "restaurantes" },
+            { name: "Santa Luzia", lat: -13.386119, lon: -38.891401, description: "Restaurante com pratos variados.", feature: "restaurantes" },
+            { name: "Chez Max", lat: -13.386405, lon: -38.890481, description: "Restaurante francês.", feature: "restaurantes" },
+            { name: "Barraca da Miriam", lat: -13.386692, lon: -38.889561, description: "Barraca de praia com petiscos.", feature: "restaurantes" },
+            { name: "O Casarão restaurante", lat: -13.386978, lon: -38.888639, description: "Restaurante tradicional.", feature: "restaurantes" }
+        ],
+        'inns-submenu': [
+            { name: "Chez Max", lat: -13.386405, lon: -38.890481, description: "Pousada charmosa.", feature: "pousadas" },
+            { name: "Hotel Fazenda Parque Vila", lat: -13.387401, lon: -38.889420, description: "Hotel fazenda.", feature: "pousadas" },
+            { name: "Guaiamu", lat: -13.388399, lon: -38.888439, description: "Pousada tranquila.", feature: "pousadas" },
+            { name: "Pousada Fazenda Caeiras", lat: -13.389397, lon: -38.887459, description: "Pousada rural.", feature: "pousadas" },
+            { name: "Amendoeira Hotel", lat: -13.390396, lon: -38.886479, description: "Hotel acolhedor.", feature: "pousadas" },
+            { name: "Pousada Natureza", lat: -13.391395, lon: -38.885499, description: "Pousada ecológica.", feature: "pousadas" },
+            { name: "Pousada dos Pássaros", lat: -13.392394, lon: -38.884519, description: "Pousada charmosa.", feature: "pousadas" },
+            { name: "Hotel Morro de São Paulo", lat: -13.393392, lon: -38.883539, description: "Hotel confortável.", feature: "pousadas" },
+            { name: "Uma Janela para o Sol", lat: -13.394391, lon: -38.882559, description: "Pousada com vistas deslumbrantes.", feature: "pousadas" },
+            { name: "Portaló", lat: -13.395389, lon: -38.881579, description: "Hotel e restaurante.", feature: "pousadas" },
+            { name: "Pérola do Morro", lat: -13.396388, lon: -38.880599, description: "Pousada moderna.", feature: "pousadas" },
+            { name: "Safira do Morro", lat: -13.397387, lon: -38.879619, description: "Pousada elegante.", feature: "pousadas" },
+            { name: "Xerife Hotel", lat: -13.398385, lon: -38.878639, description: "Hotel prático e econômico.", feature: "pousadas" },
+            { name: "Ilha da Saudade", lat: -13.399384, lon: -38.877659, description: "Pousada com clima romântico.", feature: "pousadas" },
+            { name: "Porto dos Milagres", lat: -13.400383, lon: -38.876679, description: "Pousada confortável.", feature: "pousadas" },
+            { name: "Passarte", lat: -13.401381, lon: -38.875699, description: "Pousada artística.", feature: "pousadas" },
+            { name: "Pousada da Praça", lat: -13.402380, lon: -38.874719, description: "Pousada central.", feature: "pousadas" },
+            { name: "Pousada Colibri", lat: -13.403379, lon: -38.873739, description: "Pousada acolhedora.", feature: "pousadas" },
+            { name: "Pousada Porto de Cima", lat: -13.404377, lon: -38.872759, description: "Pousada com estilo rústico.", feature: "pousadas" },
+            { name: "Vila Guaiamu", lat: -13.405376, lon: -38.871779, description: "Pousada ecológica.", feature: "pousadas" },
+            { name: "Villa dos Corais pousada", lat: -13.406374, lon: -38.870799, description: "Pousada de luxo.", feature: "pousadas" },
+            { name: "Pousada Fazenda Caeira", lat: -13.407373, lon: -38.869819, description: "Pousada rural.", feature: "pousadas" },
+            { name: "Hotel Anima", lat: -13.408372, lon: -38.868839, description: "Hotel boutique.", feature: "pousadas" },
+            { name: "Vila dos Orixás Boutique Hotel & Spa", lat: -13.409370, lon: -38.867859, description: "Hotel spa.", feature: "pousadas" },
+            { name: "Hotel Karapitangui", lat: -13.410369, lon: -38.866879, description: "Hotel confortável.", feature: "pousadas" },
+            { name: "Pousada Timbalada", lat: -13.411368, lon: -38.865899, description: "Pousada charmosa.", feature: "pousadas" },
+            { name: "Casa Celestino Residence", lat: -13.412366, lon: -38.864919, description: "Residência de férias.", feature: "pousadas" },
+            { name: "Bahia Bacana Pousada", lat: -13.413365, lon: -38.863939, description: "Pousada moderna.", feature: "pousadas" },
+            { name: "Ilha da Saudade", lat: -13.414364, lon: -38.862959, description: "Pousada com clima romântico.", feature: "pousadas" },
+            { name: "Hotel Morro da Saudade", lat: -13.415362, lon: -38.861979, description: "Hotel acolhedor.", feature: "pousadas" },
+            { name: "Bangalô dos sonhos", lat: -13.416361, lon: -38.860999, description: "Bangalô de luxo.", feature: "pousadas" },
+            { name: "Cantinho da Josete", lat: -13.417360, lon: -38.860019, description: "Pousada familiar.", feature: "pousadas" },
+            { name: "Vila Morro do Sao Paulo", lat: -13.418358, lon: -38.859039, description: "Vila charmosa.", feature: "pousadas" },
+            { name: "Casa Rossa", lat: -13.419357, lon: -38.858059, description: "Casa de férias.", feature: "pousadas" },
+            { name: "Village Paraíso Tropical", lat: -13.420356, lon: -38.857079, description: "Resort tropical.", feature: "pousadas" }
+        ],
+        'shops-submenu': [
+            { name: "Absolute", lat: -13.421354, lon: -38.856099, description: "Loja de roupas.", feature: "lojas" },
+            { name: "Local Brasil", lat: -13.422353, lon: -38.855119, description: "Produtos artesanais.", feature: "lojas" },
+            { name: "Super Zimbo", lat: -13.423352, lon: -38.854139, description: "Supermercado.", feature: "lojas" },
+                     { name: "Mateus Esquadrais", lat: -13.424350, lon: -38.853159, description: "Loja de materiais de construção.", feature: "lojas" },
+            { name: "São Pedro Imobiliária", lat: -13.425349, lon: -38.852179, description: "Imobiliária.", feature: "lojas" },
+            { name: "Imóveis Brasil Bahia", lat: -13.426348, lon: -38.851199, description: "Imobiliária.", feature: "lojas" },
+            { name: "Coruja", lat: -13.427347, lon: -38.850219, description: "Loja de presentes.", feature: "lojas" },
+            { name: "Zimbo Dive", lat: -13.428346, lon: -38.849239, description: "Loja de equipamentos de mergulho.", feature: "lojas" },
+            { name: "Havaianas", lat: -13.429345, lon: -38.848259, description: "Loja de sandálias.", feature: "lojas" }
+        ],
+        'emergencies-submenu': [
+            { name: "Ambulância", lat: -13.430344, lon: -38.847279, description: "Serviço de ambulância.", feature: "emergencias" },
+            { name: "Unidade de Saúde", lat: -13.431343, lon: -38.846299, description: "Posto de saúde.", feature: "emergencias" },
+            { name: "Polícia Civil", lat: -13.432342, lon: -38.845319, description: "Delegacia de Polícia Civil.", feature: "emergencias" },
+            { name: "Polícia Militar", lat: -13.433341, lon: -38.844339, description: "Base da Polícia Militar.", feature: "emergencias" }
+        ],
+        'tips-submenu': [
+            { name: "Melhores Pontos Turísticos", lat: -13.434340, lon: -38.843359, description: "Dicas dos melhores pontos turísticos.", feature: "dicas" },
+            { name: "Melhores Passeios", lat: -13.435339, lon: -38.842379, description: "Dicas dos melhores passeios.", feature: "dicas" },
+            { name: "Melhores Praias", lat: -13.436338, lon: -38.841399, description: "Dicas das melhores praias.", feature: "dicas" },
+            { name: "Melhores Restaurantes", lat: -13.437337, lon: -38.840419, description: "Dicas dos melhores restaurantes.", feature: "dicas" },
+            { name: "Melhores Pousadas", lat: -13.438336, lon: -38.839439, description: "Dicas das melhores pousadas.", feature: "dicas" },
+            { name: "Melhores Lojas", lat: -13.439335, lon: -38.838459, description: "Dicas das melhores lojas.", feature: "dicas" }
+        ],
+        'about-submenu': [
+            { name: "Missão", lat: -13.440334, lon: -38.837479, description: "Nossa missão.", feature: "sobre" },
+            { name: "Serviços", lat: -13.441333, lon: -38.836499, description: "Nossos serviços.", feature: "sobre" },
+            { name: "Benefícios para Turistas", lat: -13.442332, lon: -38.835519, description: "Benefícios oferecidos aos turistas.", feature: "sobre" },
+            { name: "Benefícios para Moradores", lat: -13.443331, lon: -38.834539, description: "Benefícios oferecidos aos moradores.", feature: "sobre" },
+            { name: "Benefícios para Pousadas", lat: -13.444330, lon: -38.833559, description: "Benefícios oferecidos às pousadas.", feature: "sobre" },
+            { name: "Benefícios para Restaurantes", lat: -13.445329, lon: -38.832579, description: "Benefícios oferecidos aos restaurantes.", feature: "sobre" },
+            { name: "Benefícios para Agências de Turismo", lat: -13.446328, lon: -38.831599, description: "Benefícios oferecidos às agências de turismo.", feature: "sobre" },
+            { name: "Benefícios para Lojas e Comércios", lat: -13.447327, lon: -38.830619, description: "Benefícios oferecidos às lojas e comércios.", feature: "sobre" },
+            { name: "Benefícios para Transportes", lat: -13.448326, lon: -38.829639, description: "Benefícios oferecidos aos transportes.", feature: "sobre" },
+            { name: "Impacto em MSP", lat: -13.449325, lon: -38.828659, description: "Impacto do projeto em Morro de São Paulo.", feature: "sobre" }
+        ],
+        'education-submenu': [
+            { name: "Iniciar Tutorial", lat: -13.450324, lon: -38.827679, description: "Comece aqui para aprender a usar o site.", feature: "educacao" },
+            { name: "Planejar Viagem com IA", lat: -13.451323, lon: -38.826699, description: "Planeje sua viagem com a ajuda de inteligência artificial.", feature: "educacao" },
+            { name: "Falar com IA", lat: -13.452322, lon: -38.825719, description: "Converse com nosso assistente virtual.", feature: "educacao" },
+            { name: "Falar com Suporte", lat: -13.453321, lon: -38.824739, description: "Entre em contato com o suporte.", feature: "educacao" },
+            { name: "Configurações", lat: -13.454320, lon: -38.823759, description: "Ajuste as configurações do site.", feature: "educacao" }
+        ]
+    };
 
-const translations = {
+    Object.keys(submenuItems).forEach(submenuId => {
+    const submenuElement = document.getElementById(submenuId);
+    if (submenuElement) {
+        submenuItems[submenuId].forEach(item => {
+            const button = document.createElement('button');
+            button.className = 'submenu-button';
+            button.setAttribute('data-lat', item.lat);
+            button.setAttribute('data-lon', item.lon);
+            button.setAttribute('data-name', item.name);
+            button.setAttribute('data-description', item.description);
+            button.setAttribute('data-feature', item.feature);
+            button.setAttribute('data-destination', item.name);
+            button.textContent = item.name;
+            submenuElement.appendChild(button);
+        });
+    } else {
+        console.warn(`Submenu element with id ${submenuId} not found`);
+    }
+});
+
+    const translations = {
     pt: {
         welcome: "Bem-vindo ao nosso site!",
         youAreHere: "Você está aqui!",
@@ -202,6 +372,8 @@ function getLocalStorageItem(key, defaultValue) {
     }
 }
 
+// Configuração dos Event Listeners
+
 function setupEventListeners() {
     const modal = document.getElementById('assistant-modal');
     const closeModal = document.querySelector('.close-btn');
@@ -211,62 +383,23 @@ function setupEventListeners() {
     const createItineraryBtn = document.getElementById('create-itinerary-btn');
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
-    const subMenuButtons = document.querySelectorAll('.submenu-button');
     const saveItineraryBtn = document.getElementById('save-itinerary-btn');
 
-    menuToggle.style.display = 'none';
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
 
-subMenuButtons.forEach(button => {
-    button.addEventListener('click', (event) => {
-        const feature = button.getAttribute('data-feature');
-        handleFeatureSelection(feature);
-        adjustModalAndControls();
-        event.stopPropagation();
-    });
-});
-
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    menuToggle.addEventListener('click', () => {
-        floatingMenu.classList.toggle('hidden');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
-            nextTutorialStep();
-        }
-    });
-
-
-    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
-        map.zoomIn();
-        closeSideMenu();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelectorAll('#floating-menu button').forEach(button => {
-    button.addEventListener('click', () => {
-        closeSideMenu();
-    });
-});
-
-
-    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
-        map.zoomOut();
-        closeSideMenu();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
-            nextTutorialStep();
-        }
-    });
-
-    document.querySelector('.menu-btn[data-feature="pesquisar"]').addEventListener('click', () => {
-        searchLocation();
-        closeSideMenu();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
-            nextTutorialStep();
-        }
-    });
+    if (menuToggle) {
+        menuToggle.style.display = 'none';
+        menuToggle.addEventListener('click', () => {
+            floatingMenu.classList.toggle('hidden');
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
+                nextTutorialStep();
+            }
+        });
+    }
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
@@ -279,26 +412,60 @@ subMenuButtons.forEach(button => {
             }
         });
     });
-
-document.getElementById('create-route-btn').addEventListener('click', function() {
-    const destination = getSelectedDestination();
-    if (destination) {
-        createRouteTo(destination);
+// Exibir modal ao clicar no botão about-more-btn
+document.getElementById('about-more-btn').addEventListener('click', () => {
+    if (selectedDestination) {
+    } else {
+        alert('Por favor, selecione um destino primeiro.');
     }
 });
 
-document.getElementById('about-more-btn').addEventListener('click', function() {
-    startCarousel();
-});
+    const aboutMoreBtn = document.getElementById('about-more-btn');
+    if (aboutMoreBtn) {
+        aboutMoreBtn.addEventListener('click', startCarousel);
+    }
+    if (createRouteBtn) {
+        createRouteBtn.addEventListener('click', createRoute);
+    }
 
-document.querySelectorAll('.submenu-button').forEach(button => {
-    button.addEventListener('click', (event) => {
-        const destinationName = button.getAttribute('data-destination');
-        setSelectedDestination(destinationName);
+    createRouteBtn.addEventListener('click', () => {
+        if (!currentLocation.latitude || !currentLocation.longitude) {
+            requestLocationPermission().then(location => {
+                currentLocation.latitude = location.coords.latitude;
+                currentLocation.longitude = location.coords.longitude;
+                if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
+                    alert("Nenhum destino selecionado.");
+                    console.error('Nenhum destino selecionado.');
+                    return;
+                }
+                createRouteToDestination(selectedDestination);
+            }).catch(error => {
+                alert(translations[selectedLanguage].locationNotAvailable);
+                console.error('Current location is not available.', error);
+            });
+            return;
+        }
+
+        if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
+            alert("Nenhum destino selecionado.");
+            console.error('Nenhum destino selecionado.');
+            return;
+        }
+
+        createRouteToDestination(selectedDestination);
     });
-});
 
-
+    document.querySelectorAll('.submenu-button').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            closeSideMenu();
+            hideAllControlButtons();
+            handleDestinationSelection(btn);
+            event.stopPropagation();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
+                nextTutorialStep();
+            }
+        });
+    });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -337,6 +504,7 @@ document.querySelectorAll('.submenu-button').forEach(button => {
         closeSideMenu();
         collectInterestData();
     });
+
     document.getElementById('tutorial-next-btn').addEventListener('click', nextTutorialStep);
     document.getElementById('tutorial-prev-btn').addEventListener('click', previousTutorialStep);
     document.getElementById('tutorial-end-btn').addEventListener('click', endTutorial);
@@ -344,59 +512,25 @@ document.querySelectorAll('.submenu-button').forEach(button => {
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 
-    createRouteBtn.addEventListener('click', () => {
-        if (selectedDestination) {
-            createRouteTo(selectedDestination);
-        } else {
-            alert("Por favor, selecione um destino primeiro.");
-        }
-        hideControlButtons();
-    });
-
     noBtn.addEventListener('click', () => {
         hideControlButtons();
     });
 }
 
-function handleSubmenuButtonClick(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = { name, description, lat, lon }; // Define como objeto
-    showControlButtons();
-    const images = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, images);
-}
 
-function sendDestinationToServiceWorker(destination) {
-    if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            type: 'SAVE_DESTINATION',
-            payload: destination
-        });
-    } else {
-        console.error('Service Worker controller not found.');
-    }
-}
-
-
-
-
+// Funções de Ajuste e Notificação
 
 function hideControlButtons() {
-    document.getElementById('tutorial-no-btn').style.display = 'none';
-    document.getElementById('tutorial-yes-btn').style.display = 'none';
-    document.getElementById('tutorial-next-btn').style.display = 'none';
-    document.getElementById('tutorial-prev-btn').style.display = 'none';
-    document.getElementById('tutorial-end-btn').style.display = 'none';
-    document.getElementById('create-itinerary-btn').style.display = 'none';
-    document.getElementById('create-route-btn').style.display = 'none';
-    document.getElementById('about-more-btn').style.display = 'none';
-    document.getElementById('buy-ticket-btn').style.display = 'none';
-    document.getElementById('tour-btn').style.display = 'none';
-    document.getElementById('reserve-restaurants-btn').style.display = 'none';
-    document.getElementById('reserve-inns-btn').style.display = 'none';
-    document.getElementById('speak-attendent-btn').style.display = 'none';
-    document.getElementById('call-btn').style.display = 'none';
+    const buttonsToHide = [
+        'tutorial-no-btn', 'tutorial-yes-btn', 'tutorial-next-btn', 'tutorial-prev-btn',
+        'tutorial-end-btn', 'create-itinerary-btn', 'create-route-btn', 'about-more-btn',
+        'buy-ticket-btn', 'tour-btn', 'reserve-restaurants-btn', 'reserve-inns-btn',
+        'speak-attendent-btn', 'call-btn'
+    ];
+    buttonsToHide.forEach(id => {
+        const button = document.getElementById(id);
+        if (button) button.style.display = 'none';
+    });
 }
 
 function restoreModalAndControlsStyles() {
@@ -450,7 +584,7 @@ function adjustModalAndControls() {
         });
         Object.assign(mapContainer.style, {
             width: `75%`,
-            height:'100%'
+            height: '100%'
         });
 
         adjustModalStyles();
@@ -501,54 +635,60 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-function fetchOSMDescription(lat, lon) {
-    const query = `[out:json];node(around:100,${lat},${lon})["description"];out body;`;
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-    return fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(descriptionData => {
-            if (descriptionData.elements.length > 0 && descriptionData.elements[0].tags.description) {
-                return descriptionData.elements[0].tags.description;
-            } else {
-                return 'Descrição não disponível';
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao buscar descrição do OSM:', error);
-            return 'Descrição não disponível';
-        });
-}
-
 function requestLocationPermission() {
-    return new Promise((resolve, reject) => {
+ return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        } else {
+        reject(new Error('Geolocalização não suportada.'));
+            return;
+        }
+
         navigator.geolocation.getCurrentPosition(position => {
-            currentLocation = position.coords;
+            currentLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+            console.log('Current Location:', currentLocation);
             adjustMapWithLocationUser(currentLocation.latitude, currentLocation.longitude);
             if (!tutorialIsActive) {
                 showTutorialStep('start-tutorial');
             }
-            resolve();
+            resolve(position);
         }, error => {
+            currentLocation = { latitude: null, longitude: null };
             alert(translations[selectedLanguage].locationPermissionDenied);
+            console.error('Location Permission Denied:', error);
             reject(error);
         });
     });
 }
 
-function adjustMapWithLocationUser(lat, lon, name) {
-    map.setView([lat, lon], 14); 
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(name || translations[selectedLanguage].youAreHere).openPopup();
+// Função específica para solicitar permissão de localização e criar a rota
+function requestLocationPermissionCreateRoute() {
+    return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        } else {
+            reject(new Error('Geolocation is not supported by this browser.'));
+        }
+    });
+}
+
+function adjustMapWithLocationUser(lat, lon) {
+    map.setView([lat, lon], 14);
+    if (currentMarker) {
+        map.removeLayer(currentMarker);
+    }
+    currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(translations[selectedLanguage].youAreHere).openPopup();
     map.panTo([lat, lon]);
 }
 
 function adjustMapWithLocation(lat, lon, name, description) {
-    map.setView([lat, lon], 14); 
+    map.setView([lat, lon], 14);
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
-    markers.push(marker); 
-    map.panTo([lat, lon]); 
+    markers.push(marker);
+    map.panTo([lat, lon]);
 }
 
 function clearMarkers() {
@@ -579,126 +719,6 @@ function hideModal(id) {
     const modal = document.getElementById(id);
     modal.style.display = 'none';
 }
-
-function getImagesForLocation(locationName) {
-    const imageDatabase = {
-        'Toca do Morcego': [
-            'https://example.com/image1.jpg',
-            'https://example.com/image2.jpg',
-            'https://example.com/image3.jpg'
-        ],
-        'Farol do Morro': [
-            'https://example.com/farol1.jpg',
-            'https://example.com/farol2.jpg'
-        ],
-        // Adicione mais locais e imagens conforme necessário
-    };
-
-    return imageDatabase[locationName] || [];
-}
-
-
-function showAssistantModalWithCarousel() {
-    initializeCarousel(images);
-    document.getElementById('assistant-modal').style.display = 'block';
-}
-
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'none';
-}
-
-function saveDestination(destination) {
-    return new Promise((resolve, reject) => {
-        try {
-            localStorage.setItem('selectedDestination', JSON.stringify(destination));
-            resolve();
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-
-
-
-
-function startCarousel() {
-    if (selectedDestination) {
-        const images = getImagesForLocation(selectedDestination.name);
-        initializeCarousel(images);
-        showAssistantModalWithCarousel();
-    } else {
-        alert("Por favor, selecione um destino primeiro.");
-    }
-}
-
-
-function initializeCarousel(images) {
-    let currentIndex = 0;
-    const carouselContainer = document.querySelector('#assistant-carousel .carousel');
-    const indicatorsContainer = document.querySelector('.carousel-indicators');
-
-    // Limpa o conteúdo anterior do carrossel
-    carouselContainer.innerHTML = '';
-    indicatorsContainer.innerHTML = ''; 
-
-    // Adiciona as novas imagens ao carrossel
-    images.forEach((image, index) => {
-        const carouselItem = document.createElement('div');
-        carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
-        const imgElement = document.createElement('img');
-        imgElement.src = image;
-        imgElement.alt = `${selectedDestination.name} Image ${index + 1}`;
-        carouselItem.appendChild(imgElement);
-        carouselContainer.appendChild(carouselItem);
-
-        const indicator = document.createElement('button');
-        indicator.className = `${index === 0 ? 'active' : ''}`;
-        indicator.addEventListener('click', () => {
-            currentSlide(index);
-        });
-        indicatorsContainer.appendChild(indicator);
-    });
-
-    // Funções auxiliares para controle do carrossel
-    function showSlide(index) {
-        const items = document.querySelectorAll('#assistant-carousel .carousel-item');
-        const indicators = document.querySelectorAll('.carousel-indicators button');
-
-        items.forEach((item, i) => {
-            item.classList.toggle('active', i === index);
-            indicators[i].classList.toggle('active', i === index);
-        });
-    }
-
-    function prevSlide() {
-        currentIndex = (currentIndex === 0) ? images.length - 1 : currentIndex - 1;
-        showSlide(currentIndex);
-    }
-
-    function nextSlide() {
-        currentIndex = (currentIndex === images.length - 1) ? 0 : currentIndex + 1;
-        showSlide(currentIndex);
-    }
-
-    function currentSlide(index) {
-        currentIndex = index;
-        showSlide(currentIndex);
-    }
-
-    // Adiciona eventos aos botões de navegação do carrossel
-    document.querySelector('.prev').addEventListener('click', prevSlide);
-    document.querySelector('.next').addEventListener('click', nextSlide);
-
-    // Exibe o primeiro slide
-    showSlide(currentIndex);
-}
-
-function showAssistantModalWithCarousel() {
-    document.getElementById('assistant-modal').style.display = 'block';
-}
-
 
 function highlightElement(element) {
     removeExistingHighlights();
@@ -760,6 +780,34 @@ function setLanguage(lang) {
     });
 }
 
+function loadSearchHistory() {
+    try {
+        const searchHistory = JSON.parse(localStorage.getItem('searchHistory'));
+        if (searchHistory && Array.isArray(searchHistory)) {
+            const historyList = document.getElementById('search-history-list');
+            historyList.innerHTML = '';
+            searchHistory.forEach(query => {
+                const li = document.createElement('li');
+                li.textContent = query;
+                historyList.appendChild(li);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar histórico de busca:', error);
+    }
+}
+
+function saveSearchQueryToHistory(query) {
+    try {
+        const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        searchHistory.push(query);
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        loadSearchHistory();
+    } catch (error) {
+        console.error('Erro ao salvar consulta de busca no histórico:', error);
+    }
+}
+
 function translatePageContent(lang) {
     const elements = document.querySelectorAll('[data-translate]');
     elements.forEach(el => {
@@ -782,18 +830,183 @@ function initializeMap() {
 }
 
 function loadResources() {
-    console.log('Recursos carregados.');
+    console.log('Carregando recursos...');
+    const resources = [
+        'images/tourist_spot.jpg',
+        'images/tour.jpg',
+        'images/beach.jpg',
+        'images/nightlife.jpg',
+        'images/restaurant.jpg',
+        'images/inn.jpg',
+        'images/shop.jpg',
+        'images/emergency.jpg',
+        'images/tip.jpg',
+        'images/about.jpg',
+        'images/education.jpg'
+    ];
+
+    let resourcesLoaded = 0;
+    const totalResources = resources.length;
+
+    resources.forEach(resource => {
+        const img = new Image();
+        img.src = resource;
+        img.onload = () => {
+            resourcesLoaded++;
+            console.log(`Recurso ${resource} carregado com sucesso.`);
+            if (resourcesLoaded === totalResources) {
+                console.log('Todos os recursos foram carregados com sucesso.');
+            }
+        };
+        img.onerror = () => {
+            console.error(`Erro ao carregar recurso ${resource}. Verifique se o caminho está correto e se o arquivo existe.`);
+        };
+    });
 }
 
 function activateAssistant() {
     showWelcomeMessage();
 }
 
-function showUserLocationPopup(lat, lon) {
-    L.popup()
-        .setLatLng([lat, lon])
-        .setContent(translations[selectedLanguage].youAreHere)
-        .openOn(map);
+function fetchOSMData(query) {
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.elements || data.elements.length === 0) {
+                throw new Error('Dados inválidos retornados da API OSM');
+            }
+            return data;
+        })
+        .catch(error => {
+            console.error('Erro ao buscar dados do OSM:', error);
+            showNotification(translations[selectedLanguage].osmFetchError, 'error');
+            return null;
+        });
+}
+
+function displayOSMData(data, subMenuId, feature) {
+    const subMenu = document.getElementById(subMenuId);
+    subMenu.innerHTML = '';
+    data.elements.forEach(element => {
+        if (element.type === 'node' && element.tags.name) {
+            const btn = document.createElement('button');
+            btn.className = 'submenu-item submenu-button';
+            btn.textContent = element.tags.name;
+            btn.setAttribute('data-destination', element.tags.name);
+            const description = element.tags.description || 'Descrição não disponível';
+            btn.onclick = () => {
+                handleSubmenuButtons(element.lat, element.lon, element.tags.name, description, element.tags.images || [], feature);
+            };
+            subMenu.appendChild(btn);
+
+            const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(`<b>${element.tags.name}</b><br>${description}`);
+            markers.push(marker);
+        }
+    });
+
+    document.querySelectorAll('.submenu-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const destination = this.getAttribute('data-destination');
+            console.log(`Destination selected: ${destination}`);
+            showDestinationContent(destination);
+        });
+    });
+}
+
+function showDestinationModal(destination) {
+    const modal = document.getElementById('destination-modal');
+    const carousel = modal.querySelector('.carousel-inner');
+    const favoriteButton = modal.querySelector('.favorite-btn');
+
+    modal.querySelector('.modal-title').textContent = destination.name;
+    modal.querySelector('.modal-body').textContent = destination.description;
+    carousel.innerHTML = '';
+
+    destination.images.forEach((image, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = `carousel-item${index === 0 ? ' active' : ''}`;
+        carouselItem.innerHTML = `<img src="${image}" class="d-block w-100" alt="${destination.name}">`;
+        carousel.appendChild(carouselItem);
+    });
+
+    favoriteButton.textContent = isFavorite(destination) ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
+    favoriteButton.onclick = () => {
+        toggleFavorite(destination);
+        favoriteButton.textContent = isFavorite(destination) ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
+    };
+
+    modal.style.display = 'block';
+}
+
+function isFavorite(destination) {
+    return favorites.some(fav => fav.name === destination.name);
+}
+
+function toggleFavorite(destination) {
+    if (isFavorite(destination)) {
+        favorites = favorites.filter(fav => fav.name !== destination.name);
+    } else {
+        favorites.push(destination);
+    }
+    setLocalStorageItem('favorites', favorites);
+}
+
+function hideDestinationModal() {
+    const modal = document.getElementById('destination-modal');
+    modal.style.display = 'none';
+}
+
+
+// Função adicional para registrar a seleção do destino
+function selectDestination(destination) {
+    selectedDestination = destination;
+    console.log('Destino selecionado:', destination);
+}
+
+function showDestinationContent(destination) {
+    getSelectedDestination().then(selectedDestination => {
+        if (selectedDestination && selectedDestination.name === destination) {
+            const destinationModal = document.getElementById('destination-modal');
+            destinationModal.querySelector('.modal-title').textContent = selectedDestination.name;
+            destinationModal.querySelector('.modal-body').textContent = selectedDestination.description;
+            const carousel = destinationModal.querySelector('.carousel-inner');
+            carousel.innerHTML = '';
+            selectedDestination.images.forEach((image, index) => {
+                const carouselItem = document.createElement('div');
+                carouselItem.className = `carousel-item${index === 0 ? ' active' : ''}`;
+                carouselItem.innerHTML = `<img src="${image}" class="d-block w-100" alt="${selectedDestination.name}">`;
+                carousel.appendChild(carouselItem);
+            });
+            destinationModal.style.display = 'block';
+        }
+    }).catch(error => {
+        console.error('Erro ao obter destino selecionado:', error);
+    });
+}
+
+function fetchOSMDescription(lat, lon) {
+    const query = `[out:json];node(around:100,${lat},${lon})["description"];out body;`;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(descriptionData => {
+            if (descriptionData.elements.length > 0 && descriptionData.elements[0].tags.description) {
+                return descriptionData.elements[0].tags.description;
+            } else {
+                return 'Descrição não disponível';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar descrição do OSM:', error);
+            return 'Descrição não disponível';
+        });
 }
 
 function handleFeatureSelection(feature) {
@@ -808,10 +1021,15 @@ function handleFeatureSelection(feature) {
         'emergencias': 'emergencies-submenu',
         'dicas': 'tips-submenu',
         'sobre': 'about-submenu',
-        'ensino': 'education-submenu'
+        'educacao': 'education-submenu'
     };
 
     const subMenuId = featureMappings[feature];
+
+    if (!subMenuId) {
+        console.error(`Feature não reconhecida: ${feature}`);
+        return;
+    }
 
     document.querySelectorAll('#menu .submenu').forEach(subMenu => {
         subMenu.style.display = 'none';
@@ -881,12 +1099,16 @@ function loadSubMenu(subMenuId, feature) {
     }
 }
 
-
-
 function handleSubmenuButtons(lat, lon, name, description, images, feature) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-    
+    selectedDestination = { name, description, lat, lon, images, feature };
+    saveDestinationToCache(selectedDestination).then(() => {
+        sendDestinationToServiceWorker(selectedDestination);
+    }).catch(error => {
+        console.error('Erro ao salvar destino no cache:', error);
+    });
+
     switch (feature) {
         case 'passeios':
             showControlButtonsTour();
@@ -919,111 +1141,92 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
             showControlButtons();
             break;
     }
-    showLocationDetailsInModal(name, description, images);
-    selectedDestination = { name, description, images };
 }
 
-
-
-async function fetchOSMData(query) {
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        if (!data.elements) throw new Error('Invalid data format');
-        return data;
-    } catch (error) {
-        console.error(translations[selectedLanguage].osmFetchError, error);
-        showNotification(translations[selectedLanguage].osmFetchError, 'error');
-        return null;
-    }
-}
-
-function displayOSMData(data, subMenuId, feature) {
+function displayCustomItems(items, subMenuId, feature) {
     const subMenu = document.getElementById(subMenuId);
-    subMenu.innerHTML = ''; 
-    data.elements.forEach(element => {
-        if (element.type === 'node' && element.tags.name) {
-            const btn = document.createElement('button');
-            btn.className = 'submenu-item submenu-button';
-            btn.textContent = element.tags.name;
-            btn.setAttribute('data-destination', element.tags.name); 
-            const description = element.tags.description || 'Descrição não disponível';
-            btn.onclick = () => {
-                handleSubmenuButtons(element.lat, element.lon, element.tags.name, description, element.tags.images || [], feature);
-            };
-            subMenu.appendChild(btn);
+    subMenu.innerHTML = '';
 
-            const marker = L.marker([element.lat, element.lon]).addTo(map).bindPopup(`<b>${element.tags.name}</b><br>${description}`);
-            markers.push(marker);
-        }
+    items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'submenu-item submenu-button';
+        btn.textContent = item.name;
+        btn.setAttribute('data-lat', item.lat);
+        btn.setAttribute('data-lon', item.lon);
+        btn.setAttribute('data-name', item.name);
+        btn.setAttribute('data-description', item.description);
+        btn.setAttribute('data-feature', feature);
+        btn.setAttribute('data-destination', item.name);
+        btn.onclick = () => {
+            handleSubmenuButtons(item.lat, item.lon, item.name, item.description, [], feature);
+        };
+        subMenu.appendChild(btn);
+
+        const marker = L.marker([item.lat, item.lon]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.description}`);
+        markers.push(marker);
     });
+}
 
-    document.querySelectorAll('.submenu-button').forEach(button => {
-        button.addEventListener('click', () => {
-            const destination = button.getAttribute('data-destination');
-            saveDestination(destination);
-            sendDestinationToServiceWorker(destination);
-        });
+function saveDestinationToCache(destination) {
+    return new Promise((resolve, reject) => {
+        try {
+            console.log('Saving Destination to Cache:', destination);
+            localStorage.setItem('selectedDestination', JSON.stringify(destination));
+            resolve();
+        } catch (error) {
+            console.error('Erro ao salvar destino no cache:', error);
+            reject(new Error('Erro ao salvar destino no cache.'));
+        }
     });
 }
 
 function getSelectedDestination() {
-    try {
-        const destination = localStorage.getItem('selectedDestination');
-        return destination ? JSON.parse(destination) : null;
-    } catch (error) {
-        console.error('Erro ao obter destino selecionado:', error);
-        return null;
+    return new Promise((resolve, reject) => {
+        try {
+            const destination = JSON.parse(localStorage.getItem('selectedDestination'));
+            console.log('Retrieved Selected Destination:', destination);
+            if (destination) {
+                selectedDestination = destination;
+                resolve(destination);
+            } else {
+                reject(new Error('No destination selected.'));
+            }
+        } catch (error) {
+            console.error('Erro ao resgatar destino do cache:', error);
+            reject(new Error('Erro ao resgatar destino do cache.'));
+        }
+    });
+}
+
+function sendDestinationToServiceWorker(destination) {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_DESTINATION',
+            payload: destination
+        });
+    } else {
+        console.error('Service Worker controller not found.');
     }
 }
 
-
-function setSelectedDestination(destinationName) {
-    getSelectedDestination(destinationName)
-        .then(destination => {
-            if (destination) {
-                selectedDestination = destination;
-                console.log('Destino selecionado:', selectedDestination);
-                saveDestination(selectedDestination).then(() => {
-                sendDestinationToServiceWorker(destination);
-                });
-            } else {
-                console.log('Destino não encontrado:', destinationName);
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao definir destino selecionado:', error);
-        });
+function setSelectedDestination(destination) {
+    console.log('Setting Selected Destination:', destination);
+    selectedDestination = destination;
+    saveDestinationToCache(selectedDestination).then(() => {
+        sendDestinationToServiceWorker(selectedDestination);
+    }).catch(error => {
+        console.error('Erro ao salvar destino no cache:', error);
+    });
 }
-
-
-
 
 function displayCustomTours() {
     const tours = [
-        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3837729, lon: -38.9085360, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé. Veja paisagens deslumbrantes e descubra segredos escondidos desta bela ilha." },
-        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3827765, lon: -38.9105500, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá. Aproveite o caminho cheio de adrenalina e as paisagens naturais de tirar o fôlego." },
-        { name: "Passeio 4X4 para Garapuá", lat: -13.3808638, lon: -38.9127107, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá. Desfrute de uma experiência off-road única com vistas espetaculares e muita diversão." },
-        { name: "Passeio de Barco para Gamboa", lat: -13.3766536, lon: -38.9186205, description: "Relaxe em um agradável passeio de barco até Gamboa. Desfrute da tranquilidade do mar e da beleza natural ao longo do caminho." }
+        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.379, lon: -38.918, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé." },
+        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.380, lon: -38.920, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá." },
+        { name: "Passeio 4X4 para Garapuá", lat: -13.381, lon: -38.922, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá." },
+        { name: "Passeio de Barco para Gamboa", lat: -13.383, lon: -38.924, description: "Relaxe em um agradável passeio de barco até Gamboa." }
     ];
-
-    const subMenu = document.getElementById('tours-submenu'); 
-    subMenu.innerHTML = '';
-    
-    tours.forEach(tour => {
-        const btn = document.createElement('button');
-        btn.className = 'submenu-item';
-        btn.textContent = tour.name;
-        btn.onclick = () => {
-            handleSubmenuButtonsTour(tour.lat, tour.lon, tour.name, tour.description);
-        };
-        subMenu.appendChild(btn);
-
-        const marker = L.marker([tour.lat, tour.lon]).addTo(map).bindPopup(`<b>${tour.name}</b><br>${tour.description}`);
-        markers.push(marker);
-    });
+    displayCustomItems(tours, 'tours-submenu', 'passeios');
 }
 
 function displayCustomNightlife() {
@@ -1033,7 +1236,6 @@ function displayCustomNightlife() {
         }
     });
 }
-
 
 function displayCustomRestaurants() {
     fetchOSMData(queries['restaurants-submenu']).then(data => {
@@ -1059,7 +1261,6 @@ function displayCustomBeaches() {
     });
 }
 
-
 function displayCustomInns() {
     fetchOSMData(queries['inns-submenu']).then(data => {
         if (data) {
@@ -1079,8 +1280,8 @@ function displayCustomShops() {
 function displayCustomEmergencies() {
     const emergencies = [
         { name: "Ambulância", lat: -13.3773, lon: -38.9171, description: "Serviço de ambulância disponível 24 horas para emergências. Contate pelo número: +55 75-99894-5017." },
-        { name: "Unidade de Saúde", lat: -13.3773300, lon: -38.9171, description: "Unidade de saúde local oferecendo cuidados médicos essenciais. Contato: +55 75-3652-1798." },
-        { name: "Polícia Civil", lat: -13.3775, lon: -38.9150414, description: "Delegacia da Polícia Civil pronta para assisti-lo em situações de emergência e segurança. Contato: +55 75-3652-1645." },
+        { name: "Unidade de Saúde", lat: -13.3773, lon: -38.9171, description: "Unidade de saúde local oferecendo cuidados médicos essenciais. Contato: +55 75-3652-1798." },
+        { name: "Polícia Civil", lat: -13.3775, lon: -38.9150, description: "Delegacia da Polícia Civil pronta para assisti-lo em situações de emergência e segurança. Contato: +55 75-3652-1645." },
         { name: "Polícia Militar", lat: -13.3775, lon: -38.9150, description: "Posto da Polícia Militar disponível para garantir a sua segurança. Contato: +55 75-99925-0856." }
     ];
 
@@ -1091,8 +1292,14 @@ function displayCustomEmergencies() {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = emergency.name;
+        btn.setAttribute('data-lat', emergency.lat);
+        btn.setAttribute('data-lon', emergency.lon);
+        btn.setAttribute('data-name', emergency.name);
+        btn.setAttribute('data-description', emergency.description);
+        btn.setAttribute('data-feature', 'emergencias');
+        btn.setAttribute('data-destination', emergency.name);
         btn.onclick = () => {
-            handleSubmenuButtonsEmergencies(emergency.lat, emergency.lon, emergency.name, emergency.description, []);
+            handleSubmenuButtons(emergency.lat, emergency.lon, emergency.name, emergency.description, [], 'emergencias');
         };
         subMenu.appendChild(btn);
 
@@ -1103,23 +1310,29 @@ function displayCustomEmergencies() {
 
 function displayCustomTips() {
     const tips = [
-        { name: "Melhores Pontos Turísticos", lat: -13.3766787, lon: -38.9172057, description: "Explore os pontos turísticos mais icônicos de Morro de São Paulo. Descubra locais históricos, vistas panorâmicas e atrações imperdíveis que tornarão sua visita inesquecível." },
-        { name: "Melhores Passeios", lat: -13.3766787, lon: -38.9172057, description: "Descubra os passeios mais recomendados para aproveitar ao máximo Morro de São Paulo. Inclui opções de aventura e relaxamento." },
-        { name: "Melhores Praias", lat: -13.3766787, lon: -38.9172057, description: "Explore as praias mais bonitas e relaxantes. Encontre o lugar perfeito para desfrutar do sol, areia e mar." },
-        { name: "Melhores Restaurantes", lat: -13.3766787, lon: -38.9172057, description: "Desfrute da gastronomia local nos melhores restaurantes. Delicie-se com pratos típicos e sabores únicos." },
-        { name: "Melhores Pousadas", lat: -13.3766787, lon: -38.9172057, description: "Hospede-se nas melhores pousadas que combinam conforto e charme. Encontre o lugar perfeito para relaxar após um dia de aventuras." },
-        { name: "Melhores Lojas", lat: -13.3766787, lon: -38.9172057, description: "Descubra as melhores lojas para compras. Encontre souvenirs únicos e produtos locais que você só encontrará aqui." }
+        { name: "Melhores Pontos Turísticos", lat: -13.3766787, lon: -38.9172057, description: "Explore os pontos turísticos mais icônicos de Morro de São Paulo." },
+        { name: "Melhores Passeios", lat: -13.3766787, lon: -38.9172057, description: "Descubra os passeios mais recomendados." },
+        { name: "Melhores Praias", lat: -13.3766787, lon: -38.9172057, description: "Saiba quais são as praias mais populares." },
+        { name: "Melhores Restaurantes", lat: -13.3766787, lon: -38.9172057, description: "Conheça os melhores lugares para comer." },
+        { name: "Melhores Pousadas", lat: -13.3766787, lon: -38.9172057, description: "Encontre as melhores opções de pousadas." },
+        { name: "Melhores Lojas", lat: -13.3766787, lon: -38.9172057, description: "Descubra as melhores lojas para suas compras." }
     ];
 
     const subMenu = document.getElementById('tips-submenu');
     subMenu.innerHTML = '';
-    
+
     tips.forEach(tip => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
         btn.textContent = tip.name;
+        btn.setAttribute('data-lat', tip.lat);
+        btn.setAttribute('data-lon', tip.lon);
+        btn.setAttribute('data-name', tip.name);
+        btn.setAttribute('data-description', tip.description);
+        btn.setAttribute('data-feature', 'dicas');
+        btn.setAttribute('data-destination', tip.name);
         btn.onclick = () => {
-            handleSubmenuButtonsTips(tip.lat, tip.lon, tip.name, tip.description);
+            handleSubmenuButtons(tip.lat, tip.lon, tip.name, tip.description, [], 'dicas');
         };
         subMenu.appendChild(btn);
 
@@ -1130,144 +1343,119 @@ function displayCustomTips() {
 
 function displayCustomAbout() {
     const about = [
-        { name: "Missão", lat: -13.3766787, lon: -38.9172057, description: "Nossa missão é proporcionar a melhor experiência possível para os visitantes de Morro de São Paulo, destacando suas belezas naturais e culturais." },
-        { name: "Serviços", lat: -13.3766787, lon: -38.9172057, description: "Oferecemos uma ampla gama de serviços para tornar sua estadia mais confortável e agradável, desde guias turísticos até serviços de emergência." },
-        { name: "Benefícios para Turistas", lat: -13.3766787, lon: -38.9172057, description: "Aproveite ao máximo sua visita com nossos benefícios exclusivos para turistas, incluindo descontos em passeios e restaurantes." },
-        { name: "Benefícios para Moradores", lat: -13.3766787, lon: -38.9172057, description: "Moradores de Morro de São Paulo têm acesso a uma série de benefícios, como programas de fidelidade e descontos especiais." },
-        { name: "Benefícios para Pousadas", lat: -13.3766787, lon: -38.9172057, description: "Parcerias com pousadas locais garantem vantagens e descontos para os hóspedes, promovendo uma estadia confortável e econômica." },
-        { name: "Benefícios para Restaurantes", lat: -13.3766787, lon: -38.9172057, description: "Restaurantes parceiros oferecem experiências gastronômicas inesquecíveis com descontos e menus exclusivos para nossos visitantes." },
-        { name: "Benefícios para Agências de Turismo", lat: -13.3766787, lon: -38.9172057, description: "Agências de turismo têm acesso a ferramentas e recursos que facilitam a organização de passeios e atividades para os visitantes." },
-        { name: "Benefícios para Lojas e Comércios", lat: -13.3766787, lon: -38.9172057, description: "Lojas e comércios locais oferecem produtos e serviços exclusivos com descontos para visitantes de Morro de São Paulo." },
-        { name: "Benefícios para Transportes", lat: -13.3766787, lon: -38.9172057, description: "Facilite seu deslocamento com serviços de transporte confiáveis e acessíveis disponíveis para turistas e moradores." },
-        { name: "Impacto em MSP", lat: -13.3766787, lon: -38.9172057, description: "Entenda o impacto positivo de nossas iniciativas na comunidade local e no meio ambiente." }
+        { name: "Missão", lat: -13.3766787, lon: -38.9172057, description: "Nossa missão é oferecer a melhor experiência aos visitantes." },
+        { name: "Serviços", lat: -13.3766787, lon: -38.9172057, description: "Conheça todos os serviços que oferecemos." },
+        { name: "Benefícios para Turistas", lat: -13.3766787, lon: -38.9172057, description: "Saiba como você pode se beneficiar ao visitar Morro de São Paulo." },
+        { name: "Benefícios para Moradores", lat: -13.3766787, lon: -38.9172057, description: "Veja as vantagens para os moradores locais." },
+        { name: "Benefícios para Pousadas", lat: -13.3766787, lon: -38.9172057, description: "Descubra como as pousadas locais podem se beneficiar." },
+        { name: "Benefícios para Restaurantes", lat: -13.3766787, lon: -38.9172057, description: "Saiba mais sobre os benefícios para os restaurantes." },
+        { name: "Benefícios para Agências de Turismo", lat: -13.3766787, lon: -38.9172057, description: "Veja como as agências de turismo podem se beneficiar." },
+        { name: "Benefícios para Lojas e Comércios", lat: -13.3766787, lon: -38.9172057, description: "Descubra os benefícios para lojas e comércios." },
+        { name: "Benefícios para Transportes", lat: -13.3766787, lon: -38.9172057, description: "Saiba mais sobre os benefícios para transportes." },
+        { name: "Impacto em MSP", lat: -13.3766787, lon: -38.9172057, description: "Conheça o impacto do nosso projeto em Morro de São Paulo." }
     ];
 
     const subMenu = document.getElementById('about-submenu');
     subMenu.innerHTML = '';
-    
-    about.forEach(info => {
+
+    about.forEach(item => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
-        btn.textContent = info.name;
-        btn.onclick = () => handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description);
+        btn.textContent = item.name;
+        btn.setAttribute('data-lat', item.lat);
+        btn.setAttribute('data-lon', item.lon);
+        btn.setAttribute('data-name', item.name);
+        btn.setAttribute('data-description', item.description);
+        btn.setAttribute('data-feature', 'sobre');
+        btn.setAttribute('data-destination', item.name);
+        btn.onclick = () => {
+            handleSubmenuButtons(item.lat, item.lon, item.name, item.description, [], 'sobre');
+        };
         subMenu.appendChild(btn);
 
-        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(`<b>${info.name}</b><br>${info.description}`);
+        const marker = L.marker([item.lat, item.lon]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.description}`);
         markers.push(marker);
     });
 }
 
 function displayCustomEducation() {
     const education = [
-        { name: "Iniciar Tutorial", lat: -13.3766787, lon: -38.9172057, description: "Comece seu tutorial para aprender a usar todas as ferramentas e recursos que oferecemos. Ideal para novos visitantes e usuários." },
-        { name: "Planejar Viagem com IA", lat: -13.3766787, lon: -38.9172057, description: "Utilize a inteligência artificial para planejar sua viagem de forma personalizada e eficiente. Receba recomendações e dicas exclusivas." },
-        { name: "Falar com IA", lat: -13.3766787, lon: -38.9172057, description: "Interaja com nossa inteligência artificial para obter informações, fazer perguntas e receber assistência em tempo real." },
-        { name: "Falar com Suporte", lat: -13.3766787, lon: -38.9172057, description: "Precisa de ajuda? Fale com nosso suporte para resolver dúvidas e obter assistência rápida e eficiente." },
-        { name: "Configurações", lat: -13.3766787, lon: -38.9172057, description: "Personalize sua experiência ajustando as configurações de acordo com suas preferências e necessidades." }
+        { name: "Iniciar Tutorial", lat: -13.3766787, lon: -38.9172057, description: "Comece aqui para aprender a usar o site." },
+        { name: "Planejar Viagem com IA", lat: -13.3766787, lon: -38.9172057, description: "Planeje sua viagem com a ajuda de inteligência artificial." },
+        { name: "Falar com IA", lat: -13.3766787, lon: -38.9172057, description: "Converse com nosso assistente virtual." },
+        { name: "Falar com Suporte", lat: -13.3766787, lon: -38.9172057, description: "Entre em contato com o suporte." },
+        { name: "Configurações", lat: -13.3766787, lon: -38.9172057, description: "Ajuste as configurações do site." }
     ];
 
     const subMenu = document.getElementById('education-submenu');
     subMenu.innerHTML = '';
-    
-    education.forEach(info => {
+
+    education.forEach(item => {
         const btn = document.createElement('button');
         btn.className = 'submenu-item';
-        btn.textContent = info.name;
+        btn.textContent = item.name;
+        btn.setAttribute('data-lat', item.lat);
+        btn.setAttribute('data-lon', item.lon);
+        btn.setAttribute('data-name', item.name);
+        btn.setAttribute('data-description', item.description);
+        btn.setAttribute('data-feature', 'educacao');
+        btn.setAttribute('data-destination', item.name);
         btn.onclick = () => {
-            if (info.name === "Iniciar Tutorial") {
-                startTutorial2();
-
-            } else {
-                handleSubmenuButtonClick(info.lat, info.lon, info.name, info.description);
-            }
+            handleSubmenuButtons(item.lat, item.lon, item.name, item.description, [], 'educacao');
         };
         subMenu.appendChild(btn);
 
-        const marker = L.marker([info.lat, info.lon]).addTo(map).bindPopup(`<b>${info.name}</b><br>${info.description}`);
+        const marker = L.marker([item.lat, item.lon]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.description}`);
         markers.push(marker);
     });
 }
 
-function handleSubmenuButtonClick(lat, lon, name, description) {
+
+// Função para tratar o clique nos botões de submenu e ajustar o mapa
+function handleSubmenuButtonClick(lat, lon, name, description, controlButtonsFn) {
     clearMarkers();
     adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = destination;
-    showControlButtons();
-    const images = getImagesForLocation(locationname);
-    showLocationDetailsInModal(name, description, images);
-}
-
-function handleSubmenuButtonsTouristSpots(lat, lon, name, description, images) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = { name, description, images }; // Define o destino selecionado como um objeto
-    showControlButtonsTouristSpots();
-    const imagesForLocation = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, imagesForLocation);
-}
-
-
-function handleSubmenuButtonsTour(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
-    showControlButtonsTour();
+    selectedDestination = { name, lat, lon, description };
+    saveDestinationToCache(selectedDestination).then(() => {
+        sendDestinationToServiceWorker(selectedDestination);
+    }).catch(error => {
+        console.error('Erro ao salvar destino no cache:', error);
+    });
+    controlButtonsFn();
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
 }
 
-function handleSubmenuButtonsBeaches(lat, lon, name, description, images) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = { name, description, images }; // Define o destino selecionado como um objeto
-    showControlButtonsBeaches();
-    const imagesForLocation = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, imagesForLocation);
+function handleSubmenuButtonsTouristSpots(lat, lon, name, description) {
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTouristSpots);
+}
+
+function handleSubmenuButtonsTour(lat, lon, name, description) {
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTour);
+}
+
+function handleSubmenuButtonsBeaches(lat, lon, name, description) {
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsBeaches);
 }
 
 function handleSubmenuButtonsRestaurants(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
-    showControlButtonsRestaurants();
-    const images = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, images);
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsRestaurants);
 }
 
 function handleSubmenuButtonsShops(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
-    showControlButtonsShops();
-    const images = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, images);
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsShops);
 }
 
-function handleSubmenuButtonsEmergencies(lat, lon, name, description, images) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = { name, description, images }; // Define o destino selecionado como um objeto
-    showControlButtonsEmergencies();
-    const imagesForLocation = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, imagesForLocation);
+function handleSubmenuButtonsEmergencies(lat, lon, name, description) {
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsEmergencies);
 }
 
 function handleSubmenuButtonsTips(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
-    showControlButtonsTips();
-    const images = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, images);
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTips);
 }
 
 function handleSubmenuButtonsInns(lat, lon, name, description) {
-    clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
-    selectedDestination = name;
-    showControlButtonsInns();
-    const images = getImagesForLocation(name);
-    showLocationDetailsInModal(name, description, images);
+    handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsInns);
 }
 
 function showControlButtons() {
@@ -1348,13 +1536,60 @@ function hideAllControlButtons() {
     buttons.forEach(button => button.style.display = 'none');
 }
 
+function showAssistantModalWithCarousel() {
+    initializeCarousel(images);
+    document.getElementById('assistant-modal').style.display = 'block';
+}
+
+function startCarousel() {
+    if (!selectedDestination || !selectedDestination.images || selectedDestination.images.length === 0) {
+        alert('No images available for the carousel.');
+        console.error('No images available for the carousel.');
+        return;
+    }
+    const carouselContainer = document.getElementById('carousel-container');
+    if (!carouselContainer) {
+        console.error('Carousel container not found.');
+        return;
+    }
+    carouselContainer.innerHTML = ''; // Clear previous images
+
+    selectedDestination.images.forEach((imageSrc, index) => {
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.className = 'carousel-image';
+        if (index === 0) img.classList.add('active'); // Show the first image by default
+        carouselContainer.appendChild(img);
+    });
+
+    showModal('assistant-modal');
+}
+
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        console.error('Modal not found: ' + modalId);
+    }
+}
+
 
 function showLocationDetailsInModal(name, description, images) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
-    const carouselContainer = modalContent.querySelector('.carousel');
+    modalContent.innerHTML = '';
     
-    carouselContainer.innerHTML = '';
-
+    const titleElement = document.createElement('h2');
+    titleElement.textContent = name;
+    const descriptionElement = document.createElement('p');
+    descriptionElement.textContent = description;
+    
+    modalContent.appendChild(titleElement);
+    modalContent.appendChild(descriptionElement);
+    
+    const carouselContainer = document.createElement('div');
+    carouselContainer.className = 'carousel';
+    
     images.forEach((image, index) => {
         const carouselItem = document.createElement('div');
         carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
@@ -1364,49 +1599,548 @@ function showLocationDetailsInModal(name, description, images) {
         carouselItem.appendChild(imgElement);
         carouselContainer.appendChild(carouselItem);
     });
-
-    const infoContent = document.createElement('div');
-    infoContent.innerHTML = `
-        <h2>${name}</h2>
-        <p>${description}</p>
-    `;
-    modalContent.appendChild(infoContent);
-    showModal('assistant-modal');
-
+    
+    modalContent.appendChild(carouselContainer);
+    
     initializeCarousel(images);
+}
 
-    // Adiciona evento ao botão "about-more-btn" para exibir o carrossel de fotos
-    document.getElementById('about-more-btn').addEventListener('click', () => {
-        initializeCarousel(images);
-        showModal('assistant-modal');
+function initializeCarousel(images) {
+    const carouselContainer = document.getElementById('carousel-container');
+    if (!carouselContainer) {
+        console.error('Carousel container not found.');
+        return;
+    }
+    carouselContainer.innerHTML = ''; // Clear previous images
+
+    images.forEach((imageSrc, index) => {
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.className = 'carousel-image';
+        if (index === 0) img.classList.add('active'); // Show the first image by default
+        carouselContainer.appendChild(img);
     });
 }
 
+// Função para criar rota até o destino selecionado
+function createRoute() {
+    if (!selectedDestination) {
+        alert('Por favor, selecione um destino primeiro.');
+        return;
+    }
+    const { lat, lon } = selectedDestination;
+    createRouteToDestination(lat, lon);
+}
 
-function createRouteTo(destination) {
-    if (currentLocation && destination) {
-        if (routingControl) {
-            map.removeControl(routingControl);
+// Função para obter a localização atual e criar a rota
+function createRouteToDestination(lat, lon) {
+    requestLocationPermissionCreateRoute()
+        .then(currentLocation => {
+            const { latitude, longitude } = currentLocation.coords;
+            console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
+            plotRouteOnMap(latitude, longitude, lat, lon);
+        })
+        .catch(error => {
+            console.error('Erro ao obter localização atual:', error);
+        });
+}
+
+// Função para traçar a rota no mapa
+function plotRouteOnMap(startLat, startLon, destLat, destLon) {
+    if (typeof L.Routing !== 'undefined') {
+        if (window.currentRoute) {
+            map.removeControl(window.currentRoute);
         }
-        routingControl = L.Routing.control({
+        window.currentRoute = L.Routing.control({
             waypoints: [
-                L.latLng(currentLocation.latitude, currentLocation.longitude),
-                L.latLng(destination.lat, destination.lon)
+                L.latLng(startLat, startLon),
+                L.latLng(destLat, destLon)
             ],
-            routeWhileDragging: true,
-            createMarker: function(i, waypoint, n) {
-                return L.marker(waypoint.latLng).bindPopup(i === 0 ? 'Ponto de Partida' : 'Destino');
-            },
-            router: L.Routing.openrouteservice(OPENROUTESERVICE_API_KEY)
+            routeWhileDragging: true
         }).addTo(map);
     } else {
-        alert("Localização atual ou destino não disponível.");
+        console.error('Leaflet Routing Machine not available.');
     }
 }
 
 
+// Função para obter imagens para uma localização
+function getImagesForLocation(locationName) {
+    const imageDatabase = {
+        'Toca do Morcego': [
+            'https://example.com/image1.jpg',
+            'https://example.com/image2.jpg',
+            'https://example.com/image3.jpg'
+        ],
+        'Farol do Morro': [
+            'https://example.com/farol1.jpg',
+            'https://example.com/farol2.jpg',
+            'https://example.com/farol3.jpg'
+        ],
+        'Mirante da Tirolesa': [
+            'https://example.com/tirolesa1.jpg',
+            'https://example.com/tirolesa2.jpg',
+            'https://example.com/tirolesa3.jpg'
+        ],
+        'Fortaleza de Morro de São Paulo': [
+            'https://example.com/fortaleza1.jpg',
+            'https://example.com/fortaleza2.jpg',
+            'https://example.com/fortaleza3.jpg'
+        ],
+        'Paredão da Argila': [
+            'https://example.com/paredao1.jpg',
+            'https://example.com/paredao2.jpg',
+            'https://example.com/paredao3.jpg'
+        ],
+        'Passeio de lancha Volta a Ilha de Tinharé': [
+            'https://example.com/lancha1.jpg',
+            'https://example.com/lancha2.jpg',
+            'https://example.com/lancha3.jpg'
+        ],
+        'Passeio de Quadriciclo para Garapuá': [
+            'https://example.com/quadriciclo1.jpg',
+            'https://example.com/quadriciclo2.jpg',
+            'https://example.com/quadriciclo3.jpg'
+        ],
+        'Passeio 4X4 para Garapuá': [
+            'https://example.com/4x41.jpg',
+            'https://example.com/4x42.jpg',
+            'https://example.com/4x43.jpg'
+        ],
+        'Passeio de Barco para Gamboa': [
+            'https://example.com/barco1.jpg',
+            'https://example.com/barco2.jpg',
+            'https://example.com/barco3.jpg'
+        ],
+        'Primeira Praia': [
+            'https://example.com/primeirapraia1.jpg',
+            'https://example.com/primeirapraia2.jpg',
+            'https://example.com/primeirapraia3.jpg'
+        ],
+        'Praia do Pôrto': [
+            'https://example.com/praiaporto1.jpg',
+            'https://example.com/praiaporto2.jpg',
+            'https://example.com/praiaporto3.jpg'
+        ],
+        'Praia da Gamboa': [
+            'https://example.com/praiadagamboa1.jpg',
+            'https://example.com/praiadagamboa2.jpg',
+            'https://example.com/praiadagamboa3.jpg'
+        ],
+        'Segunda Praia': [
+            'https://example.com/segundapraia1.jpg',
+            'https://example.com/segundapraia2.jpg',
+            'https://example.com/segundapraia3.jpg'
+        ],
+        'Toca do Morcego Festas': [
+            'https://example.com/tocadomorcego1.jpg',
+            'https://example.com/tocadomorcego2.jpg',
+            'https://example.com/tocadomorcego3.jpg'
+        ],
+        'One Love': [
+            'https://example.com/onelove1.jpg',
+            'https://example.com/onelove2.jpg',
+            'https://example.com/onelove3.jpg'
+        ],
+        'Pulsar': [
+            'https://example.com/pulsar1.jpg',
+            'https://example.com/pulsar2.jpg',
+            'https://example.com/pulsar3.jpg'
+        ],
+        'Mama Iate': [
+            'https://example.com/mamaiate1.jpg',
+            'https://example.com/mamaiate2.jpg',
+            'https://example.com/mamaiate3.jpg'
+        ],
+        'Teatro do Morro': [
+            'https://example.com/teatrodomorro1.jpg',
+            'https://example.com/teatrodomorro2.jpg',
+            'https://example.com/teatrodomorro3.jpg'
+        ],
+        'Terceira Praia': [
+            'https://example.com/terceirapraia1.jpg',
+            'https://example.com/terceirapraia2.jpg',
+            'https://example.com/terceirapraia3.jpg'
+        ],
+        'Quarta Praia': [
+            'https://example.com/quartapraia1.jpg',
+            'https://example.com/quartapraia2.jpg',
+            'https://example.com/quartapraia3.jpg'
+        ],
+        'Praia do Encanto': [
+            'https://example.com/praiadoencanto1.jpg',
+            'https://example.com/praiadoencanto2.jpg',
+            'https://example.com/praiadoencanto3.jpg'
+        ],
+        'Morena Bela': [
+            'https://example.com/morenabela1.jpg',
+            'https://example.com/morenabela2.jpg',
+            'https://example.com/morenabela3.jpg'
+        ],
+        'Basílico': [
+            'https://example.com/basilico1.jpg',
+            'https://example.com/basilico2.jpg',
+            'https://example.com/basilico3.jpg'
+        ],
+        'Ki Massa': [
+            'https://example.com/kimassa1.jpg',
+            'https://example.com/kimassa2.jpg',
+            'https://example.com/kimassa3.jpg'
+        ],
+        'Tempeiro Caseiro': [
+            'https://example.com/tempeirocaseiro1.jpg',
+            'https://example.com/tempeirocaseiro2.jpg',
+            'https://example.com/tempeirocaseiro3.jpg'
+        ],
+        'Bizu': [
+            'https://example.com/bizu1.jpg',
+            'https://example.com/bizu2.jpg',
+            'https://example.com/bizu3.jpg'
+        ],
+        'Pedra Sobre Pedra': [
+            'https://example.com/pedrasobrepedra1.jpg',
+            'https://example.com/pedrasobrepedra2.jpg',
+            'https://example.com/pedrasobrepedra3.jpg'
+        ],
+        'Forno a Lenha de Mercedes': [
+            'https://example.com/fornoalenha1.jpg',
+            'https://example.com/fornoalenha2.jpg',
+            'https://example.com/fornoalenha3.jpg'
+        ],
+        'Ponto G': [
+            'https://example.com/pontog1.jpg',
+            'https://example.com/pontog2.jpg',
+            'https://example.com/pontog3.jpg'
+        ],
+        'Ponto 9,99': [
+            'https://example.com/ponto9991.jpg',
+            'https://example.com/ponto9992.jpg',
+            'https://example.com/ponto9993.jpg'
+        ],
+        'Patricia': [
+            'https://example.com/patricia1.jpg',
+            'https://example.com/patricia2.jpg',
+            'https://example.com/patricia3.jpg'
+        ],
+        'dizi 10': [
+            'https://example.com/dizi101.jpg',
+            'https://example.com/dizi102.jpg',
+            'https://example.com/dizi103.jpg'
+        ],
+        'Papoula': [
+            'https://example.com/papoula1.jpg',
+            'https://example.com/papoula2.jpg',
+            'https://example.com/papoula3.jpg'
+        ],
+        'Sabor da terra': [
+            'https://example.com/sabordaterr1.jpg',
+            'https://example.com/sabordaterr2.jpg',
+            'https://example.com/sabordaterr3.jpg'
+        ],
+        'Branco&Negro': [
+            'https://example.com/branconegro1.jpg',
+            'https://example.com/branconegro2.jpg',
+            'https://example.com/branconegro3.jpg'
+        ],
+        'Six Club': [
+            'https://example.com/sixclub1.jpg',
+            'https://example.com/sixclub2.jpg',
+            'https://example.com/sixclub3.jpg'
+        ],
+        'Santa Villa': [
+            'https://example.com/santavilla1.jpg',
+            'https://example.com/santavilla2.jpg',
+            'https://example.com/santavilla3.jpg'
+        ],
+        'Recanto do Aviador': [
+            'https://example.com/recantoaviador1.jpg',
+            'https://example.com/recantoaviador2.jpg',
+            'https://example.com/recantoaviador3.jpg'
+        ],
+        'Sambass': [
+            'https://example.com/sambass1.jpg',
+            'https://example.com/sambass2.jpg',
+            'https://example.com/sambass3.jpg'
+        ],
+        'Bar e Restaurante da Morena': [
+            'https://example.com/restaurante1.jpg',
+            'https://example.com/restaurante2.jpg',
+            'https://example.com/restaurante3.jpg'
+        ],
+        'Restaurante Alecrim': [
+            'https://example.com/alecrim1.jpg',
+            'https://example.com/alecrim2.jpg',
+            'https://example.com/alecrim3.jpg'
+        ],
+        'Andina Cozinha Latina': [
+            'https://example.com/andinacozinha1.jpg',
+            'https://example.com/andinacozinha2.jpg',
+            'https://example.com/andinacozinha3.jpg'
+        ],
+        'Papoula Culinária Artesanal': [
+            'https://example.com/papoulaculinaria1.jpg',
+            'https://example.com/papoulaculinaria2.jpg',
+            'https://example.com/papoulaculinaria3.jpg'
+        ],
+        'Louca Paixão': [
+            'https://example.com/loucapaixao1.jpg',
+            'https://example.com/loucapaixao2.jpg',
+            'https://example.com/loucapaixao3.jpg'
+        ],
+        'Café das Artes': [
+            'https://example.com/cafedasartes1.jpg',
+            'https://example.com/cafedasartes2.jpg',
+            'https://example.com/cafedasartes3.jpg'
+        ],
+        'Canoa': [
+            'https://example.com/canoa1.jpg',
+            'https://example.com/canoa2.jpg',
+            'https://example.com/canoa3.jpg'
+        ],
+        'Restaurante do Francisco': [
+            'https://example.com/francisco1.jpg',
+            'https://example.com/francisco2.jpg',
+            'https://example.com/francisco3.jpg'
+        ],
+        'La Tabla': [
+            'https://example.com/latabla1.jpg',
+            'https://example.com/latabla2.jpg',
+            'https://example.com/latabla3.jpg'
+        ],
+        'Santa Luzia': [
+            'https://example.com/santaluzia1.jpg',
+            'https://example.com/santaluzia2.jpg',
+            'https://example.com/santaluzia3.jpg'
+        ],
+        'Chez Max': [
+            'https://example.com/chezmax1.jpg',
+            'https://example.com/chezmax2.jpg',
+            'https://example.com/chezmax3.jpg'
+        ],
+        'Barraca da Miriam': [
+            'https://example.com/barracamiriam1.jpg',
+            'https://example.com/barracamiriam2.jpg',
+            'https://example.com/barracamiriam3.jpg'
+        ],
+        'O Casarão restaurante': [
+            'https://example.com/casaraorestaurante1.jpg',
+            'https://example.com/casaraorestaurante2.jpg',
+            'https://example.com/casaraorestaurante3.jpg'
+        ],
+        'Hotel Fazenda Parque Vila Guaiamu': [
+            'https://example.com/hotelguaiamu1.jpg',
+            'https://example.com/hotelguaiamu2.jpg',
+            'https://example.com/hotelguaiamu3.jpg'
+        ],
+        'Pousada Fazenda Caeiras': [
+            'https://example.com/fazendacaeiras1.jpg',
+            'https://example.com/fazendacaeiras2.jpg',
+            'https://example.com/fazendacaeiras3.jpg'
+        ],
+        'Amendoeira Hotel': [
+            'https://example.com/amendoeira1.jpg',
+            'https://example.com/amendoeira2.jpg',
+            'https://example.com/amendoeira3.jpg'
+        ],
+        'Pousada Natureza': [
+            'https://example.com/natureza1.jpg',
+            'https://example.com/natureza2.jpg',
+            'https://example.com/natureza3.jpg'
+        ],
+        'Pousada dos Pássaros': [
+            'https://example.com/passaro1.jpg',
+            'https://example.com/passaro2.jpg',
+            'https://example.com/passaro3.jpg'
+        ],
+        'Hotel Morro de São Paulo': [
+            'https://example.com/hotelmorrodsp1.jpg',
+            'https://example.com/hotelmorrodsp2.jpg',
+            'https://example.com/hotelmorrodsp3.jpg'
+        ],
+        'Uma Janela para o Sol': [
+            'https://example.com/umajanelaparasol1.jpg',
+            'https://example.com/umajanelaparasol2.jpg',
+            'https://example.com/umajanelaparasol3.jpg'
+        ],
+        'Portaló': [
+            'https://example.com/portalo1.jpg',
+            'https://example.com/portalo2.jpg',
+            'https://example.com/portalo3.jpg'
+        ],
+        'Pérola do Morro': [
+            'https://example.com/peroladomorro1.jpg',
+            'https://example.com/peroladomorro2.jpg',
+            'https://example.com/peroladomorro3.jpg'
+        ],
+        'Safira do Morro': [
+            'https://example.com/safiradomorro1.jpg',
+            'https://example.com/safiradomorro2.jpg',
+            'https://example.com/safiradomorro3.jpg'
+        ],
+        'Xerife Hotel': [
+            'https://example.com/xerifehotel1.jpg',
+            'https://example.com/xerifehotel2.jpg',
+            'https://example.com/xerifehotel3.jpg'
+        ],
+        'Ilha da Saudade': [
+            'https://example.com/ilhadsaudade1.jpg',
+            'https://example.com/ilhadsaudade2.jpg',
+            'https://example.com/ilhadsaudade3.jpg'
+        ],
+        'Porto dos Milagres': [
+            'https://example.com/portodosmilagres1.jpg',
+            'https://example.com/portodosmilagres2.jpg',
+            'https://example.com/portodosmilagres3.jpg'
+        ],
+        'Passarte': [
+            'https://example.com/passarte1.jpg',
+            'https://example.com/passarte2.jpg',
+            'https://example.com/passarte3.jpg'
+        ],
+        'Pousada da Praça': [
+            'https://example.com/praca1.jpg',
+            'https://example.com/praca2.jpg',
+            'https://example.com/praca3.jpg'
+        ],
+        'Pousada Colibri': [
+            'https://example.com/colibri1.jpg',
+            'https://example.com/colibri2.jpg',
+            'https://example.com/colibri3.jpg'
+        ],
+        'Pousada Porto de Cima': [
+            'https://example.com/portodecima1.jpg',
+            'https://example.com/portodecima2.jpg',
+            'https://example.com/portodecima3.jpg'
+        ],
+        'Vila Guaiamu': [
+            'https://example.com/vilaguaiamu1.jpg',
+            'https://example.com/vilaguaiamu2.jpg',
+            'https://example.com/vilaguaiamu3.jpg'
+        ],
+        'Villa dos Corais pousada': [
+            'https://example.com/villadoscorais1.jpg',
+            'https://example.com/villadoscorais2.jpg',
+            'https://example.com/villadoscorais3.jpg'
+        ],
+        'Pousada Fazenda Caeira': [
+            'https://example.com/fazendacaeira1.jpg',
+            'https://example.com/fazendacaeira2.jpg',
+            'https://example.com/fazendacaeira3.jpg'
+        ],
+        'Hotel Anima': [
+            'https://example.com/hotelanima1.jpg',
+            'https://example.com/hotelanima2.jpg',
+            'https://example.com/hotelanima3.jpg'
+        ],
+        'Vila dos Orixás Boutique Hotel & Spa': [
+            'https://example.com/vilaorixas1.jpg',
+            'https://example.com/vilaorixas2.jpg',
+            'https://example.com/vilaorixas3.jpg'
+        ],
+        'Hotel Karapitangui': [
+            'https://example.com/karapitangui1.jpg',
+            'https://example.com/karapitangui2.jpg',
+            'https://example.com/karapitangui3.jpg'
+        ],
+        'Pousada Timbalada': [
+            'https://example.com/timbalada1.jpg',
+            'https://example.com/timbalada2.jpg',
+            'https://example.com/timbalada3.jpg'
+        ],
+        'Casa Celestino Residence': [
+            'https://example.com/celestino1.jpg',
+            'https://example.com/celestino2.jpg',
+            'https://example.com/celestino3.jpg'
+        ],
+        'Bahia Bacana Pousada': [
+            'https://example.com/bahiabacana1.jpg',
+            'https://example.com/bahiabacana2.jpg',
+            'https://example.com/bahiabacana3.jpg'
+        ],
+        'Ilha da Saudade': [
+            'https://example.com/ilhadsaudade1.jpg',
+            'https://example.com/ilhadsaudade2.jpg',
+            'https://example.com/ilhadsaudade3.jpg'
+        ],
+        'Hotel Morro da Saudade': [
+            'https://example.com/morrodesaude1.jpg',
+            'https://example.com/morrodesaude2.jpg',
+            'https://example.com/morrodesaude3.jpg'
+        ],
+        'Bangalô dos sonhos': [
+            'https://example.com/bangalodossonhos1.jpg',
+            'https://example.com/bangalodossonhos2.jpg',
+            'https://example.com/bangalodossonhos3.jpg'
+        ],
+        'Cantinho da Josete': [
+            'https://example.com/cantinhojosete1.jpg',
+            'https://example.com/cantinhojosete2.jpg',
+            'https://example.com/cantinhojosete3.jpg'
+        ],
+        'Vila Morro do Sao Paulo': [
+            'https://example.com/vilamorro1.jpg',
+            'https://example.com/vilamorro2.jpg',
+            'https://example.com/vilamorro3.jpg'
+        ],
+        'Casa Rossa': [
+            'https://example.com/casarossa1.jpg',
+            'https://example.com/casarossa2.jpg',
+            'https://example.com/casarossa3.jpg'
+        ],
+        'Village Paraíso Tropical': [
+            'https://example.com/villageparaiso1.jpg',
+            'https://example.com/villageparaiso2.jpg',
+            'https://example.com/villageparaiso3.jpg'
+        ],
+        'Absolute': [
+            'https://example.com/absolute1.jpg',
+            'https://example.com/absolute2.jpg',
+            'https://example.com/absolute3.jpg'
+        ],
+        'Local Brasil': [
+            'https://example.com/localbrasil1.jpg',
+            'https://example.com/localbrasil2.jpg',
+            'https://example.com/localbrasil3.jpg'
+        ],
+        'Super Zimbo': [
+            'https://example.com/superzimbo1.jpg',
+            'https://example.com/superzimbo2.jpg',
+            'https://example.com/superzimbo3.jpg'
+        ],
+        'Mateus Esquadrais': [
+            'https://example.com/mateusesquadrais1.jpg',
+            'https://example.com/mateusesquadrais2.jpg',
+            'https://example.com/mateusesquadrais3.jpg'
+        ],
+        'São Pedro Imobiliária': [
+            'https://example.com/saopedro1.jpg',
+            'https://example.com/saopedro2.jpg',
+            'https://example.com/saopedro3.jpg'
+        ],
+        'Imóveis Brasil Bahia': [
+            'https://example.com/brasilbahia1.jpg',
+            'https://example.com/brasilbahia2.jpg',
+            'https://example.com/brasilbahia3.jpg'
+        ],
+        'Coruja': [
+            'https://example.com/coruja1.jpg',
+            'https://example.com/coruja2.jpg',
+            'https://example.com/coruja3.jpg'
+        ],
+        'Zimbo Dive': [
+            'https://example.com/zimbo1.jpg',
+            'https://example.com/zimbo2.jpg',
+            'https://example.com/zimbo3.jpg'
+        ],
+        'Havaianas': [
+            'https://example.com/havaianas1.jpg',
+            'https://example.com/havaianas2.jpg',
+            'https://example.com/havaianas3.jpg'
+        ]
+    };
 
-
+    return imageDatabase[locationName] || [];
+}
 
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
@@ -1419,7 +2153,6 @@ function showItineraryForm() {
     const formModal = document.getElementById('itinerary-form-modal');
     formModal.style.display = 'block';
 }
-
 
 function saveEditedItinerary() {
     const form = document.getElementById('itinerary-form');
@@ -1754,9 +2487,11 @@ const tutorialSteps = [
     },
     action: () => {
         document.getElementById('tutorial-no-btn').style.display = 'inline-block';
-        document.getElementById('tutorial-yes-btn').style.display = 'none';
         document.getElementById('create-itinerary-btn').style.display = 'inline-block';
-        document.getElementById('create-route-btn').style.display = 'none';
+        document.getElementById('tutorial-yes-btn').style.display = 'none';
+        document.getElementById('tutorial-next-btn').style.display = 'none';
+        document.getElementById('tutorial-prev-btn').style.display = 'none';
+        document.getElementById('tutorial-end-btn').style.display = 'none';
     }
   }
 ];
@@ -1900,7 +2635,6 @@ function speakText(text) {
 // Exemplo de uso
 document.getElementById('stop-speaking-btn').addEventListener('click', stopSpeaking);
 
-
 function closeSideMenu() {
     const menu = document.getElementById('menu');
     menu.style.display = 'none';
@@ -1912,7 +2646,7 @@ function closeSideMenu() {
 function searchLocation() {
     var searchQuery = prompt("Digite o local que deseja buscar em Morro de São Paulo:");
     if (searchQuery) {
-        const viewBox = '-38.926, -13.369, -38.895, -13.392'; 
+        const viewBox = '-38.926, -13.369, -38.895, -13.392';
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=${viewBox}&bounded=1`)
             .then(response => response.json())
             .then(data => {
@@ -1947,6 +2681,7 @@ function searchLocation() {
             });
     }
 }
+
 
 function customizeOSMPopup(popup) {
     const popupContent = popup.getElement().querySelector('.leaflet-popup-content');
