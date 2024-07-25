@@ -1198,10 +1198,10 @@ function setSelectedDestination(destination) {
 
 function displayCustomTours() {
     const tours = [
-        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.379, lon: -38.918, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé." },
-        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.380, lon: -38.920, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá." },
-        { name: "Passeio 4X4 para Garapuá", lat: -13.381, lon: -38.922, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá." },
-        { name: "Passeio de Barco para Gamboa", lat: -13.383, lon: -38.924, description: "Relaxe em um agradável passeio de barco até Gamboa." }
+        { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.3837729, lon: -38.9085360, description: "Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé. Veja paisagens deslumbrantes e descubra segredos escondidos desta bela ilha." },
+        { name: "Passeio de Quadriciclo para Garapuá", lat: -13.3827765, lon: -38.9105500, description: "Aventure-se em um emocionante passeio de quadriciclo até a pitoresca vila de Garapuá. Aproveite o caminho cheio de adrenalina e as paisagens naturais de tirar o fôlego." },
+        { name: "Passeio 4X4 para Garapuá", lat: -13.3808638, lon: -38.9127107, description: "Embarque em uma viagem emocionante de 4x4 até Garapuá. Desfrute de uma experiência off-road única com vistas espetaculares e muita diversão." },
+        { name: "Passeio de Barco para Gamboa", lat: -13.3766536, lon: -38.9186205, description: "Relaxe em um agradável passeio de barco até Gamboa. Desfrute da tranquilidade do mar e da beleza natural ao longo do caminho." }
     ];
     displayCustomItems(tours, 'tours-submenu', 'passeios');
 }
