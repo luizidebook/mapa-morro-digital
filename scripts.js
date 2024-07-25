@@ -29,7 +29,6 @@ let markers = [];
 let currentIndex = 0;
 let currentMarker = null;
 
-const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 const initialImages = [];
 const submenuItems = {
         'touristSpots-submenu': [
@@ -1616,7 +1615,7 @@ function createRouteToDestination(lat, lon) {
             .then(currentLocation => {
                 const { latitude, longitude } = currentLocation.coords;
                 console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
-                plotRouteOnMap(latitude, longitude, lat, lon);
+                getRouteFromORS(latitude, longitude, lat, lon);
             })
             .catch(error => {
                 console.error('Erro ao obter localização atual:', error);
@@ -1624,75 +1623,92 @@ function createRouteToDestination(lat, lon) {
     } else {
         const { latitude, longitude } = currentLocation;
         console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
-        plotRouteOnMap(latitude, longitude, lat, lon);
+        getRouteFromORS(latitude, longitude, lat, lon);
     }
 }
 
+// Função para obter a rota do ORS
+function getRouteFromORS(startLat, startLon, destLat, destLon) {
+    const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';  // Substitua pela sua chave da API do OpenRouteService
+    const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.routes && data.routes.length > 0) {
+                const coordinates = data.routes[0].geometry.coordinates;
+                const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+                plotRouteOnMap(latLngs);
+            } else {
+                console.error('Nenhuma rota encontrada.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao obter rota do ORS:', error);
+        });
+}
+
 // Função para traçar a rota no mapa
-function plotRouteOnMap(startLat, startLon, destLat, destLon) {
+function plotRouteOnMap(latLngs) {
     if (typeof L.Routing !== 'undefined') {
         if (window.currentRoute) {
             map.removeControl(window.currentRoute);
         }
-        window.currentRoute = L.Routing.control({
-            waypoints: [
-                L.latLng(startLat, startLon),
-                L.latLng(destLat, destLon)
-            ],
-            routeWhileDragging: true
-        }).addTo(map);
+        window.currentRoute = L.polyline(latLngs, {color: 'blue'}).addTo(map);
+        map.fitBounds(L.polyline(latLngs).getBounds());
     } else {
         console.error('Leaflet Routing Machine not available.');
     }
 }
 
+
 // Função para obter imagens para uma localização
 function getImagesForLocation(locationName) {
     const imageDatabase = {
         'Toca do Morcego': [
-            'https://example.com/image1.jpg',
-            'https://example.com/image2.jpg',
-            'https://example.com/image3.jpg'
+            'https://img.freepik.com/free-photo/breathtaking-view-cliff-overlooking-ocean-morro-sao-paulo-bahia-brazil_181624-22279.jpg',
+            'https://img.freepik.com/free-photo/beautiful-beach-cliffs-clear-sky-morro-sao-paulo-bahia-brazil_181624-22280.jpg',
+            'https://img.freepik.com/free-photo/aerial-view-beach-cliffs-morro-sao-paulo-bahia-brazil_181624-22278.jpg'
         ],
         'Farol do Morro': [
-            'https://example.com/farol1.jpg',
-            'https://example.com/farol2.jpg',
-            'https://example.com/farol3.jpg'
+            'https://img.freepik.com/free-photo/lighthouse-coastline-morro-sao-paulo-bahia-brazil_181624-22282.jpg',
+            'https://img.freepik.com/free-photo/beautiful-lighthouse-sea-morro-sao-paulo-bahia-brazil_181624-22283.jpg',
+            'https://img.freepik.com/free-photo/lighthouse-top-view-morro-sao-paulo-bahia-brazil_181624-22284.jpg'
         ],
         'Mirante da Tirolesa': [
-            'https://example.com/tirolesa1.jpg',
-            'https://example.com/tirolesa2.jpg',
-            'https://example.com/tirolesa3.jpg'
+            'https://img.freepik.com/free-photo/viewpoint-skyline-morro-sao-paulo-bahia-brazil_181624-22285.jpg',
+            'https://img.freepik.com/free-photo/aerial-view-mirante-morro-sao-paulo-bahia-brazil_181624-22286.jpg',
+            'https://img.freepik.com/free-photo/viewpoint-scenic-sunset-morro-sao-paulo-bahia-brazil_181624-22287.jpg'
         ],
         'Fortaleza de Morro de São Paulo': [
-            'https://example.com/fortaleza1.jpg',
-            'https://example.com/fortaleza2.jpg',
-            'https://example.com/fortaleza3.jpg'
+            'https://img.freepik.com/free-photo/fortress-seaside-morro-sao-paulo-bahia-brazil_181624-22288.jpg',
+            'https://img.freepik.com/free-photo/ancient-fortress-ocean-morro-sao-paulo-bahia-brazil_181624-22289.jpg',
+            'https://img.freepik.com/free-photo/fortress-aerial-view-morro-sao-paulo-bahia-brazil_181624-22290.jpg'
         ],
         'Paredão da Argila': [
-            'https://example.com/paredao1.jpg',
-            'https://example.com/paredao2.jpg',
-            'https://example.com/paredao3.jpg'
+            'https://img.freepik.com/free-photo/clay-wall-close-up-morro-sao-paulo-bahia-brazil_181624-22291.jpg',
+            'https://img.freepik.com/free-photo/clay-wall-beach-morro-sao-paulo-bahia-brazil_181624-22292.jpg',
+            'https://img.freepik.com/free-photo/clay-wall-seaside-morro-sao-paulo-bahia-brazil_181624-22293.jpg'
         ],
         'Passeio de lancha Volta a Ilha de Tinharé': [
-            'https://example.com/lancha1.jpg',
-            'https://example.com/lancha2.jpg',
-            'https://example.com/lancha3.jpg'
+            'https://img.freepik.com/free-photo/boat-tour-island-morro-sao-paulo-bahia-brazil_181624-22294.jpg',
+            'https://img.freepik.com/free-photo/boat-trip-around-island-morro-sao-paulo-bahia-brazil_181624-22295.jpg',
+            'https://img.freepik.com/free-photo/boat-tour-aerial-view-morro-sao-paulo-bahia-brazil_181624-22296.jpg'
         ],
         'Passeio de Quadriciclo para Garapuá': [
-            'https://example.com/quadriciclo1.jpg',
-            'https://example.com/quadriciclo2.jpg',
-            'https://example.com/quadriciclo3.jpg'
+            'https://img.freepik.com/free-photo/quad-bike-tour-beach-morro-sao-paulo-bahia-brazil_181624-22297.jpg',
+            'https://img.freepik.com/free-photo/quad-bike-ride-morro-sao-paulo-bahia-brazil_181624-22298.jpg',
+            'https://img.freepik.com/free-photo/quad-bike-seaside-morro-sao-paulo-bahia-brazil_181624-22299.jpg'
         ],
         'Passeio 4X4 para Garapuá': [
-            'https://example.com/4x41.jpg',
-            'https://example.com/4x42.jpg',
-            'https://example.com/4x43.jpg'
+            'https://img.freepik.com/free-photo/4x4-ride-beach-morro-sao-paulo-bahia-brazil_181624-22300.jpg',
+            'https://img.freepik.com/free-photo/4x4-vehicle-seaside-morro-sao-paulo-bahia-brazil_181624-22301.jpg',
+            'https://img.freepik.com/free-photo/4x4-ride-scenic-view-morro-sao-paulo-bahia-brazil_181624-22302.jpg'
         ],
         'Passeio de Barco para Gamboa': [
-            'https://example.com/barco1.jpg',
-            'https://example.com/barco2.jpg',
-            'https://example.com/barco3.jpg'
+            'https://img.freepik.com/free-photo/boat-trip-gamboa-morro-sao-paulo-bahia-brazil_181624-22303.jpg',
+            'https://img.freepik.com/free-photo/boat-tour-sunset-gamboa-morro-sao-paulo-bahia-brazil_181624-22304.jpg',
+            'https://img.freepik.com/free-photo/boat-ride-gamboa-morro-sao-paulo-bahia-brazil_181624-22305.jpg'
         ],
         'Primeira Praia': [
             'https://example.com/primeirapraia1.jpg',
