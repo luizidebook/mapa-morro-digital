@@ -29,6 +29,7 @@ let markers = [];
 let currentIndex = 0;
 let currentMarker = null;
 
+const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 const initialImages = [];
 const submenuItems = {
         'touristSpots-submenu': [
@@ -1608,56 +1609,50 @@ function createRoute() {
     createRouteToDestination(lat, lon);
 }
 
+const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3'; // Substitua pelo seu API Key do OpenRouteService
+
 // Função para solicitar permissão de localização e criar a rota
-function createRouteToDestination(lat, lon) {
-    if (!currentLocation || !currentLocation.latitude || !currentLocation.longitude) {
-        requestLocationPermissionCreateRoute()
-            .then(currentLocation => {
-                const { latitude, longitude } = currentLocation.coords;
-                console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
-                getRouteFromORS(latitude, longitude, lat, lon);
-            })
-            .catch(error => {
-                console.error('Erro ao obter localização atual:', error);
-            });
-    } else {
-        const { latitude, longitude } = currentLocation;
-        console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
-        getRouteFromORS(latitude, longitude, lat, lon);
+async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
+    try {
+        let currentLocation = await getCurrentLocation();
+        if (currentLocation) {
+            const { latitude, longitude } = currentLocation.coords;
+            console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon}) utilizando o perfil ${profile}`);
+            await plotRouteOnMap(latitude, longitude, lat, lon, profile);
+        }
+    } catch (error) {
+        console.error('Erro ao obter localização atual:', error);
     }
 }
 
-// Função para obter a rota do ORS
-function getRouteFromORS(startLat, startLon, destLat, destLon) {
-    const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';  // Substitua pela sua chave da API do OpenRouteService
-    const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`;
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.routes && data.routes.length > 0) {
-                const coordinates = data.routes[0].geometry.coordinates;
-                const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
-                plotRouteOnMap(latLngs);
-            } else {
-                console.error('Nenhuma rota encontrada.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao obter rota do ORS:', error);
-        });
+// Função para obter a localização atual do usuário
+function getCurrentLocation() {
+    return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        } else {
+            reject(new Error('Geolocalização não é suportada pelo seu navegador.'));
+        }
+    });
 }
 
-// Função para traçar a rota no mapa
-function plotRouteOnMap(latLngs) {
-    if (typeof L.Routing !== 'undefined') {
+// Função para traçar a rota no mapa usando a API do OpenRouteService
+async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile) {
+    try {
+        const response = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`);
+        if (!response.ok) throw new Error('Falha ao obter a rota do OpenRouteService.');
+
+        const routeData = await response.json();
+        const coordinates = routeData.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+
         if (window.currentRoute) {
-            map.removeControl(window.currentRoute);
+            map.removeLayer(window.currentRoute);
         }
-        window.currentRoute = L.polyline(latLngs, {color: 'blue'}).addTo(map);
-        map.fitBounds(L.polyline(latLngs).getBounds());
-    } else {
-        console.error('Leaflet Routing Machine not available.');
+
+        window.currentRoute = L.polyline(coordinates, { color: 'blue' }).addTo(map);
+        map.fitBounds(window.currentRoute.getBounds());
+    } catch (error) {
+        console.error('Erro ao traçar a rota no mapa:', error);
     }
 }
 
