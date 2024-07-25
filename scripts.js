@@ -31,173 +31,7 @@ let currentMarker = null;
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 const initialImages = [];
-const submenuItems = {
-        'touristSpots-submenu': [
-            { name: "Farol do Morro", lat: -13.377592, lon: -38.916947, description: "Um belo farol.", feature: "pontos-turisticos" },
-            { name: "Toca do Morcego", lat: -13.379369, lon: -38.918018, description: "Um lugar com uma vista espetacular.", feature: "pontos-turisticos" },
-            { name: "Mirante da Tirolesa", lat: -13.378458, lon: -38.915444, description: "Vista incrível do mar.", feature: "pontos-turisticos" },
-            { name: "Fortaleza de Morro de São Paulo", lat: -13.381585, lon: -38.912945, description: "Uma antiga fortaleza.", feature: "pontos-turisticos" },
-            { name: "Paredão da Argila", lat: -13.375169, lon: -38.911957, description: "Paredão de argila terapêutica.", feature: "pontos-turisticos" }
-        ],
-        'tours-submenu': [
-            { name: "Passeio de lancha Volta a Ilha de Tinharé", lat: -13.377840, lon: -38.917669, description: "Passeio de lancha pela ilha.", feature: "passeios" },
-            { name: "Passeio de Quadriciclo para Garapuá", lat: -13.385694, lon: -38.913456, description: "Aventura em quadriciclo.", feature: "passeios" },
-            { name: "Passeio 4X4 para Garapuá", lat: -13.388446, lon: -38.911657, description: "Passeio off-road.", feature: "passeios" },
-            { name: "Passeio de Barco para Gamboa", lat: -13.372316, lon: -38.914169, description: "Passeio de barco até Gamboa.", feature: "passeios" }
-        ],
-        'beaches-submenu': [
-            { name: "Primeira Praia", lat: -13.375893, lon: -38.914387, description: "Praia popular e movimentada.", feature: "praias" },
-            { name: "Segunda Praia", lat: -13.378251, lon: -38.913445, description: "Praia conhecida pelos bares e festas.", feature: "praias" },
-            { name: "Terceira Praia", lat: -13.379945, lon: -38.912566, description: "Praia tranquila para relaxar.", feature: "praias" },
-            { name: "Quarta Praia", lat: -13.382551, lon: -38.911271, description: "Praia extensa e calma.", feature: "praias" },
-            { name: "Praia do Encanto", lat: -13.387453, lon: -38.911218, description: "Praia paradisíaca e isolada.", feature: "praias" },
-            { name: "Praia do Pôrto", lat: -13.367801, lon: -38.907444, description: "Praia tranquila e bonita.", feature: "praias" },
-            { name: "Praia da Gamboa", lat: -13.367801, lon: -38.906715, description: "Praia com argila terapêutica.", feature: "praias" }
-        ],
-        'nightlife-submenu': [
-            { name: "Toca do Morcego Festas", lat: -13.379369, lon: -38.918018, description: "Festas com vista espetacular.", feature: "festas" },
-            { name: "One Love", lat: -13.378303, lon: -38.915065, description: "Casa noturna famosa.", feature: "festas" },
-            { name: "Pulsar", lat: -13.377407, lon: -38.913500, description: "Clube noturno popular.", feature: "festas" },
-            { name: "Mama Iate", lat: -13.378888, lon: -38.918629, description: "Festas em um iate.", feature: "festas" },
-            { name: "Teatro do Morro", lat: -13.378153, lon: -38.918537, description: "Eventos culturais e festas.", feature: "festas" }
-        ],
-        'restaurants-submenu': [
-            { name: "Morena Bela", lat: -13.376934, lon: -38.917420, description: "Restaurante popular.", feature: "restaurantes" },
-            { name: "Basílico", lat: -13.377748, lon: -38.915720, description: "Culinária italiana.", feature: "restaurantes" },
-            { name: "Ki Massa", lat: -13.377934, lon: -38.916907, description: "Pizzaria tradicional.", feature: "restaurantes" },
-            { name: "Tempeiro Caseiro", lat: -13.378394, lon: -38.914797, description: "Comida caseira.", feature: "restaurantes" },
-            { name: "Bizu", lat: -13.378840, lon: -38.913592, description: "Restaurante e bar.", feature: "restaurantes" },
-            { name: "Pedra Sobre Pedra", lat: -13.379196, lon: -38.912742, description: "Gastronomia regional.", feature: "restaurantes" },
-            { name: "Forno a Lenha de Mercedes", lat: -13.379552, lon: -38.911778, description: "Pizzas artesanais.", feature: "restaurantes" },
-            { name: "Ponto G", lat: -13.379891, lon: -38.910681, description: "Gourmet e bar.", feature: "restaurantes" },
-            { name: "Ponto 9,99", lat: -13.380223, lon: -38.909765, description: "Lanches rápidos.", feature: "restaurantes" },
-            { name: "Patricia", lat: -13.380567, lon: -38.908791, description: "Restaurante tradicional.", feature: "restaurantes" },
-            { name: "dizi 10", lat: -13.380895, lon: -38.907832, description: "Comida variada.", feature: "restaurantes" },
-            { name: "Papoula", lat: -13.381229, lon: -38.906853, description: "Culinária local.", feature: "restaurantes" },
-            { name: "Sabor da terra", lat: -13.381557, lon: -38.905866, description: "Pratos regionais.", feature: "restaurantes" },
-            { name: "Branco&Negro", lat: -13.381883, lon: -38.904890, description: "Bar e restaurante.", feature: "restaurantes" },
-            { name: "Six Club", lat: -13.382206, lon: -38.903918, description: "Balada.", feature: "restaurantes" },
-            { name: "Santa Villa", lat: -13.382526, lon: -38.902937, description: "Bar e restaurante.", feature: "restaurantes" },
-            { name: "Recanto do Aviador", lat: -13.382842, lon: -38.901957, description: "Restaurante e bar.", feature: "restaurantes" },
-            { name: "Sambass", lat: -13.383156, lon: -38.900979, description: "Restaurante e bar.", feature: "restaurantes" },
-            { name: "Bar e Restaurante da Morena", lat: -13.383468, lon: -38.899996, description: "Comida caseira.", feature: "restaurantes" },
-            { name: "Restaurante Alecrim", lat: -13.383776, lon: -38.899010, description: "Culinária variada.", feature: "restaurantes" },
-            { name: "Andina Cozinha Latina", lat: -13.384081, lon: -38.898027, description: "Cozinha latina.", feature: "restaurantes" },
-            { name: "Papoula Culinária Artesanal", lat: -13.384384, lon: -38.897046, description: "Culinária artesanal.", feature: "restaurantes" },
-            { name: "Minha Louca Paixão", lat: -13.384683, lon: -38.896062, description: "Restaurante temático.", feature: "restaurantes" },
-            { name: "Café das Artes", lat: -13.384980, lon: -38.895079, description: "Café charmoso com arte.", feature: "restaurantes" },
-            { name: "Canoa", lat: -13.385262, lon: -38.894165, description: "Restaurante à beira-mar.", feature: "restaurantes" },
-            { name: "Restaurante do Francisco", lat: -13.385548, lon: -38.893245, description: "Culinária local e frutos do mar.", feature: "restaurantes" },
-            { name: "La Tabla", lat: -13.385834, lon: -38.892323, description: "Restaurante especializado em carnes.", feature: "restaurantes" },
-            { name: "Santa Luzia", lat: -13.386119, lon: -38.891401, description: "Restaurante com pratos variados.", feature: "restaurantes" },
-            { name: "Chez Max", lat: -13.386405, lon: -38.890481, description: "Restaurante francês.", feature: "restaurantes" },
-            { name: "Barraca da Miriam", lat: -13.386692, lon: -38.889561, description: "Barraca de praia com petiscos.", feature: "restaurantes" },
-            { name: "O Casarão restaurante", lat: -13.386978, lon: -38.888639, description: "Restaurante tradicional.", feature: "restaurantes" }
-        ],
-        'inns-submenu': [
-            { name: "Chez Max", lat: -13.386405, lon: -38.890481, description: "Pousada charmosa.", feature: "pousadas" },
-            { name: "Hotel Fazenda Parque Vila", lat: -13.387401, lon: -38.889420, description: "Hotel fazenda.", feature: "pousadas" },
-            { name: "Guaiamu", lat: -13.388399, lon: -38.888439, description: "Pousada tranquila.", feature: "pousadas" },
-            { name: "Pousada Fazenda Caeiras", lat: -13.389397, lon: -38.887459, description: "Pousada rural.", feature: "pousadas" },
-            { name: "Amendoeira Hotel", lat: -13.390396, lon: -38.886479, description: "Hotel acolhedor.", feature: "pousadas" },
-            { name: "Pousada Natureza", lat: -13.391395, lon: -38.885499, description: "Pousada ecológica.", feature: "pousadas" },
-            { name: "Pousada dos Pássaros", lat: -13.392394, lon: -38.884519, description: "Pousada charmosa.", feature: "pousadas" },
-            { name: "Hotel Morro de São Paulo", lat: -13.393392, lon: -38.883539, description: "Hotel confortável.", feature: "pousadas" },
-            { name: "Uma Janela para o Sol", lat: -13.394391, lon: -38.882559, description: "Pousada com vistas deslumbrantes.", feature: "pousadas" },
-            { name: "Portaló", lat: -13.395389, lon: -38.881579, description: "Hotel e restaurante.", feature: "pousadas" },
-            { name: "Pérola do Morro", lat: -13.396388, lon: -38.880599, description: "Pousada moderna.", feature: "pousadas" },
-            { name: "Safira do Morro", lat: -13.397387, lon: -38.879619, description: "Pousada elegante.", feature: "pousadas" },
-            { name: "Xerife Hotel", lat: -13.398385, lon: -38.878639, description: "Hotel prático e econômico.", feature: "pousadas" },
-            { name: "Ilha da Saudade", lat: -13.399384, lon: -38.877659, description: "Pousada com clima romântico.", feature: "pousadas" },
-            { name: "Porto dos Milagres", lat: -13.400383, lon: -38.876679, description: "Pousada confortável.", feature: "pousadas" },
-            { name: "Passarte", lat: -13.401381, lon: -38.875699, description: "Pousada artística.", feature: "pousadas" },
-            { name: "Pousada da Praça", lat: -13.402380, lon: -38.874719, description: "Pousada central.", feature: "pousadas" },
-            { name: "Pousada Colibri", lat: -13.403379, lon: -38.873739, description: "Pousada acolhedora.", feature: "pousadas" },
-            { name: "Pousada Porto de Cima", lat: -13.404377, lon: -38.872759, description: "Pousada com estilo rústico.", feature: "pousadas" },
-            { name: "Vila Guaiamu", lat: -13.405376, lon: -38.871779, description: "Pousada ecológica.", feature: "pousadas" },
-            { name: "Villa dos Corais pousada", lat: -13.406374, lon: -38.870799, description: "Pousada de luxo.", feature: "pousadas" },
-            { name: "Pousada Fazenda Caeira", lat: -13.407373, lon: -38.869819, description: "Pousada rural.", feature: "pousadas" },
-            { name: "Hotel Anima", lat: -13.408372, lon: -38.868839, description: "Hotel boutique.", feature: "pousadas" },
-            { name: "Vila dos Orixás Boutique Hotel & Spa", lat: -13.409370, lon: -38.867859, description: "Hotel spa.", feature: "pousadas" },
-            { name: "Hotel Karapitangui", lat: -13.410369, lon: -38.866879, description: "Hotel confortável.", feature: "pousadas" },
-            { name: "Pousada Timbalada", lat: -13.411368, lon: -38.865899, description: "Pousada charmosa.", feature: "pousadas" },
-            { name: "Casa Celestino Residence", lat: -13.412366, lon: -38.864919, description: "Residência de férias.", feature: "pousadas" },
-            { name: "Bahia Bacana Pousada", lat: -13.413365, lon: -38.863939, description: "Pousada moderna.", feature: "pousadas" },
-            { name: "Ilha da Saudade", lat: -13.414364, lon: -38.862959, description: "Pousada com clima romântico.", feature: "pousadas" },
-            { name: "Hotel Morro da Saudade", lat: -13.415362, lon: -38.861979, description: "Hotel acolhedor.", feature: "pousadas" },
-            { name: "Bangalô dos sonhos", lat: -13.416361, lon: -38.860999, description: "Bangalô de luxo.", feature: "pousadas" },
-            { name: "Cantinho da Josete", lat: -13.417360, lon: -38.860019, description: "Pousada familiar.", feature: "pousadas" },
-            { name: "Vila Morro do Sao Paulo", lat: -13.418358, lon: -38.859039, description: "Vila charmosa.", feature: "pousadas" },
-            { name: "Casa Rossa", lat: -13.419357, lon: -38.858059, description: "Casa de férias.", feature: "pousadas" },
-            { name: "Village Paraíso Tropical", lat: -13.420356, lon: -38.857079, description: "Resort tropical.", feature: "pousadas" }
-        ],
-        'shops-submenu': [
-            { name: "Absolute", lat: -13.421354, lon: -38.856099, description: "Loja de roupas.", feature: "lojas" },
-            { name: "Local Brasil", lat: -13.422353, lon: -38.855119, description: "Produtos artesanais.", feature: "lojas" },
-            { name: "Super Zimbo", lat: -13.423352, lon: -38.854139, description: "Supermercado.", feature: "lojas" },
-                     { name: "Mateus Esquadrais", lat: -13.424350, lon: -38.853159, description: "Loja de materiais de construção.", feature: "lojas" },
-            { name: "São Pedro Imobiliária", lat: -13.425349, lon: -38.852179, description: "Imobiliária.", feature: "lojas" },
-            { name: "Imóveis Brasil Bahia", lat: -13.426348, lon: -38.851199, description: "Imobiliária.", feature: "lojas" },
-            { name: "Coruja", lat: -13.427347, lon: -38.850219, description: "Loja de presentes.", feature: "lojas" },
-            { name: "Zimbo Dive", lat: -13.428346, lon: -38.849239, description: "Loja de equipamentos de mergulho.", feature: "lojas" },
-            { name: "Havaianas", lat: -13.429345, lon: -38.848259, description: "Loja de sandálias.", feature: "lojas" }
-        ],
-        'emergencies-submenu': [
-            { name: "Ambulância", lat: -13.430344, lon: -38.847279, description: "Serviço de ambulância.", feature: "emergencias" },
-            { name: "Unidade de Saúde", lat: -13.431343, lon: -38.846299, description: "Posto de saúde.", feature: "emergencias" },
-            { name: "Polícia Civil", lat: -13.432342, lon: -38.845319, description: "Delegacia de Polícia Civil.", feature: "emergencias" },
-            { name: "Polícia Militar", lat: -13.433341, lon: -38.844339, description: "Base da Polícia Militar.", feature: "emergencias" }
-        ],
-        'tips-submenu': [
-            { name: "Melhores Pontos Turísticos", lat: -13.434340, lon: -38.843359, description: "Dicas dos melhores pontos turísticos.", feature: "dicas" },
-            { name: "Melhores Passeios", lat: -13.435339, lon: -38.842379, description: "Dicas dos melhores passeios.", feature: "dicas" },
-            { name: "Melhores Praias", lat: -13.436338, lon: -38.841399, description: "Dicas das melhores praias.", feature: "dicas" },
-            { name: "Melhores Restaurantes", lat: -13.437337, lon: -38.840419, description: "Dicas dos melhores restaurantes.", feature: "dicas" },
-            { name: "Melhores Pousadas", lat: -13.438336, lon: -38.839439, description: "Dicas das melhores pousadas.", feature: "dicas" },
-            { name: "Melhores Lojas", lat: -13.439335, lon: -38.838459, description: "Dicas das melhores lojas.", feature: "dicas" }
-        ],
-        'about-submenu': [
-            { name: "Missão", lat: -13.440334, lon: -38.837479, description: "Nossa missão.", feature: "sobre" },
-            { name: "Serviços", lat: -13.441333, lon: -38.836499, description: "Nossos serviços.", feature: "sobre" },
-            { name: "Benefícios para Turistas", lat: -13.442332, lon: -38.835519, description: "Benefícios oferecidos aos turistas.", feature: "sobre" },
-            { name: "Benefícios para Moradores", lat: -13.443331, lon: -38.834539, description: "Benefícios oferecidos aos moradores.", feature: "sobre" },
-            { name: "Benefícios para Pousadas", lat: -13.444330, lon: -38.833559, description: "Benefícios oferecidos às pousadas.", feature: "sobre" },
-            { name: "Benefícios para Restaurantes", lat: -13.445329, lon: -38.832579, description: "Benefícios oferecidos aos restaurantes.", feature: "sobre" },
-            { name: "Benefícios para Agências de Turismo", lat: -13.446328, lon: -38.831599, description: "Benefícios oferecidos às agências de turismo.", feature: "sobre" },
-            { name: "Benefícios para Lojas e Comércios", lat: -13.447327, lon: -38.830619, description: "Benefícios oferecidos às lojas e comércios.", feature: "sobre" },
-            { name: "Benefícios para Transportes", lat: -13.448326, lon: -38.829639, description: "Benefícios oferecidos aos transportes.", feature: "sobre" },
-            { name: "Impacto em MSP", lat: -13.449325, lon: -38.828659, description: "Impacto do projeto em Morro de São Paulo.", feature: "sobre" }
-        ],
-        'education-submenu': [
-            { name: "Iniciar Tutorial", lat: -13.450324, lon: -38.827679, description: "Comece aqui para aprender a usar o site.", feature: "educacao" },
-            { name: "Planejar Viagem com IA", lat: -13.451323, lon: -38.826699, description: "Planeje sua viagem com a ajuda de inteligência artificial.", feature: "educacao" },
-            { name: "Falar com IA", lat: -13.452322, lon: -38.825719, description: "Converse com nosso assistente virtual.", feature: "educacao" },
-            { name: "Falar com Suporte", lat: -13.453321, lon: -38.824739, description: "Entre em contato com o suporte.", feature: "educacao" },
-            { name: "Configurações", lat: -13.454320, lon: -38.823759, description: "Ajuste as configurações do site.", feature: "educacao" }
-        ]
-    };
-
-    Object.keys(submenuItems).forEach(submenuId => {
-    const submenuElement = document.getElementById(submenuId);
-    if (submenuElement) {
-        submenuItems[submenuId].forEach(item => {
-            const button = document.createElement('button');
-            button.className = 'submenu-button';
-            button.setAttribute('data-lat', item.lat);
-            button.setAttribute('data-lon', item.lon);
-            button.setAttribute('data-name', item.name);
-            button.setAttribute('data-description', item.description);
-            button.setAttribute('data-feature', item.feature);
-            button.setAttribute('data-destination', item.name);
-            button.textContent = item.name;
-            submenuElement.appendChild(button);
-        });
-    } else {
-        console.warn(`Submenu element with id ${submenuId} not found`);
-    }
-});
-
-    const translations = {
+const translations = {
     pt: {
         welcome: "Bem-vindo ao nosso site!",
         youAreHere: "Você está aqui!",
@@ -351,11 +185,11 @@ const submenuItems = {
 const queries = {
     'touristSpots-submenu': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
     'tours-submenu': '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
-    'beaches-submenu': '[out:json];node["natural"="beach"](around:10000,-13.376,-38.913);out body;',
+    'beaches-submenu': '[out:json];node["natural"="beach"](around:15000,-13.376,-38.913);out body;',
     'nightlife-submenu': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
-    'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;',
-    'inns-submenu': '[out:json];node["tourism"="hotel"](around:10000,-13.376,-38.913);out body;',
-    'shops-submenu': '[out:json];node["shop"](around:10000,-13.376,-38.913);out body;',
+    'restaurants-submenu': '[out:json];node["amenity"="restaurant"](around:15000,-13.376,-38.913);out body;',
+    'inns-submenu': '[out:json];node["tourism"="hotel"](around:15000,-13.376,-38.913);out body;',
+    'shops-submenu': '[out:json];node["shop"](around:15000,-13.376,-38.913);out body;',
     'emergencies-submenu': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
     'tips-submenu': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;',
     'about-submenu': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;',
@@ -383,7 +217,11 @@ function setupEventListeners() {
     const createRouteBtn = document.getElementById('create-route-btn');
     const noBtn = document.getElementById('no-btn');
     const saveItineraryBtn = document.getElementById('save-itinerary-btn');
+    const aboutMoreBtn = document.getElementById('about-more-btn');
+    const searchBtn = document.getElementById('about-more-btn');
+    const subMenuButtons = document.querySelectorAll('.submenu-button');
 
+    // Correção de Event Listeners
     if (closeModal) {
         closeModal.addEventListener('click', () => {
             modal.style.display = 'none';
@@ -412,7 +250,31 @@ function setupEventListeners() {
         });
     });
 
-    const aboutMoreBtn = document.getElementById('about-more-btn');
+    document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
+        map.zoomIn();
+        closeSideMenu();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
+        map.zoomOut();
+        closeSideMenu();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
+            nextTutorialStep();
+        }
+    });
+
+    document.querySelector('.menu-btn[data-feature="pesquisar"]').addEventListener('click', () => {
+        searchLocation();
+        closeSideMenu();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
+            nextTutorialStep();
+        }
+    });
+
+
     if (aboutMoreBtn) {
         aboutMoreBtn.addEventListener('click', startCarousel);
     }
@@ -2135,6 +1997,12 @@ function getImagesForLocation(locationName) {
     return imageDatabase[locationName] || [];
 }
 
+function updateAssistantModalContent(content) {
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    modalContent.innerHTML = content;
+    document.getElementById('assistant-modal').style.display = 'block';
+}
+
 function showInfoModal(title, content) {
     const infoModal = document.getElementById('info-modal');
     infoModal.querySelector('.modal-title').innerText = title;
@@ -2238,12 +2106,6 @@ function provideContinuousAssistance() {
 
 function answerQuestions(question) {
     console.log(translations[selectedLanguage].answerQuestions, question);
-}
-
-function updateAssistantModalContent(content) {
-    const modalContent = document.querySelector('#assistant-modal .modal-content');
-    modalContent.innerHTML = content;
-    document.getElementById('assistant-modal').style.display = 'block';
 }
 
 const tutorialSteps = [
