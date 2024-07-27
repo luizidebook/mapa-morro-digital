@@ -2551,6 +2551,10 @@ function searchLocation() {
                             map.removeLayer(currentMarker);
                         }
 
+                        // Remove todos os marcadores antigos
+                        markers.forEach(marker => map.removeLayer(marker));
+                        markers = [];
+
                         // Adiciona um novo marcador para o resultado da pesquisa
                         currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                         map.setView([lat, lon], 14);
@@ -2569,6 +2573,39 @@ function searchLocation() {
                                 break;
                             case 'praias':
                                 amenity = 'beach';
+                                break;
+                            case 'bares':
+                                amenity = 'bar';
+                                break;
+                            case 'cafés':
+                                amenity = 'cafe';
+                                break;
+                            case 'hospitais':
+                                amenity = 'hospital';
+                                break;
+                            case 'farmácias':
+                                amenity = 'pharmacy';
+                                break;
+                            case 'parques':
+                                amenity = 'park';
+                                break;
+                            case 'postos de gasolina':
+                                amenity = 'fuel';
+                                break;
+                            case 'banheiros públicos':
+                                amenity = 'toilets';
+                                break;
+                            case 'caixas eletrônicos':
+                                amenity = 'atm';
+                                break;
+                            case 'pontos turísticos':
+                                amenity = 'attraction';
+                                break;
+                            case 'festas':
+                                amenity = 'nightclub';
+                                break;
+                            case 'passeios':
+                                amenity = 'tourism';
                                 break;
                             // Adicione outros casos conforme necessário
                             default:
@@ -2596,7 +2633,7 @@ function searchLocation() {
                                     alert("Ocorreu um erro ao buscar pontos de interesse.");
                                 });
                         } else {
-                            alert(`Busca por "${searchQuery}" não é suportada. Tente buscar por restaurantes, pousadas, lojas, ou praias.`);
+                            alert(`Busca por "${searchQuery}" não é suportada. Tente buscar por restaurantes, pousadas, lojas, praias, bares, cafés, hospitais, farmácias, parques, postos de gasolina, banheiros públicos, caixas eletrônicos, festas, passeios ou pontos turísticos.`);
                         }
                     } else {
                         alert("Local não encontrado em Morro de São Paulo.");
@@ -2611,7 +2648,6 @@ function searchLocation() {
             });
     }
 }
-
 
 function customizeOSMPopup(popup) {
     const popupContent = popup.getElement().querySelector('.leaflet-popup-content');
