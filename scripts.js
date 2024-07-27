@@ -2530,11 +2530,13 @@ function closeSideMenu() {
 function searchLocation() {
     var searchQuery = prompt("Digite o local que deseja buscar em Morro de São Paulo:");
     if (searchQuery) {
-        const viewBox = '-38.926, -13.369, -38.895, -13.392';
+        // Coordenadas aproximadas para a área de Morro de São Paulo
+        const viewBox = '-38.926, -13.369, -38.895, -13.392'; // (lon_min, lat_min, lon_max, lat_max)
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=${viewBox}&bounded=1`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
+                    // Filtrar resultados para garantir que estejam dentro da área de Morro de São Paulo
                     const filteredData = data.filter(location => {
                         const lat = parseFloat(location.lat);
                         const lon = parseFloat(location.lon);
@@ -2546,95 +2548,14 @@ function searchLocation() {
                         var lat = firstResult.lat;
                         var lon = firstResult.lon;
 
-                        // Remove o marcador atual, se existir
+                        // Remove o marcador anterior, se existir
                         if (currentMarker) {
                             map.removeLayer(currentMarker);
                         }
 
-                        // Remove todos os marcadores antigos
-                        markers.forEach(marker => map.removeLayer(marker));
-                        markers = [];
-
-                        // Adiciona um novo marcador para o resultado da pesquisa
+                        // Adiciona o novo marcador e atualiza o mapa
                         currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                         map.setView([lat, lon], 14);
-
-                        // Determina o tipo de ponto de interesse a ser buscado
-                        let amenity;
-                        switch (searchQuery.toLowerCase()) {
-                            case 'restaurantes':
-                                amenity = 'restaurant';
-                                break;
-                            case 'pousadas':
-                                amenity = 'hotel';
-                                break;
-                            case 'lojas':
-                                amenity = 'shop';
-                                break;
-                            case 'praias':
-                                amenity = 'beach';
-                                break;
-                            case 'bares':
-                                amenity = 'bar';
-                                break;
-                            case 'cafés':
-                                amenity = 'cafe';
-                                break;
-                            case 'hospitais':
-                                amenity = 'hospital';
-                                break;
-                            case 'farmácias':
-                                amenity = 'pharmacy';
-                                break;
-                            case 'parques':
-                                amenity = 'park';
-                                break;
-                            case 'postos de gasolina':
-                                amenity = 'fuel';
-                                break;
-                            case 'banheiros públicos':
-                                amenity = 'toilets';
-                                break;
-                            case 'caixas eletrônicos':
-                                amenity = 'atm';
-                                break;
-                            case 'pontos turísticos':
-                                amenity = 'attraction';
-                                break;
-                            case 'festas':
-                                amenity = 'nightclub';
-                                break;
-                            case 'passeios':
-                                amenity = 'tourism';
-                                break;
-                            // Adicione outros casos conforme necessário
-                            default:
-                                amenity = null;
-                                break;
-                        }
-
-                        if (amenity) {
-                            const overpassQuery = `[out:json];node(around:1000,${lat},${lon})[amenity=${amenity}];out body;`;
-                            fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`)
-                                .then(response => response.json())
-                                .then(osmData => {
-                                    if (osmData && osmData.elements && osmData.elements.length > 0) {
-                                        osmData.elements.forEach(element => {
-                                            const marker = L.marker([element.lat, element.lon]).addTo(map)
-                                                .bindPopup(`<b>${element.tags.name || 'Sem nome'}</b><br>${element.tags.amenity}`);
-                                            markers.push(marker);
-                                        });
-                                    } else {
-                                        alert(`Nenhum(a) ${searchQuery} encontrado(a) num raio de 1km.`);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error("Erro ao buscar dados do Overpass:", error);
-                                    alert("Ocorreu um erro ao buscar pontos de interesse.");
-                                });
-                        } else {
-                            alert(`Busca por "${searchQuery}" não é suportada. Tente buscar por restaurantes, pousadas, lojas, praias, bares, cafés, hospitais, farmácias, parques, postos de gasolina, banheiros públicos, caixas eletrônicos, festas, passeios ou pontos turísticos.`);
-                        }
                     } else {
                         alert("Local não encontrado em Morro de São Paulo.");
                     }
@@ -2648,6 +2569,8 @@ function searchLocation() {
             });
     }
 }
+
+
 
 function customizeOSMPopup(popup) {
     const popupContent = popup.getElement().querySelector('.leaflet-popup-content');
