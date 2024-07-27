@@ -238,11 +238,19 @@ function setupEventListeners() {
         });
     }
 
+    document.querySelectorAll('#floating-menu button').forEach(button => {
+    button.addEventListener('click', () => {
+        closeSideMenu();
+        clearCurrentRoute();
+    });
+});
+
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
             adjustModalAndControls();
+            clearCurrentRoute();
             event.stopPropagation();
             if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
                 nextTutorialStep();
@@ -261,6 +269,7 @@ function setupEventListeners() {
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
         closeSideMenu();
+        clearCurrentRoute();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
             nextTutorialStep();
         }
@@ -269,6 +278,7 @@ function setupEventListeners() {
     document.querySelector('.menu-btn[data-feature="pesquisar"]').addEventListener('click', () => {
         searchLocation();
         closeSideMenu();
+        clearCurrentRoute();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
             nextTutorialStep();
         }
@@ -292,6 +302,7 @@ function setupEventListeners() {
     document.querySelectorAll('.submenu-button').forEach(btn => {
         btn.addEventListener('click', (event) => {
             closeSideMenu();
+            clearCurrentRoute();
             hideAllControlButtons();
             handleDestinationSelection(btn);
             event.stopPropagation();
@@ -349,11 +360,8 @@ function setupEventListeners() {
         });
     }
 
-    const tipsBtn = document.querySelector('.menu-btn[data-feature="dicas"]');
-    const educationBtn = document.querySelector('.menu-btn[data-feature="ensino"]');
-
-    if (tipsBtn) tipsBtn.addEventListener('click', showTips);
-    if (educationBtn) educationBtn.addEventListener('click', showEducation);
+    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
+    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 }
 
 
@@ -664,7 +672,7 @@ function initializeMap() {
     }).setView([-13.410, -38.913], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; Desenvolvido por Luiz Idebook'
     }).addTo(map);
 }
 
@@ -944,6 +952,7 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
     selectedDestination = { name, description, lat, lon, images, feature };
     saveDestinationToCache(selectedDestination).then(() => {
         sendDestinationToServiceWorker(selectedDestination);
+        clearCurrentRoute();
     }).catch(error => {
         console.error('Erro ao salvar destino no cache:', error);
     });
@@ -1380,30 +1389,90 @@ function showAssistantModalWithCarousel() {
     document.getElementById('assistant-modal').style.display = 'block';
 }
 
-function startCarousel() {
-    if (!selectedDestination || !selectedDestination.images || selectedDestination.images.length === 0) {
+
+// Função para iniciar o carrossel
+function startCarousel(locationName) {
+    const images = getImagesForLocation(locationName);
+
+    if (!images || images.length === 0) {
         alert('No images available for the carousel.');
         console.error('No images available for the carousel.');
         return;
     }
-    const carouselContainer = document.getElementById('carousel-container');
+
+    const carouselContainer = document.getElementById('assistant-carousel');
     if (!carouselContainer) {
         console.error('Carousel container not found.');
         return;
     }
-    carouselContainer.innerHTML = ''; // Clear previous images
 
-    selectedDestination.images.forEach((imageSrc, index) => {
-        const img = document.createElement('img');
-        img.src = imageSrc;
-        img.className = 'carousel-image';
-        if (index === 0) img.classList.add('active'); // Show the first image by default
-        carouselContainer.appendChild(img);
+    const carouselInner = carouselContainer.querySelector('.carousel-inner');
+    if (!carouselInner) {
+        console.error('Carousel inner container not found.');
+        return;
+    }
+
+    carouselInner.innerHTML = ''; // Clear previous images
+
+    images.forEach((imageSrc, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = `carousel-item${index === 0 ? ' active' : ''}`;
+        carouselItem.innerHTML = `<img src="${imageSrc}" class="d-block w-100" alt="${locationName}">`;
+        carouselInner.appendChild(carouselItem);
     });
 
+    initializeCarouselControls();
     showModal('assistant-modal');
 }
 
+// Função para inicializar os controles do carrossel
+function initializeCarouselControls() {
+    const carouselContainer = document.getElementById('assistant-carousel');
+    if (!carouselContainer) {
+        console.error('Carousel container not found.');
+        return;
+    }
+
+    const prevButton = carouselContainer.querySelector('.carousel-control-prev');
+    const nextButton = carouselContainer.querySelector('.carousel-control-next');
+
+    prevButton.addEventListener('click', () => slideCarousel('prev'));
+    nextButton.addEventListener('click', () => slideCarousel('next'));
+}
+
+// Função para deslizar o carrossel
+function slideCarousel(direction) {
+    const carouselContainer = document.getElementById('assistant-carousel');
+    if (!carouselContainer) {
+        console.error('Carousel container not found.');
+        return;
+    }
+    const carouselInner = carouselContainer.querySelector('.carousel-inner');
+    if (!carouselInner) {
+        console.error('Carousel inner container not found.');
+        return;
+    }
+
+    const items = carouselInner.querySelectorAll('.carousel-item');
+    const activeItem = carouselInner.querySelector('.carousel-item.active');
+    if (!activeItem) {
+        console.error('No active carousel item found.');
+        return;
+    }
+
+    let newIndex;
+    const currentIndex = Array.from(items).indexOf(activeItem);
+    if (direction === 'prev') {
+        newIndex = (currentIndex === 0) ? items.length - 1 : currentIndex - 1;
+    } else if (direction === 'next') {
+        newIndex = (currentIndex === items.length - 1) ? 0 : currentIndex + 1;
+    }
+
+    items[currentIndex].classList.remove('active');
+    items[newIndex].classList.add('active');
+}
+
+// Função para exibir o modal
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -1411,54 +1480,6 @@ function showModal(modalId) {
     } else {
         console.error('Modal not found: ' + modalId);
     }
-}
-
-
-function showLocationDetailsInModal(name, description, images) {
-    const modalContent = document.querySelector('#assistant-modal .modal-content');
-    modalContent.innerHTML = '';
-    
-    const titleElement = document.createElement('h2');
-    titleElement.textContent = name;
-    const descriptionElement = document.createElement('p');
-    descriptionElement.textContent = description;
-    
-    modalContent.appendChild(titleElement);
-    modalContent.appendChild(descriptionElement);
-    
-    const carouselContainer = document.createElement('div');
-    carouselContainer.className = 'carousel';
-    
-    images.forEach((image, index) => {
-        const carouselItem = document.createElement('div');
-        carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
-        const imgElement = document.createElement('img');
-        imgElement.src = image;
-        imgElement.alt = `${name} Image ${index + 1}`;
-        carouselItem.appendChild(imgElement);
-        carouselContainer.appendChild(carouselItem);
-    });
-    
-    modalContent.appendChild(carouselContainer);
-    
-    initializeCarousel(images);
-}
-
-function initializeCarousel(images) {
-    const carouselContainer = document.getElementById('carousel-container');
-    if (!carouselContainer) {
-        console.error('Carousel container not found.');
-        return;
-    }
-    carouselContainer.innerHTML = ''; // Clear previous images
-
-    images.forEach((imageSrc, index) => {
-        const img = document.createElement('img');
-        img.src = imageSrc;
-        img.className = 'carousel-image';
-        if (index === 0) img.classList.add('active'); // Show the first image by default
-        carouselContainer.appendChild(img);
-    });
 }
 
 // Função para criar rota até o destino selecionado
@@ -1518,6 +1539,14 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile) {
     }
 }
 
+
+// Função para limpar a rota atual
+function clearCurrentRoute() {
+    if (currentRoute) {
+        map.removeLayer(currentRoute);
+        currentRoute = null;
+    }
+}
 
 // Função para obter imagens para uma localização
 function getImagesForLocation(locationName) {
@@ -2517,12 +2546,58 @@ function searchLocation() {
                         var lat = firstResult.lat;
                         var lon = firstResult.lon;
 
+                        // Remove o marcador atual, se existir
                         if (currentMarker) {
                             map.removeLayer(currentMarker);
                         }
 
+                        // Adiciona um novo marcador para o resultado da pesquisa
                         currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                         map.setView([lat, lon], 14);
+
+                        // Determina o tipo de ponto de interesse a ser buscado
+                        let amenity;
+                        switch (searchQuery.toLowerCase()) {
+                            case 'restaurantes':
+                                amenity = 'restaurant';
+                                break;
+                            case 'pousadas':
+                                amenity = 'hotel';
+                                break;
+                            case 'lojas':
+                                amenity = 'shop';
+                                break;
+                            case 'praias':
+                                amenity = 'beach';
+                                break;
+                            // Adicione outros casos conforme necessário
+                            default:
+                                amenity = null;
+                                break;
+                        }
+
+                        if (amenity) {
+                            const overpassQuery = `[out:json];node(around:1000,${lat},${lon})[amenity=${amenity}];out body;`;
+                            fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`)
+                                .then(response => response.json())
+                                .then(osmData => {
+                                    if (osmData && osmData.elements && osmData.elements.length > 0) {
+                                        osmData.elements.forEach(element => {
+                                            const marker = L.marker([element.lat, element.lon]).addTo(map)
+                                                .bindPopup(`<b>${element.tags.name || 'Sem nome'}</b><br>${element.tags.amenity}`);
+                                            markers.push(marker);
+                                        });
+                                    } else {
+                                        alert(`Nenhum(a) ${searchQuery} encontrado(a) num raio de 1km.`);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("Erro ao buscar dados do Overpass:", error);
+                                    alert("Ocorreu um erro ao buscar pontos de interesse.");
+                                });
+                        } else {
+                            alert(`Busca por "${searchQuery}" não é suportada. Tente buscar por restaurantes, pousadas, lojas, ou praias.`);
+                        }
                     } else {
                         alert("Local não encontrado em Morro de São Paulo.");
                     }
