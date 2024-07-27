@@ -6,7 +6,42 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         showWelcomeMessage();
         adjustModalAndControls();
-        initializeCarousel(initialImages);
+
+        // Initialize Swiper after the page is fully loaded
+        var swiper = new Swiper('.swiper-container', {
+            slidesPerView: 1,
+            spaceBetween: 10,
+            loop: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+            breakpoints: {
+                // when window width is >= 640px
+                640: {
+                    slidesPerView: 1,
+                    spaceBetween: 20
+                },
+                // when window width is >= 768px
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 30
+                },
+                // when window width is >= 1024px
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 40
+                }
+            }
+        });
     } catch (error) {
         console.error('Erro ao inicializar o aplicativo:', error);
     }
@@ -218,8 +253,11 @@ function setupEventListeners() {
     const noBtn = document.getElementById('no-btn');
     const saveItineraryBtn = document.getElementById('save-itinerary-btn');
     const aboutMoreBtn = document.getElementById('about-more-btn');
-    const searchBtn = document.getElementById('about-more-btn');
+    const searchBtn = document.getElementById('.menu-btn[data-feature="pesquisar"');
     const subMenuButtons = document.querySelectorAll('.submenu-button');
+    const carouselModalClose = document.getElementById('carousel-modal-close');
+    const submenuToggleBtn = document.getElementById('menu-btn'); // Update with the actual ID or class
+
 
     // Correção de Event Listeners
     if (closeModal) {
@@ -237,6 +275,26 @@ function setupEventListeners() {
             }
         });
     }
+
+    if (submenuToggleBtn) {
+        submenuToggleBtn.addEventListener('click', () => {
+            const carouselModal = document.getElementById('carousel-modal');
+            if (carouselModal) {
+                carouselModal.classList.toggle('shift-left');
+            }
+        });
+    }
+
+    if (aboutMoreBtn) {
+        aboutMoreBtn.addEventListener('click', () => {
+            if (selectedDestination && selectedDestination.name) {
+                startCarousel(selectedDestination.name);
+            } else {
+                alert('Por favor, selecione um destino primeiro.');
+            }
+        });
+    }
+
 
     document.querySelectorAll('#floating-menu button').forEach(button => {
     button.addEventListener('click', () => {
@@ -298,6 +356,11 @@ function setupEventListeners() {
             hideControlButtons();
         });
     }
+
+    if (carouselModalClose) {
+        carouselModalClose.addEventListener('click', closeCarouselModal);
+    }
+
 
     document.querySelectorAll('.submenu-button').forEach(btn => {
         btn.addEventListener('click', (event) => {
@@ -381,24 +444,40 @@ function hideControlButtons() {
 }
 
 function restoreModalAndControlsStyles() {
-    const modal = document.getElementById('assistant-modal');
+    const assistantModal = document.getElementById('assistant-modal');
+    const carouselModal = document.getElementById('carousel-modal'); // Adicione esta linha
     const controlButtons = document.querySelector('.control-buttons');
     const mapContainer = document.getElementById('map');
 
-    Object.assign(modal.style, {
-        position: 'absolute',
-        top: '40%',
+    Object.assign(assistantModal.style, {
         left: '50%',
+        top: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '70%',
-        maxWidth: '600px',
-        background: 'white',
-        padding: '20px',
-        border: '1px solid #ccc',
-        borderRadius: '12px',
-        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-        zIndex: '100000',
-        textAlign: 'center'
+        width: '',
+        maxWidth: '',
+        background: '',
+        padding: '',
+        border: '',
+        borderRadius: '',
+        boxShadow: '',
+        zIndex: '',
+        textAlign: ''
+    });
+
+    Object.assign(carouselModal.style, { // Adicione esta linha
+            top: '40%',
+            left: `50%`,
+            transform: 'translate(-50%, -50%)',
+            width: '60%',
+            height: '50%',
+            maxWidth: '600px',
+            background: 'white',
+            padding: '0px',
+            border: '1px solid #ccc',
+            borderRadius: '12px',
+            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+            zIndex: '100000',
+            textAlign: 'center'
     });
 
     Object.assign(controlButtons.style, {
@@ -409,32 +488,33 @@ function restoreModalAndControlsStyles() {
         width: '100%',
         height: '100%'
     });
-
-    if (map) {
-        map.invalidateSize();
-    }
 }
 
+
 function adjustModalAndControls() {
-    const modal = document.getElementById('assistant-modal');
+    const assistantModal = document.getElementById('assistant-modal');
+    const carouselModal = document.getElementById('carousel-modal'); // Adicione esta linha
     const sideMenu = document.querySelector('.menu');
     const controlButtons = document.querySelector('.control-buttons');
     const mapContainer = document.getElementById('map');
 
     if (!sideMenu.classList.contains('hidden')) {
-        Object.assign(modal.style, {
+        Object.assign(assistantModal.style, {
             left: `40%`
         });
 
         Object.assign(controlButtons.style, {
             left: '40%',
         });
+
         Object.assign(mapContainer.style, {
             width: `75%`,
             height: '100%'
         });
 
-        adjustModalStyles();
+        // Ajuste o estilo do modal do carrossel
+        adjustModalStyles(assistantModal);
+        adjustModalStyles(carouselModal); // Adicione esta linha
     } else {
         restoreModalAndControlsStyles();
     }
@@ -444,8 +524,7 @@ function adjustModalAndControls() {
     }
 }
 
-function adjustModalStyles() {
-    const modal = document.getElementById('assistant-modal');
+function adjustModalStyles(modal) {
     const sideMenu = document.querySelector('.menu');
 
     if (!sideMenu.classList.contains('hidden')) {
@@ -456,7 +535,7 @@ function adjustModalStyles() {
             width: '60%',
             maxWidth: '600px',
             background: 'white',
-            padding: '20px',
+            padding: '0px',
             border: '1px solid #ccc',
             borderRadius: '12px',
             boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
@@ -467,6 +546,7 @@ function adjustModalStyles() {
         restoreModalAndControlsStyles();
     }
 }
+
 
 function showNotification(message, type = 'success') {
     const notificationContainer = document.getElementById('notification-container');
@@ -552,10 +632,6 @@ function showUserLocationPopup(lat, lon) {
         .openOn(map);
 }
 
-function showModal(id) {
-    const modal = document.getElementById(id);
-    modal.style.display = 'block';
-}
 
 function showMenuToggleButton() {
     const menuToggle = document.getElementById('menu-btn');
@@ -957,6 +1033,12 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
         console.error('Erro ao salvar destino no cache:', error);
     });
 
+    // Mostrar o botão "Saiba mais"
+    const aboutMoreBtn = document.getElementById('about-more-btn');
+    if (aboutMoreBtn) {
+        aboutMoreBtn.style.display = 'block';
+    }
+
     switch (feature) {
         case 'passeios':
             showControlButtonsTour();
@@ -990,6 +1072,7 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
             break;
     }
 }
+
 
 function displayCustomItems(items, subMenuId, feature) {
     const subMenu = document.getElementById(subMenuId);
@@ -1400,87 +1483,40 @@ function startCarousel(locationName) {
         return;
     }
 
-    const carouselContainer = document.getElementById('assistant-carousel');
-    if (!carouselContainer) {
-        console.error('Carousel container not found.');
+    const swiperWrapper = document.querySelector('.swiper-wrapper');
+    if (!swiperWrapper) {
+        console.error('Swiper wrapper not found.');
         return;
     }
 
-    const carouselInner = carouselContainer.querySelector('.carousel-inner');
-    if (!carouselInner) {
-        console.error('Carousel inner container not found.');
-        return;
-    }
+    swiperWrapper.innerHTML = ''; // Clear previous images
 
-    carouselInner.innerHTML = ''; // Clear previous images
-
-    images.forEach((imageSrc, index) => {
-        const carouselItem = document.createElement('div');
-        carouselItem.className = `carousel-item${index === 0 ? ' active' : ''}`;
-        carouselItem.innerHTML = `<img src="${imageSrc}" class="d-block w-100" alt="${locationName}">`;
-        carouselInner.appendChild(carouselItem);
+    images.forEach((imageSrc) => {
+        const swiperSlide = document.createElement('div');
+        swiperSlide.className = 'swiper-slide';
+        swiperSlide.innerHTML = `<img src="${imageSrc}" alt="${locationName}">`;
+        swiperWrapper.appendChild(swiperSlide);
     });
 
-    initializeCarouselControls();
-    showModal('assistant-modal');
+    showModal('carousel-modal');
 }
 
-// Função para inicializar os controles do carrossel
-function initializeCarouselControls() {
-    const carouselContainer = document.getElementById('assistant-carousel');
-    if (!carouselContainer) {
-        console.error('Carousel container not found.');
-        return;
-    }
-
-    const prevButton = carouselContainer.querySelector('.carousel-control-prev');
-    const nextButton = carouselContainer.querySelector('.carousel-control-next');
-
-    prevButton.addEventListener('click', () => slideCarousel('prev'));
-    nextButton.addEventListener('click', () => slideCarousel('next'));
-}
-
-// Função para deslizar o carrossel
-function slideCarousel(direction) {
-    const carouselContainer = document.getElementById('assistant-carousel');
-    if (!carouselContainer) {
-        console.error('Carousel container not found.');
-        return;
-    }
-    const carouselInner = carouselContainer.querySelector('.carousel-inner');
-    if (!carouselInner) {
-        console.error('Carousel inner container not found.');
-        return;
-    }
-
-    const items = carouselInner.querySelectorAll('.carousel-item');
-    const activeItem = carouselInner.querySelector('.carousel-item.active');
-    if (!activeItem) {
-        console.error('No active carousel item found.');
-        return;
-    }
-
-    let newIndex;
-    const currentIndex = Array.from(items).indexOf(activeItem);
-    if (direction === 'prev') {
-        newIndex = (currentIndex === 0) ? items.length - 1 : currentIndex - 1;
-    } else if (direction === 'next') {
-        newIndex = (currentIndex === items.length - 1) ? 0 : currentIndex + 1;
-    }
-
-    items[currentIndex].classList.remove('active');
-    items[newIndex].classList.add('active');
-}
-
-// Função para exibir o modal
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex'; // Use flex to center the modal
     } else {
         console.error('Modal not found: ' + modalId);
     }
 }
+
+function closeCarouselModal() {
+    const carouselModal = document.getElementById('carousel-modal');
+    if (carouselModal) {
+        carouselModal.style.display = 'none';
+    }
+}
+
 
 // Função para criar rota até o destino selecionado
 function createRoute() {
@@ -1550,481 +1586,605 @@ function clearCurrentRoute() {
 
 // Função para obter imagens para uma localização
 function getImagesForLocation(locationName) {
+    const basePath = 'Images/';
+
     const imageDatabase = {
-        'Toca do Morcego': [
-            'https://img.freepik.com/free-photo/breathtaking-view-cliff-overlooking-ocean-morro-sao-paulo-bahia-brazil_181624-22279.jpg',
-            'https://img.freepik.com/free-photo/beautiful-beach-cliffs-clear-sky-morro-sao-paulo-bahia-brazil_181624-22280.jpg',
-            'https://img.freepik.com/free-photo/aerial-view-beach-cliffs-morro-sao-paulo-bahia-brazil_181624-22278.jpg'
-        ],
         'Farol do Morro': [
-            'https://img.freepik.com/free-photo/lighthouse-coastline-morro-sao-paulo-bahia-brazil_181624-22282.jpg',
-            'https://img.freepik.com/free-photo/beautiful-lighthouse-sea-morro-sao-paulo-bahia-brazil_181624-22283.jpg',
-            'https://img.freepik.com/free-photo/lighthouse-top-view-morro-sao-paulo-bahia-brazil_181624-22284.jpg'
+            `${basePath}farol_do_morro1.jpg`,
+            `${basePath}farol_do_morro2.jpg`,
+            `${basePath}farol_do_morro3.jpg`
+        ],
+        'Toca do Morcego': [
+            `${basePath}toca_do_morcego1.png`,
+            `${basePath}toca_do_morcego2.png`,
+            `${basePath}toca_do_morcego3.png`
         ],
         'Mirante da Tirolesa': [
-            'https://img.freepik.com/free-photo/viewpoint-skyline-morro-sao-paulo-bahia-brazil_181624-22285.jpg',
-            'https://img.freepik.com/free-photo/aerial-view-mirante-morro-sao-paulo-bahia-brazil_181624-22286.jpg',
-            'https://img.freepik.com/free-photo/viewpoint-scenic-sunset-morro-sao-paulo-bahia-brazil_181624-22287.jpg'
+            `${basePath}mirante_da_tirolesa1.jpg`,
+            `${basePath}mirante_da_tirolesa2.jpg`,
+            `${basePath}mirante_da_tirolesa3.jpg`
         ],
         'Fortaleza de Morro de São Paulo': [
-            'https://img.freepik.com/free-photo/fortress-seaside-morro-sao-paulo-bahia-brazil_181624-22288.jpg',
-            'https://img.freepik.com/free-photo/ancient-fortress-ocean-morro-sao-paulo-bahia-brazil_181624-22289.jpg',
-            'https://img.freepik.com/free-photo/fortress-aerial-view-morro-sao-paulo-bahia-brazil_181624-22290.jpg'
+            `${basePath}fortaleza_de_morro1.jpg`,
+            `${basePath}fortaleza_de_morro2.jpg`,
+            `${basePath}fortaleza_de_morro3.jpg`
         ],
         'Paredão da Argila': [
-            'https://img.freepik.com/free-photo/clay-wall-close-up-morro-sao-paulo-bahia-brazil_181624-22291.jpg',
-            'https://img.freepik.com/free-photo/clay-wall-beach-morro-sao-paulo-bahia-brazil_181624-22292.jpg',
-            'https://img.freepik.com/free-photo/clay-wall-seaside-morro-sao-paulo-bahia-brazil_181624-22293.jpg'
+            `${basePath}paredao_da_argila1.jpg`,
+            `${basePath}paredao_da_argila2.jpg`,
+            `${basePath}paredao_da_argila3.jpg`
         ],
         'Passeio de lancha Volta a Ilha de Tinharé': [
-            'https://img.freepik.com/free-photo/boat-tour-island-morro-sao-paulo-bahia-brazil_181624-22294.jpg',
-            'https://img.freepik.com/free-photo/boat-trip-around-island-morro-sao-paulo-bahia-brazil_181624-22295.jpg',
-            'https://img.freepik.com/free-photo/boat-tour-aerial-view-morro-sao-paulo-bahia-brazil_181624-22296.jpg'
+            `${basePath}passeio_lancha_ilha_tinhare1.jpg`,
+            `${basePath}passeio_lancha_ilha_tinhare2.jpg`,
+            `${basePath}passeio_lancha_ilha_tinhare3.jpg`
         ],
         'Passeio de Quadriciclo para Garapuá': [
-            'https://img.freepik.com/free-photo/quad-bike-tour-beach-morro-sao-paulo-bahia-brazil_181624-22297.jpg',
-            'https://img.freepik.com/free-photo/quad-bike-ride-morro-sao-paulo-bahia-brazil_181624-22298.jpg',
-            'https://img.freepik.com/free-photo/quad-bike-seaside-morro-sao-paulo-bahia-brazil_181624-22299.jpg'
+            `${basePath}passeio_quadriciclo_garapua1.jpg`,
+            `${basePath}passeio_quadriciclo_garapua2.jpg`,
+            `${basePath}passeio_quadriciclo_garapua3.jpg`
         ],
         'Passeio 4X4 para Garapuá': [
-            'https://img.freepik.com/free-photo/4x4-ride-beach-morro-sao-paulo-bahia-brazil_181624-22300.jpg',
-            'https://img.freepik.com/free-photo/4x4-vehicle-seaside-morro-sao-paulo-bahia-brazil_181624-22301.jpg',
-            'https://img.freepik.com/free-photo/4x4-ride-scenic-view-morro-sao-paulo-bahia-brazil_181624-22302.jpg'
+            `${basePath}passeio_4x4_garapua1.jpg`,
+            `${basePath}passeio_4x4_garapua2.jpg`,
+            `${basePath}passeio_4x4_garapua3.jpg`
         ],
         'Passeio de Barco para Gamboa': [
-            'https://img.freepik.com/free-photo/boat-trip-gamboa-morro-sao-paulo-bahia-brazil_181624-22303.jpg',
-            'https://img.freepik.com/free-photo/boat-tour-sunset-gamboa-morro-sao-paulo-bahia-brazil_181624-22304.jpg',
-            'https://img.freepik.com/free-photo/boat-ride-gamboa-morro-sao-paulo-bahia-brazil_181624-22305.jpg'
+            `${basePath}passeio_barco_gamboa1.jpg`,
+            `${basePath}passeio_barco_gamboa2.jpg`,
+            `${basePath}passeio_barco_gamboa3.jpg`
         ],
         'Primeira Praia': [
-            'https://example.com/primeirapraia1.jpg',
-            'https://example.com/primeirapraia2.jpg',
-            'https://example.com/primeirapraia3.jpg'
-        ],
-        'Praia do Pôrto': [
-            'https://example.com/praiaporto1.jpg',
-            'https://example.com/praiaporto2.jpg',
-            'https://example.com/praiaporto3.jpg'
-        ],
-        'Praia da Gamboa': [
-            'https://example.com/praiadagamboa1.jpg',
-            'https://example.com/praiadagamboa2.jpg',
-            'https://example.com/praiadagamboa3.jpg'
+            `${basePath}primeira_praia1.jpg`,
+            `${basePath}primeira_praia2.jpg`,
+            `${basePath}primeira_praia3.jpg`
         ],
         'Segunda Praia': [
-            'https://example.com/segundapraia1.jpg',
-            'https://example.com/segundapraia2.jpg',
-            'https://example.com/segundapraia3.jpg'
-        ],
-        'Toca do Morcego Festas': [
-            'https://example.com/tocadomorcego1.jpg',
-            'https://example.com/tocadomorcego2.jpg',
-            'https://example.com/tocadomorcego3.jpg'
-        ],
-        'One Love': [
-            'https://example.com/onelove1.jpg',
-            'https://example.com/onelove2.jpg',
-            'https://example.com/onelove3.jpg'
-        ],
-        'Pulsar': [
-            'https://example.com/pulsar1.jpg',
-            'https://example.com/pulsar2.jpg',
-            'https://example.com/pulsar3.jpg'
-        ],
-        'Mama Iate': [
-            'https://example.com/mamaiate1.jpg',
-            'https://example.com/mamaiate2.jpg',
-            'https://example.com/mamaiate3.jpg'
-        ],
-        'Teatro do Morro': [
-            'https://example.com/teatrodomorro1.jpg',
-            'https://example.com/teatrodomorro2.jpg',
-            'https://example.com/teatrodomorro3.jpg'
+            `${basePath}segunda_praia1.jpg`,
+            `${basePath}segunda_praia2.jpg`,
+            `${basePath}segunda_praia3.jpg`
         ],
         'Terceira Praia': [
-            'https://example.com/terceirapraia1.jpg',
-            'https://example.com/terceirapraia2.jpg',
-            'https://example.com/terceirapraia3.jpg'
+            `${basePath}terceira_praia1.jpg`,
+            `${basePath}terceira_praia2.jpg`,
+            `${basePath}terceira_praia3.jpg`
         ],
         'Quarta Praia': [
-            'https://example.com/quartapraia1.jpg',
-            'https://example.com/quartapraia2.jpg',
-            'https://example.com/quartapraia3.jpg'
+            `${basePath}quarta_praia1.jpg`,
+            `${basePath}quarta_praia2.jpg`,
+            `${basePath}quarta_praia3.jpg`
         ],
         'Praia do Encanto': [
-            'https://example.com/praiadoencanto1.jpg',
-            'https://example.com/praiadoencanto2.jpg',
-            'https://example.com/praiadoencanto3.jpg'
+            `${basePath}praia_do_encanto1.jpg`,
+            `${basePath}praia_do_encanto2.jpg`,
+            `${basePath}praia_do_encanto3.jpg`
+        ],
+        'Praia do Pôrto': [
+            `${basePath}praia_do_porto1.jpg`,
+            `${basePath}praia_do_porto2.jpg`,
+            `${basePath}praia_do_porto3.jpg`
+        ],
+        'Praia da Gamboa': [
+            `${basePath}praia_da_gamboa1.jpg`,
+            `${basePath}praia_da_gamboa2.jpg`,
+            `${basePath}praia_da_gamboa3.jpg`
+        ],
+        'Toca do Morcego Festas': [
+            `${basePath}toca_do_morcego_festas1.jpg`,
+            `${basePath}toca_do_morcego_festas2.jpg`,
+            `${basePath}toca_do_morcego_festas3.jpg`
+        ],
+        'One Love': [
+            `${basePath}one_love1.jpg`,
+            `${basePath}one_love2.jpg`,
+            `${basePath}one_love3.jpg`
+        ],
+        'Pulsar': [
+            `${basePath}pulsar1.jpg`,
+            `${basePath}pulsar2.jpg`,
+            `${basePath}pulsar3.jpg`
+        ],
+        'Mama Iate': [
+            `${basePath}mama_iate1.jpg`,
+            `${basePath}mama_iate2.jpg`,
+            `${basePath}mama_iate3.jpg`
+        ],
+        'Teatro do Morro': [
+            `${basePath}teatro_do_morro1.jpg`,
+            `${basePath}teatro_do_morro2.jpg`,
+            `${basePath}teatro_do_morro3.jpg`
         ],
         'Morena Bela': [
-            'https://example.com/morenabela1.jpg',
-            'https://example.com/morenabela2.jpg',
-            'https://example.com/morenabela3.jpg'
+            `${basePath}morena_bela1.jpg`,
+            `${basePath}morena_bela2.jpg`,
+            `${basePath}morena_bela3.jpg`
         ],
         'Basílico': [
-            'https://example.com/basilico1.jpg',
-            'https://example.com/basilico2.jpg',
-            'https://example.com/basilico3.jpg'
+            `${basePath}basilico1.jpg`,
+            `${basePath}basilico2.jpg`,
+            `${basePath}basilico3.jpg`
         ],
         'Ki Massa': [
-            'https://example.com/kimassa1.jpg',
-            'https://example.com/kimassa2.jpg',
-            'https://example.com/kimassa3.jpg'
+            `${basePath}ki_massa1.jpg`,
+            `${basePath}ki_massa2.jpg`,
+            `${basePath}ki_massa3.jpg`
         ],
         'Tempeiro Caseiro': [
-            'https://example.com/tempeirocaseiro1.jpg',
-            'https://example.com/tempeirocaseiro2.jpg',
-            'https://example.com/tempeirocaseiro3.jpg'
+            `${basePath}tempeiro_caseiro1.jpg`,
+            `${basePath}tempeiro_caseiro2.jpg`,
+            `${basePath}tempeiro_caseiro3.jpg`
         ],
         'Bizu': [
-            'https://example.com/bizu1.jpg',
-            'https://example.com/bizu2.jpg',
-            'https://example.com/bizu3.jpg'
+            `${basePath}bizu1.jpg`,
+            `${basePath}bizu2.jpg`,
+            `${basePath}bizu3.jpg`
         ],
         'Pedra Sobre Pedra': [
-            'https://example.com/pedrasobrepedra1.jpg',
-            'https://example.com/pedrasobrepedra2.jpg',
-            'https://example.com/pedrasobrepedra3.jpg'
+            `${basePath}pedra_sobre_pedra1.jpg`,
+            `${basePath}pedra_sobre_pedra2.jpg`,
+            `${basePath}pedra_sobre_pedra3.jpg`
         ],
         'Forno a Lenha de Mercedes': [
-            'https://example.com/fornoalenha1.jpg',
-            'https://example.com/fornoalenha2.jpg',
-            'https://example.com/fornoalenha3.jpg'
+            `${basePath}forno_a_lenha1.jpg`,
+            `${basePath}forno_a_lenha2.jpg`,
+            `${basePath}forno_a_lenha3.jpg`
         ],
         'Ponto G': [
-            'https://example.com/pontog1.jpg',
-            'https://example.com/pontog2.jpg',
-            'https://example.com/pontog3.jpg'
+            `${basePath}ponto_g1.jpg`,
+            `${basePath}ponto_g2.jpg`,
+            `${basePath}ponto_g3.jpg`
         ],
         'Ponto 9,99': [
-            'https://example.com/ponto9991.jpg',
-            'https://example.com/ponto9992.jpg',
-            'https://example.com/ponto9993.jpg'
+            `${basePath}ponto_9991.jpg`,
+            `${basePath}ponto_9992.jpg`,
+            `${basePath}ponto_9993.jpg`
         ],
         'Patricia': [
-            'https://example.com/patricia1.jpg',
-            'https://example.com/patricia2.jpg',
-            'https://example.com/patricia3.jpg'
+            `${basePath}patricia1.jpg`,
+            `${basePath}patricia2.jpg`,
+            `${basePath}patricia3.jpg`
         ],
         'dizi 10': [
-            'https://example.com/dizi101.jpg',
-            'https://example.com/dizi102.jpg',
-            'https://example.com/dizi103.jpg'
+            `${basePath}dizi_101.jpg`,
+            `${basePath}dizi_102.jpg`,
+            `${basePath}dizi_103.jpg`
         ],
         'Papoula': [
-            'https://example.com/papoula1.jpg',
-            'https://example.com/papoula2.jpg',
-            'https://example.com/papoula3.jpg'
+            `${basePath}papoula1.jpg`,
+            `${basePath}papoula2.jpg`,
+            `${basePath}papoula3.jpg`
         ],
         'Sabor da terra': [
-            'https://example.com/sabordaterr1.jpg',
-            'https://example.com/sabordaterr2.jpg',
-            'https://example.com/sabordaterr3.jpg'
+            `${basePath}sabor_da_terra1.jpg`,
+            `${basePath}sabor_da_terra2.jpg`,
+            `${basePath}sabor_da_terra3.jpg`
         ],
         'Branco&Negro': [
-            'https://example.com/branconegro1.jpg',
-            'https://example.com/branconegro2.jpg',
-            'https://example.com/branconegro3.jpg'
+            `${basePath}branco_negro1.jpg`,
+            `${basePath}branco_negro2.jpg`,
+            `${basePath}branco_negro3.jpg`
         ],
         'Six Club': [
-            'https://example.com/sixclub1.jpg',
-            'https://example.com/sixclub2.jpg',
-            'https://example.com/sixclub3.jpg'
+            `${basePath}six_club1.jpg`,
+            `${basePath}six_club2.jpg`,
+            `${basePath}six_club3.jpg`
         ],
         'Santa Villa': [
-            'https://example.com/santavilla1.jpg',
-            'https://example.com/santavilla2.jpg',
-            'https://example.com/santavilla3.jpg'
+            `${basePath}santa_villa1.jpg`,
+            `${basePath}santa_villa2.jpg`,
+            `${basePath}santa_villa3.jpg`
         ],
         'Recanto do Aviador': [
-            'https://example.com/recantoaviador1.jpg',
-            'https://example.com/recantoaviador2.jpg',
-            'https://example.com/recantoaviador3.jpg'
+            `${basePath}recanto_do_aviador1.jpg`,
+            `${basePath}recanto_do_aviador2.jpg`,
+            `${basePath}recanto_do_aviador3.jpg`
         ],
         'Sambass': [
-            'https://example.com/sambass1.jpg',
-            'https://example.com/sambass2.jpg',
-            'https://example.com/sambass3.jpg'
+            `${basePath}sambass1.jpg`,
+            `${basePath}sambass2.jpg`,
+            `${basePath}sambass3.jpg`
         ],
         'Bar e Restaurante da Morena': [
-            'https://example.com/restaurante1.jpg',
-            'https://example.com/restaurante2.jpg',
-            'https://example.com/restaurante3.jpg'
+            `${basePath}bar_restaurante_morena1.jpg`,
+            `${basePath}bar_restaurante_morena2.jpg`,
+            `${basePath}bar_restaurante_morena3.jpg`
         ],
         'Restaurante Alecrim': [
-            'https://example.com/alecrim1.jpg',
-            'https://example.com/alecrim2.jpg',
-            'https://example.com/alecrim3.jpg'
+            `${basePath}restaurante_alecrim1.jpg`,
+            `${basePath}restaurante_alecrim2.jpg`,
+            `${basePath}restaurante_alecrim3.jpg`
         ],
         'Andina Cozinha Latina': [
-            'https://example.com/andinacozinha1.jpg',
-            'https://example.com/andinacozinha2.jpg',
-            'https://example.com/andinacozinha3.jpg'
+            `${basePath}andina_cozinha_latina1.jpg`,
+            `${basePath}andina_cozinha_latina2.jpg`,
+            `${basePath}andina_cozinha_latina3.jpg`
         ],
         'Papoula Culinária Artesanal': [
-            'https://example.com/papoulaculinaria1.jpg',
-            'https://example.com/papoulaculinaria2.jpg',
-            'https://example.com/papoulaculinaria3.jpg'
+            `${basePath}papoula_culinaria_artesanal1.jpg`,
+            `${basePath}papoula_culinaria_artesanal2.jpg`,
+            `${basePath}papoula_culinaria_artesanal3.jpg`
         ],
-        'Louca Paixão': [
-            'https://example.com/loucapaixao1.jpg',
-            'https://example.com/loucapaixao2.jpg',
-            'https://example.com/loucapaixao3.jpg'
+        'Minha Louca Paixão': [
+            `${basePath}minha_louca_paixao1.jpg`,
+            `${basePath}minha_louca_paixao2.jpg`,
+            `${basePath}minha_louca_paixao3.jpg`
         ],
         'Café das Artes': [
-            'https://example.com/cafedasartes1.jpg',
-            'https://example.com/cafedasartes2.jpg',
-            'https://example.com/cafedasartes3.jpg'
+            `${basePath}cafe_das_artes1.jpg`,
+            `${basePath}cafe_das_artes2.jpg`,
+            `${basePath}cafe_das_artes3.jpg`
         ],
         'Canoa': [
-            'https://example.com/canoa1.jpg',
-            'https://example.com/canoa2.jpg',
-            'https://example.com/canoa3.jpg'
+            `${basePath}canoa1.jpg`,
+            `${basePath}canoa2.jpg`,
+            `${basePath}canoa3.jpg`
         ],
         'Restaurante do Francisco': [
-            'https://example.com/francisco1.jpg',
-            'https://example.com/francisco2.jpg',
-            'https://example.com/francisco3.jpg'
+            `${basePath}restaurante_francisco1.jpg`,
+            `${basePath}restaurante_francisco2.jpg`,
+            `${basePath}restaurante_francisco3.jpg`
         ],
         'La Tabla': [
-            'https://example.com/latabla1.jpg',
-            'https://example.com/latabla2.jpg',
-            'https://example.com/latabla3.jpg'
+            `${basePath}la_tabla1.jpg`,
+            `${basePath}la_tabla2.jpg`,
+            `${basePath}la_tabla3.jpg`
         ],
         'Santa Luzia': [
-            'https://example.com/santaluzia1.jpg',
-            'https://example.com/santaluzia2.jpg',
-            'https://example.com/santaluzia3.jpg'
+            `${basePath}santa_luzia1.jpg`,
+            `${basePath}santa_luzia2.jpg`,
+            `${basePath}santa_luzia3.jpg`
         ],
         'Chez Max': [
-            'https://example.com/chezmax1.jpg',
-            'https://example.com/chezmax2.jpg',
-            'https://example.com/chezmax3.jpg'
+            `${basePath}chez_max1.jpg`,
+            `${basePath}chez_max2.jpg`,
+            `${basePath}chez_max3.jpg`
         ],
         'Barraca da Miriam': [
-            'https://example.com/barracamiriam1.jpg',
-            'https://example.com/barracamiriam2.jpg',
-            'https://example.com/barracamiriam3.jpg'
+            `${basePath}barraca_miriam1.jpg`,
+            `${basePath}barraca_miriam2.jpg`,
+            `${basePath}barraca_miriam3.jpg`
         ],
         'O Casarão restaurante': [
-            'https://example.com/casaraorestaurante1.jpg',
-            'https://example.com/casaraorestaurante2.jpg',
-            'https://example.com/casaraorestaurante3.jpg'
+            `${basePath}casarao_restaurante1.jpg`,
+            `${basePath}casarao_restaurante2.jpg`,
+            `${basePath}casarao_restaurante3.jpg`
         ],
-        'Hotel Fazenda Parque Vila Guaiamu': [
-            'https://example.com/hotelguaiamu1.jpg',
-            'https://example.com/hotelguaiamu2.jpg',
-            'https://example.com/hotelguaiamu3.jpg'
+        'Hotel Fazenda Parque Vila': [
+            `${basePath}hotel_fazenda_parque_vila1.jpg`,
+            `${basePath}hotel_fazenda_parque_vila2.jpg`,
+            `${basePath}hotel_fazenda_parque_vila3.jpg`
+        ],
+        'Guaiamu': [
+            `${basePath}guaiamu1.jpg`,
+            `${basePath}guaiamu2.jpg`,
+            `${basePath}guaiamu3.jpg`
         ],
         'Pousada Fazenda Caeiras': [
-            'https://example.com/fazendacaeiras1.jpg',
-            'https://example.com/fazendacaeiras2.jpg',
-            'https://example.com/fazendacaeiras3.jpg'
+            `${basePath}pousada_fazenda_caeiras1.jpg`,
+            `${basePath}pousada_fazenda_caeiras2.jpg`,
+            `${basePath}pousada_fazenda_caeiras3.jpg`
         ],
         'Amendoeira Hotel': [
-            'https://example.com/amendoeira1.jpg',
-            'https://example.com/amendoeira2.jpg',
-            'https://example.com/amendoeira3.jpg'
+            `${basePath}amendoeira_hotel1.jpg`,
+            `${basePath}amendoeira_hotel2.jpg`,
+            `${basePath}amendoeira_hotel3.jpg`
         ],
         'Pousada Natureza': [
-            'https://example.com/natureza1.jpg',
-            'https://example.com/natureza2.jpg',
-            'https://example.com/natureza3.jpg'
+            `${basePath}pousada_natureza1.jpg`,
+            `${basePath}pousada_natureza2.jpg`,
+            `${basePath}pousada_natureza3.jpg`
         ],
         'Pousada dos Pássaros': [
-            'https://example.com/passaro1.jpg',
-            'https://example.com/passaro2.jpg',
-            'https://example.com/passaro3.jpg'
+            `${basePath}pousada_dos_passaros1.jpg`,
+            `${basePath}pousada_dos_passaros2.jpg`,
+            `${basePath}pousada_dos_passaros3.jpg`
         ],
         'Hotel Morro de São Paulo': [
-            'https://example.com/hotelmorrodsp1.jpg',
-            'https://example.com/hotelmorrodsp2.jpg',
-            'https://example.com/hotelmorrodsp3.jpg'
+            `${basePath}hotel_morro_sao_paulo1.jpg`,
+            `${basePath}hotel_morro_sao_paulo2.jpg`,
+            `${basePath}hotel_morro_sao_paulo3.jpg`
         ],
         'Uma Janela para o Sol': [
-            'https://example.com/umajanelaparasol1.jpg',
-            'https://example.com/umajanelaparasol2.jpg',
-            'https://example.com/umajanelaparasol3.jpg'
+            `${basePath}uma_janela_para_sol1.jpg`,
+            `${basePath}uma_janela_para_sol2.jpg`,
+            `${basePath}uma_janela_para_sol3.jpg`
         ],
         'Portaló': [
-            'https://example.com/portalo1.jpg',
-            'https://example.com/portalo2.jpg',
-            'https://example.com/portalo3.jpg'
+            `${basePath}portalo1.jpg`,
+            `${basePath}portalo2.jpg`,
+            `${basePath}portalo3.jpg`
         ],
         'Pérola do Morro': [
-            'https://example.com/peroladomorro1.jpg',
-            'https://example.com/peroladomorro2.jpg',
-            'https://example.com/peroladomorro3.jpg'
+            `${basePath}perola_do_morro1.jpg`,
+            `${basePath}perola_do_morro2.jpg`,
+            `${basePath}perola_do_morro3.jpg`
         ],
         'Safira do Morro': [
-            'https://example.com/safiradomorro1.jpg',
-            'https://example.com/safiradomorro2.jpg',
-            'https://example.com/safiradomorro3.jpg'
+            `${basePath}safira_do_morro1.jpg`,
+            `${basePath}safira_do_morro2.jpg`,
+            `${basePath}safira_do_morro3.jpg`
         ],
         'Xerife Hotel': [
-            'https://example.com/xerifehotel1.jpg',
-            'https://example.com/xerifehotel2.jpg',
-            'https://example.com/xerifehotel3.jpg'
+            `${basePath}xerife_hotel1.jpg`,
+            `${basePath}xerife_hotel2.jpg`,
+            `${basePath}xerife_hotel3.jpg`
         ],
         'Ilha da Saudade': [
-            'https://example.com/ilhadsaudade1.jpg',
-            'https://example.com/ilhadsaudade2.jpg',
-            'https://example.com/ilhadsaudade3.jpg'
+            `${basePath}ilha_da_saudade1.jpg`,
+            `${basePath}ilha_da_saudade2.jpg`,
+            `${basePath}ilha_da_saudade3.jpg`
         ],
         'Porto dos Milagres': [
-            'https://example.com/portodosmilagres1.jpg',
-            'https://example.com/portodosmilagres2.jpg',
-            'https://example.com/portodosmilagres3.jpg'
+            `${basePath}porto_dos_milagres1.jpg`,
+            `${basePath}porto_dos_milagres2.jpg`,
+            `${basePath}porto_dos_milagres3.jpg`
         ],
         'Passarte': [
-            'https://example.com/passarte1.jpg',
-            'https://example.com/passarte2.jpg',
-            'https://example.com/passarte3.jpg'
+            `${basePath}passarte1.jpg`,
+            `${basePath}passarte2.jpg`,
+            `${basePath}passarte3.jpg`
         ],
         'Pousada da Praça': [
-            'https://example.com/praca1.jpg',
-            'https://example.com/praca2.jpg',
-            'https://example.com/praca3.jpg'
+            `${basePath}pousada_da_praca1.jpg`,
+            `${basePath}pousada_da_praca2.jpg`,
+            `${basePath}pousada_da_praca3.jpg`
         ],
         'Pousada Colibri': [
-            'https://example.com/colibri1.jpg',
-            'https://example.com/colibri2.jpg',
-            'https://example.com/colibri3.jpg'
+            `${basePath}pousada_colibri1.jpg`,
+            `${basePath}pousada_colibri2.jpg`,
+            `${basePath}pousada_colibri3.jpg`
         ],
         'Pousada Porto de Cima': [
-            'https://example.com/portodecima1.jpg',
-            'https://example.com/portodecima2.jpg',
-            'https://example.com/portodecima3.jpg'
+            `${basePath}pousada_porto_de_cima1.jpg`,
+            `${basePath}pousada_porto_de_cima2.jpg`,
+            `${basePath}pousada_porto_de_cima3.jpg`
         ],
         'Vila Guaiamu': [
-            'https://example.com/vilaguaiamu1.jpg',
-            'https://example.com/vilaguaiamu2.jpg',
-            'https://example.com/vilaguaiamu3.jpg'
+            `${basePath}vila_guaiamu1.jpg`,
+            `${basePath}vila_guaiamu2.jpg`,
+            `${basePath}vila_guaiamu3.jpg`
         ],
         'Villa dos Corais pousada': [
-            'https://example.com/villadoscorais1.jpg',
-            'https://example.com/villadoscorais2.jpg',
-            'https://example.com/villadoscorais3.jpg'
-        ],
-        'Pousada Fazenda Caeira': [
-            'https://example.com/fazendacaeira1.jpg',
-            'https://example.com/fazendacaeira2.jpg',
-            'https://example.com/fazendacaeira3.jpg'
+            `${basePath}villa_dos_corais1.jpg`,
+            `${basePath}villa_dos_corais2.jpg`,
+            `${basePath}villa_dos_corais3.jpg`
         ],
         'Hotel Anima': [
-            'https://example.com/hotelanima1.jpg',
-            'https://example.com/hotelanima2.jpg',
-            'https://example.com/hotelanima3.jpg'
+            `${basePath}hotel_anima1.jpg`,
+            `${basePath}hotel_anima2.jpg`,
+            `${basePath}hotel_anima3.jpg`
         ],
         'Vila dos Orixás Boutique Hotel & Spa': [
-            'https://example.com/vilaorixas1.jpg',
-            'https://example.com/vilaorixas2.jpg',
-            'https://example.com/vilaorixas3.jpg'
+            `${basePath}vila_dos_orixas1.jpg`,
+            `${basePath}vila_dos_orixas2.jpg`,
+            `${basePath}vila_dos_orixas3.jpg`
         ],
         'Hotel Karapitangui': [
-            'https://example.com/karapitangui1.jpg',
-            'https://example.com/karapitangui2.jpg',
-            'https://example.com/karapitangui3.jpg'
+            `${basePath}hotel_karapitangui1.jpg`,
+            `${basePath}hotel_karapitangui2.jpg`,
+            `${basePath}hotel_karapitangui3.jpg`
         ],
         'Pousada Timbalada': [
-            'https://example.com/timbalada1.jpg',
-            'https://example.com/timbalada2.jpg',
-            'https://example.com/timbalada3.jpg'
+            `${basePath}pousada_timbalada1.jpg`,
+            `${basePath}pousada_timbalada2.jpg`,
+            `${basePath}pousada_timbalada3.jpg`
         ],
         'Casa Celestino Residence': [
-            'https://example.com/celestino1.jpg',
-            'https://example.com/celestino2.jpg',
-            'https://example.com/celestino3.jpg'
+            `${basePath}casa_celestino_residence1.jpg`,
+            `${basePath}casa_celestino_residence2.jpg`,
+            `${basePath}casa_celestino_residence3.jpg`
         ],
         'Bahia Bacana Pousada': [
-            'https://example.com/bahiabacana1.jpg',
-            'https://example.com/bahiabacana2.jpg',
-            'https://example.com/bahiabacana3.jpg'
-        ],
-        'Ilha da Saudade': [
-            'https://example.com/ilhadsaudade1.jpg',
-            'https://example.com/ilhadsaudade2.jpg',
-            'https://example.com/ilhadsaudade3.jpg'
+            `${basePath}bahia_bacana_pousada1.jpg`,
+            `${basePath}bahia_bacana_pousada2.jpg`,
+            `${basePath}bahia_bacana_pousada3.jpg`
         ],
         'Hotel Morro da Saudade': [
-            'https://example.com/morrodesaude1.jpg',
-            'https://example.com/morrodesaude2.jpg',
-            'https://example.com/morrodesaude3.jpg'
+            `${basePath}hotel_morro_da_saudade1.jpg`,
+            `${basePath}hotel_morro_da_saudade2.jpg`,
+            `${basePath}hotel_morro_da_saudade3.jpg`
         ],
         'Bangalô dos sonhos': [
-            'https://example.com/bangalodossonhos1.jpg',
-            'https://example.com/bangalodossonhos2.jpg',
-            'https://example.com/bangalodossonhos3.jpg'
+            `${basePath}bangalo_dos_sonhos1.jpg`,
+            `${basePath}bangalo_dos_sonhos2.jpg`,
+            `${basePath}bangalo_dos_sonhos3.jpg`
         ],
         'Cantinho da Josete': [
-            'https://example.com/cantinhojosete1.jpg',
-            'https://example.com/cantinhojosete2.jpg',
-            'https://example.com/cantinhojosete3.jpg'
+            `${basePath}cantinho_da_josete1.jpg`,
+            `${basePath}cantinho_da_josete2.jpg`,
+            `${basePath}cantinho_da_josete3.jpg`
         ],
         'Vila Morro do Sao Paulo': [
-            'https://example.com/vilamorro1.jpg',
-            'https://example.com/vilamorro2.jpg',
-            'https://example.com/vilamorro3.jpg'
+            `${basePath}vila_morro_sao_paulo1.jpg`,
+            `${basePath}vila_morro_sao_paulo2.jpg`,
+            `${basePath}vila_morro_sao_paulo3.jpg`
         ],
         'Casa Rossa': [
-            'https://example.com/casarossa1.jpg',
-            'https://example.com/casarossa2.jpg',
-            'https://example.com/casarossa3.jpg'
+            `${basePath}casa_rossa1.jpg`,
+            `${basePath}casa_rossa2.jpg`,
+            `${basePath}casa_rossa3.jpg`
         ],
         'Village Paraíso Tropical': [
-            'https://example.com/villageparaiso1.jpg',
-            'https://example.com/villageparaiso2.jpg',
-            'https://example.com/villageparaiso3.jpg'
+            `${basePath}village_paraiso_tropical1.jpg`,
+            `${basePath}village_paraiso_tropical2.jpg`,
+            `${basePath}village_paraiso_tropical3.jpg`
         ],
         'Absolute': [
-            'https://example.com/absolute1.jpg',
-            'https://example.com/absolute2.jpg',
-            'https://example.com/absolute3.jpg'
+            `${basePath}absolute1.jpg`,
+            `${basePath}absolute2.jpg`,
+            `${basePath}absolute3.jpg`
         ],
         'Local Brasil': [
-            'https://example.com/localbrasil1.jpg',
-            'https://example.com/localbrasil2.jpg',
-            'https://example.com/localbrasil3.jpg'
+            `${basePath}local_brasil1.jpg`,
+            `${basePath}local_brasil2.jpg`,
+            `${basePath}local_brasil3.jpg`
         ],
         'Super Zimbo': [
-            'https://example.com/superzimbo1.jpg',
-            'https://example.com/superzimbo2.jpg',
-            'https://example.com/superzimbo3.jpg'
+            `${basePath}super_zimbo1.jpg`,
+            `${basePath}super_zimbo2.jpg`,
+            `${basePath}super_zimbo3.jpg`
         ],
         'Mateus Esquadrais': [
-            'https://example.com/mateusesquadrais1.jpg',
-            'https://example.com/mateusesquadrais2.jpg',
-            'https://example.com/mateusesquadrais3.jpg'
+            `${basePath}mateus_esquadrais1.jpg`,
+            `${basePath}mateus_esquadrais2.jpg`,
+            `${basePath}mateus_esquadrais3.jpg`
         ],
         'São Pedro Imobiliária': [
-            'https://example.com/saopedro1.jpg',
-            'https://example.com/saopedro2.jpg',
-            'https://example.com/saopedro3.jpg'
+            `${basePath}sao_pedro_imobiliaria1.jpg`,
+            `${basePath}sao_pedro_imobiliaria2.jpg`,
+            `${basePath}sao_pedro_imobiliaria3.jpg`
         ],
         'Imóveis Brasil Bahia': [
-            'https://example.com/brasilbahia1.jpg',
-            'https://example.com/brasilbahia2.jpg',
-            'https://example.com/brasilbahia3.jpg'
+            `${basePath}imoveis_brasil_bahia1.jpg`,
+            `${basePath}imoveis_brasil_bahia2.jpg`,
+            `${basePath}imoveis_brasil_bahia3.jpg`
         ],
         'Coruja': [
-            'https://example.com/coruja1.jpg',
-            'https://example.com/coruja2.jpg',
-            'https://example.com/coruja3.jpg'
+            `${basePath}coruja1.jpg`,
+            `${basePath}coruja2.jpg`,
+            `${basePath}coruja3.jpg`
         ],
         'Zimbo Dive': [
-            'https://example.com/zimbo1.jpg',
-            'https://example.com/zimbo2.jpg',
-            'https://example.com/zimbo3.jpg'
+            `${basePath}zimbo_dive1.jpg`,
+            `${basePath}zimbo_dive2.jpg`,
+            `${basePath}zimbo_dive3.jpg`
         ],
         'Havaianas': [
-            'https://example.com/havaianas1.jpg',
-            'https://example.com/havaianas2.jpg',
-            'https://example.com/havaianas3.jpg'
+            `${basePath}havaianas1.jpg`,
+            `${basePath}havaianas2.jpg`,
+            `${basePath}havaianas3.jpg`
+        ],
+        'Ambulância': [
+            `${basePath}ambulancia1.jpg`,
+            `${basePath}ambulancia2.jpg`,
+            `${basePath}ambulancia3.jpg`
+        ],
+        'Unidade de Saúde': [
+            `${basePath}unidade_de_saude1.jpg`,
+            `${basePath}unidade_de_saude2.jpg`,
+            `${basePath}unidade_de_saude3.jpg`
+        ],
+        'Polícia Civil': [
+            `${basePath}policia_civil1.jpg`,
+            `${basePath}policia_civil2.jpg`,
+            `${basePath}policia_civil3.jpg`
+        ],
+        'Polícia Militar': [
+            `${basePath}policia_militar1.jpg`,
+            `${basePath}policia_militar2.jpg`,
+            `${basePath}policia_militar3.jpg`
+        ],
+        'Melhores Pontos Turísticos': [
+            `${basePath}melhores_pontos_turisticos1.jpg`,
+            `${basePath}melhores_pontos_turisticos2.jpg`,
+            `${basePath}melhores_pontos_turisticos3.jpg`
+        ],
+        'Melhores Passeios': [
+            `${basePath}melhores_passeios1.jpg`,
+            `${basePath}melhores_passeios2.jpg`,
+            `${basePath}melhores_passeios3.jpg`
+        ],
+        'Melhores Praias': [
+            `${basePath}melhores_praias1.jpg`,
+            `${basePath}melhores_praias2.jpg`,
+            `${basePath}melhores_praias3.jpg`
+        ],
+        'Melhores Restaurantes': [
+            `${basePath}melhores_restaurantes1.jpg`,
+            `${basePath}melhores_restaurantes2.jpg`,
+            `${basePath}melhores_restaurantes3.jpg`
+        ],
+        'Melhores Pousadas': [
+            `${basePath}melhores_pousadas1.jpg`,
+            `${basePath}melhores_pousadas2.jpg`,
+            `${basePath}melhores_pousadas3.jpg`
+        ],
+        'Melhores Lojas': [
+            `${basePath}melhores_lojas1.jpg`,
+            `${basePath}melhores_lojas2.jpg`,
+            `${basePath}melhores_lojas3.jpg`
+        ],
+        'Missão': [
+            `${basePath}missao1.jpg`,
+            `${basePath}missao2.jpg`,
+            `${basePath}missao3.jpg`
+        ],
+        'Serviços': [
+            `${basePath}servicos1.jpg`,
+            `${basePath}servicos2.jpg`,
+            `${basePath}servicos3.jpg`
+        ],
+        'Benefícios para Turistas': [
+            `${basePath}beneficios_turistas1.jpg`,
+            `${basePath}beneficios_turistas2.jpg`,
+            `${basePath}beneficios_turistas3.jpg`
+        ],
+        'Benefícios para Moradores': [
+            `${basePath}beneficios_moradores1.jpg`,
+            `${basePath}beneficios_moradores2.jpg`,
+            `${basePath}beneficios_moradores3.jpg`
+        ],
+        'Benefícios para Pousadas': [
+            `${basePath}beneficios_pousadas1.jpg`,
+            `${basePath}beneficios_pousadas2.jpg`,
+            `${basePath}beneficios_pousadas3.jpg`
+        ],
+        'Benefícios para Restaurantes': [
+            `${basePath}beneficios_restaurantes1.jpg`,
+            `${basePath}beneficios_restaurantes2.jpg`,
+            `${basePath}beneficios_restaurantes3.jpg`
+        ],
+        'Benefícios para Agências de Turismo': [
+            `${basePath}beneficios_agencias_turismo1.jpg`,
+            `${basePath}beneficios_agencias_turismo2.jpg`,
+            `${basePath}beneficios_agencias_turismo3.jpg`
+        ],
+        'Benefícios para Lojas e Comércios': [
+            `${basePath}beneficios_lojas_comercios1.jpg`,
+            `${basePath}beneficios_lojas_comercios2.jpg`,
+            `${basePath}beneficios_lojas_comercios3.jpg`
+        ],
+        'Benefícios para Transportes': [
+            `${basePath}beneficios_transportes1.jpg`,
+            `${basePath}beneficios_transportes2.jpg`,
+            `${basePath}beneficios_transportes3.jpg`
+        ],
+        'Impacto em MSP': [
+            `${basePath}impacto_msp1.jpg`,
+            `${basePath}impacto_msp2.jpg`,
+            `${basePath}impacto_msp3.jpg`
+        ],
+        'Iniciar Tutorial': [
+            `${basePath}iniciar_tutorial1.jpg`,
+            `${basePath}iniciar_tutorial2.jpg`,
+            `${basePath}iniciar_tutorial3.jpg`
+        ],
+        'Planejar Viagem com IA': [
+            `${basePath}planejar_viagem_ia1.jpg`,
+            `${basePath}planejar_viagem_ia2.jpg`,
+            `${basePath}planejar_viagem_ia3.jpg`
+        ],
+        'Falar com IA': [
+            `${basePath}falar_com_ia1.jpg`,
+            `${basePath}falar_com_ia2.jpg`,
+            `${basePath}falar_com_ia3.jpg`
+        ],
+        'Falar com Suporte': [
+            `${basePath}falar_com_suporte1.jpg`,
+            `${basePath}falar_com_suporte2.jpg`,
+            `${basePath}falar_com_suporte3.jpg`
+        ],
+        'Configurações': [
+            `${basePath}configuracoes1.jpg`,
+            `${basePath}configuracoes2.jpg`,
+            `${basePath}configuracoes3.jpg`
         ]
     };
 
     return imageDatabase[locationName] || [];
 }
+
+
 
 function updateAssistantModalContent(content) {
     const modalContent = document.querySelector('#assistant-modal .modal-content');
@@ -2528,34 +2688,125 @@ function closeSideMenu() {
 }
 
 function searchLocation() {
+    const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
+
+    const queries = {
+        'restaurantes': '[out:json];node["amenity"="restaurant"](around:15000,-13.376,-38.913);out body;',
+        'pousadas': '[out:json];node["tourism"="hotel"](around:15000,-13.376,-38.913);out body;',
+        'lojas': '[out:json];node["shop"](around:15000,-13.376,-38.913);out body;',
+        'praias': '[out:json];node["natural"="beach"](around:15000,-13.376,-38.913);out body;',
+        'pontos turísticos': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
+        'passeios': '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
+        'festas': '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
+        'bares': '[out:json];node["amenity"="bar"](around:10000,-13.376,-38.913);out body;',
+        'cafés': '[out:json];node["amenity"="cafe"](around:10000,-13.376,-38.913);out body;',
+        'hospitais': '[out:json];node["amenity"="hospital"](around:10000,-13.376,-38.913);out body;',
+        'farmácias': '[out:json];node["amenity"="pharmacy"](around:10000,-13.376,-38.913);out body;',
+        'parques': '[out:json];node["leisure"="park"](around:10000,-13.376,-38.913);out body;',
+        'postos de gasolina': '[out:json];node["amenity"="fuel"](around:10000,-13.376,-38.913);out body;',
+        'banheiros públicos': '[out:json];node["amenity"="toilets"](around:10000,-13.376,-38.913);out body;',
+        'caixas eletrônicos': '[out:json];node["amenity"="atm"](around:10000,-13.376,-38.913);out body;',
+        'emergências': '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
+        'dicas': '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;',
+        'sobre': '[out:json];node["about"](around:10000,-13.376,-38.913);out body;',
+        'educação': '[out:json];node["education"](around:10000,-13.376,-38.913);out body;'
+    };
+
+    const synonyms = {
+        'restaurantes': ['restaurantes', 'restaurante', 'comida', 'alimentação', 'refeições', 'culinária', 'jantar', 'almoço', 'lanche', 'bistrô', 'churrascaria', 'lanchonete', 'restarante', 'restaurnte', 'restaurente', 'restaurantr', 'restaurnate', 'restauranta'],
+        'pousadas': ['pousadas', 'pousada', 'hotéis', 'hotel', 'hospedagem', 'alojamento', 'hostel', 'residência', 'motel', 'resort', 'abrigo', 'estadia', 'albergue', 'pensão', 'inn', 'guesthouse', 'bed and breakfast', 'bnb', 'pousasa', 'pousda', 'pousda', 'pousdada'],
+        'lojas': ['lojas', 'loja', 'comércio', 'shopping', 'mercado', 'boutique', 'armazém', 'supermercado', 'minimercado', 'quiosque', 'feira', 'bazaar', 'loj', 'lojs', 'lojinha', 'lojinhas', 'lojz', 'lojax'],
+        'praias': ['praias', 'praia', 'litoral', 'costa', 'faixa de areia', 'beira-mar', 'orla', 'prais', 'praia', 'prai', 'preia', 'preias'],
+        'pontos turísticos': ['pontos turísticos', 'turismo', 'atrações', 'sítios', 'marcos históricos', 'monumentos', 'locais históricos', 'museus', 'galerias', 'exposições', 'ponto turístico', 'ponto turístco', 'ponto turisico', 'pontus turisticus', 'pont turistic'],
+        'passeios': ['passeios', 'excursões', 'tours', 'visitas', 'caminhadas', 'aventuras', 'trilhas', 'explorações', 'paseios', 'paseio', 'pasceios', 'paseio', 'paseis'],
+        'festas': ['festas', 'festa', 'baladas', 'balada', 'vida noturna', 'discotecas', 'clubes noturnos', 'boate', 'clube', 'fest', 'festass', 'baladas', 'balad', 'baldas', 'festinh', 'festona', 'festinha', 'fesat', 'fetsas'],
+        'bares': ['bares', 'bar', 'botecos', 'pubs', 'tabernas', 'cervejarias', 'choperias', 'barzinho', 'drinks', 'bar', 'bares', 'brs', 'barzinhos', 'barzinho', 'baress'],
+        'cafés': ['cafés', 'café', 'cafeterias', 'bistrôs', 'casas de chá', 'confeitarias', 'docerias', 'cafe', 'caf', 'cafeta', 'cafett', 'cafetta', 'cafeti'],
+        'hospitais': ['hospitais', 'hospital', 'saúde', 'clínicas', 'emergências', 'prontos-socorros', 'postos de saúde', 'centros médicos', 'hspital', 'hopital', 'hospial', 'hspitais', 'hsopitais', 'hospitalar', 'hospitai'],
+        'farmácias': ['farmácias', 'farmácia', 'drogarias', 'apotecas', 'lojas de medicamentos', 'farmacia', 'fármacia', 'farmásia', 'farmci', 'farmcias', 'farmac', 'farmaci'],
+        'parques': ['parques', 'parque', 'jardins', 'praças', 'áreas verdes', 'reserva natural', 'bosques', 'parques urbanos', 'parqe', 'parq', 'parcs', 'paques', 'park', 'parks', 'parqu'],
+        'postos de gasolina': ['postos de gasolina', 'posto de gasolina', 'combustível', 'gasolina', 'abastecimento', 'serviços automotivos', 'postos de combustível', 'posto de combustivel', 'pstos de gasolina', 'post de gasolina', 'pstos', 'pstos de combustivel', 'pstos de gas'],
+        'banheiros públicos': ['banheiros públicos', 'banheiro público', 'toaletes', 'sanitários', 'banheiros', 'WC', 'lavabos', 'toilets', 'banheiro publico', 'banhero público', 'banhero publico', 'banhero', 'banheir'],
+        'caixas eletrônicos': ['caixas eletrônicos', 'caixa eletrônico', 'atm', 'banco', 'caixa', 'terminal bancário', 'caixa automático', 'saque', 'caixa eletronico', 'caxas eletronicas', 'caxa eletronica', 'caxas', 'caias eletronico', 'caias'],
+        'emergências': ['emergências', 'emergência', 'polícia', 'hospital', 'serviços de emergência', 'socorro', 'urgências', 'emergencia', 'emergncia', 'emergancia', 'emergenci', 'emergencis', 'emrgencia', 'emrgencias'],
+        'dicas': ['dicas', 'dica', 'conselhos', 'sugestões', 'recomendações', 'dics', 'dcias', 'dicas', 'dicaz', 'dicaa', 'dicassa'],
+        'sobre': ['sobre', 'informações', 'detalhes', 'a respeito', 'informação', 'sbre', 'sore', 'sob', 'sobr', 'sobe'],
+        'educação': ['educação', 'educacao', 'escolas', 'faculdades', 'universidades', 'instituições de ensino', 'cursos', 'aulas', 'treinamentos', 'aprendizagem', 'educaçao', 'educacão', 'eduacão', 'eduacao', 'educaç', 'educaç', 'educça']
+    };
+
     var searchQuery = prompt("Digite o local que deseja buscar em Morro de São Paulo:");
     if (searchQuery) {
-        // Coordenadas aproximadas para a área de Morro de São Paulo
-        const viewBox = '-38.926, -13.369, -38.895, -13.392'; // (lon_min, lat_min, lon_max, lat_max)
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=${viewBox}&bounded=1`)
+        const viewBox = '-38.926, -13.369, -38.895, -13.392';
+        let nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&viewbox=${viewBox}&bounded=1&key=${apiKey}`;
+        
+        fetch(nominatimUrl)
             .then(response => response.json())
             .then(data => {
+                console.log("Data from Nominatim:", data);
                 if (data && data.length > 0) {
-                    // Filtrar resultados para garantir que estejam dentro da área de Morro de São Paulo
                     const filteredData = data.filter(location => {
                         const lat = parseFloat(location.lat);
                         const lon = parseFloat(location.lon);
                         return lon >= -38.926 && lon <= -38.895 && lat >= -13.392 && lat <= -13.369;
                     });
 
+                    console.log("Filtered data:", filteredData);
+
                     if (filteredData.length > 0) {
                         var firstResult = filteredData[0];
                         var lat = firstResult.lat;
                         var lon = firstResult.lon;
 
-                        // Remove o marcador anterior, se existir
+                        // Remove o marcador atual, se existir
                         if (currentMarker) {
                             map.removeLayer(currentMarker);
                         }
 
-                        // Adiciona o novo marcador e atualiza o mapa
+                        // Remove todos os marcadores antigos
+                        markers.forEach(marker => map.removeLayer(marker));
+                        markers = [];
+
+                        // Adiciona um novo marcador para o resultado da pesquisa
                         currentMarker = L.marker([lat, lon]).addTo(map).bindPopup(firstResult.display_name).openPopup();
                         map.setView([lat, lon], 14);
+
+                        // Determina o tipo de ponto de interesse a ser buscado
+                        let queryKey = null;
+                        searchQuery = searchQuery.toLowerCase();
+                        for (const [key, value] of Object.entries(synonyms)) {
+                            if (value.includes(searchQuery)) {
+                                queryKey = key;
+                                break;
+                            }
+                        }
+
+                        console.log("Query key:", queryKey);
+
+                        if (queryKey && queries[queryKey]) {
+                            const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(queries[queryKey])}`;
+                            fetch(overpassUrl)
+                                .then(response => response.json())
+                                .then(osmData => {
+                                    console.log("Data from Overpass:", osmData);
+                                    if (osmData && osmData.elements && osmData.elements.length > 0) {
+                                        osmData.elements.forEach(element => {
+                                            const name = element.tags.name || 'Sem nome';
+                                            const description = element.tags.description || element.tags.amenity || element.tags.tourism || element.tags.natural || '';
+                                            const marker = L.marker([element.lat, element.lon]).addTo(map)
+                                                .bindPopup(`<b>${name}</b><br>${description}`).openPopup();
+                                            markers.push(marker);
+                                        });
+                                    } else {
+                                        alert(`Nenhum(a) ${searchQuery} encontrado(a) num raio de 1.5km.`);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("Erro ao buscar dados do Overpass:", error);
+                                    alert("Ocorreu um erro ao buscar pontos de interesse.");
+                                });
+                        } else {
+                            alert(`Busca por "${searchQuery}" não é suportada. Tente buscar por restaurantes, pousadas, lojas, praias, ou outros pontos de interesse.`);
+                        }
                     } else {
                         alert("Local não encontrado em Morro de São Paulo.");
                     }
@@ -2570,6 +2821,46 @@ function searchLocation() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', async () => {
+    const queryParams = {
+        bbox: {
+            north: -13.3614,
+            south: -13.3947,
+            east: -38.8974,
+            west: -38.9191
+        },
+        types: [
+            { key: 'tourism', value: 'attraction' },
+            { key: 'tourism', value: 'museum' },
+            { key: 'tourism', value: 'viewpoint' },
+            { key: 'amenity', value: 'restaurant' },
+            { key: 'amenity', value: 'cafe' },
+            { key: 'amenity', value: 'bar' },
+            { key: 'amenity', value: 'pub' },
+            { key: 'amenity', value: 'fast_food' },
+            { key: 'amenity', value: 'hospital' },
+            { key: 'amenity', value: 'police' },
+            { key: 'amenity', value: 'pharmacy' },
+            { key: 'natural', value: 'beach' },
+            { key: 'leisure', value: 'park' },
+            { key: 'leisure', value: 'garden' },
+            { key: 'leisure', value: 'playground' },
+            { key: 'historic', value: 'castle' },
+            { key: 'historic', value: 'monument' },
+            { key: 'historic', value: 'ruins' },
+            { key: 'historic', value: 'memorial' },
+            { key: 'shop', value: 'supermarket' },
+            { key: 'shop', value: 'bakery' },
+            { key: 'shop', value: 'clothes' },
+            { key: 'shop', value: 'gift' },
+            { key: 'shop', value: 'convenience' }
+        ],
+        radius: 15000
+    };
+
+    const results = await searchOSM(queryParams);
+    console.log('Resultados da busca:', results);
+});
 
 
 function customizeOSMPopup(popup) {

@@ -8,10 +8,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"></script>
-    <script src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <meta name="description" content="Descrição do site Morro Digital.">
@@ -26,31 +29,34 @@
     <div id="blocked-overlay"></div>
     <div id="map-container">
         <div id="map"></div>
+
         <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
             <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal'), endTutorial(), stopSpeaking()">X</button>
-            <div class="modal-content" id="assistant-modal-text">
-                <div id="assistant-carousel" class="carousel">
-                    <div class="carousel-inner">
-                        <!-- Itens do carrossel serão adicionados aqui dinamicamente -->
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-                <div class="carousel-indicators"></div>
-            </div>
+            <div class="modal-content" id="assistant-modal-text"></div>
         </div>
+
+<!-- Modal do Carrossel -->
+<div id="carousel-modal" class="carousel-modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="hideModal('assistant-modal'), endTutorial(), stopSpeaking()" id="carousel-modal-close">&times;</span>
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <!-- Slides serão injetados aqui pelo JavaScript -->
+            </div>
+            <!-- Adicionar Paginação -->
+            <div class="swiper-pagination"></div>
+            <!-- Adicionar Navegação -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</div>
 
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
-                <h2>BEM-VINDO!</h2> 
+                <h2>BEM-VINDO!</h2>
                 <p>Sua aventura inesquecível e personalizada em Morro de São Paulo começa aqui!</p>
                 <p>Escolha seu idioma:</p>
                 <div id="language-selection">
@@ -108,7 +114,6 @@
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
             <button class="control-btn" id="create-route-btn" style="display: none;">Como Chegar</button>
-            <!-- HTML: Adicione o evento de clique ao botão "Saiba mais" -->
             <button class="control-btn" id="about-more-btn" style="display: none;">Saiba mais</button>
             <button class="control-btn" id="buy-ticket-btn" style="display: none;">Comprar Ingresso</button>
             <button class="control-btn" id="tour-btn" style="display: none;">Reservar Passeio</button>

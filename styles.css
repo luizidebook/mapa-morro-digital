@@ -248,98 +248,111 @@ body, html {
     margin-bottom: 10px;
     line-height: 1.6;
 }
-   /* CSS para o carrossel */
-/* Carousel Container */
-.carousel-container {
+
+/* Estilo base para o modal do carrossel */
+.carousel-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 50%;
+    top: 50%;
+    width: 50%;
+    height: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 0px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Classe para mover o modal 30px à esquerda */
+.carousel-modal.shift-left {
+    transform: translate(-calc(50% + 30px), -50%);
+}
+
+/* Conteúdo do modal do carrossel */
+.carousel-modal .modal-content {
     position: relative;
-    width: 100%;
-    max-width: 800px;
+    background-color: #fff;
     margin: auto;
+    padding: 0;
+    border: none;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Carousel Inner */
-.carousel-inner {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-}
-
-/* Carousel Items */
-.carousel-inner .carousel-item {
-    min-width: 100%;
-    box-sizing: border-box;
-}
-
-/* Carousel Controls */
-.carousel-control-prev, .carousel-control-next {
+/* Botão de fechar o modal do carrossel */
+.carousel-modal .modal-close {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    border: none;
-    color: white;
-    padding: 10px;
-    cursor: pointer;
-    z-index: 100;
-}
-
-.carousel-control-prev {
-    left: 10px;
-    border-radius: 0 5px 5px 0;
-}
-
-.carousel-control-next {
     right: 10px;
-    border-radius: 5px 0 0 5px;
+    top: 10px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
 }
 
-/* Control Icons */
-.carousel-control-prev-icon, .carousel-control-next-icon {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background-size: 100%;
-    background-repeat: no-repeat;
+.carousel-modal .modal-close:hover,
+.carousel-modal .modal-close:focus {
+    color: #000;
+    background: #fff;
 }
 
-.carousel-control-prev-icon {
-    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="%23fff" viewBox="0 0 8 8"%3E%3Cpath d="M4.707 1.293L1.414 4.586 4.707 7.879 5.414 7.172 3.242 5l2.172-2.172z"/%3E%3C/svg%3E');
+/* Estilo base para o carrossel */
+.swiper-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.carousel-control-next-icon {
-    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="%23fff" viewBox="0 0 8 8"%3E%3Cpath d="M3.293 1.293l3.293 3.293-3.293 3.293 1.414 1.414 4.707-4.707L4.707 0z"/%3E%3C/svg%3E');
-}
-
-/* Carousel Indicators */
-.carousel-indicators {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+.swiper-slide {
     display: flex;
     justify-content: center;
-    gap: 5px;
+    align-items: center;
 }
 
-.carousel-indicators button {
-    background-color: rgba(0, 0, 0, 0.5);
-    border: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    cursor: pointer;
+.swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que a imagem ocupe todo o espaço do modal */
 }
 
-.carousel-indicators .active {
-    background-color: white;
+/* Estilos específicos para dispositivos móveis */
+@media (max-width: 600px) {
+    .carousel-modal {
+        width: 90%;
+        height: 90%;
+    }
+
+    .carousel-modal .modal-content {
+        padding: 0px;
+    }
+
+    .carousel-modal .modal-close {
+        font-size: 20px;
+        width: 25px;
+        height: 25px;
+    }
+
+    .swiper-container {
+        max-height: calc(100vh - 20px);
+    }
 }
 
 
-
-/* Responsividade */
-@media (max-width: 768px) {
 .menu-toggle {
     position: absolute;
     bottom: 20px;
