@@ -253,34 +253,42 @@ function setupEventListeners() {
     const noBtn = document.getElementById('no-btn');
     const saveItineraryBtn = document.getElementById('save-itinerary-btn');
     const aboutMoreBtn = document.getElementById('about-more-btn');
-    const searchBtn = document.getElementById('.menu-btn[data-feature="pesquisar"');
+    const searchBtn = document.querySelector('.menu-btn[data-feature="pesquisar"]');
     const subMenuButtons = document.querySelectorAll('.submenu-button');
     const carouselModalClose = document.getElementById('carousel-modal-close');
-    const submenuToggleBtn = document.getElementById('menu-btn'); // Update with the actual ID or class
-
 
     subMenuButtons.forEach(button => {
         button.addEventListener('click', (event) => {
-            const feature = button.getAttribute('data-feature');
-            handleFeatureSelection(feature);
-            adjustModalAndControls(); // Ajuste modal e controles ao abrir submenu
+            closeSideMenu();
+            clearCurrentRoute();
+            hideAllControlButtons();
+            handleDestinationSelection(button);
+            startCarousel(selectedDestination.name);
+
+            const locationName = button.getAttribute('data-name');
+            startCarousel(selectedDestination.name);// Iniciar o carrossel com as imagens do destino selecionado
+
             event.stopPropagation();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
+                nextTutorialStep();
+            }
         });
     });
 
-  closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
 
     if (menuToggle) {
         menuToggle.style.display = 'none';
         menuToggle.addEventListener('click', () => {
-        floatingMenu.classList.toggle('hidden');
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
-            nextTutorialStep();
-        }
-    });
+            floatingMenu.classList.toggle('hidden');
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
+                nextTutorialStep();
+            }
+        });
     }
 
     if (aboutMoreBtn) {
@@ -293,19 +301,17 @@ function setupEventListeners() {
         });
     }
 
-
     document.querySelectorAll('#floating-menu button').forEach(button => {
-    button.addEventListener('click', () => {
-        closeSideMenu();
-        clearCurrentRoute();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
-            nextTutorialStep();
-        }
+        button.addEventListener('click', () => {
+            closeSideMenu();
+            clearCurrentRoute();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
+                nextTutorialStep();
+            }
+        });
     });
-});
 
-
-document.querySelectorAll('.menu-btn').forEach(btn => {
+    document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const feature = this.getAttribute('data-feature');
             console.log(`Feature selected: ${feature}`);
@@ -341,21 +347,19 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
         }
     });
 
-    document.querySelector('.menu-btn[data-feature="pesquisar"]').addEventListener('click', () => {
-        searchLocation();
-        closeSideMenu();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
-            nextTutorialStep();
-        }
-    });
-
-
-    if (aboutMoreBtn) {
-        aboutMoreBtn.addEventListener('click', startCarousel);
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            searchLocation();
+            closeSideMenu();
+            if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
+                nextTutorialStep();
+            }
+        });
     }
 
     if (createRouteBtn) {
         createRouteBtn.addEventListener('click', createRoute);
+
     }
 
     if (noBtn) {
@@ -367,24 +371,6 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
     if (carouselModalClose) {
         carouselModalClose.addEventListener('click', closeCarouselModal);
     }
-
-
-    document.querySelectorAll('.submenu-button').forEach(btn => {
-        btn.addEventListener('click', (event) => {
-        closeSideMenu();
-        clearCurrentRoute();
-        hideAllControlButtons();
-        handleDestinationSelection(btn);
-
-        const locationName = btn.getAttribute('data-name');
-        startCarousel(locationName); // Iniciar o carrossel com as imagens do destino selecionado
-
-        event.stopPropagation();
-        if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
-            nextTutorialStep();
-        }
-    });
-});
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -437,6 +423,7 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 }
+
 
 
 // Funções de Ajuste e Notificação
@@ -1653,9 +1640,9 @@ function getImagesForLocation(locationName) {
             `${basePath}farol_do_morro3.jpg`
         ],
         'Toca do Morcego': [
-            `${basePath}toca_do_morcego1.png`,
-            `${basePath}toca_do_morcego2.png`,
-            `${basePath}toca_do_morcego3.png`
+            `${basePath}toca_do_morcego1.jpg`,
+            `${basePath}toca_do_morcego2.jpg`,
+            `${basePath}toca_do_morcego3.jpg`
         ],
         'Mirante da Tirolesa': [
             `${basePath}mirante_da_tirolesa1.jpg`,
