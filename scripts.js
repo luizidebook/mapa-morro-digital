@@ -1508,7 +1508,6 @@ function startCarousel(locationName) {
     const images = getImagesForLocation(locationName);
 
     if (!images || images.length === 0) {
-        alert('No images available for the carousel.');
         return;
     }
 
