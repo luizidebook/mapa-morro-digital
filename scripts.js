@@ -1479,34 +1479,62 @@ function startCarousel(locationName) {
 
     if (!images || images.length === 0) {
         alert('No images available for the carousel.');
-        console.error('No images available for the carousel.');
         return;
     }
 
     const swiperWrapper = document.querySelector('.swiper-wrapper');
-    if (!swiperWrapper) {
-        console.error('Swiper wrapper not found.');
-        return;
-    }
-
-    swiperWrapper.innerHTML = ''; // Clear previous images
+    swiperWrapper.innerHTML = ''; // Limpa imagens anteriores
 
     images.forEach((imageSrc) => {
         const swiperSlide = document.createElement('div');
         swiperSlide.className = 'swiper-slide';
-        swiperSlide.innerHTML = `<img src="${imageSrc}" alt="${locationName}">`;
+        swiperSlide.innerHTML = `<img src="${imageSrc}" alt="${locationName}" style="width: 100%; height: 100%;">`;
         swiperWrapper.appendChild(swiperSlide);
     });
 
     showModal('carousel-modal');
+    // Iniciar o Swiper aqui se ainda não foi iniciado
+    if (!window.mySwiper) {
+        window.mySwiper = new Swiper('.swiper-container', {
+            slidesPerView: 1,
+            spaceBetween: 10,
+            loop: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 1,
+                    spaceBetween: 20
+                },
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 30
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 40
+                }
+            }
+        });
+    } else {
+        window.mySwiper.update();
+    }
 }
 
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex'; // Use flex to center the modal
-    } else {
-        console.error('Modal not found: ' + modalId);
     }
 }
 
