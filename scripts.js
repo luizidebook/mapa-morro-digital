@@ -259,30 +259,28 @@ function setupEventListeners() {
     const submenuToggleBtn = document.getElementById('menu-btn'); // Update with the actual ID or class
 
 
-    // Correção de Event Listeners
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
-            modal.style.display = 'none';
+    subMenuButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const feature = button.getAttribute('data-feature');
+            handleFeatureSelection(feature);
+            adjustModalAndControls(); // Ajuste modal e controles ao abrir submenu
+            event.stopPropagation();
         });
-    }
+    });
+
+  closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
 
     if (menuToggle) {
         menuToggle.style.display = 'none';
         menuToggle.addEventListener('click', () => {
-            floatingMenu.classList.toggle('hidden');
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
-                nextTutorialStep();
-            }
-        });
-    }
-
-    if (submenuToggleBtn) {
-        submenuToggleBtn.addEventListener('click', () => {
-            const carouselModal = document.getElementById('carousel-modal');
-            if (carouselModal) {
-                carouselModal.classList.toggle('shift-left');
-            }
-        });
+        floatingMenu.classList.toggle('hidden');
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
+            nextTutorialStep();
+        }
+    });
     }
 
     if (aboutMoreBtn) {
@@ -300,15 +298,26 @@ function setupEventListeners() {
     button.addEventListener('click', () => {
         closeSideMenu();
         clearCurrentRoute();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
+            nextTutorialStep();
+        }
     });
 });
+
+
+document.querySelectorAll('.menu-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const feature = this.getAttribute('data-feature');
+            console.log(`Feature selected: ${feature}`);
+            showFeatureContent(feature);
+        });
+    });
 
     document.querySelectorAll('.menu-btn[data-feature]').forEach(btn => {
         btn.addEventListener('click', (event) => {
             const feature = btn.getAttribute('data-feature');
             handleFeatureSelection(feature);
             adjustModalAndControls();
-            clearCurrentRoute();
             event.stopPropagation();
             if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
                 nextTutorialStep();
@@ -327,7 +336,6 @@ function setupEventListeners() {
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
         closeSideMenu();
-        clearCurrentRoute();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
             nextTutorialStep();
         }
@@ -336,7 +344,6 @@ function setupEventListeners() {
     document.querySelector('.menu-btn[data-feature="pesquisar"]').addEventListener('click', () => {
         searchLocation();
         closeSideMenu();
-        clearCurrentRoute();
         if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
             nextTutorialStep();
         }
@@ -364,16 +371,20 @@ function setupEventListeners() {
 
     document.querySelectorAll('.submenu-button').forEach(btn => {
         btn.addEventListener('click', (event) => {
-            closeSideMenu();
-            clearCurrentRoute();
-            hideAllControlButtons();
-            handleDestinationSelection(btn);
-            event.stopPropagation();
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
-                nextTutorialStep();
-            }
-        });
+        closeSideMenu();
+        clearCurrentRoute();
+        hideAllControlButtons();
+        handleDestinationSelection(btn);
+
+        const locationName = btn.getAttribute('data-name');
+        startCarousel(locationName); // Iniciar o carrossel com as imagens do destino selecionado
+
+        event.stopPropagation();
+        if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
+            nextTutorialStep();
+        }
     });
+});
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -445,7 +456,7 @@ function hideControlButtons() {
 
 function restoreModalAndControlsStyles() {
     const assistantModal = document.getElementById('assistant-modal');
-    const carouselModal = document.getElementById('carousel-modal'); // Adicione esta linha
+    const carouselModal = document.getElementById('carousel-modal');
     const controlButtons = document.querySelector('.control-buttons');
     const mapContainer = document.getElementById('map');
 
@@ -464,20 +475,20 @@ function restoreModalAndControlsStyles() {
         textAlign: ''
     });
 
-    Object.assign(carouselModal.style, { // Adicione esta linha
-            top: '40%',
-            left: `50%`,
-            transform: 'translate(-50%, -50%)',
-            width: '60%',
-            height: '50%',
-            maxWidth: '600px',
-            background: 'white',
-            padding: '0px',
-            border: '1px solid #ccc',
-            borderRadius: '12px',
-            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-            zIndex: '100000',
-            textAlign: 'center'
+    Object.assign(carouselModal.style, {
+        top: '40%',
+        left: `50%`,
+        transform: 'translate(-50%, -50%)',
+        width: '60%',
+        height: '50%',
+        maxWidth: '600px',
+        background: 'white',
+        padding: '0px',
+        border: '1px solid #ccc',
+        borderRadius: '12px',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+        zIndex: '100000',
+        textAlign: 'center'
     });
 
     Object.assign(controlButtons.style, {
@@ -490,10 +501,9 @@ function restoreModalAndControlsStyles() {
     });
 }
 
-
 function adjustModalAndControls() {
     const assistantModal = document.getElementById('assistant-modal');
-    const carouselModal = document.getElementById('carousel-modal'); // Adicione esta linha
+    const carouselModal = document.getElementById('carousel-modal');
     const sideMenu = document.querySelector('.menu');
     const controlButtons = document.querySelector('.control-buttons');
     const mapContainer = document.getElementById('map');
@@ -512,9 +522,10 @@ function adjustModalAndControls() {
             height: '100%'
         });
 
+        // Ajuste o estilo do modal do assistente
+        adjustModalStyles(assistantModal, 'assistant');
         // Ajuste o estilo do modal do carrossel
-        adjustModalStyles(assistantModal);
-        adjustModalStyles(carouselModal); // Adicione esta linha
+        adjustModalStyles(carouselModal, 'carousel');
     } else {
         restoreModalAndControlsStyles();
     }
@@ -524,28 +535,47 @@ function adjustModalAndControls() {
     }
 }
 
-function adjustModalStyles(modal) {
+function adjustModalStyles(modal, type) {
     const sideMenu = document.querySelector('.menu');
 
     if (!sideMenu.classList.contains('hidden')) {
-        Object.assign(modal.style, {
-            top: '40%',
-            left: `37%`,
-            transform: 'translate(-50%, -50%)',
-            width: '60%',
-            maxWidth: '600px',
-            background: 'white',
-            padding: '0px',
-            border: '1px solid #ccc',
-            borderRadius: '12px',
-            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-            zIndex: '100000',
-            textAlign: 'center'
-        });
+        if (type === 'assistant') {
+            Object.assign(modal.style, {
+                top: '40%',
+                left: '37%',
+                transform: 'translate(-50%, -50%)',
+                width: '60%',
+                maxWidth: '600px',
+                background: 'white',
+                padding: '20px',
+                border: '1px solid #ccc',
+                borderRadius: '12px',
+                boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+                zIndex: '100000',
+                textAlign: 'center'
+            });
+        } else if (type === 'carousel') {
+            Object.assign(modal.style, {
+                top: '40%',
+                left: '37%',
+                transform: 'translate(-50%, -50%)',
+                width: '60%',
+                height: '50%',
+                maxWidth: '600px',
+                background: 'white',
+                padding: '0px',
+                border: '1px solid #ccc',
+                borderRadius: '12px',
+                boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+                zIndex: '100000',
+                textAlign: 'center'
+            });
+        }
     } else {
         restoreModalAndControlsStyles();
     }
 }
+
 
 
 function showNotification(message, type = 'success') {
@@ -1493,7 +1523,8 @@ function startCarousel(locationName) {
     });
 
     showModal('carousel-modal');
-    // Iniciar o Swiper aqui se ainda não foi iniciado
+
+    // Iniciar ou atualizar o Swiper
     if (!window.mySwiper) {
         window.mySwiper = new Swiper('.swiper-container', {
             slidesPerView: 1,
@@ -1527,7 +1558,7 @@ function startCarousel(locationName) {
             }
         });
     } else {
-        window.mySwiper.update();
+        window.mySwiper.update(); // Atualiza o Swiper se já estiver inicializado
     }
 }
 
