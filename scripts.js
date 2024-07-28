@@ -63,6 +63,7 @@ let selectedDestination = {};
 let markers = [];
 let currentIndex = 0;
 let currentMarker = null;
+let swiperInstance = null;
 
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 const initialImages = [];
@@ -263,12 +264,11 @@ function setupEventListeners() {
             clearCurrentRoute();
             hideAllControlButtons();
             handleDestinationSelection(button);
-            startCarousel(selectedDestination.name);
-
-            const locationName = button.getAttribute('data-name');
-            startCarousel(selectedDestination.name);// Iniciar o carrossel com as imagens do destino selecionado
-
-            event.stopPropagation();
+            if (selectedDestination && selectedDestination.name) {
+                startCarousel(selectedDestination.name);
+            } else {
+                alert('Por favor, selecione um destino primeiro.');
+            }
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
                 nextTutorialStep();
             }
@@ -359,7 +359,6 @@ function setupEventListeners() {
 
     if (createRouteBtn) {
         createRouteBtn.addEventListener('click', createRoute);
-
     }
 
     if (noBtn) {
@@ -412,17 +411,19 @@ function setupEventListeners() {
     if (tutorialPrevBtn) tutorialPrevBtn.addEventListener('click', previousTutorialStep);
     if (tutorialEndBtn) tutorialEndBtn.addEventListener('click', endTutorial);
 
-    if (createItineraryBtn) {
+  if (createItineraryBtn) {
         createItineraryBtn.addEventListener('click', () => {
             endTutorial();
             closeSideMenu();
             collectInterestData();
+            destroyCarousel();
         });
     }
 
     document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
     document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
 }
+
 
 
 
@@ -1495,6 +1496,7 @@ function startCarousel(locationName) {
     const images = getImagesForLocation(locationName);
 
     if (!images || images.length === 0) {
+        alert('No images available for the carousel.');
         return;
     }
 
@@ -1510,42 +1512,43 @@ function startCarousel(locationName) {
 
     showModal('carousel-modal');
 
-    // Iniciar ou atualizar o Swiper
-    if (!window.mySwiper) {
-        window.mySwiper = new Swiper('.swiper-container', {
-            slidesPerView: 1,
-            spaceBetween: 10,
-            loop: true,
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            autoplay: {
-                delay: 2500,
-                disableOnInteraction: false,
-            },
-            breakpoints: {
-                640: {
-                    slidesPerView: 1,
-                    spaceBetween: 20
-                },
-                768: {
-                    slidesPerView: 2,
-                    spaceBetween: 30
-                },
-                1024: {
-                    slidesPerView: 3,
-                    spaceBetween: 40
-                }
-            }
-        });
-    } else {
-        window.mySwiper.update(); // Atualiza o Swiper se já estiver inicializado
+    // Destruir instância do Swiper se existir
+    if (swiperInstance) {
+        swiperInstance.destroy(true, true);
     }
+
+    // Inicializar nova instância do Swiper
+    swiperInstance = new Swiper('.swiper-container', {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        loop: true,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: 1,
+                spaceBetween: 20
+            },
+            768: {
+                slidesPerView: 2,
+                spaceBetween: 30
+            },
+            1024: {
+                slidesPerView: 3,
+                spaceBetween: 40
+            }
+        }
+    });
 }
 
 function showModal(modalId) {
@@ -1555,6 +1558,22 @@ function showModal(modalId) {
     }
 }
 
+// Função para destruir o carrossel
+function destroyCarousel() {
+    if (swiperInstance) {
+        swiperInstance.destroy(true, true);
+        swiperInstance = null;
+    }
+
+    const swiperWrapper = document.querySelector('.swiper-wrapper');
+    if (swiperWrapper) {
+        swiperWrapper.innerHTML = ''; // Remove todos os slides
+    }
+
+    closeCarouselModal(); // Fecha o modal do carrossel
+}
+
+// Função para fechar o modal do carrossel
 function closeCarouselModal() {
     const carouselModal = document.getElementById('carousel-modal');
     if (carouselModal) {
@@ -1578,11 +1597,30 @@ const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3'; // Su
 // Função para solicitar permissão de localização e criar a rota
 async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
     try {
+        clearCurrentRoute(); // Limpar rota atual
+        clearAllMarkers(); // Limpar todos os marcadores
+
         let currentLocation = await getCurrentLocation();
         if (currentLocation) {
             const { latitude, longitude } = currentLocation.coords;
             console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon}) utilizando o perfil ${profile}`);
+
+            // Adicionar marcador de localização atual do usuário
+            const userMarker = L.marker([latitude, longitude]).addTo(map)
+                .bindPopup("Você está aqui!")
+                .openPopup();
+
             await plotRouteOnMap(latitude, longitude, lat, lon, profile);
+
+            // Adicionar marcador de destino
+            const destinationMarker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(selectedDestination.name)
+                .openPopup();
+
+            // Ajustar o mapa para mostrar a rota
+            map.fitBounds(window.currentRoute.getBounds(), {
+                padding: [50, 50]
+            });
         }
     } catch (error) {
         console.error('Erro ao obter localização atual:', error);
@@ -1620,14 +1658,90 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile) {
     }
 }
 
-
 // Função para limpar a rota atual
 function clearCurrentRoute() {
-    if (currentRoute) {
-        map.removeLayer(currentRoute);
-        currentRoute = null;
+    if (window.currentRoute) {
+        map.removeLayer(window.currentRoute);
+        window.currentRoute = null;
     }
 }
+
+// Função para limpar todos os marcadores do mapa
+function clearAllMarkers() {
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+}
+
+let userLocationMarker = null;
+
+async function startInteractiveRoute() {
+    if (!selectedDestination) {
+        alert('Por favor, selecione um destino primeiro.');
+        return;
+    }
+    const { lat, lon } = selectedDestination;
+
+    try {
+        let currentLocation = await getCurrentLocation();
+        if (currentLocation) {
+            const { latitude, longitude } = currentLocation.coords;
+            console.log(`Iniciando rota interativa de (${latitude}, ${longitude}) para (${lat}, ${lon})`);
+            await plotRouteOnMap(latitude, longitude, lat, lon);
+
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+            }
+
+            userLocationMarker = L.marker([latitude, longitude], {
+                icon: L.icon({
+                    iconUrl: 'path_to_user_icon.png', // Caminho para o ícone do usuário
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map).bindPopup("Você está aqui!");
+
+            map.fitBounds(window.currentRoute.getBounds(), {
+                padding: [50, 50]
+            });
+
+            trackUserMovement();
+        }
+    } catch (error) {
+        console.error('Erro ao iniciar a rota interativa:', error);
+    }
+}
+
+function trackUserMovement() {
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            if (userLocationMarker) {
+                userLocationMarker.setLatLng([latitude, longitude]);
+                userLocationMarker.bindPopup("Você está aqui!").openPopup();
+            }
+
+            map.panTo([latitude, longitude], {
+                animate: true,
+                duration: 1
+            });
+        }, error => {
+            console.error('Erro ao rastrear movimento do usuário:', error);
+        }, {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 5000
+        });
+    } else {
+        console.error('Geolocalização não é suportada pelo seu navegador.');
+    }
+}
+
 
 // Função para obter imagens para uma localização
 function getImagesForLocation(locationName) {
