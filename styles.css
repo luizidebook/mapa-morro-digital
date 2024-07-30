@@ -161,7 +161,7 @@ body, html {
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
-    font-size: 22px;
+    font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;
@@ -379,7 +379,7 @@ body, html {
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
-    font-size: 22px;
+    font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;
@@ -717,6 +717,14 @@ body, html {
     }
 }
 
+input[type="email"],
+input[type="text"],
+input[type="password"],
+input[type="number"],
+textarea {
+    font-size: 18px;
+}
+
 
 .modal {
     position: absolute;
@@ -733,6 +741,7 @@ body, html {
     z-index: 999;
     display: none;
     text-align: center;
+    font-size: 20px;
 }
 
 
@@ -884,7 +893,7 @@ body, html {
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
-    font-size: 22px;
+    font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;

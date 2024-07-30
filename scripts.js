@@ -3600,9 +3600,6 @@ function renderItinerary(itinerary) {
     return itineraryHTML;
 }
 
-
-
-
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
     modal.style.display = 'none';
