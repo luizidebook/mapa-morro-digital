@@ -741,8 +741,8 @@ textarea {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     z-index: 999;
     display: none;
-    text-align: center;
-    font-size: 20px;
+    text-align: left;
+    font-size: 18px;
 }
 
 
@@ -920,22 +920,22 @@ textarea {
 
 
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1292,13 +1292,10 @@ h2 {
     }
 }
 
-
-
-
 @media (max-width: 600px) {
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1369,22 +1366,22 @@ h2 {
 }
 
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1555,22 +1552,22 @@ h2 {
 
 @media (max-width: 768px) {
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1663,9 +1660,9 @@ h2 {
     padding: 20px;
 }
 
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1800,22 +1797,22 @@ h2 {
 }
 @media (max-width: 1024px) {
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 50vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1865,9 +1862,9 @@ h2 {
         z-index: 10000;
     }
 
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2043,22 +2040,22 @@ h2 {
 
 @media (max-width: 1200px) {
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -2151,9 +2148,9 @@ h2 {
     padding: 20px;
 }
 
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2287,22 +2284,22 @@ h2 {
 
 @media (min-width: 1201px) {
 /* Modal styles */
-#assistant-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 40%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #888;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    padding: 10px;
-}
+    #assistant-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        max-height: 100vh;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #888;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -2395,9 +2392,9 @@ h2 {
     padding: 20px;
 }
 
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2712,9 +2709,9 @@ h2 {
     }
 }
 
-.control-buttons {
+    .control-buttons {
         position: absolute;
-        top: 75%;
+        top: 86%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);

@@ -695,7 +695,7 @@ function requestLocationPermissionCreateRoute() {
 }
 
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 14);
+    map.setView([lat, lon], 15);
     if (currentMarker) {
         map.removeLayer(currentMarker);
     }
