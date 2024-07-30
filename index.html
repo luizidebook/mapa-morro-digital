@@ -109,10 +109,11 @@
         </div>
         <div class="control-buttons">
             <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial(), stopSpeaking()" data-translate="no">Não</button>
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="startTutorial(), hideControlButtons()" data-translate="yes">Sim</button>
+            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
+             <button id="tutorial-site-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;" onclick="nextTutorialStep()">Próximo</button>
             <button class="control-btn" id="tutorial-prev-btn" style="display:none;" onclick="previousTutorialStep()">Voltar</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial()">Encerrar Tutorial</button>
+            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial(), stopSpeaking()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="showQuestionnaireForm()">Criar Roteiro</button>
             <button class="control-btn" id="create-route-btn" style="display: none;" onclick="destroyCarousel()">Como Chegar</button>
             <button class="control-btn" id="about-more-btn" style="display: none;">Saiba mais</button>
@@ -122,24 +123,101 @@
             <button class="control-btn" id="speak-attendent-btn" style="display: none;">Falar com atendente</button>
             <button class="control-btn" id="call-btn" style="display: none;">Ligar</button>
             <button class="control-btn" id="reserve-inns-btn" style="display: none;">Reservar Quarto</button>
+            <button class="control-btn" id="reserve-chairs-btn" style="display: none;">Reservar Cadeiras</button>
+            <button id="tutorial-send-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Enviar</button>
+            <button id="show-itinerary-btn" class="control-btn" style="display:none;"  onclick="showItinerary()">Ver Roteiro</button>
+            <button id="change-preferences-btn" class="control-btn" style="display:none;" onclick="changePreferences()">Alterar Preferências</button>
+            <button id="generate-new-itinerary-btn" class="control-btn" style="display:none;" onclick="generateNewItinerary()">Gerar outro Roteiro</button>
+           <button id="access-site-btn" class="control-btn" style="display:none;" onclick="accessSite()">Acessar Site</button>
         </div>
 
-        <div id="itinerary-form-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <form id="itinerary-form">
-                    <label for="activity-types">Selecione os tipos de atividades que você gosta:</label>
-                    <select id="activity-types" name="activity-types" multiple>
-                        <option value="praias">Praias</option>
-                        <option value="pontos-turisticos">Pontos Turísticos</option>
-                        <option value="passeios">Passeios</option>
-                        <option value="festas">Festas</option>
-                        <option value="restaurantes">Restaurantes</option>
-                    </select>
-                    <button type="button" id="save-itinerary-btn">Salvar Roteiro</button>
-                </form>
-            </div>
-        </div>
+  <!-- Name Form -->
+<div id="name-form" class="form-modal" style="display:none;">
+    <input type="text" id="name-input" placeholder="Seu primeiro nome">
+</div>
+
+<!-- In Morro Options -->
+<div id="in-morro-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="in-morro" value="Estou"> Estou
+    <input type="checkbox" name="in-morro" value="Vou"> Vou
+</div>
+
+<!-- Email Form -->
+<div id="email-form" class="form-modal" style="display:none;">
+    <input type="email" id="email-input" placeholder="Seu e-mail">
+</div>
+
+<!-- Days Form -->
+<div id="days-form" class="form-modal" style="display:none;">
+    <input type="number" id="days-input" placeholder="Número de dias">
+</div>
+
+<!-- Toca Options -->
+<div id="toca-options" class="form-modal" style="display:none;">
+    <input type="radio" name="toca" value="Sim"> Sim
+    <input type="radio" name="toca" value="Não"> Não
+</div>
+
+<!-- Tourist Spots Options -->
+<div id="tourist-spots-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="tourist-spots" value="Toca do Morcego"> Toca do Morcego<br>
+    <input type="checkbox" name="tourist-spots" value="Farol do Morro"> Farol do Morro<br>
+    <input type="checkbox" name="tourist-spots" value="Mirante da Tirolesa"> Mirante da Tirolesa<br>
+    <input type="checkbox" name="tourist-spots" value="Fortaleza de Morro de São Paulo"> Fortaleza de Morro de São Paulo<br>
+    <input type="checkbox" name="tourist-spots" value="Paredão da Argila"> Paredão da Argila<br>
+    <input type="checkbox" name="tourist-spots" value="nenhum"> Nenhum<br>
+</div>
+
+<!-- Beaches Options -->
+<div id="beaches-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="beaches" value="Primeira Praia"> Primeira Praia<br>
+    <input type="checkbox" name="beaches" value="Praia de Garapuá"> Praia de Garapuá<br>
+    <input type="checkbox" name="beaches" value="Praia do Pôrto"> Praia do Pôrto<br>
+    <input type="checkbox" name="beaches" value="Praia da Gamboa"> Praia da Gamboa<br>
+    <input type="checkbox" name="beaches" value="Segunda Praia"> Segunda Praia<br>
+    <input type="checkbox" name="beaches" value="Terceira Praia"> Terceira Praia<br>
+    <input type="checkbox" name="beaches" value="Quarta Praia"> Quarta Praia<br>
+    <input type="checkbox" name="beaches" value="Praia do Encanto"> Praia do Encanto<br>
+    <input type="checkbox" name="beaches" value="nenhum"> Nenhum<br>
+</div>
+
+<!-- Tours Options -->
+<div id="tours-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="tours" value="Passeio de lancha Volta a Ilha de Tinharé"> Passeio de lancha Volta a Ilha de Tinharé<br>
+    <input type="checkbox" name="tours" value="Passeio de Quadriciclo para Garapuá"> Passeio de Quadriciclo para Garapuá<br>
+    <input type="checkbox" name="tours" value="Passeio 4X4 para Garapuá"> Passeio 4X4 para Garapuá<br>
+    <input type="checkbox" name="tours" value="Passeio de Barco para Gamboa"> Passeio de Barco para Gamboa<br>
+    <input type="checkbox" name="tours" value="nenhum"> Nenhum<br>
+</div>
+
+<!-- Restaurant Options -->
+<div id="restaurant-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="restaurant" value="Nas Praias"> Nas Praias<br>
+    <input type="checkbox" name="restaurant" value="Na Vila"> Na Vila<br>
+    <input type="checkbox" name="restaurant" value="nenhum"> Nenhum<br>
+</div>
+
+<!-- Food Options -->
+<div id="food-options" class="form-modal" style="display:none;">
+    <input type="checkbox" name="food" value="Carne"> Carne<br>
+    <input type="checkbox" name="food" value="Peixe"> Peixe<br>
+    <input type="checkbox" name="food" value="Frutos do Mar"> Frutos do Mar<br>
+    <input type="checkbox" name="food" value="Frango"> Frango<br>
+    <input type="checkbox" name="food" value="Massas"> Massas<br>
+    <input type="checkbox" name="food" value="Vegetariano"> Vegetariano<br>
+    <input type="checkbox" name="food" value="nenhum"> Nenhum<br>
+</div>
+
+
+<!-- Budget Form -->
+<div id="budget-form" class="form-modal" style="display:none;">
+    <input type="number" id="budget-input" placeholder="Valor disponível">
+</div>
+
+<!-- Itinerary Container -->
+<div id="itinerary-container" class="itinerary-modal" style="display:none;"></div>
+
+
 
         <div id="info-modal" class="modal">
             <div class="modal-content">
