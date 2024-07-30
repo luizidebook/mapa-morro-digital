@@ -157,7 +157,7 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 5px 30px;
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
@@ -169,6 +169,7 @@ body, html {
     transition: background-color 0.3s ease;
     z-index: 1000;
 }
+
 .control-btn:hover {
     background-color: #0056b3;
 }
@@ -375,7 +376,7 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 5px 30px;
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
@@ -889,7 +890,7 @@ textarea {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 5px 30px;
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
@@ -1297,7 +1298,7 @@ h2 {
 @media (max-width: 600px) {
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1664,7 +1665,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1866,7 +1867,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2152,7 +2153,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2396,7 +2397,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2713,7 +2714,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 85%;
+        top: 75%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
