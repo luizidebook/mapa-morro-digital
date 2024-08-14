@@ -2903,8 +2903,8 @@ const tutorialSteps = [
         },
         action: () => {
             document.getElementById('show-itinerary-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-prev-btn').style.display = 'none';
+            document.getElementById('tutorial-next-btn').style.display = 'none';
+            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
 
         }
     },
@@ -2918,8 +2918,8 @@ const tutorialSteps = [
         },
         action: () => {
             document.getElementById('generate-new-itinerary-btn').style.display = 'inline-block';
-            document.getElementById('change-preferences-btn').style.display = 'inline-block';
-            document.getElementById('continue-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
             document.getElementById('initial-tour-btn').style.display = 'inline-block';
             const itineraryHTML = generateItineraryFromAnswers();
             document.getElementById('itinerary-container').innerHTML = itineraryHTML;
