@@ -2918,9 +2918,9 @@ const tutorialSteps = [
         },
         action: () => {
             document.getElementById('generate-new-itinerary-btn').style.display = 'inline-block';
-            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
             document.getElementById('tutorial-prev-btn').style.display = 'inline-block';
-            document.getElementById('initial-tour-btn').style.display = 'inline-block';
+            document.getElementById('tutorial-next-btn').style.display = 'inline-block';
+            document.getElementById('initial-tour-btn').style.display = 'none';
             const itineraryHTML = generateItineraryFromAnswers();
             document.getElementById('itinerary-container').innerHTML = itineraryHTML;
             document.getElementById('itinerary-container').style.display = 'block';
