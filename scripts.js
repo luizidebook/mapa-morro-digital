@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         showWelcomeMessage();
         adjustModalAndControls();
+        initializeTutorialListeners();
+        setupSubmenuClickListeners();
+
 
         // Initialize Swiper after the page is fully loaded
         var swiper = new Swiper('.swiper-container', {
@@ -256,26 +259,8 @@ function setupEventListeners() {
     const aboutMoreBtn = document.getElementById('about-more-btn');
     const searchBtn = document.querySelector('.menu-btn[data-feature="pesquisar"]');
     const ensinoBtn = document.querySelector('.menu-btn[data-feature="ensino"]');
-    const subMenuButtons = document.querySelectorAll('.submenu-button');
     const carouselModalClose = document.getElementById('carousel-modal-close');
-
-
-    subMenuButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            closeSideMenu();
-            clearCurrentRoute();
-            hideAllControlButtons();
-            handleDestinationSelection(button);
-            if (selectedDestination && selectedDestination.name) {
-                startCarousel(selectedDestination.name);
-            } else {
-                alert('Por favor, selecione um destino primeiro.');
-            }
-            if (tutorialIsActive && tutorialSteps[currentStep].step === 'destination-selection') {
-                nextTutorialStep();
-            }
-        });
-    });
+   
 
     if (closeModal) {
         closeModal.addEventListener('click', () => {
@@ -284,7 +269,7 @@ function setupEventListeners() {
     }
 
     if (menuToggle) {
-        menuToggle.style.display = 'inline-block';
+        menuToggle.style.display = 'none';
         menuToggle.addEventListener('click', () => {
             floatingMenu.classList.toggle('hidden');
             if (tutorialIsActive && tutorialSteps[currentStep].step === 'menu-toggle') {
@@ -324,6 +309,22 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Exemplo de listeners adicionais
+    const menuButtons = document.querySelectorAll('.menu-btn');
+    menuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            console.log(`Menu button ${button.getAttribute('data-feature')} clicked.`);
+        });
+    });
+
+    const floatingMenuButtons = document.querySelectorAll('#floating-menu .menu-btn');
+    floatingMenuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            nextTutorialStep();
+            console.log(`Floating menu button ${button.getAttribute('data-feature')} clicked.`);
+        });
+    });
 
     const reserveChairsBtn = document.getElementById('reserve-chairs-btn');
     if (reserveChairsBtn) {
@@ -387,12 +388,17 @@ function setupEventListeners() {
             console.log(`Feature selected: ${feature}`);
             handleFeatureSelection(feature);
             adjustModalAndControls();
+            closeCarouselModal();
+            removeExistingHighlights();
+            removeFloatingMenuHighlights();
             event.stopPropagation();
             if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
                 nextTutorialStep();
             }
         });
     });
+
+
 
     document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
         map.zoomIn();
@@ -401,6 +407,7 @@ function setupEventListeners() {
             nextTutorialStep();
         }
     });
+
 
     document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
         map.zoomOut();
@@ -447,6 +454,7 @@ function setupEventListeners() {
             });
         });
     });
+
 
     if (tutorialBtn) {
         tutorialBtn.addEventListener('click', () => {
@@ -724,11 +732,6 @@ function showUserLocationPopup(lat, lon) {
 }
 
 
-function showMenuToggleButton() {
-    const menuToggle = document.getElementById('menu-btn');
-    menuToggle.style.display = 'block';
-}
-
 function hideModal(id) {
     const modal = document.getElementById(id);
     modal.style.display = 'none';
@@ -896,6 +899,10 @@ function displayOSMData(data, subMenuId, feature) {
             const destination = this.getAttribute('data-destination');
             console.log(`Destination selected: ${destination}`);
             showDestinationContent(destination);
+            removeExistingHighlights();
+            removeFloatingMenuHighlights();
+            endTutorial();
+            closeCarouselModal();
         });
     });
 }
@@ -1486,36 +1493,36 @@ function showControlButtonsTour() {
 
 function showControlButtonsNightlife() {
     hideAllControlButtons();
-    document.getElementById('buy-ticket-btn').style.display = 'flex';
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-prev-btn').style.display = 'flex';
+    document.getElementById('buy-ticket-btn').style.display = 'flex';
+
 
 }
 
 function showControlButtonsRestaurants() {
     hideAllControlButtons();
-    document.getElementById('reserve-restaurants-btn').style.display = 'flex';
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-prev-btn').style.display = 'flex';
+    document.getElementById('reserve-restaurants-btn').style.display = 'flex';
 
 }
 
 function showControlButtonsInns() {
     hideAllControlButtons();
-    document.getElementById('reserve-inns-btn').style.display = 'flex';
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-prev-btn').style.display = 'flex';
-
+    document.getElementById('reserve-inns-btn').style.display = 'flex';
 }
 
 function showControlButtonsShops() {
     hideAllControlButtons();
-    document.getElementById('speak-attendent-btn').style.display = 'flex';
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('speak-attendent-btn').style.display = 'flex';
     document.getElementById('tutorial-prev-btn').style.display = 'flex';
 
 }
@@ -2636,14 +2643,47 @@ function provideContinuousAssistance() {
     console.log(translations[selectedLanguage].provideContinuousAssistance);
 }
 
+// Atualiza o conteúdo do modal
+function updateAssistantModalContent(step, content) {
+    const modalContent = document.querySelector('#assistant-modal .modal-content');
+    if (!modalContent) {
+        console.error('Elemento de conteúdo do modal não encontrado.');
+        return;
+    }
 
+    // Verifica se o passo é 'ask-interest' para exibir a mensagem e os botões específicos
+    if (step === 'ask-interest') {
+        modalContent.innerHTML = `
+            <p>${content}</p>
+            <div id="interest-options" class="form-modal">
+                <button class="control-btn" onclick="storeAndProceed('pousadas')">Pousadas</button>
+                <button class="control-btn" onclick="storeAndProceed('pontos-turisticos')">Pontos Turísticos</button>
+                <button class="control-btn" onclick="storeAndProceed('praias')">Praias</button>
+                <button class="control-btn" onclick="storeAndProceed('passeios')">Passeios</button>
+                <button class="control-btn" onclick="storeAndProceed('restaurantes')">Restaurantes</button>
+                <button class="control-btn" onclick="storeAndProceed('festas')">Festas</button>
+                <button class="control-btn" onclick="storeAndProceed('lojas')">Lojas</button>
+                <button class="control-btn" onclick="storeAndProceed('emergencias')">Emergências</button>
+            </div>
+        `;
+    } else {
+        // Atualiza o conteúdo padrão para outros passos
+        modalContent.innerHTML = `<p>${content}</p>`;
+    }
+
+    // Exibe o modal
+    document.getElementById('assistant-modal').style.display = 'block';
+}
+
+
+// Função principal do tutorial
 const tutorialSteps = [
     {
         step: 'start-tutorial',
         message: {
-            pt: "Olá, seja bem-vindo! Para que você possa experimentar uma experiência e um atendimento personalizado, preciso que me responda algumas perguntas. Vamos começar?",
-            en: "Hello, welcome! To experience a personalized service, I need you to answer some questions. Shall we start?"
-        },
+            pt: "Morro Digital é uma plataforma inovadora que oferece uma experiência digital completa para turistas em Morro de São Paulo.nterfaces interativas, assistentes virtuais e muito mais.",
+            en: "[first name], we use advanced technology to improve the tourist experience by offering features like mapping and geolocation, interactive interfaces, virtual assistants, and more. Would you like to know more?",
+       },
         action: () => {
             showButtons(['tutorial-next-btn']);
         }
@@ -2655,20 +2695,12 @@ const tutorialSteps = [
             en: "What are you looking for in Morro de São Paulo? Choose one of the options below."
         },
         action: () => {
-            updateAssistantModalContent('ask-interest', `
-                <div id="interest-options" class="form-modal">
-                    <button onclick="storeAndProceed('pousadas')">Pousadas</button>
-                    <button onclick="storeAndProceed('pontos-turisticos')">Pontos Turísticos</button>
-                    <button onclick="storeAndProceed('praias')">Praias</button>
-                    <button onclick="storeAndProceed('passeios')">Passeios</button>
-                    <button onclick="storeAndProceed('restaurantes')">Restaurantes</button>
-                    <button onclick="storeAndProceed('festas')">Festas</button>
-                    <button onclick="storeAndProceed('lojas')">Lojas</button>
-                    <button onclick="storeAndProceed('emergencias')">Emergências</button>
-                </div>
-            `);
             hideControlButtons();
-             removeExistingHighlights();
+            removeExistingHighlights();            // Remove destaques do menu flutuante
+            removeFloatingMenuHighlights();
+            closeSideMenu();
+            restoreModalAndControlsStyles();
+
         }
     },
     ...generateInterestSteps(),
@@ -2684,7 +2716,7 @@ const tutorialSteps = [
     }
 ];
 
-// Gera os passos personalizados com base nos interesses
+// Gera os passos personalizados com base nos interesses e adiciona o passo "submenu-example"
 function generateInterestSteps() {
     const interests = [
         { id: 'pousadas', label: "Pousadas", message: "Encontre as melhores pousadas para sua estadia." },
@@ -2697,28 +2729,90 @@ function generateInterestSteps() {
         { id: 'emergencias', label: "Emergências", message: "Informações úteis para situações de emergência." }
     ];
 
-    return interests.map(interest => ({
-        step: interest.id,
-        element: `.menu-btn[data-feature="${interest.id}"]`,
-        message: {
-            pt: interest.message,
-            en: `Find the best ${interest.label.toLowerCase()} in Morro de São Paulo.`
-        },
-        action: () => {
-            const element = document.querySelector(`.menu-btn[data-feature="${interest.id}"]`);
-            if (element) {
-                highlightElement(element);
-            } else {
-                console.error(`Elemento para ${interest.label} não encontrado.`);
+    // Mapeia os interesses e adiciona o passo "submenu-example"
+    const steps = interests.flatMap(interest => [
+        {
+            step: interest.id,
+            element: `.menu-btn[data-feature="${interest.id}"]`,
+            message: {
+                pt: interest.message,
+                en: `Find the best ${interest.label.toLowerCase()} in Morro de São Paulo.`
+            },
+            action: () => {
+                const element = document.querySelector(`.menu-btn[data-feature="${interest.id}"]`);
+                if (element) {
+                    highlightElement(element);
+                } else {
+                    console.error(`Elemento para ${interest.label} não encontrado.`);
+                }
+                showMenuButtons(); // Exibe os botões do menu lateral e toggle
             }
-            showMenuButtons(); // Exibe os botões do menu lateral e toggle
+        },
+        {
+            step: 'submenu-example',
+            message: {
+                pt: "Escolha uma opção do submenu para continuar.",
+                en: "Choose an option from the submenu to proceed."
+            },
+            action: () => {
+                const submenu = document.querySelector('.submenu');
+                if (submenu) {
+                    submenu.style.display = 'block'; // Exibe o submenu
+                }
+                setupSubmenuListeners(); // Configura os listeners para fechar o modal
+            }
         }
-    }));
+    ]);
+
+    return steps;
 }
+
+// Configura os listeners para fechar o modal ao clicar em submenus
+function setupSubmenuListeners() {
+    const submenuItems = document.querySelectorAll('.submenu-item');
+    submenuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            hideAssistantModal(); // Fecha o modal do assistente
+        });
+    });
+}
+
+// Função para remover destaques do menu flutuante
+function removeFloatingMenuHighlights() {
+    const floatingMenuButtons = document.querySelectorAll('.floating-menu .menu-btn');
+    floatingMenuButtons.forEach(button => {
+        button.classList.remove('highlight');
+    });
+}
+
+// Função para remover o modal do assistente
+function hideAssistantModal() {
+    const modal = document.getElementById('assistant-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Função para destacar elementos
+function highlightElement(element) {
+    removeExistingHighlights();
+    element.style.outline = '6px solid red';
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Remove destaques existentes
+function removeExistingHighlights() {
+    const highlightedElements = document.querySelectorAll('[style*="outline"]');
+    highlightedElements.forEach(el => {
+        el.style.outline = '';
+    });
+}
+
+
+
 // Função para exibir botões do menu lateral, toggle e o floating-menu
 function showMenuButtons() {
     const menuButtons = document.querySelectorAll('.menu-btn');
-    const menuToggle = document.querySelector('#menu-btn');
     const floatingMenu = document.querySelector('#floating-menu');
 
     // Exibe os botões do menu lateral
@@ -2761,51 +2855,65 @@ function showTutorialStep(step) {
     const { message, action } = stepConfig;
 
     updateAssistantModalContent(step, message[selectedLanguage]);
+    closeCarouselModal();
+
     if (action) action();
 }
 
+// Função para fechar o modal do assistente ao clicar nos botões do submenu
+function closeAssistantModalOnSubmenuClick() {
+    const submenuButtons = document.querySelectorAll('.submenu-item');
+    const assistantModal = document.getElementById('assistant-modal');
+
+    submenuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (assistantModal) {
+                assistantModal.style.display = 'none'; // Fecha o modal
+            }
+        });
+    });
+}
+
+function setupSubmenuListeners() {
+    // Configure os listeners do submenu
+    closeAssistantModalOnSubmenuClick();
+}
+
+
 // Atualiza o conteúdo do modal
-function updateAssistantModalContent(step, content) {
-    const modalContent = document.querySelector('#assistant-modal .modal-content');
-    if (!modalContent) {
-        console.error('Elemento de conteúdo do modal não encontrado.');
-        return;
-    }
+// Configura os botões do floating-menu para avançar no tutorial
+function setupFloatingMenuListeners() {
+    const floatingMenuButtons = document.querySelectorAll('#floating-menu .menu-btn');
 
-    modalContent.innerHTML = `<p>${content}</p>`;
-    document.getElementById('assistant-modal').style.display = 'block';
+    floatingMenuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            nextTutorialStep(); // Avança para o próximo passo do tutorial
+        });
+    });
 }
 
-// Função para destacar elementos com destaque vermelho
-function highlightElement(element) {
-    if (!element) {
-        console.error('Elemento para destacar não encontrado.');
-        return;
-    }
-
-    // Remove qualquer destaque existente
-    removeExistingHighlights();
-
-    // Adiciona destaque ao elemento
-    element.style.outline = '3px solid red'; // Destaca com borda vermelha
-    element.style.zIndex = '1000'; // Garante que o elemento esteja visível
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-// Remove destaques anteriores
-function removeExistingHighlights() {
-    const highlights = document.querySelectorAll('.highlight');
-    highlights.forEach(el => el.classList.remove('highlight'));
-}
-
-// Gerencia o progresso do tutorial
+// Função para avançar para o próximo passo do tutorial
 function nextTutorialStep() {
     if (currentStep < tutorialSteps.length - 1) {
         currentStep++;
-        showTutorialStep(tutorialSteps[currentStep].step);
+        showTutorialStep(tutorialSteps[currentStep].step); // Mostra o próximo passo
     } else {
-        endTutorial();
+        endTutorial(); // Finaliza o tutorial se for o último passo
     }
+}
+
+// Função para fechar o modal do assistente
+function hideAssistantModal() {
+    const modal = document.getElementById('assistant-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Inicializa os listeners
+function initializeTutorialListeners() {
+    setupFloatingMenuListeners(); // Configura os botões do floating-menu
+    setupMenuListeners();         // Configura os botões do menu lateral
 }
 
 function previousTutorialStep() {
@@ -2815,19 +2923,37 @@ function previousTutorialStep() {
     }
 }
 
-// Finaliza o tutorial
+
+// Função para exibir o botão 'tutorial-menu-btn' quando o tutorial estiver desativado
+function toggleTutorialMenuButton() {
+    const tutorialMenuBtn = document.getElementById('tutorial-menu-btn');
+
+    if (!tutorialIsActive) {
+        // Exibe o botão se o tutorial não estiver ativo
+        if (tutorialMenuBtn) {
+            tutorialMenuBtn.style.display = 'inline-block';
+        }
+    } else {
+        // Oculta o botão se o tutorial estiver ativo
+        if (tutorialMenuBtn) {
+            tutorialMenuBtn.style.display = 'none';
+        }
+    }
+}
+
+// Atualize onde o estado do tutorial muda
+function startTutorial() {
+    tutorialIsActive = true;
+    toggleTutorialMenuButton(); // Oculta o botão ao iniciar o tutorial
+    showTutorialStep('start-tutorial');
+}
+
+// Chama a função sempre que o estado do tutorial muda
 function endTutorial() {
     tutorialIsActive = false;
     hideAssistantModal();
+    toggleTutorialMenuButton(); // Exibe o botão após o término do tutorial
     console.log('Tutorial concluído.');
-}
-
-// Oculta o modal do assistente
-function hideAssistantModal() {
-    const modal = document.getElementById('assistant-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
 }
 
 // Exibe os botões apropriados
@@ -2931,12 +3057,6 @@ function renderItinerary(itinerary) {
     return itineraryHTML;
 }
 
-function hideAssistantModal() {
-    const modal = document.getElementById('assistant-modal');
-    modal.style.display = 'none';
-    showMenuToggleButton();
-}
-
 function updateProgressBar(current, total) {
     const progressBar = document.getElementById('tutorial-progress-bar');
     progressBar.style.width = `${(current / total) * 100}%`;
@@ -2946,8 +3066,8 @@ function closeSideMenu() {
     const menu = document.getElementById('menu');
     menu.style.display = 'none';
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-    currentSubMenu = null;
     restoreModalAndControlsStyles();
+    currentSubMenu = null;
 }
 
 function searchLocation() {

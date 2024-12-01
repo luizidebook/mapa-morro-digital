@@ -732,7 +732,7 @@ textarea {
     top: 10%;
     left: 10%;
     transform: translate(-50%, -50%);
-    width: 80%;
+    width: 70%;
     max-width: 600px;
     background: white;
     padding: 20px;
@@ -927,7 +927,7 @@ textarea {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
@@ -1373,7 +1373,7 @@ h2 {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
@@ -1559,7 +1559,7 @@ h2 {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
@@ -1804,7 +1804,7 @@ h2 {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
@@ -2047,7 +2047,7 @@ h2 {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
@@ -2291,7 +2291,7 @@ h2 {
         left: 50%;
         top: 45%;
         transform: translate(-50%, -50%);
-        width: 80%;
+        width: 70%;
         max-width: 600px;
         max-height: 100vh;
         overflow-y: auto;
