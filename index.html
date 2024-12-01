@@ -77,7 +77,7 @@
             </div>
         </div>
         <button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">&#9776;</button>
-        <div id="floating-menu" class="floating-menu hidden">
+        <div id="floating-menu" class="floating-menu">
             <button class="menu-btn" data-feature="pontos-turisticos" aria-label="Pontos Turísticos"><i class="fas fa-landmark"></i></button>
             <button class="menu-btn" data-feature="passeios" aria-label="Passeios"><i class="fas fa-walking"></i></button>
             <button class="menu-btn" data-feature="praias" aria-label="Praias"><i class="fas fa-umbrella-beach"></i></button>
@@ -112,7 +112,7 @@
             <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
              <button id="tutorial-site-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
             <button class="control-btn" id="tutorial-next-btn" style="display:none;" onclick="nextTutorialStep()">Próximo</button>
-            <button class="control-btn" id="tutorial-prev-btn" style="display:none;" onclick="previousTutorialStep()">Voltar</button>
+            <button class="control-btn" id="tutorial-prev-btn" style="display:none;" onclick="nextTutorialStep('ask-interest')">Voltar</button>
             <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial(), stopSpeaking()">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="nextTutorialStep()">Criar Roteiro</button>
             <button class="control-btn" id="create-route-btn" style="display: none;" onclick="destroyCarousel()">Como Chegar</button>
