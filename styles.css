@@ -9,6 +9,7 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
+
 #map-container {
     position: relative;
     width: 100%;
@@ -157,14 +158,14 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 30px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
-    /* display: inline-block; */
-    font-size: 25px;
+    display: inline-block;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
-    border-radius: 15px;
+    border-radius: 18px;
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
@@ -174,7 +175,7 @@ body, html {
     background-color: #0056b3;
 }
 
-.menu-btn {
+.menu-principal-btn {
     background-color: #007BFF;
     color: white;
     padding: 5px 30px;
@@ -194,10 +195,10 @@ body, html {
     background-color: #0056b3;
 }
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -396,14 +397,14 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 30px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
-    /* display: inline-block; */
-    font-size: 25px;
+    display: inline-block;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
-    border-radius: 15px;
+    border-radius: 18px;
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
@@ -766,10 +767,10 @@ textarea {
 }
 
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -910,14 +911,14 @@ textarea {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 30px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
-    /* display: inline-block; */
-    font-size: 25px;
+    display: inline-block;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
-    border-radius: 15px;
+    border-radius: 18px;
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
@@ -945,7 +946,7 @@ textarea {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 35%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -959,7 +960,7 @@ textarea {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -1010,10 +1011,10 @@ textarea {
 /* Menu lateral */
 .menu {
     position: fixed;
-    top: 0;
-    right: 0;
-    width: 25%;
-    height: 100%;
+    top: 75%;
+    left: 14%;
+    width: 70%;
+    height: 23%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
     overflow-y: auto;
@@ -1059,7 +1060,7 @@ textarea {
     border-bottom: 1px solid #ddd;
     text-align: left;
     cursor: pointer;
-    font-size: 8px;
+    font-size: 12px;
     z-index: 1000;
 }
 
@@ -1085,7 +1086,7 @@ textarea {
 
 p {
     display: block;
-    font-size: 1em;
+    font-size: 0.8em;
     margin-block-start: 0.83em;
     margin-block-end: 0.83em;
     margin-inline-start: 0px;
@@ -1314,16 +1315,16 @@ h2 {
 }
 
 @media (max-width: 600px) {
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -1332,10 +1333,10 @@ h2 {
         transition: left 0.3s ease-in-out;
     }
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -1406,7 +1407,7 @@ h2 {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -1593,7 +1594,7 @@ h2 {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -1629,10 +1630,10 @@ h2 {
 }
 
 
-   .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -1683,16 +1684,16 @@ h2 {
     padding: 20px;
 }
 
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -1839,7 +1840,7 @@ h2 {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -1875,10 +1876,10 @@ h2 {
 }
 
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -1886,16 +1887,16 @@ h2 {
         z-index: 10000;
     }
 
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -2083,7 +2084,7 @@ h2 {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -2118,11 +2119,10 @@ h2 {
     margin-top: 0;
 }
 
-
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -2173,16 +2173,16 @@ h2 {
     padding: 20px;
 }
 
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -2328,7 +2328,7 @@ h2 {
 }
 
 #assistant-modal .modal-content {
-    max-height: 50vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -2364,10 +2364,10 @@ h2 {
 }
 
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -2418,16 +2418,16 @@ h2 {
     padding: 20px;
 }
 
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -2571,10 +2571,10 @@ h2 {
 
 @media (max-width: 768px) {
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
@@ -2735,16 +2735,16 @@ h2 {
     }
 }
 
-    .control-buttons {
+.control-buttons {
         position: absolute;
-        top: 86%;
+        top: 67%;
         left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column-reverse;
+        flex-direction: row;
         align-content: center;
         justify-items: center;
         align-items: center;
@@ -2763,10 +2763,10 @@ h2 {
 
 @media (max-width: 480px) {
 
-  .close-side-btn {
+    .close-side-btn {
         position: fixed;
-        top: 0.2%;
-        right: 25.3%;
+        top: 73%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;

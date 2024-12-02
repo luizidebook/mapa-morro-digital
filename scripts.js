@@ -545,8 +545,8 @@ function restoreModalAndControlsStyles() {
     });
 
     Object.assign(carouselModal.style, {
-        top: '40%',
-        left: `50%`,
+        top: '35%',
+        left: `48%`,
         transform: 'translate(-50%, -50%)',
         width: '70%',
         height: '50%',
@@ -561,7 +561,7 @@ function restoreModalAndControlsStyles() {
     });
 
     Object.assign(controlButtons.style, {
-        left: '50%',
+        left: '49%',
     });
 
     Object.assign(mapContainer.style, {
@@ -579,15 +579,15 @@ function adjustModalAndControls() {
 
     if (!sideMenu.classList.contains('hidden')) {
         Object.assign(assistantModal.style, {
-            left: `40%`
+            left: `50%`
         });
 
         Object.assign(controlButtons.style, {
-            left: '40%',
+            left: '49%',
         });
 
         Object.assign(mapContainer.style, {
-            width: `75%`,
+            width: `100%`,
             height: '100%'
         });
 
@@ -611,9 +611,9 @@ function adjustModalStyles(modal, type) {
         if (type === 'assistant') {
             Object.assign(modal.style, {
                 top: '40%',
-                left: '37%',
+                left: '45%',
                 transform: 'translate(-50%, -50%)',
-                width: '70%',
+                width: '60%',
                 maxWidth: '600px',
                 background: 'white',
                 padding: '20px',
@@ -625,8 +625,8 @@ function adjustModalStyles(modal, type) {
             });
         } else if (type === 'carousel') {
             Object.assign(modal.style, {
-                top: '40%',
-                left: '37%',
+                top: '35%',
+                left: '48%',
                 transform: 'translate(-50%, -50%)',
                 width: '70%',
                 height: '50%',
@@ -702,7 +702,7 @@ function requestLocationPermissionCreateRoute() {
 }
 
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 15);
+    map.setView([lat, lon], 17);
     if (currentMarker) {
         map.removeLayer(currentMarker);
     }
@@ -711,7 +711,7 @@ function adjustMapWithLocationUser(lat, lon) {
 }
 
 function adjustMapWithLocation(lat, lon, name, description) {
-    map.setView([lat, lon], 14);
+    map.setView([lat, lon], 17);
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
     markers.push(marker);
     map.panTo([lat, lon]);
@@ -2656,14 +2656,14 @@ function updateAssistantModalContent(step, content) {
         modalContent.innerHTML = `
             <p>${content}</p>
             <div id="interest-options" class="form-modal">
-                <button class="control-btn" onclick="storeAndProceed('pousadas')">Pousadas</button>
-                <button class="control-btn" onclick="storeAndProceed('pontos-turisticos')">Pontos Turísticos</button>
-                <button class="control-btn" onclick="storeAndProceed('praias')">Praias</button>
-                <button class="control-btn" onclick="storeAndProceed('passeios')">Passeios</button>
-                <button class="control-btn" onclick="storeAndProceed('restaurantes')">Restaurantes</button>
-                <button class="control-btn" onclick="storeAndProceed('festas')">Festas</button>
-                <button class="control-btn" onclick="storeAndProceed('lojas')">Lojas</button>
-                <button class="control-btn" onclick="storeAndProceed('emergencias')">Emergências</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('pousadas')">Pousadas</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('pontos-turisticos')">Pontos Turísticos</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('praias')">Praias</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('passeios')">Passeios</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('restaurantes')">Restaurantes</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('festas')">Festas</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('lojas')">Lojas</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('emergencias')">Emergências</button>
             </div>
         `;
     } else {
@@ -2673,6 +2673,8 @@ function updateAssistantModalContent(step, content) {
 
     // Exibe o modal
     document.getElementById('assistant-modal').style.display = 'block';
+
+
 }
 
 
@@ -2856,6 +2858,7 @@ function showTutorialStep(step) {
 
     updateAssistantModalContent(step, message[selectedLanguage]);
     closeCarouselModal();
+    hideAllControlButtons();
 
     if (action) action();
 }
