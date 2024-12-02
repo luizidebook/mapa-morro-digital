@@ -202,7 +202,7 @@ body, html {
     text-align: center;
     text-decoration: none;
     /* display: inline-block; */
-    font-size: 18px;
+    font-size: 25px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;
@@ -217,7 +217,7 @@ body, html {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -805,7 +805,7 @@ textarea {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -1062,10 +1062,10 @@ textarea {
 /* Menu lateral */
 .menu {
     position: fixed;
-    top: 85%;
+    top: 72%;
     left: 14%;
     width: 70%;
-    height: 13%;
+    height: 23%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
     overflow-y: auto;
@@ -1406,7 +1406,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -1703,7 +1703,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -1967,7 +1967,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -2228,7 +2228,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -2491,7 +2491,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -2716,7 +2716,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;
@@ -2926,7 +2926,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 83%;
+        top: 70%;
         right: 16%;
         background-color: #fff;
         border: 10px;

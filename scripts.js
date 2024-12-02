@@ -2683,7 +2683,7 @@ const tutorialSteps = [
     {
         step: 'start-tutorial',
         message: {
-            pt: "Morro Digital é uma plataforma inovadora que oferece uma experiência digital completa para turistas em Morro de São Paulo.nterfaces interativas, assistentes virtuais e muito mais.",
+            pt: "Morro Digital é uma plataforma inovadora que informa e conecta os turistas as melhores experiências disponíveis em Morro de São Paulo!",
             en: "[first name], we use advanced technology to improve the tourist experience by offering features like mapping and geolocation, interactive interfaces, virtual assistants, and more. Would you like to know more?",
        },
         action: () => {
