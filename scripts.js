@@ -531,7 +531,7 @@ function restoreModalAndControlsStyles() {
 
     Object.assign(assistantModal.style, {
         left: '45%',
-        top: '45%',
+        top: '30%',
         transform: 'translate(-50%, -50%)',
         width: '',
         maxWidth: '',
@@ -610,7 +610,7 @@ function adjustModalStyles(modal, type) {
     if (!sideMenu.classList.contains('hidden')) {
         if (type === 'assistant') {
             Object.assign(modal.style, {
-                top: '35%',
+                top: '20%',
                 left: '45%',
                 transform: 'translate(-50%, -50%)',
                 width: '60%',
@@ -702,7 +702,7 @@ function requestLocationPermissionCreateRoute() {
 }
 
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 17);
+    map.setView([-110.500, -115.913], 15);
     if (currentMarker) {
         map.removeLayer(currentMarker);
     }
@@ -711,7 +711,7 @@ function adjustMapWithLocationUser(lat, lon) {
 }
 
 function adjustMapWithLocation(lat, lon, name, description) {
-    map.setView([lat, lon], 17);
+    map.setView([-110.500, -115.913], 15);
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
     markers.push(marker);
     map.panTo([lat, lon]);
@@ -2683,7 +2683,7 @@ const tutorialSteps = [
     {
         step: 'start-tutorial',
         message: {
-            pt: "Morro Digital é uma plataforma inovadora que informa e conecta os turistas as melhores experiências disponíveis em Morro de São Paulo!",
+            pt: "Morro Digital é uma plataforma inovadora que conecta os turistas as melhores experiências disponíveis em Morro de São Paulo!",
             en: "[first name], we use advanced technology to improve the tourist experience by offering features like mapping and geolocation, interactive interfaces, virtual assistants, and more. Would you like to know more?",
        },
         action: () => {

@@ -997,7 +997,7 @@ textarea {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1464,7 +1464,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1651,7 +1651,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1915,7 +1915,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2177,7 +2177,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2439,7 +2439,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 25%;
+        top: 20%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2901,8 +2901,8 @@ h2 {
 
 .control-initial-tutorial-buttons {
         position: absolute;
-        top: 43%;
-        left: 45%;
+        top: 68%;
+        left: 49%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
