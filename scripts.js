@@ -548,7 +548,7 @@ function restoreModalAndControlsStyles() {
         top: '35%',
         left: `48%`,
         transform: 'translate(-50%, -50%)',
-        width: '70%',
+        width: '80%',
         height: '50%',
         maxWidth: '600px',
         background: 'white',
@@ -610,7 +610,7 @@ function adjustModalStyles(modal, type) {
     if (!sideMenu.classList.contains('hidden')) {
         if (type === 'assistant') {
             Object.assign(modal.style, {
-                top: '40%',
+                top: '35%',
                 left: '45%',
                 transform: 'translate(-50%, -50%)',
                 width: '60%',
@@ -628,7 +628,7 @@ function adjustModalStyles(modal, type) {
                 top: '35%',
                 left: '48%',
                 transform: 'translate(-50%, -50%)',
-                width: '70%',
+                width: '80%',
                 height: '50%',
                 maxWidth: '600px',
                 background: 'white',
