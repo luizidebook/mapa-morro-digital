@@ -530,8 +530,8 @@ function restoreModalAndControlsStyles() {
     const mapContainer = document.getElementById('map');
 
     Object.assign(assistantModal.style, {
-        left: '50%',
-        top: '50%',
+        left: '45%',
+        top: '25%',
         transform: 'translate(-50%, -50%)',
         width: '',
         maxWidth: '',
