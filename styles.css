@@ -24,7 +24,7 @@ body, html {
 .welcome-modal, .modal {
     position: fixed;
     top: 50%;
-    left: 50%;
+    left: 45%;
     transform: translate(-50%, -50%);
     width: 60%;
     max-width: 600px;
@@ -162,6 +162,26 @@ body, html {
     text-decoration: none;
     /* display: inline-block; */
     font-size: 25px;
+    margin: 2px 1px;
+    cursor: pointer;
+    border-radius: 15px;
+    border: none;
+    transition: background-color 0.3s ease;
+    z-index: 1000;
+}
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
+
+.menu-btn {
+    background-color: #007BFF;
+    color: white;
+    padding: 5px 30px;
+    text-align: center;
+    text-decoration: none;
+    /* display: inline-block; */
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 15px;
@@ -924,7 +944,7 @@ textarea {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
@@ -1371,7 +1391,7 @@ h2 {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
@@ -1558,7 +1578,7 @@ h2 {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
@@ -1804,7 +1824,7 @@ h2 {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
@@ -2048,7 +2068,7 @@ h2 {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
@@ -2293,7 +2313,7 @@ h2 {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 40%;
+        left: 45%;
         top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;

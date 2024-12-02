@@ -531,7 +531,7 @@ function restoreModalAndControlsStyles() {
 
     Object.assign(assistantModal.style, {
         left: '45%',
-        top: '25%',
+        top: '35%',
         transform: 'translate(-50%, -50%)',
         width: '',
         maxWidth: '',
