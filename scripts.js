@@ -561,7 +561,7 @@ function restoreModalAndControlsStyles() {
     });
 
     Object.assign(controlButtons.style, {
-        left: '49%',
+        left: '45%',
     });
 
     Object.assign(mapContainer.style, {
@@ -583,7 +583,7 @@ function adjustModalAndControls() {
         });
 
         Object.assign(controlButtons.style, {
-            left: '49%',
+            left: '45%',
         });
 
         Object.assign(mapContainer.style, {

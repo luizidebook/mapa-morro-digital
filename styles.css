@@ -1137,7 +1137,7 @@ textarea {
 
 p {
     display: block;
-    font-size: 0.9em;
+    font-size: 1em;
     margin-block-start: 0.83em;
     margin-block-end: 0.83em;
     margin-inline-start: 0px;
@@ -1385,10 +1385,10 @@ h2 {
     }
 
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 50%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
@@ -1773,10 +1773,10 @@ h2 {
         transition: left 0.3s ease-in-out;
     }
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 47%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
@@ -1994,10 +1994,10 @@ h2 {
         transition: left 0.3s ease-in-out;
     }
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 47%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
@@ -2298,10 +2298,10 @@ h2 {
         transition: left 0.3s ease-in-out;
     }
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 47%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
@@ -2562,10 +2562,10 @@ h2 {
     }
 
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 47%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
@@ -2899,10 +2899,10 @@ h2 {
 /* Adicione esses estilos ao seu arquivo styles.css */
 
 
-    .control-initial-tutorial-buttons {
+.control-initial-tutorial-buttons {
         position: absolute;
-        top: 47%;
-        left: 50%;
+        top: 43%;
+        left: 45%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
