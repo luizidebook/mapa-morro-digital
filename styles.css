@@ -920,12 +920,12 @@ textarea {
 
 
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -936,6 +936,7 @@ textarea {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1366,12 +1367,12 @@ h2 {
 }
 
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1382,6 +1383,7 @@ h2 {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1552,12 +1554,12 @@ h2 {
 
 @media (max-width: 768px) {
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1568,6 +1570,7 @@ h2 {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -1797,12 +1800,12 @@ h2 {
 }
 @media (max-width: 1024px) {
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1813,6 +1816,7 @@ h2 {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -2040,12 +2044,12 @@ h2 {
 
 @media (max-width: 1200px) {
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2056,6 +2060,7 @@ h2 {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
@@ -2284,12 +2289,12 @@ h2 {
 
 @media (min-width: 1201px) {
 /* Modal styles */
-    #assistant-modal {
+#assistant-modal {
         display: none;
         position: fixed;
         z-index: 1000;
-        left: 50%;
-        top: 45%;
+        left: 40%;
+        top: 25%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2300,6 +2305,7 @@ h2 {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         padding: 30px;
     }
+}
 
 #assistant-modal .modal-content {
     max-height: 50vh;
