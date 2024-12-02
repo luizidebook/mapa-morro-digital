@@ -531,7 +531,7 @@ function restoreModalAndControlsStyles() {
 
     Object.assign(assistantModal.style, {
         left: '45%',
-        top: '30%',
+        top: '40%',
         transform: 'translate(-50%, -50%)',
         width: '',
         maxWidth: '',
@@ -569,82 +569,6 @@ function restoreModalAndControlsStyles() {
         height: '100%'
     });
 }
-
-function adjustModalAndControls() {
-    const assistantModal = document.getElementById('assistant-modal');
-    const carouselModal = document.getElementById('carousel-modal');
-    const sideMenu = document.querySelector('.menu');
-    const controlButtons = document.querySelector('.control-buttons');
-    const mapContainer = document.getElementById('map');
-
-    if (!sideMenu.classList.contains('hidden')) {
-        Object.assign(assistantModal.style, {
-            left: `50%`
-        });
-
-        Object.assign(controlButtons.style, {
-            left: '45%',
-        });
-
-        Object.assign(mapContainer.style, {
-            width: `100%`,
-            height: '100%'
-        });
-
-        // Ajuste o estilo do modal do assistente
-        adjustModalStyles(assistantModal, 'assistant');
-        // Ajuste o estilo do modal do carrossel
-        adjustModalStyles(carouselModal, 'carousel');
-    } else {
-        restoreModalAndControlsStyles();
-    }
-
-    if (map) {
-        map.invalidateSize();
-    }
-}
-
-function adjustModalStyles(modal, type) {
-    const sideMenu = document.querySelector('.menu');
-
-    if (!sideMenu.classList.contains('hidden')) {
-        if (type === 'assistant') {
-            Object.assign(modal.style, {
-                top: '20%',
-                left: '45%',
-                transform: 'translate(-50%, -50%)',
-                width: '60%',
-                maxWidth: '600px',
-                background: 'white',
-                padding: '20px',
-                border: '1px solid #ccc',
-                borderRadius: '12px',
-                boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-                zIndex: '100000',
-                textAlign: 'center'
-            });
-        } else if (type === 'carousel') {
-            Object.assign(modal.style, {
-                top: '35%',
-                left: '48%',
-                transform: 'translate(-50%, -50%)',
-                width: '80%',
-                height: '50%',
-                maxWidth: '600px',
-                background: 'white',
-                padding: '0px',
-                border: '1px solid #ccc',
-                borderRadius: '12px',
-                boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-                zIndex: '100000',
-                textAlign: 'center'
-            });
-        }
-    } else {
-        restoreModalAndControlsStyles();
-    }
-}
-
 
 
 function showNotification(message, type = 'success') {
@@ -930,6 +854,7 @@ function showDestinationModal(destination) {
     };
 
     modal.style.display = 'block';
+
 }
 
 function isFavorite(destination) {
@@ -1177,6 +1102,7 @@ function displayCustomItems(items, subMenuId, feature) {
 
         const marker = L.marker([item.lat, item.lon]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.description}`);
         markers.push(marker);
+        handleSubmenuButtons();
     });
 }
 
@@ -1315,9 +1241,11 @@ function displayCustomEmergencies() {
             handleSubmenuButtons(emergency.lat, emergency.lon, emergency.name, emergency.description, [], 'emergencias');
         };
         subMenu.appendChild(btn);
+        showControlButtons();
 
         const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(`<b>${emergency.name}</b><br>${emergency.description}`);
         markers.push(marker);
+        showItineraryBtn
     });
 }
 
@@ -1441,6 +1369,7 @@ function handleSubmenuButtonClick(lat, lon, name, description, controlButtonsFn)
     controlButtonsFn();
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
+
 }
 
 function handleSubmenuButtonsTouristSpots(lat, lon, name, description) {
@@ -2542,12 +2471,6 @@ function getUrlsForLocation(locationName) {
 }
 
 
-function showInfoModal(title, content) {
-    const infoModal = document.getElementById('info-modal');
-    infoModal.querySelector('.modal-title').innerText = title;
-    infoModal.querySelector('.modal-content').innerHTML = content;
-    infoModal.style.display = 'block';
-}
 
 function showItineraryForm() {
     const formModal = document.getElementById('itinerary-form-modal');
@@ -2683,7 +2606,7 @@ const tutorialSteps = [
     {
         step: 'start-tutorial',
         message: {
-            pt: "Morro Digital é uma plataforma inovadora que conecta os turistas as melhores experiências disponíveis em Morro de São Paulo!",
+            pt: "Sua aventura inesquecível em Morro de São Paulo começa aqui!",
             en: "[first name], we use advanced technology to improve the tourist experience by offering features like mapping and geolocation, interactive interfaces, virtual assistants, and more. Would you like to know more?",
        },
         action: () => {
@@ -2701,7 +2624,6 @@ const tutorialSteps = [
             removeExistingHighlights();            // Remove destaques do menu flutuante
             removeFloatingMenuHighlights();
             closeSideMenu();
-            restoreModalAndControlsStyles();
 
         }
     },
@@ -2798,7 +2720,7 @@ function hideAssistantModal() {
 // Função para destacar elementos
 function highlightElement(element) {
     removeExistingHighlights();
-    element.style.outline = '6px solid red';
+    element.style.outline = '4px solid red';
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
