@@ -299,32 +299,7 @@ function setupEventListeners() {
         });
     }
 
-    const tourBtn = document.getElementById('tour-btn');
-    if (tourBtn) {
-        tourBtn.addEventListener('click', () => {
-            if (selectedDestination && selectedDestination.url) {
-                openDestinationWebsite(selectedDestination.url);
-            } else {
-                alert('Por favor, selecione um destino primeiro.');
-            }
-        });
-    }
 
-    // Exemplo de listeners adicionais
-    const menuButtons = document.querySelectorAll('.menu-btn');
-    menuButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            console.log(`Menu button ${button.getAttribute('data-feature')} clicked.`);
-        });
-    });
-
-    const floatingMenuButtons = document.querySelectorAll('#floating-menu .menu-btn');
-    floatingMenuButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            nextTutorialStep();
-            console.log(`Floating menu button ${button.getAttribute('data-feature')} clicked.`);
-        });
-    });
 
     const reserveChairsBtn = document.getElementById('reserve-chairs-btn');
     if (reserveChairsBtn) {
@@ -831,31 +806,7 @@ function displayOSMData(data, subMenuId, feature) {
     });
 }
 
-function showDestinationModal(destination) {
-    const modal = document.getElementById('destination-modal');
-    const carousel = modal.querySelector('.carousel-inner');
-    const favoriteButton = modal.querySelector('.favorite-btn');
 
-    modal.querySelector('.modal-title').textContent = destination.name;
-    modal.querySelector('.modal-body').textContent = destination.description;
-    carousel.innerHTML = '';
-
-    destination.images.forEach((image, index) => {
-        const carouselItem = document.createElement('div');
-        carouselItem.className = `carousel-item${index === 0 ? ' active' : ''}`;
-        carouselItem.innerHTML = `<img src="${image}" class="d-block w-100" alt="${destination.name}">`;
-        carousel.appendChild(carouselItem);
-    });
-
-    favoriteButton.textContent = isFavorite(destination) ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
-    favoriteButton.onclick = () => {
-        toggleFavorite(destination);
-        favoriteButton.textContent = isFavorite(destination) ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
-    };
-
-    modal.style.display = 'block';
-
-}
 
 function isFavorite(destination) {
     return favorites.some(fav => fav.name === destination.name);
@@ -1241,7 +1192,7 @@ function displayCustomEmergencies() {
             handleSubmenuButtons(emergency.lat, emergency.lon, emergency.name, emergency.description, [], 'emergencias');
         };
         subMenu.appendChild(btn);
-        showControlButtons();
+        showControlButtons()
 
         const marker = L.marker([emergency.lat, emergency.lon]).addTo(map).bindPopup(`<b>${emergency.name}</b><br>${emergency.description}`);
         markers.push(marker);
@@ -2579,7 +2530,7 @@ function updateAssistantModalContent(step, content) {
         modalContent.innerHTML = `
             <p>${content}</p>
             <div id="interest-options" class="form-modal">
-                <button class="menu-principal-btn" onclick="storeAndProceed('pousadas')">Pousadas</button>
+                <button class="menu-principal-btn" onclick="storeAndProceed('pousadas')" onclick="loadSubMenu(subMenuId, feature)">Pousadas</button>
                 <button class="menu-principal-btn" onclick="storeAndProceed('pontos-turisticos')">Pontos Turísticos</button>
                 <button class="menu-principal-btn" onclick="storeAndProceed('praias')">Praias</button>
                 <button class="menu-principal-btn" onclick="storeAndProceed('passeios')">Passeios</button>
@@ -2812,7 +2763,8 @@ function setupFloatingMenuListeners() {
 
     floatingMenuButtons.forEach(button => {
         button.addEventListener('click', () => {
-            nextTutorialStep(); // Avança para o próximo passo do tutorial
+            nextTutorialStep();
+             // Avança para o próximo passo do tutorial
         });
     });
 }
