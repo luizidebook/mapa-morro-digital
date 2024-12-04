@@ -850,13 +850,13 @@ textarea {
 
 .close-side-menu-btn {
     position: fixed;
-    top: 69%;
+    top: 70%;
     right: 13%;
     background-color: #fff;
     border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 10000;
+    z-index: 1000000000;
 }
 
 .menu-toggle {
@@ -1015,13 +1015,13 @@ textarea {
 
 .close-side-menu-btn {
     position: fixed;
-    top: 69%;
+    top: 70%;
     right: 13%;
     background-color: #fff;
     border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 10000;
+    z-index: 1000000000;
 }
 
 
@@ -1114,6 +1114,8 @@ textarea {
 /* Personalização da barra de rolagem para navegadores baseados em WebKit (Chrome, Edge, Safari) */
 .menu::-webkit-scrollbar {
     width: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #007BFF #f1f1f1;
  /* Largura da barra de rolagem */
 }
 
@@ -1135,7 +1137,7 @@ textarea {
 .menu.hidden {
     width: 0;
     overflow: auto;
-    z-index: 1000000;
+    z-index: 100000000000000;
     transition: width 0.3s ease-in-out;
 }
 
@@ -1157,13 +1159,13 @@ textarea {
 
 .close-side-menu-btn {
     position: fixed;
-    top: 69%;
+    top: 70%;
     right: 13%;
     background-color: #fff;
     border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 10000;
+    z-index: 1000000000;
 }
 
 
@@ -1224,13 +1226,13 @@ h2 {
 
 .close-side-menu-btn {
     position: fixed;
-    top: 69%;
+    top: 70%;
     right: 13%;
     background-color: #fff;
     border: 10px;
     font-size: 13px;
     cursor: pointer;
-    z-index: 10000;
+    z-index: 1000000000;
 }
 
 
