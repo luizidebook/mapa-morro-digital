@@ -2014,8 +2014,7 @@ const tutorialSteps = [
             hideAllControlButtons();
             hideControlButtons();
             showButtons(['pontos-turisticos-btn', 'passeios-btn', 'praias-btn', 'festas-btn', 'restaurantes-btn', 'pousadas-btn', 'lojas-btn', 'emergencias-btn']);
-            removeExistingHighlights();            // Remove destaques do menu flutuante
-            removeFloatingMenuHighlights();
+            clearAllMarkers();
             closeSideMenu();
         }
     },

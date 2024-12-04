@@ -1009,7 +1009,7 @@ textarea {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1070,8 +1070,6 @@ textarea {
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
-
-/* Menu lateral */
 /* Menu lateral */
 .menu {
     position: fixed;
@@ -1291,7 +1289,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1385,7 +1383,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1572,7 +1570,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1678,7 +1676,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -1835,7 +1833,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -1898,7 +1896,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2096,7 +2094,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2201,7 +2199,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2357,7 +2355,7 @@ h2 {
         position: fixed;
         z-index: 1000;
         left: 45%;
-        top: 18%;
+        top: 15%;
         transform: translate(-50%, -50%);
         width: 70%;
         max-width: 600px;
@@ -2463,7 +2461,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
@@ -2797,7 +2795,7 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
+        top: 58%;
         left: 42%;
         width: 70%;
         transform: translate(-50%, -50%);
