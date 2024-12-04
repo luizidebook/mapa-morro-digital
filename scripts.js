@@ -262,20 +262,65 @@ function showWelcomeMessage() {
 // Inicializa o mapa usando Leaflet
 function initializeMap() {
     map = L.map('map', {
-        zoomControl: false
+        zoomControl: false,
+        maxZoom: 19,
+        minZoom: 3
     }).setView([-13.410, -38.913], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; Desenvolvido por Luiz Idebook'
     }).addTo(map);
+
 }
 
-// Ajusta o mapa para um local específico com marcador
-function adjustMapWithLocation(lat, lon, name, description) {
-    map.setView([-13.410, -38.913], 14);
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
-    markers.push(marker);
+
+function adjustMapWithLocation(lat, lon, name = '', description = '', zoom = 15, offsetYPercent = 10) {
+    try {
+        // Remove marcadores antigos antes de adicionar um novo
+        clearMarkers();
+
+        // Adiciona um marcador no local especificado
+        const marker = L.marker([lat, lon]).addTo(map)
+            .bindPopup(`<b>${name}</b><br>${description || 'Localização selecionada'}`)
+            .openPopup();
+
+        // Adiciona o marcador à lista de marcadores para referência futura
+        markers.push(marker);
+
+        // Obtém o tamanho do mapa em pixels
+        const mapSize = map.getSize();
+        const mapHeight = mapSize.y;
+
+        // Calcula o deslocamento vertical com base na porcentagem fornecida
+        const offsetYPercentCapped = Math.min(offsetYPercent, 100); // Limita o deslocamento a um máximo de 100%
+        const offsetY = (mapHeight * offsetYPercentCapped) / 100;
+
+        // Projeta o ponto da localização no sistema de coordenadas da tela
+        const projectedPoint = map.project([lat, lon], zoom);
+
+        // Subtrai o deslocamento para reposicionar o ponto mais próximo ao topo
+        const adjustedPoint = projectedPoint.subtract([0, offsetY]);
+
+        // Converte o ponto ajustado de volta para coordenadas geográficas
+        const adjustedLatLng = map.unproject(adjustedPoint, zoom);
+
+        // Centraliza o mapa no ponto ajustado com animação
+        map.setView(adjustedLatLng, zoom, {
+            animate: true,
+            pan: { duration: 0.5, easeLinearity: 0.8 }
+        });
+
+        console.log(`Mapa ajustado para: (${lat}, ${lon}) com zoom ${zoom} e deslocamento ${offsetYPercentCapped}%`);
+    } catch (error) {
+        console.error('Erro ao ajustar o mapa:', error);
+    }
 }
+
+
+
+
+
+
 
 // Ajusta o mapa para a localização atual do usuário
 function adjustMapWithLocationUser(lat, lon) {
@@ -309,6 +354,7 @@ async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
     try {
         clearCurrentRoute(); // Limpar rota atual
         clearAllMarkers(); // Limpar todos os marcadores
+        startNavigation();
 
         // Obtém a localização armazenada
         const location = await getCurrentLocation();
@@ -330,12 +376,25 @@ async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
             .openPopup();
 
         // Ajusta o mapa para mostrar a rota
-        map.fitBounds(window.currentRoute.getBounds(), {
-            padding: [50, 50]
-        });
+        map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
+
+        // Inicia acompanhamento da posição
+        trackUserPosition(routeData, lat, lon);
     } catch (error) {
         console.error('Erro ao criar rota:', error);
     }
+}
+
+// Mostra a barra de navegação
+function startNavigation() {
+    const navBar = document.getElementById('navigation-bar');
+    navBar.style.display = 'block';
+}
+
+// Oculta a barra de navegação
+function hideNavigationBar() {
+    const navBar = document.getElementById('navigation-bar');
+    navBar.style.display = 'none';
 }
 
 // Obtém a localização atual sem solicitar permissão novamente
@@ -488,6 +547,98 @@ function trackUserMovement() {
         // 5. Exibe erro caso o navegador não suporte geolocalização
         console.error('Geolocalização não é suportada pelo seu navegador.');
     }
+}
+
+// Acompanha a posição do usuário em tempo real e ajusta a rota
+function trackUserPosition(routeData, destLat, destLon) {
+    const watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log(`Posição atual: (${latitude}, ${longitude})`);
+
+            // Atualiza a posição do marcador do usuário
+            updateUserMarker(latitude, longitude);
+
+            // Calcula a distância ao destino
+            const distance = calculateDistance(latitude, longitude, destLat, destLon);
+            if (distance < 50) {
+                endNavigation();
+                alert('Você chegou ao seu destino!');
+            } else {
+                const instructions = getNavigationInstructions(routeData, latitude, longitude);
+                updateNavigationInstructions(instructions);
+            }
+        },
+        (error) => {
+            console.error('Erro ao acompanhar posição:', error);
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+
+    // Salva o ID do acompanhamento para poder parar a navegação
+    window.navigationWatchId = watchId;
+}
+
+// Encerra a navegação
+function endNavigation() {
+    navigator.geolocation.clearWatch(window.navigationWatchId);
+    clearCurrentRoute();
+    clearAllMarkers();
+    hideNavigationBar();
+}
+
+function updateNavigationInstructions(instructionKey, distance = null) {
+    const navigationBar = document.getElementById('navigation-bar');
+    const navigationInstructions = document.getElementById('navigation-instructions');
+
+    // Verifica se o idioma está selecionado
+    const lang = selectedLanguage || 'en'; // Substitua 'en' pelo idioma padrão, se necessário.
+
+    // Obtém a tradução da instrução com base no idioma selecionado
+    const instruction = translations[lang]?.[instructionKey] || translations['en']?.[instructionKey];
+
+    if (instruction) {
+        let displayText = instruction;
+        if (distance) {
+            // Adiciona a distância às instruções, se fornecida
+            displayText = `${instruction} por ${distance} metros`;
+        }
+
+        // Atualiza o texto do elemento
+        navigationInstructions.textContent = displayText;
+
+        // Garante que a barra de navegação esteja visível
+        navigationBar.style.display = 'block';
+    } else {
+        console.error(`Instrução de navegação não encontrada: ${instructionKey} para o idioma ${lang}`);
+    }
+}
+
+// Exemplo de uso:
+updateNavigationInstructions('turnRight', 200); // Atualiza para "Vire à direita por 200 metros"
+
+
+// Atualiza a posição do marcador do usuário
+function updateUserMarker(lat, lon) {
+    if (!window.userMarker) {
+        window.userMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("Você está aqui!");
+    } else {
+        window.userMarker.setLatLng([lat, lon]);
+    }
+}
+
+// Calcula a distância entre dois pontos
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Raio da Terra em km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c * 1000; // Retorna a distância em metros
 }
 
 // Solicita a permissão de localização e armazena a localização apenas uma vez
@@ -1310,7 +1461,7 @@ function handleSubmenuButtonClick(lat, lon, name, description, controlButtonsFn)
     clearMarkers();
 
     // 2. Ajusta o mapa para a localização selecionada
-    adjustMapWithLocation(lat, lon, name, description);
+    adjustMapWithLocation(lat, lon, name, description, 15, -10);
 
     // 3. Atualiza o estado global e salva o destino no cache
     selectedDestination = { name, lat, lon, description };
@@ -1927,7 +2078,8 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
 
     // 2. Limpa os marcadores existentes no mapa e ajusta para a localização selecionada
     clearMarkers();
-    adjustMapWithLocation(lat, lon, name, description);
+    adjustMapWithLocation(lat, lon, name, description, 15, -10);
+
 
     // 3. Atualiza o estado global e salva o destino selecionado no cache
     selectedDestination = { name, description, lat, lon, images, feature, url };

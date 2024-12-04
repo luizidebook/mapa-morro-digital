@@ -90,7 +90,7 @@
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
         </div>
         <div id="menu" class="menu">
-            <button id="close-menu-btn" class="close-side-menu-btn" onclick="closeSideMenu()">X</button>
+            <button id="close-menu-btn" class="close-side-menu-btn" onclick="closeSideMenu()">X</button>        
             <div id="touristSpots-submenu" class="submenu" data-feature="touristSpots"></div>
             <div id="tours-submenu" class="submenu" data-feature="tours"></div>
             <div id="beaches-submenu" class="submenu" data-feature="beaches"></div>
@@ -103,7 +103,6 @@
             <div id="about-submenu" class="submenu" data-feature="about"></div>
             <div id="education-submenu" class="submenu" data-feature="education"></div>
         </div>
-        
         <div class="control-buttons">
             <button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Iniciar</button>
             <button id="pontos-turisticos-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pontos-turisticos')" class="menu-btn" data-feature="pontos-turisticos">Pontos Turísticos</button>
@@ -135,6 +134,13 @@
            <button id="access-site-btn" class="control-btn" style="display:none;" onclick="accessSite()">Acessar Site</button>
             <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')">Acessar Menu</button>
         </div>
+
+<div id="navigation-bar" style="display:none;">
+    <span id="navigation-instructions">Siga em frente por 200 metros</span>
+</div>
+
+
+
 
   <!-- Name Form -->
 <div id="name-form" class="form-modal" style="display:none;">

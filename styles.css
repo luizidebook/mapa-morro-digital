@@ -9,13 +9,37 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
-
 #map-container {
     position: relative;
     width: 100%;
     height: 100%;
     background-color: #eaeaea;
 }
+
+#navigation-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #007BFF;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    z-index: 1000;
+}
+
+#navigation-bar span {
+    font-weight: bold;
+}
+
+.leaflet-arrowheads {
+    stroke: blue;
+    stroke-width: 2px;
+    fill: blue;
+}
+
+
 
 #map {
     width: 100%;
