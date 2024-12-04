@@ -191,7 +191,7 @@ function initializeMap() {
 
 // Ajusta o mapa para um local específico com marcador
 function adjustMapWithLocation(lat, lon, name, description) {
-    map.setView([lat, lon], 14);
+    map.setView([-13.410, -38.913], 14);
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`<b>${name}</b><br>${description}`).openPopup();
     markers.push(marker);
 }
@@ -1165,7 +1165,7 @@ function showControlButtonsEmergencies() {
 function showControlButtonsTips() {
     closeAssistantModal();
     hideAllControlButtons();
-    document.getElementById('about-more-btn').style.display = 'flex';
+    document.getElementById('about-more-btn').style.display = 'none';
     document.getElementById('tutorial-menu-btn').style.display = 'flex';
 }
 
