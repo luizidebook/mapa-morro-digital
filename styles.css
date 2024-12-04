@@ -24,7 +24,7 @@ body, html {
 
 .welcome-modal, .modal {
     position: fixed;
-    top: 50%;
+    top: 45%;
     left: 45%;
     transform: translate(-50%, -50%);
     width: 60%;
@@ -163,8 +163,8 @@ body, html {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 28px;
-    margin: 2px 1px;
+    font-size: 26px;
+    margin: 1px 1px;
     cursor: pointer;
     border-radius: 18px;
     border: none;
@@ -184,7 +184,7 @@ body, html {
     text-decoration: none;
     display: inline-block;
     font-size: 25px;
-    margin: 2px 1px;
+    margin: 1px 1px;
     cursor: pointer;
     border-radius: 18px;
     border: none;
@@ -434,8 +434,8 @@ body, html {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 28px;
-    margin: 2px 1px;
+    font-size: 26px;
+    margin: 1px 1px;
     cursor: pointer;
     border-radius: 18px;
     border: none;
@@ -963,8 +963,8 @@ textarea {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 28px;
-    margin: 2px 1px;
+    font-size: 26px;
+    margin: 1px 1px;
     cursor: pointer;
     border-radius: 18px;
     border: none;
@@ -984,7 +984,7 @@ textarea {
     text-decoration: none;
     display: inline-block;
     font-size: 25px;
-    margin: 2px 1px;
+    margin: 1px 1px;
     cursor: pointer;
     border-radius: 18px;
     border: none;
