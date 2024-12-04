@@ -51,7 +51,27 @@ const translations = {
         restaurantsMessage: "Descubra os melhores restaurantes da região.",
         partiesMessage: "Saiba sobre festas e eventos disponíveis.",
         shopsMessage: "Encontre lojas locais para suas compras.",
-        emergenciesMessage: "Informações úteis para situações de emergência."
+        emergenciesMessage: "Informações úteis para situações de emergência.",
+        tutorialStart: "Iniciar",
+        tutorialYes: "Sim",
+        tutorialNo: "Não",
+        tutorialEnd: "Encerrar Tutorial",
+        createItinerary: "Criar Roteiro",
+        aboutMore: "Fotos",
+        createRoute: "Como Chegar",
+        reserveTable: "Reservar Mesa",
+        accessWebsite: "Site",
+        call: "Ligar",
+        reserveRoom: "Reservar Quarto",
+        reserveChairs: "Reservar Cadeiras",
+        buyTicket: "Comprar Ingresso",
+        reserveTour: "Reservar Passeio",
+        send: "Enviar",
+        viewItinerary: "Ver Roteiro",
+        changePreferences: "Alterar Preferências",
+        generateNewItinerary: "Gerar outro Roteiro",
+        accessSite: "Acessar Site",
+        accessMenu: "Acessar Menu"
     },
     en: {
         welcome: "Welcome to our site!",
@@ -63,7 +83,27 @@ const translations = {
         restaurantsMessage: "Discover the best restaurants in the region.",
         partiesMessage: "Learn about available parties and events.",
         shopsMessage: "Find local stores for your shopping.",
-        emergenciesMessage: "Useful information for emergency situations."
+        emergenciesMessage: "Useful information for emergency situations.",
+        tutorialStart: "Start",
+        tutorialYes: "Yes",
+        tutorialNo: "No",
+        tutorialEnd: "End Tutorial",
+        createItinerary: "Create Itinerary",
+        aboutMore: "Photos",
+        createRoute: "How to Get There",
+        reserveTable: "Reserve Table",
+        accessWebsite: "Website",
+        call: "Call",
+        reserveRoom: "Reserve Room",
+        reserveChairs: "Reserve Chairs",
+        buyTicket: "Buy Ticket",
+        reserveTour: "Reserve Tour",
+        send: "Send",
+        viewItinerary: "View Itinerary",
+        changePreferences: "Change Preferences",
+        generateNewItinerary: "Generate New Itinerary",
+        accessSite: "Access Site",
+        accessMenu: "Access Menu"
     },
     es: {
         welcome: "¡Bienvenido a nuestro sitio!",
@@ -75,21 +115,62 @@ const translations = {
         restaurantsMessage: "Descubre los mejores restaurantes de la región.",
         partiesMessage: "Infórmate sobre fiestas y eventos disponibles.",
         shopsMessage: "Encuentra tiendas locales para tus compras.",
-        emergenciesMessage: "Información útil para situaciones de emergencia."
+        emergenciesMessage: "Información útil para situaciones de emergencia.",
+        tutorialStart: "Iniciar",
+        tutorialYes: "Sí",
+        tutorialNo: "No",
+        tutorialEnd: "Terminar Tutorial",
+        createItinerary: "Crear Itinerario",
+        aboutMore: "Fotos",
+        createRoute: "Cómo Llegar",
+        reserveTable: "Reservar Mesa",
+        accessWebsite: "Sitio Web",
+        call: "Llamar",
+        reserveRoom: "Reservar Habitación",
+        reserveChairs: "Reservar Sillas",
+        buyTicket: "Comprar Boleto",
+        reserveTour: "Reservar Tour",
+        send: "Enviar",
+        viewItinerary: "Ver Itinerario",
+        changePreferences: "Cambiar Preferencias",
+        generateNewItinerary: "Generar Nuevo Itinerario",
+        accessSite: "Acceder al Sitio",
+        accessMenu: "Acceder al Menú"
     },
     he: {
         welcome: "ברוך הבא לאתר שלנו!",
         youAreHere: "אתה כאן!",
-        pousadasMessage: "מצא את הפונדקים הטובים ביותר לשהותך.",
+        pousadasMessage: "מצא את הפוסאדות הטובות ביותר לשהותך.",
         touristSpotsMessage: "גלה את האטרקציות התיירותיות הפופולריות ביותר.",
         beachesMessage: "חקור את החופים היפים ביותר במורו דה סאו פאולו.",
         toursMessage: "בדוק סיורים זמינים ואפשרויות הזמנה.",
         restaurantsMessage: "גלה את המסעדות הטובות ביותר באזור.",
         partiesMessage: "למד על מסיבות ואירועים זמינים.",
         shopsMessage: "מצא חנויות מקומיות לקניות שלך.",
-        emergenciesMessage: "מידע שימושי למצבי חירום."
+        emergenciesMessage: "מידע שימושי למצבי חירום.",
+        tutorialStart: "התחל",
+        tutorialYes: "כן",
+        tutorialNo: "לא",
+        tutorialEnd: "סיים את המדריך",
+        createItinerary: "צור מסלול",
+        aboutMore: "תמונות",
+        createRoute: "איך להגיע",
+        reserveTable: "הזמן שולחן",
+        accessWebsite: "אתר אינטרנט",
+        call: "התקשר",
+        reserveRoom: "הזמן חדר",
+        reserveChairs: "הזמן כסאות",
+        buyTicket: "קנה כרטיס",
+        reserveTour: "הזמן סיור",
+        send: "שלח",
+        viewItinerary: "הצג מסלול",
+        changePreferences: "שנה העדפות",
+        generateNewItinerary: "צור מסלול חדש",
+        accessSite: "גש לאתר",
+        accessMenu: "גש לתפריט"
     }
 };
+
 // Lista de consultas e buscas realizadas
 const queries = {
     'touristSpots-submenu': '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
@@ -2204,21 +2285,47 @@ function searchAssistance(query) {
 // Define o idioma selecionado pelo usuário
 // Salva no localStorage e aplica as traduções correspondentes
 function setLanguage(lang) {
-    localStorage.setItem('preferredLanguage', lang);
-    selectedLanguage = lang;
-    translatePageContent(lang);
-    document.getElementById('welcome-modal').style.display = 'none';
-    requestLocationPermission().then(() => {
-        loadSearchHistory();
-        checkAchievements();
-        loadFavorites();
-    }).catch(error => {
-        console.error("Erro ao atualizar localização:", error);
-    });
+    try {
+        // Salva o idioma selecionado no localStorage
+        localStorage.setItem('preferredLanguage', lang);
+        selectedLanguage = lang;
+
+        // Aplica as traduções correspondentes
+        translatePageContent(lang);
+
+        // Esconde o modal de boas-vindas
+        const welcomeModal = document.getElementById('welcome-modal');
+        if (welcomeModal) {
+            welcomeModal.style.display = 'none';
+        }
+
+        // Solicita a permissão de localização apenas uma vez
+        if (!window.locationPermissionGranted) {
+            requestLocationPermission()
+                .then(() => {
+                    window.locationPermissionGranted = true;
+                    loadSearchHistory();
+                    checkAchievements();
+                    loadFavorites();
+                })
+                .catch(error => {
+                    console.error("Erro ao atualizar localização:", error);
+                });
+        } else {
+            console.log("Permissão de localização já concedida.");
+            loadSearchHistory();
+            checkAchievements();
+            loadFavorites();
+        }
+    } catch (error) {
+        console.error("Erro ao definir o idioma:", error);
+    }
 }
+
 
 // Aplica as traduções no conteúdo da página
 // Substitui os textos nos elementos com base no idioma selecionado
+// Aplica as traduções no conteúdo da página
 function translatePageContent(lang) {
     const elementsToTranslate = document.querySelectorAll('[data-i18n]');
     elementsToTranslate.forEach(element => {
@@ -2226,12 +2333,18 @@ function translatePageContent(lang) {
         const translation = translations[lang]?.[key];
 
         if (translation) {
-            element.textContent = translation; // Substitui o texto
+            // Verifica se o elemento é um botão ou input
+            if (element.tagName === 'INPUT' || element.tagName === 'BUTTON') {
+                element.value = translation; // Define o valor para inputs/buttons
+            } else {
+                element.textContent = translation; // Substitui o texto em outros elementos
+            }
         } else {
             console.warn(`Tradução não encontrada para a chave: ${key} no idioma: ${lang}`);
         }
     });
 }
+
 
 // ======================
 // 8. Histórico e Cache
