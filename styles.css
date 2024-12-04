@@ -133,16 +133,15 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #007BFF;
+    background: linear-gradient(135deg, #007BFF, #0056b3);
     color: white;
     border: none;
     margin: 1px 0;
-    padding: 18px;
+    padding: 20px;
     border-radius: 50%;
     cursor: pointer;
-    width: 10px;
-    height: 10px;
-    font-size: 1.2em;
+    font-size: 1.5em;
+    transition: background 0.3s;
 }
 
 .menu-btn:hover {
@@ -159,11 +158,11 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 18px;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 18px;
@@ -218,13 +217,13 @@ body, html {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 .close-btn {
@@ -297,8 +296,8 @@ body, html {
     position: fixed;
     z-index: 1050;
     left: 50%;
-    top: 25%;
-    width: 100%;
+    top: 50%;
+    width: 70%;
     height: 50%;
     transform: translate(-50%, -50%);
     background-color: white;
@@ -374,22 +373,10 @@ body, html {
 
 /* Estilos específicos para dispositivos móveis */
 @media (max-width: 600px) {
-.carousel-modal {
-    display: none;
-    position: fixed;
-    z-index: 1050;
-    left: 50%;
-    top: 25%;
-    width: 100%;
-    height: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 0px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
+    .carousel-modal {
+        width: 90%;
+        height: 90%;
+    }
 
     .carousel-modal .modal-content {
         padding: 0px;
@@ -430,11 +417,11 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 18px;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 18px;
@@ -815,15 +802,16 @@ textarea {
     font-size: 18px;
 }
 
+
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 .close-btn {
@@ -959,11 +947,11 @@ textarea {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
+    padding: 8px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 18px;
+    font-size: 20px;
     margin: 2px 1px;
     cursor: pointer;
     border-radius: 18px;
@@ -1074,9 +1062,9 @@ textarea {
 /* Menu lateral */
 .menu {
     position: fixed;
-    top: 74%;
-    left: 7%;
-    width: 80%;
+    top: 72%;
+    left: 14%;
+    width: 70%;
     height: 23%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
@@ -1378,21 +1366,21 @@ h2 {
 }
 
 @media (max-width: 600px) {
-
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -1415,15 +1403,16 @@ h2 {
         transition: left 0.3s ease-in-out;
     }
     
+
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 /* Estilos para o controle de rota */
@@ -1714,13 +1703,13 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 /* Estilos para o controle de rota */
@@ -1768,18 +1757,19 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -1977,29 +1967,30 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -2237,13 +2228,13 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
 /* Estilos para o controle de rota */
@@ -2291,18 +2282,19 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -2499,13 +2491,13 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
 
     /* Estilos para o controle de rota */
@@ -2553,18 +2545,19 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -2723,14 +2716,14 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
-    }}
+        z-index: 10000;
+    }
 
 #tutorial-btn {
     position: fixed;
@@ -2887,18 +2880,19 @@ h2 {
 
 .control-buttons {
         position: absolute;
-        top: 62%;
-        left: 42%;
+        top: 67%;
+        left: 50%;
         width: 70%;
         transform: translate(-50%, -50%);
         display: flex;
         transition: opacity 0.3s ease-in-out;
         z-index: 10000;
-        flex-direction: column;
+        flex-direction: row;
+        align-content: center;
         justify-items: center;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         transition: left 0.3s ease-in-out;
     }
 
@@ -2932,13 +2926,13 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
-        right: 13%;
+        top: 70%;
+        right: 16%;
         background-color: #fff;
         border: 10px;
         font-size: 10px;
         cursor: pointer;
-        z-index: 10000000;
+        z-index: 10000;
     }
  
 /* Estilos para o controle de rota */
