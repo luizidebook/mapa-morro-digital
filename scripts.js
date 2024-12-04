@@ -223,46 +223,48 @@ function createRoute() {
 
 const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3'; // Substitua pelo seu API Key do OpenRouteService
 
-// Função para solicitar permissão de localização e criar a rota
+// Cria a rota para o destino usando a localização já fornecida
 async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
     try {
         clearCurrentRoute(); // Limpar rota atual
         clearAllMarkers(); // Limpar todos os marcadores
 
-        let currentLocation = await getCurrentLocation();
-        if (currentLocation) {
-            const { latitude, longitude } = currentLocation.coords;
-            console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon}) utilizando o perfil ${profile}`);
+        // Obtém a localização armazenada
+        const location = await getCurrentLocation();
+        const { latitude, longitude } = location;
 
-            // Adicionar marcador de localização atual do usuário
-            const userMarker = L.marker([latitude, longitude]).addTo(map)
-                .bindPopup("Você está aqui!")
-                .openPopup();
+        console.log(`Criando rota de (${latitude}, ${longitude}) para (${lat}, ${lon}) usando o perfil ${profile}`);
 
-            await plotRouteOnMap(latitude, longitude, lat, lon, profile);
+        // Adiciona marcador da localização atual do usuário
+        const userMarker = L.marker([latitude, longitude]).addTo(map)
+            .bindPopup("Você está aqui!")
+            .openPopup();
 
-            // Adicionar marcador de destino
-            const destinationMarker = L.marker([lat, lon]).addTo(map)
-                .bindPopup(selectedDestination.name)
-                .openPopup();
+        // Plota a rota no mapa
+        await plotRouteOnMap(latitude, longitude, lat, lon, profile);
 
-            // Ajustar o mapa para mostrar a rota
-            map.fitBounds(window.currentRoute.getBounds(), {
-                padding: [50, 50]
-            });
-        }
+        // Adicionar marcador de destino
+        const destinationMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup(selectedDestination.name)
+            .openPopup();
+
+        // Ajusta o mapa para mostrar a rota
+        map.fitBounds(window.currentRoute.getBounds(), {
+            padding: [50, 50]
+        });
     } catch (error) {
-        console.error('Erro ao obter localização atual:', error);
+        console.error('Erro ao criar rota:', error);
     }
 }
 
-// Função para obter a localização atual do usuário
+// Obtém a localização atual sem solicitar permissão novamente
 function getCurrentLocation() {
     return new Promise((resolve, reject) => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
+        if (currentLocation) {
+            resolve(currentLocation);
         } else {
-            reject(new Error('Geolocalização não é suportada pelo seu navegador.'));
+            console.error('Localização não está disponível. Solicite permissão primeiro.');
+            reject(new Error('Localização não está disponível.'));
         }
     });
 }
@@ -407,45 +409,36 @@ function trackUserMovement() {
     }
 }
 
-// Obtém a localização atual do usuário
-// Retorna uma Promise com as coordenadas
-
+// Solicita a permissão de localização e armazena a localização apenas uma vez
 function requestLocationPermission() {
- return new Promise((resolve, reject) => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        } else {
-        reject(new Error('Geolocalização não suportada.'));
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(position => {
-            currentLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
-            console.log('Current Location:', currentLocation);
-            adjustMapWithLocationUser(currentLocation.latitude, currentLocation.longitude);
-            if (!tutorialIsActive) {
-                showTutorialStep('start-tutorial');
-            }
-            resolve(position);
-        }, error => {
-            currentLocation = { latitude: null, longitude: null };
-            alert(translations[selectedLanguage].locationPermissionDenied);
-            console.error('Location Permission Denied:', error);
-            reject(error);
-        });
-    });
-}
-
-// Função específica para solicitar permissão de localização e criar a rota
-function requestLocationPermissionCreateRoute() {
     return new Promise((resolve, reject) => {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
+            // Se a localização já foi obtida, retorna imediatamente
+            if (currentLocation) {
+                resolve(currentLocation);
+                return;
+            }
+
+            // Solicita a localização se ainda não foi obtida
+            navigator.geolocation.getCurrentPosition(position => {
+                currentLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                console.log('Localização atual obtida:', currentLocation);
+
+                adjustMapWithLocationUser(currentLocation.latitude, currentLocation.longitude);
+                if (!tutorialIsActive) {
+                    showTutorialStep('start-tutorial');
+                }
+                resolve(currentLocation);
+            }, error => {
+                alert(translations[selectedLanguage].locationPermissionDenied || 'Permissão de localização negada.');
+                console.error('Permissão de localização negada:', error);
+                reject(error);
+            });
         } else {
-            reject(new Error('Geolocation is not supported by this browser.'));
+            reject(new Error('Geolocalização não suportada.'));
         }
     });
 }
@@ -526,16 +519,6 @@ function showModal(modalId) {
     }
 }
 
-// Configura os listeners para fechar o modal ao clicar em submenus
-function setupSubmenuListeners() {
-    const submenuItems = document.querySelectorAll('.submenu-item');
-    submenuItems.forEach(item => {
-        item.addEventListener('click', () => {
-            hideAssistantModal(); // Fecha o modal do assistente
-        });
-    });
-}
-
 // Função para remover o modal do assistente
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
@@ -577,6 +560,16 @@ function showNotification(message, type = 'success') {
             container.removeChild(notification);
         }, 300);
     }, 3000);
+}
+// Função para fechar o modal do assistente
+function closeAssistantModal() {
+    const modal = document.getElementById('assistant-modal'); // Seleciona o modal pelo ID
+    if (modal) {
+        modal.style.display = 'none'; // Define o display como 'none' para ocultar o modal
+        console.log('Modal do assistente fechado.'); // Log para depuração
+    } else {
+        console.error('Modal do assistente não encontrado.'); // Log de erro caso o modal não exista
+    }
 }
 
 // ======================
@@ -643,28 +636,6 @@ function showNotification(message, type = 'success') {
 //  Object.assign(controlButtons.style, { left: '50%' });
 //  Object.assign(mapContainer.style, { width: '100%', height: '100%' });
 // }
-
-// Função para remover o modal do assistente
-function hideAssistantModal() {
-    const modal = document.getElementById('assistant-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Função para fechar o modal do assistente ao clicar nos botões do submenu
-function closeAssistantModalOnSubmenuClick() {
-    const submenuButtons = document.querySelectorAll('.submenu-item');
-    const assistantModal = document.getElementById('assistant-modal');
-
-    submenuButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            if (assistantModal) {
-                assistantModal.style.display = 'none'; // Fecha o modal
-            }
-        });
-    });
-}
 
 // ======================
 // Funções do Carrossel
@@ -758,17 +729,17 @@ function setupEventListeners() {
     const searchBtn = document.querySelector('.menu-btn[data-feature="pesquisar"]');
     const ensinoBtn = document.querySelector('.menu-btn[data-feature="ensino"]');
     const carouselModalClose = document.getElementById('carousel-modal-close');
-    const closeModal = document.querySelector('.close-btn');
     const aboutMoreBtn = document.getElementById('about-more-btn');
     const menuToggle = document.getElementById('menu-btn');
     const buyTicketBtn = document.getElementById('buy-ticket-btn');
     const tourBtn = document.getElementById('tour-btn');
 
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-    }
+
+const closeModal = document.querySelector('.close-btn'); // Seleciona o botão de fechar
+if (closeModal) {
+    closeModal.addEventListener('click', closeAssistantModal); // Associa o evento de clique à função
+}
+
 
     if (menuToggle) {
         menuToggle.style.display = 'none';
@@ -833,7 +804,6 @@ function setupEventListeners() {
             }
         });
     }
-
 
     const speakAttendentBtn = document.getElementById('speak-attendent-btn');
     if (speakAttendentBtn) {
@@ -1104,6 +1074,7 @@ function showButtons(buttonIds) {
 // Exibe botões de controle específicos para pontos turísticos
 // Inclui: criar rota, saiba mais, tutorial anterior
 function showControlButtonsTouristSpots() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1114,6 +1085,7 @@ function showControlButtonsTouristSpots() {
 // Exibe botões de controle específicos para passeios
 // Inclui: criar rota, saiba mais, tutorial anterior
 function showControlButtonsTour() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('tour-btn').style.display = 'flex';
     document.getElementById('create-route-btn').style.display = 'flex';
@@ -1125,6 +1097,7 @@ function showControlButtonsTour() {
 // Inclui: criar rota, saiba mais, tutorial anterior
 // Exclui: reservar cadeiras
 function showControlButtonsBeaches() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('reserve-chairs-btn').style.display = 'none';
     document.getElementById('create-route-btn').style.display = 'flex';
@@ -1135,6 +1108,7 @@ function showControlButtonsBeaches() {
 // Exibe botões de controle específicos para eventos noturnos
 // Inclui: criar rota, saiba mais, tutorial anterior, comprar ingresso
 function showControlButtonsNightlife() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1145,6 +1119,7 @@ function showControlButtonsNightlife() {
 // Exibe botões de controle específicos para restaurantes
 // Inclui: criar rota, saiba mais, tutorial anterior, reservar restaurante
 function showControlButtonsRestaurants() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1155,6 +1130,7 @@ function showControlButtonsRestaurants() {
 // Exibe botões de controle específicos para pousadas
 // Inclui: criar rota, saiba mais, tutorial anterior, reservar pousada
 function showControlButtonsInns() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1165,6 +1141,7 @@ function showControlButtonsInns() {
 // Exibe botões de controle específicos para lojas
 // Inclui: criar rota, saiba mais, tutorial anterior, falar com atendente
 function showControlButtonsShops() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1175,6 +1152,7 @@ function showControlButtonsShops() {
 // Exibe botões de controle específicos para emergências
 // Inclui: criar rota, saiba mais, tutorial anterior, ligar
 function showControlButtonsEmergencies() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'flex';
     document.getElementById('about-more-btn').style.display = 'flex';
@@ -1185,6 +1163,7 @@ function showControlButtonsEmergencies() {
 // Exibe botões de controle específicos para dicas
 // Inclui: saiba mais, tutorial anterior
 function showControlButtonsTips() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('about-more-btn').style.display = 'flex';
     document.getElementById('tutorial-menu-btn').style.display = 'flex';
@@ -1194,6 +1173,7 @@ function showControlButtonsTips() {
 // Inclui: tutorial anterior
 // Exclui: criar rota, saiba mais
 function showControlButtonsEducation() {
+    closeAssistantModal();
     hideAllControlButtons();
     document.getElementById('create-route-btn').style.display = 'none';
     document.getElementById('about-more-btn').style.display = 'none';
@@ -1235,6 +1215,15 @@ function performControlAction(action) {
 // 4. Envia o destino para um Service Worker para sincronização.
 // 5. Exibe os botões de controle associados ao submenu.
 // 6. Obtém imagens relacionadas ao local e exibe detalhes em um modal.
+// Função para ocultar o modal do assistente
+function hideAssistantModal() {
+    const modal = document.getElementById('assistant-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Função principal para tratar cliques nos botões do submenu
 function handleSubmenuButtonClick(lat, lon, name, description, controlButtonsFn) {
     // 1. Limpa os marcadores existentes no mapa
     clearMarkers();
@@ -1253,67 +1242,54 @@ function handleSubmenuButtonClick(lat, lon, name, description, controlButtonsFn)
             console.error('Erro ao salvar destino no cache:', error);
         });
 
-    // 5. Exibe os botões de controle específicos para o submenu
+    // 5. Esconde o modal do assistente
+    hideAssistantModal();
+
+    // 6. Exibe os botões de controle específicos para o submenu
     controlButtonsFn();
 
-    // 6. Obtém imagens e exibe detalhes no modal
+    // 7. Obtém imagens e exibe detalhes no modal
     const images = getImagesForLocation(name);
     showLocationDetailsInModal(name, description, images);
 }
 
-// Trata cliques em botões do submenu de pontos turísticos
-// Ajusta o mapa e exibe botões específicos para pontos turísticos
+// Funções específicas para cada submenu, todas ocultam o modal
 function handleSubmenuButtonsTouristSpots(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTouristSpots);
 }
 
-// Trata cliques em botões do submenu de passeios
-// Ajusta o mapa e exibe botões específicos para passeios
 function handleSubmenuButtonsTour(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTour);
 }
 
-// Trata cliques em botões do submenu de praias
-// Ajusta o mapa e exibe botões específicos para praias
 function handleSubmenuButtonsBeaches(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsBeaches);
 }
 
-// Trata cliques em botões do submenu de restaurantes
-// Ajusta o mapa e exibe botões específicos para restaurantes
 function handleSubmenuButtonsRestaurants(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsRestaurants);
 }
 
-// Trata cliques em botões do submenu de lojas
-// Ajusta o mapa e exibe botões específicos para lojas
 function handleSubmenuButtonsShops(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsShops);
 }
 
-// Trata cliques em botões do submenu de emergências
-// Ajusta o mapa e exibe botões específicos para emergências
 function handleSubmenuButtonsEmergencies(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsEmergencies);
 }
 
-// Trata cliques em botões do submenu de dicas
-// Ajusta o mapa e exibe botões específicos para dicas
 function handleSubmenuButtonsTips(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsTips);
 }
 
-// Trata cliques em botões do submenu de pousadas
-// Ajusta o mapa e exibe botões específicos para pousadas
 function handleSubmenuButtonsInns(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsInns);
 }
 
-// Trata cliques em botões do submenu de educação
-// Ajusta o mapa e exibe botões específicos para educação
 function handleSubmenuButtonsEducation(lat, lon, name, description) {
     handleSubmenuButtonClick(lat, lon, name, description, showControlButtonsEducation);
 }
+
 
 // ======================
 // 5. Gerenciamento de Submenus
@@ -1491,15 +1467,6 @@ function displayOSMData(data, subMenuId, feature) {
             // Exibe o conteúdo do destino selecionado
             showDestinationContent(destination);
 
-            // Remove destaques visuais e menus flutuantes
-            removeExistingHighlights();
-            removeFloatingMenuHighlights();
-
-            // Finaliza o tutorial, se ativo
-            endTutorial();
-
-            // Fecha o modal do carrossel, se aberto
-            closeCarouselModal();
         });
     });
 }
@@ -1939,13 +1906,6 @@ function handleSubmenuButtons(lat, lon, name, description, images, feature) {
     }
 }
 
-// Configura os listeners para fechar o modal ao clicar em submenus
-function setupSubmenuListeners() {
-    // Configure os listeners do submenu
-    closeAssistantModalOnSubmenuClick();
-}
-
-
 // ======================
 // 6. Tutorial e Assistência
 // ======================
@@ -1964,7 +1924,7 @@ function endTutorial() {
     tutorialIsActive = false;
     currentStep = null;
     hideAllControlButtons(); // Oculta os botões do tutorial
-    clearMarkers(); // Limpa marcadores do mapa
+    hideAssistantModal();
     showNotification('Tutorial concluído com sucesso!', 'success');
 }
 
