@@ -1090,7 +1090,8 @@ textarea {
 
 /* Personalização da barra de rolagem para navegadores baseados em WebKit (Chrome, Edge, Safari) */
 .menu::-webkit-scrollbar {
-    width: 10px; /* Largura da barra de rolagem */
+    width: 10px;
+ /* Largura da barra de rolagem */
 }
 
 .menu::-webkit-scrollbar-track {
@@ -1111,7 +1112,8 @@ textarea {
 
 .menu.hidden {
     width: 0;
-    overflow: hidden;
+    overflow: auto;
+    z-index: 1000000;
     transition: width 0.3s ease-in-out;
 }
 
