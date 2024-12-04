@@ -218,7 +218,7 @@ body, html {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -817,7 +817,7 @@ textarea {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -1073,19 +1073,19 @@ textarea {
 /* Menu lateral */
 .menu {
     position: fixed;
-    top: 74%;
+    top: 72%;
     left: 7%;
     width: 80%;
-    height: 23%;
+    height: 25%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    overflow-y: auto; /* Garante que o conteúdo pode ser rolado verticalmente */
+    overflow-y: auto;
     z-index: 1000000;
     display: none;
     animation: slideIn 0.3s forwards;
     transition: width 0.3s ease-in-out;
-    scrollbar-width: thin; /* Estiliza a largura da barra de rolagem no Firefox */
-    scrollbar-color: #007BFF #f1f1f1; /* Cor da barra de rolagem e fundo no Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #007BFF #f1f1f1;
 }
 
 /* Personalização da barra de rolagem para navegadores baseados em WebKit (Chrome, Edge, Safari) */
@@ -1108,7 +1108,6 @@ textarea {
 .menu::-webkit-scrollbar-thumb:hover {
     background: #0056b3; /* Cor ao passar o mouse sobre a barra */
 }
-
 
 .menu.hidden {
     width: 0;
@@ -1327,7 +1326,7 @@ h2 {
     
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -1624,7 +1623,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -1887,7 +1886,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -2147,7 +2146,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -2409,7 +2408,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -2633,7 +2632,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
@@ -2842,7 +2841,7 @@ h2 {
 
     .close-side-btn {
         position: fixed;
-        top: 72%;
+        top: 70%;
         right: 13%;
         background-color: #fff;
         border: 10px;
