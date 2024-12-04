@@ -1072,6 +1072,7 @@ textarea {
 
 
 /* Menu lateral */
+/* Menu lateral */
 .menu {
     position: fixed;
     top: 74%;
@@ -1080,12 +1081,35 @@ textarea {
     height: 23%;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    overflow-y: auto;
+    overflow-y: auto; /* Garante que o conteúdo pode ser rolado verticalmente */
     z-index: 1000000;
     display: none;
     animation: slideIn 0.3s forwards;
     transition: width 0.3s ease-in-out;
+    scrollbar-width: thin; /* Estiliza a largura da barra de rolagem no Firefox */
+    scrollbar-color: #007BFF #f1f1f1; /* Cor da barra de rolagem e fundo no Firefox */
 }
+
+/* Personalização da barra de rolagem para navegadores baseados em WebKit (Chrome, Edge, Safari) */
+.menu::-webkit-scrollbar {
+    width: 10px; /* Largura da barra de rolagem */
+}
+
+.menu::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Cor do fundo da barra de rolagem */
+    border-radius: 5px; /* Bordas arredondadas no fundo */
+}
+
+.menu::-webkit-scrollbar-thumb {
+    background: #007BFF; /* Cor da barra de rolagem */
+    border-radius: 5px; /* Bordas arredondadas na barra de rolagem */
+    border: 2px solid #f1f1f1; /* Adiciona uma borda para destacar */
+}
+
+.menu::-webkit-scrollbar-thumb:hover {
+    background: #0056b3; /* Cor ao passar o mouse sobre a barra */
+}
+
 
 .menu.hidden {
     width: 0;
