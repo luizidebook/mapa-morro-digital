@@ -4,8 +4,7 @@ const urlsToCache = [
   '/styles.css',
   '/scripts.js',
   '/images/logo.png',
-  'enhancedNavigation.js',
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  '/offline.html'
 ];
 
 self.addEventListener('install', event => {
@@ -72,21 +71,4 @@ self.addEventListener('message', event => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
-});
-
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            console.log('Arquivos em cache.');
-            return cache.addAll(URLS_TO_CACHE);
-        })
-    );
-});
-
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
 });

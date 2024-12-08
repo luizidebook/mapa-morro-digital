@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morro de São Paulo Digital</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
@@ -36,30 +35,20 @@
             <div class="modal-content" id="assistant-modal-text"></div>
         </div>
 
-          <!-- Modal do Assistente 2 -->
-        <div id="assistant-modal-2" class="modal">
-            <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal'), endTutorial(), stopSpeaking()">X</button>
-            <div class="modal-content" id="assistant-modal-text"></div>
-        </div>
-
 <!-- Modal do Carrossel -->
 <div id="carousel-modal" class="carousel-modal">
     <div class="modal-content">
         <span id="carousel-modal-close" onclick="hideModal('carousel-modal')" class="modal-close">&times;</span>
-        <!-- Aqui vai o conteúdo do carrossel, como a estrutura do Swiper -->
         <div class="swiper-container">
             <div class="swiper-wrapper">
                 <!-- Slides do carrossel -->
             </div>
-            <!-- Adicione botões de navegação do Swiper, se necessário -->
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
             <div class="swiper-pagination"></div>
         </div>
     </div>
 </div>
-
-
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
@@ -81,7 +70,7 @@
                 </div>
             </div>
         </div>
-        <button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">&#9776;</button>
+        <button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="showTutorialStep('ask-interest')">&#9776;</button>
         <div id="floating-menu" class="floating-menu">
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
             <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
@@ -102,24 +91,25 @@
             <div id="tips-submenu" class="submenu" data-feature="tips"></div>
             <div id="about-submenu" class="submenu" data-feature="about"></div>
             <div id="education-submenu" class="submenu" data-feature="education"></div>
+        
+        <button id="tutorial-btn" class="control-btn" style="display:none;" onclick="initializeTutorial()">Iniciar Tutorial</button>
         </div>
         <div class="control-buttons">
-            <button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Iniciar</button>
-            <button id="pontos-turisticos-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pontos-turisticos')" class="menu-btn" data-feature="pontos-turisticos">Pontos Turísticos</button>
+    
+            <button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')">Iniciar</button>
+            <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" onclick="performControlAction('pontos-turisticos')" class="menu-btn" data-feature="pontos-turisticos">Pontos Turísticos</button>
             <button id="passeios-btn" class="control-btn" style="display:none" onclick="storeAndProceed('passeios')" class="menu-btn" data-feature="passeios">Passeios</button>
-            <button id="praias-btn" class="control-btn" style="display:none" onclick="storeAndProceed('praias')" class="menu-btn" data-feature="praias">Praias</button>
+            <button id="praias-btn" class="control-btn" style="display:none" data-action="praias" onclick="performControlAction('praias')" class="menu-btn" data-feature="praias">Praias</button>
             <button id="festas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('festas')" class="menu-btn" data-feature="festas">Festas</button>
-            <button id="restaurantes-btn" class="control-btn" style="display:none" onclick="storeAndProceed('restaurantes')" class="menu-btn" data-feature="restaurantes">Restaurantes</button>
+            <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" onclick="performControlAction('restaurantes')" class="menu-btn" data-feature="restaurantes">Restaurantes</button>
             <button id="pousadas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pousadas')" onclick="loadSubMenu(subMenuId, feature)" class="menu-btn" data-feature="pousadas">Pousadas</button>
             <button id="lojas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('lojas')" class="menu-btn" data-feature="lojas">Lojas</button>
             <button id="emergencias-btn" class="control-btn" style="display:none" onclick="storeAndProceed('emergencias')" class="menu-btn" data-feature="emergencias">Emergências</button>
-            <button id="tutorial-no-btn" class="control-btn" style="display:none;" onclick="endTutorial(), stopSpeaking()">Não</button>
-            <button id="tutorial-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
-             <button id="tutorial-site-yes-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Sim</button>
-            <button class="control-btn" id="tutorial-end-btn" style="display:none;" onclick="endTutorial(), stopSpeaking()">Encerrar Tutorial</button>
-            <button class="control-btn" id="create-itinerary-btn" style="display: none;" onclick="nextTutorialStep()">Criar Roteiro</button>
+             
+           <button class="control-btn" id="tutorial-end-btn" style="display:none;" data-action="finish" onclick="performControlAction('finish')">Encerrar Tutorial</button>
+            <button class="control-btn" id="create-itinerary-btn" style="display: none;" data-action="next" onclick="performControlAction('next')">Criar Roteiro</button>
                <button class="control-btn" id="about-more-btn" style="display: none;">Fotos</button>
-            <button class="control-btn" id="create-route-btn" style="display: none;" onclick="destroyCarousel()">Como Chegar</button>
+            <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" onclick="performControlAction('create-route')">Como Chegar</button>
             <button class="control-btn" id="reserve-restaurants-btn" style="display: none;">Reservar Mesa</button>
             <button class="control-btn" id="speak-attendent-btn" style="display: none;">Site</button>
             <button class="control-btn" id="call-btn" style="display: none;">Ligar</button>
@@ -127,46 +117,24 @@
             <button class="control-btn" id="reserve-chairs-btn" style="display: none;">Reservar Cadeiras</button>
           <button class="control-btn" id="buy-ticket-btn" style="display: none;">Comprar Ingresso</button>
             <button class="control-btn" id="tour-btn" style="display: none;">Reservar Passeio</button>
-            <button id="tutorial-send-btn" class="control-btn" style="display:none;" onclick="nextTutorialStep()">Enviar</button>
-            <button id="show-itinerary-btn" class="control-btn" style="display:none;"  onclick="nextTutorialStep()">Ver Roteiro</button>
-            <button id="change-preferences-btn" class="control-btn" style="display:none;" onclick="changePreferences()">Alterar Preferências</button>
-            <button id="generate-new-itinerary-btn" class="control-btn" style="display:none;" onclick="generateNewItinerary()">Gerar outro Roteiro</button>
-           <button id="access-site-btn" class="control-btn" style="display:none;" onclick="accessSite()">Acessar Site</button>
+            <button id="tutorial-send-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')">Enviar</button>      
+           <button id="access-site-btn" class="control-btn" style="display:none;" data-action="access-site" onclick="performControlAction('access-site')">Acessar Site</button>
             <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')">Acessar Menu</button>
+      <button id="navigation-start" class="control-btn" style="display:none;">Iniciar Rota</button>
+    <button class="control-btn" style="display:none;" data-action="navigation-end" onclick="performControlAction('navigation-end')">Parar Navegação</button>
         </div>
 
-        <select id="transport-profile" onchange="setTransportProfile(this.value)">
-    <option value="foot-walking">Pedestre</option>
-    <option value="driving-car">Carro</option>
+<div id="navigation-bar" style="display:none;">
+    <span id="navigation-instructions"></span>
+</div>
+
+<select id="transport-profile" onchange="setTransportProfile(this.value)">
+    <option value="foot-walking">A Pé</option>
     <option value="cycling-regular">Bicicleta</option>
+    <option value="driving-car">Carro</option>
 </select>
 
-<div id="controls">
-    <button onclick="startNavigation()">Iniciar Navegação</button>
-    <button onclick="endNavigation()">Finalizar Navegação</button>
-</div>
-
-
-
-  <!-- Name Form -->
-<div id="name-form" class="form-modal" style="display:none;">
-    <input type="text" id="name-input" placeholder="Seu primeiro nome">
-</div>
-        <div id="info-modal" class="modal">
-            <div class="modal-content">
-                <button id="close-info-modal" class="close-menu-btn" onclick="hideModal('info-modal'), hideControlButtons()">X</button>
-                <div class="modal-title"></div>
-                <div class="modal-content"></div>
-            </div>
-        </div>
-
-
-        <div id="tutorial-overlay">
-            <div id="tutorial-progress-bar"></div>
-            <div class="tutorial-controls"></div>
-        </div>
-    </div>
-    
+    <script src="enhancedNavigation.js"></script>
     <script src="scripts.js" defer></script>
     <script>
         if ('serviceWorker' in navigator) {
@@ -178,5 +146,14 @@
             });
         }
     </script>
-</body>
+
+    <script>
+        // Ensure floating-menu toggle consistency
+        const floatingMenu = document.getElementById('floating-menu');
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            floatingMenu.classList.toggle('hidden');
+        });
+    </script>
+    </body>
+    
 </html>
