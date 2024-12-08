@@ -135,16 +135,10 @@
             <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')">Acessar Menu</button>
         </div>
 
-        <select id="transport-profile" onchange="setTransportProfile(this.value)">
-    <option value="foot-walking">Pedestre</option>
-    <option value="driving-car">Carro</option>
-    <option value="cycling-regular">Bicicleta</option>
-</select>
-
-<div id="controls">
-    <button onclick="startNavigation()">Iniciar Navegação</button>
-    <button onclick="endNavigation()">Finalizar Navegação</button>
+<div id="navigation-bar" style="display:none;">
+    <span id="navigation-instructions"></span>
 </div>
+
 
 
 
