@@ -260,17 +260,29 @@ function showWelcomeMessage() {
 // ======================
 
 // Inicializa o mapa usando Leaflet
+// Inicializa o mapa com camadas personalizáveis
 function initializeMap() {
+    const tileLayers = {
+        streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap Contributors'
+        }),
+        satellite: L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap France'
+        }),
+        hybrid: L.tileLayer('https://{s}.satellite.tiles.mapbox.com/{z}/{x}/{y}@2x?access_token=your-mapbox-token', {
+            attribution: '&copy; Mapbox'
+        })
+    };
+
     map = L.map('map', {
-        zoomControl: false,
+        layers: [tileLayers.streets],
+        zoomControl: true,
         maxZoom: 19,
         minZoom: 3
-    }).setView([-13.410, -38.913], 13);
+    }).setView([-13.378, -38.918], 14); // Posição inicial em Morro de São Paulo
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; Desenvolvido por Luiz Idebook'
-    }).addTo(map);
-
+    // Adiciona controle para trocar camadas
+    L.control.layers(tileLayers).addTo(map);
 }
 
 
@@ -586,6 +598,71 @@ function endNavigation() {
     clearAllMarkers();
     hideNavigationBar();
 }
+
+// Atualiza o marcador do usuário no mapa
+function updateUserLocationMarker(lat, lon) {
+    if (userLocationMarker) {
+        userLocationMarker.setLatLng([lat, lon]);
+    } else {
+        userLocationMarker = L.marker([lat, lon], {
+            icon: L.icon({
+                iconUrl: 'path_to_user_icon.png', // Caminho para ícone personalizado
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup("Você está aqui!");
+    }
+    map.setView([lat, lon], 15);
+}
+
+// ======================
+// Sistema de Sugestão de Destinos
+// ======================
+
+// Busca pontos de interesse no OSM
+async function fetchPointsOfInterest(lat, lon, radius = 1000) {
+    const query = `
+        [out:json];
+        (
+            node["tourism"](around:${radius},${lat},${lon});
+            way["tourism"](around:${radius},${lat},${lon});
+            relation["tourism"](around:${radius},${lat},${lon});
+        );
+        out center;
+    `;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Erro ao buscar pontos de interesse.');
+        const data = await response.json();
+        return data.elements.map(el => ({
+            id: el.id,
+            name: el.tags.name || 'Ponto de Interesse',
+            lat: el.lat || el.center.lat,
+            lon: el.lon || el.center.lon
+        }));
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+// Sugere destinos ao usuário
+async function suggestDestinations() {
+    const location = await getUserLocation();
+    const { latitude, longitude } = location;
+
+    const pois = await fetchPointsOfInterest(latitude, longitude);
+
+    pois.forEach(poi => {
+        const marker = L.marker([poi.lat, poi.lon]).addTo(map)
+            .bindPopup(`<b>${poi.name}</b><br>Proximidade: ${calculateDistance(latitude, longitude, poi.lat, poi.lon)} metros.`);
+    });
+
+    console.log('Pontos de interesse sugeridos:', pois);
+    return pois;
+}
+
 
 function updateNavigationInstructions(instructionKey, distance = null) {
     const navigationBar = document.getElementById('navigation-bar');
