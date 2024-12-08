@@ -35,9 +35,6 @@ let markers = []; // Lista de marcadores ativos no mapa
 let currentIndex = 0; // Índice de passos ou elementos
 let currentMarker = null; // Marcador atual no mapa
 let swiperInstance = null; // Instância ativa do carrossel
-let watchId = null;
-let selectedProfile = 'foot-walking'; // Perfil padrão de transporte
-
 
 // Constantes
  // Chave da API OpenRouteService
@@ -263,6 +260,7 @@ function showWelcomeMessage() {
 // ======================
 
 // Inicializa o mapa usando Leaflet
+// Inicializa o mapa com camadas personalizáveis
 function initializeMap() {
     const tileLayers = {
         streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -270,18 +268,21 @@ function initializeMap() {
         }),
         satellite: L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap France'
+        }),
+        hybrid: L.tileLayer('https://{s}.satellite.tiles.mapbox.com/{z}/{x}/{y}@2x?access_token=your-mapbox-token', {
+            attribution: '&copy; Mapbox'
         })
     };
 
     map = L.map('map', {
         layers: [tileLayers.streets],
-        zoomControl: false,
+        zoomControl: true,
         maxZoom: 19,
         minZoom: 3
-    }).setView([-13.378, -38.918], 14);
+    }).setView([-13.378, -38.918], 14); // Posição inicial em Morro de São Paulo
 
+    // Adiciona controle para trocar camadas
     L.control.layers(tileLayers).addTo(map);
-    console.log("Mapa inicializado com sucesso.");
 }
 
 
@@ -326,6 +327,12 @@ function adjustMapWithLocation(lat, lon, name = '', description = '', zoom = 15,
         console.error('Erro ao ajustar o mapa:', error);
     }
 }
+
+
+
+
+
+
 
 // Ajusta o mapa para a localização atual do usuário
 function adjustMapWithLocationUser(lat, lon) {
@@ -383,9 +390,8 @@ async function createRouteToDestination(lat, lon, profile = 'foot-walking') {
         // Ajusta o mapa para mostrar a rota
         map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
 
-        // Inicia a navegação interativa
-        startInteractiveRoute();
-
+        // Inicia acompanhamento da posição
+        trackUserPosition(routeData, lat, lon);
     } catch (error) {
         console.error('Erro ao criar rota:', error);
     }
@@ -415,6 +421,7 @@ function getCurrentLocation() {
     });
 }
 
+
     // Função para traçar a rota no mapa usando a API do OpenRouteService
 async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile) {
     try {
@@ -434,6 +441,7 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile) {
         console.error('Erro ao traçar a rota no mapa:', error);
     }
 }
+
 
 // Função para limpar a rota atual
 function clearCurrentRoute() {
@@ -583,17 +591,6 @@ function trackUserPosition(routeData, destLat, destLon) {
     window.navigationWatchId = watchId;
 }
 
-// Atualiza marcador do usuário no mapa
-function updateUserMarker(lat, lon) {
-    if (userLocationMarker) {
-        userLocationMarker.setLatLng([lat, lon]);
-    } else {
-        userLocationMarker = L.marker([lat, lon], {
-            icon: L.icon({ iconUrl: 'path_to_user_icon.png', iconSize: [25, 41] })
-        }).addTo(map).bindPopup("Você está aqui!");
-    }
-}
-
 // Encerra a navegação
 function endNavigation() {
     navigator.geolocation.clearWatch(window.navigationWatchId);
@@ -601,6 +598,71 @@ function endNavigation() {
     clearAllMarkers();
     hideNavigationBar();
 }
+
+// Atualiza o marcador do usuário no mapa
+function updateUserLocationMarker(lat, lon) {
+    if (userLocationMarker) {
+        userLocationMarker.setLatLng([lat, lon]);
+    } else {
+        userLocationMarker = L.marker([lat, lon], {
+            icon: L.icon({
+                iconUrl: 'path_to_user_icon.png', // Caminho para ícone personalizado
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup("Você está aqui!");
+    }
+    map.setView([lat, lon], 15);
+}
+
+// ======================
+// Sistema de Sugestão de Destinos
+// ======================
+
+// Busca pontos de interesse no OSM
+async function fetchPointsOfInterest(lat, lon, radius = 1000) {
+    const query = `
+        [out:json];
+        (
+            node["tourism"](around:${radius},${lat},${lon});
+            way["tourism"](around:${radius},${lat},${lon});
+            relation["tourism"](around:${radius},${lat},${lon});
+        );
+        out center;
+    `;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Erro ao buscar pontos de interesse.');
+        const data = await response.json();
+        return data.elements.map(el => ({
+            id: el.id,
+            name: el.tags.name || 'Ponto de Interesse',
+            lat: el.lat || el.center.lat,
+            lon: el.lon || el.center.lon
+        }));
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+// Sugere destinos ao usuário
+async function suggestDestinations() {
+    const location = await getUserLocation();
+    const { latitude, longitude } = location;
+
+    const pois = await fetchPointsOfInterest(latitude, longitude);
+
+    pois.forEach(poi => {
+        const marker = L.marker([poi.lat, poi.lon]).addTo(map)
+            .bindPopup(`<b>${poi.name}</b><br>Proximidade: ${calculateDistance(latitude, longitude, poi.lat, poi.lon)} metros.`);
+    });
+
+    console.log('Pontos de interesse sugeridos:', pois);
+    return pois;
+}
+
 
 function updateNavigationInstructions(instructionKey, distance = null) {
     const navigationBar = document.getElementById('navigation-bar');

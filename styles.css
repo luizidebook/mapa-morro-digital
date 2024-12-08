@@ -1161,7 +1161,7 @@ textarea {
 .menu.hidden {
     width: 0;
     overflow: auto;
-    z-index: 10000;
+    z-index: 100000000000000;
     transition: width 0.3s ease-in-out;
 }
 
