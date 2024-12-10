@@ -40,10 +40,18 @@
 </head>
 
 <body>
-    <div id="map-container">
-        <div id="map"></div>
+<div id="map-container">
+    <div id="map"></div>
+</div>
+<div id="navigation-bar" class="hidden">
+    <div id="navigation-instructions"></div>
+</div>
+<div id="route-stats" class="hidden"></div>
+<div id="route-steps" class="hidden"></div>
+<div id="transport-profile">Perfil: Caminhando</div>
 
-        <!-- Modal do Assistente -->
+    
+<!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
             <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
             <div class="modal-content" id="assistant-modal-text"></div>
@@ -116,7 +124,7 @@
             <button id="praias-btn" class="control-btn" style="display:none" data-action="praias" onclick="performControlAction('praias')" class="menu-btn" data-feature="praias">Praias</button>
             <button id="festas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('festas')" class="menu-btn" data-feature="festas">Festas</button>
             <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" onclick="performControlAction('restaurantes')" class="menu-btn" data-feature="restaurantes">Restaurantes</button>
-            <button id="pousadas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pousadas')" onclick="loadSubMenu(subMenuId, feature)" class="menu-btn" data-feature="pousadas">Pousadas</button>
+            <button id="pousadas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pousadas')" class="menu-btn" data-feature="pousadas">Pousadas</button>
             <button id="lojas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('lojas')" class="menu-btn" data-feature="lojas">Lojas</button>
             <button id="emergencias-btn" class="control-btn" style="display:none" onclick="storeAndProceed('emergencias')" class="menu-btn" data-feature="emergencias">Emergências</button>
              

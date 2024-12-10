@@ -11,15 +11,106 @@ body, html {
 
 #map-container {
     position: relative;
+    height: 100vh;
     width: 100%;
-    height: 100%;
-    background-color: #eaeaea;
+
 }
 
 #map {
-    width: 100%;
     height: 100%;
 }
+
+#route-stats, #route-steps {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    display: none;
+}
+
+#route-stats {
+    top: 10px;
+    right: 10px;
+}
+
+#route-steps {
+    bottom: 10px;
+    left: 10px;
+    max-height: 40%;
+    overflow-y: auto;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Estilo para o contêiner de instruções de navegação */
+#navigation-instructions {
+    position: fixed;
+    bottom: 20px; /* Posição fixa na parte inferior da tela */
+    left: 50%;
+    transform: translateX(-50%); /* Centraliza horizontalmente */
+    width: 90%; /* Ocupa 90% da largura da tela */
+    max-width: 500px; /* Largura máxima */
+    background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com leve transparência */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
+    border-radius: 8px; /* Cantos arredondados */
+    padding: 15px; /* Espaçamento interno */
+    font-family: Arial, sans-serif; /* Fonte legível */
+    font-size: 14px; /* Tamanho da fonte */
+    color: #333; /* Cor do texto */
+    overflow-y: auto; /* Permite rolagem caso o conteúdo seja longo */
+    max-height: 150px; /* Altura máxima */
+    z-index: 1000; /* Garante que esteja acima de outros elementos */
+}
+
+/* Estilo para as instruções individuais */
+.navigation-instruction {
+    padding: 10px; /* Espaçamento interno */
+    margin-bottom: 8px; /* Espaço entre as instruções */
+    border: 1px solid #e0e0e0; /* Borda leve */
+    border-radius: 6px; /* Cantos arredondados */
+    background-color: #f9f9f9; /* Fundo claro */
+    display: flex; /* Layout flexível */
+    align-items: center; /* Alinha itens verticalmente */
+    justify-content: space-between; /* Espaço entre texto e ícones */
+}
+
+/* Destaque para instruções importantes */
+.navigation-instruction.highlight {
+    background-color: #d1ecf1; /* Fundo azul claro */
+    border-color: #bee5eb; /* Borda azul */
+    color: #0c5460; /* Texto azul escuro */
+    font-weight: bold; /* Texto em negrito */
+}
+
+/* Estilo para texto e distância */
+.navigation-instruction span {
+    flex: 1; /* Ocupa o espaço disponível */
+}
+
+/* Estilo para ícones adicionais */
+.navigation-instruction i {
+    margin-left: 10px; /* Espaço entre o texto e o ícone */
+    color: #007bff; /* Ícones com cor azul */
+    font-size: 18px; /* Tamanho do ícone */
+}
+
+
+.direction-indicator {
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+}
+
 
 #start-route-btn {
     position: fixed;
@@ -500,6 +591,40 @@ body, html {
         transform: translateY(-15px);
     }
 }
+
+.direction-indicator {
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+}
+
+
+#route-stats {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    display: none;
+}
+#route-stats.hidden {
+    display: none;
+}
+
+.poi-icon {
+    width: 25px;
+    height: 25px;
+}
+
 
 .notification {
     position: fixed;
