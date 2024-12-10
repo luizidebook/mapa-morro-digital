@@ -21,6 +21,25 @@ body, html {
     height: 100%;
 }
 
+#start-route-btn {
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 1000;
+}
+
+#start-route-btn:hover {
+    background-color: #218838;
+}
+
+
 .welcome-modal, .modal {
     position: fixed;
     top: 50%;
@@ -141,18 +160,19 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 26px;
-    margin: 1px 1px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
-    border-radius: 18px;
-    border: none;
+    margin: 2px;
     transition: background-color 0.3s ease;
-    z-index: 1000;
 }
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
+
+
 
 .close-btn {
     position: fixed;
@@ -323,18 +343,73 @@ body, html {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 26px;
-    margin: 1px 1px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
-    border-radius: 18px;
-    border: none;
+    margin: 2px;
     transition: background-color 0.3s ease;
-    z-index: 1000;
 }
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
+
+.leaflet-marker-icon {
+    width: 30px;
+    height: 41px;
+    margin-left: -15px;
+    margin-top: -41px;
+}
+
+
+.spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #007BFF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10000;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #007BFF;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.notification.error {
+    background-color: #f44336;
+}
+
+.notification.success {
+    background-color: #4caf50;
+}
+
+.notification.info {
+    background-color: #2196f3;
+}
+
 
 
 /* Estilos para o controle de rota */
@@ -427,21 +502,29 @@ body, html {
 }
 
 .notification {
-    background-color: #4caf50;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #007BFF;
     color: white;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    transition: opacity 0.6s;
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
 }
 
 .notification.error {
     background-color: #f44336;
 }
 
+.notification.success {
+    background-color: #4caf50;
+}
+
 .notification.info {
     background-color: #2196f3;
 }
+
 
 .spinner {
     position: fixed;
@@ -587,18 +670,18 @@ textarea {
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 26px;
-    margin: 1px 1px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
-    border-radius: 18px;
-    border: none;
+    margin: 2px;
     transition: background-color 0.3s ease;
-    z-index: 1000;
 }
+
+.control-btn:hover {
+    background-color: #0056b3;
+}
+
 
 .close-menu-btn {
     position: fixed;
@@ -732,13 +815,6 @@ textarea {
     background: #0056b3; /* Cor ao passar o mouse sobre a barra */
 }
 
-.menu.hidden {
-    width: 0;
-    overflow: auto;
-    z-index: 10000;
-    transition: width 0.3s ease-in-out;
-}
-
 @keyframes slideIn {
     from { right: -250px; }
     to { right: 0; }
@@ -835,13 +911,12 @@ h2 {
 
 .notification {
     position: fixed;
-    top: 10px;
-    right: 10px;
-    background-color: #4caf50;
+    top: 20px;
+    right: 20px;
+    background-color: #007BFF;
     color: white;
     padding: 10px;
     border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     z-index: 1000;
     transition: opacity 0.3s ease;
 }
@@ -850,9 +925,14 @@ h2 {
     background-color: #f44336;
 }
 
+.notification.success {
+    background-color: #4caf50;
+}
+
 .notification.info {
     background-color: #2196f3;
 }
+
 
 
 #tutorial-btn {
@@ -861,16 +941,6 @@ h2 {
     right: 20px;
     z-index: 10001; /* Above the blocked overlay */
     pointer-events: auto; /* Enable clicking */
-}
-
-/* Outros estilos necessários para o layout */
-.hidden {
-    display: none;
-}
-
-.blocked {
-    pointer-events: none;
-    opacity: 0.5;
 }
 
 .modal-content {
@@ -1651,22 +1721,61 @@ h2 {
 }
 
 /* Navigation bar at the bottom */
-#navigation-bar {
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+.hidden {
+    display: none;
 }
 
-/* Navigation instructions inside the bar */
-#navigation-instructions {
-    font-size: 14px;
-    color: #333;
+/* Barra de Navegação */
+#navigation-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #007BFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
     font-weight: bold;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+#navigation-instructions {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+
+/* Pop-ups */
+#location-popup {
+    position: fixed;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    z-index: 1000;
+}
+
+/* Dropdown */
+#transport-profile {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    font-size: 14px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }
 
 /* Modal close button */
@@ -1683,11 +1792,6 @@ h2 {
     border-radius: 50%;
     cursor: pointer;
     z-index: 1051;
-}
-
-/* Hidden class for toggling visibility */
-.hidden {
-    display: none !important;
 }
 
 /* Floating menu buttons */
@@ -1772,36 +1876,50 @@ h2 {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Barra de Navegação */
 #navigation-bar {
-    display: none;
     position: fixed;
     bottom: 0;
     width: 100%;
+    height: 50px;
     background-color: #007BFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     color: white;
-    text-align: center;
-    padding: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
 }
+
 
 #navigation-instructions {
     font-size: 16px;
+    font-weight: bold;
 }
+
+
+
+
 
 /* Buttons */
 .control-btn {
     background-color: #007BFF;
     color: white;
-    padding: 10px 15px;
+    padding: 10px 20px;
     border-radius: 5px;
     font-size: 14px;
     cursor: pointer;
-    margin: 5px;
+    margin: 2px;
     transition: background-color 0.3s ease;
 }
 
 .control-btn:hover {
     background-color: #0056b3;
 }
+
+
 
 .lang-btn {
     background-color: transparent;

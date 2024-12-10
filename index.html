@@ -4,18 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morro de São Paulo Digital</title>
+    
+    <!-- CSS Principal -->
     <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Routing Machine -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    
+    <!-- Awesomplete -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+    
+    <!-- Swiper -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Fuse.js (Busca Inteligente) -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    
+    <!-- Meta Tags -->
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
     <meta name="author" content="Morro Digital">
@@ -24,8 +38,8 @@
     <meta property="og:image" content="link_da_imagem">
     <meta property="og:url" content="URL do site">
 </head>
+
 <body>
-    <div id="blocked-overlay"></div>
     <div id="map-container">
         <div id="map"></div>
 
@@ -109,7 +123,7 @@
            <button class="control-btn" id="tutorial-end-btn" style="display:none;" data-action="finish" onclick="performControlAction('finish')">Encerrar Tutorial</button>
             <button class="control-btn" id="create-itinerary-btn" style="display: none;" data-action="next" onclick="performControlAction('next')">Criar Roteiro</button>
                <button class="control-btn" id="about-more-btn" style="display: none;">Fotos</button>
-            <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" onclick="performControlAction('create-route')">Como Chegar</button>
+            <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route">Como Chegar</button>
             <button class="control-btn" id="reserve-restaurants-btn" style="display: none;">Reservar Mesa</button>
             <button class="control-btn" id="speak-attendent-btn" style="display: none;">Site</button>
             <button class="control-btn" id="call-btn" style="display: none;">Ligar</button>
@@ -120,19 +134,22 @@
             <button id="tutorial-send-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')">Enviar</button>      
            <button id="access-site-btn" class="control-btn" style="display:none;" data-action="access-site" onclick="performControlAction('access-site')">Acessar Site</button>
             <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')">Acessar Menu</button>
-      <button id="navigation-start" class="control-btn" style="display:none;">Iniciar Rota</button>
-    <button class="control-btn" style="display:none;" data-action="navigation-end" onclick="performControlAction('navigation-end')">Parar Navegação</button>
+<button id="start-route-btn" class="control-btn" style="display:none;">Iniciar Navegação</button>
+<button id="navigation-end-btn" class="control-btn" style="display:none;" onclick="endNavigation()">Parar Navegação</button>
+
+<button id="start-route-btn" class="control-btn" style="display: none;">Iniciar Rota</button>
         </div>
 
-<div id="navigation-bar" style="display:none;">
-    <span id="navigation-instructions"></span>
+        <div id="notification-container" class="notification-container"></div>
+
+
+<div id="help-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Ajuda</h2>
+        <p>Aqui você pode aprender como usar o sistema de navegação interativa.</p>
+    </div>
 </div>
 
-<select id="transport-profile" onchange="setTransportProfile(this.value)">
-    <option value="foot-walking">A Pé</option>
-    <option value="cycling-regular">Bicicleta</option>
-    <option value="driving-car">Carro</option>
-</select>
 
     <script src="enhancedNavigation.js"></script>
     <script src="scripts.js" defer></script>
