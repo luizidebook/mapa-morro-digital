@@ -49,21 +49,22 @@ body, html {
 /* Estilo para o contêiner de instruções de navegação */
 #navigation-instructions {
     position: fixed;
-    bottom: 20px; /* Posição fixa na parte inferior da tela */
-    left: 50%;
-    transform: translateX(-50%); /* Centraliza horizontalmente */
-    width: 90%; /* Ocupa 90% da largura da tela */
-    max-width: 500px; /* Largura máxima */
-    background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com leve transparência */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
-    border-radius: 8px; /* Cantos arredondados */
-    padding: 15px; /* Espaçamento interno */
-    font-family: Arial, sans-serif; /* Fonte legível */
-    font-size: 14px; /* Tamanho da fonte */
-    color: #333; /* Cor do texto */
-    overflow-y: auto; /* Permite rolagem caso o conteúdo seja longo */
-    max-height: 150px; /* Altura máxima */
-    z-index: 1000; /* Garante que esteja acima de outros elementos */
+    bottom: 567px;
+    left: 42%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 30px;
+    max-width: 500px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+    overflow-y: auto;
+    max-height: 150px;
+    z-index: 1000;
 }
 
 /* Estilo para as instruções individuais */
