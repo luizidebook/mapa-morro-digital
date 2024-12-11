@@ -319,7 +319,6 @@ async function requestLocationPermission() {
                     showTutorialStep('start-tutorial');
 
                     showNotification("Localização obtida com sucesso!", "success");
-                    giveVoiceFeedback("Localização salva. Pronta para uso.");
                     resolve(userCurrentLocation);
                 },
                 (error) => {
@@ -410,13 +409,11 @@ async function createRoute() {
     if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
         console.error("Destino não selecionado ou inválido:", selectedDestination);
         showNotification("Selecione um destino válido antes de criar uma rota.", "error");
-        giveVoiceFeedback("Por favor, selecione um destino válido para criar a rota.");
         return;
     }
 
     try {
         showNotification("Iniciando a criação da rota...", "info");
-        giveVoiceFeedback("Criando rota para o destino selecionado.");
 
         // Tenta criar a rota para o destino
         const routeCreated = await createRouteToDestination(selectedDestination.lat, selectedDestination.lon);
@@ -551,7 +548,6 @@ async function startNavigation() {
 
         trackUserMovement(destLat, destLon, instructions);
         showNotification("Navegação iniciada com sucesso!", "success");
-        giveVoiceFeedback("Navegação iniciada. Siga as instruções exibidas na tela.");
     } catch (error) {
         console.error("Erro ao iniciar navegação:", error);
         showNotification("Erro ao iniciar navegação. Por favor, tente novamente.", "error");
@@ -1024,12 +1020,47 @@ function trackUserMovement(destLat, destLon, instructions, profile = 'foot-walki
 
     console.log("Iniciando rastreamento do movimento do usuário.");
 
+    let lastKnownPosition = null; // Armazena a última posição válida
+    let recalculationInProgress = false; // Controle para evitar recalculos simultâneos
+    let userStationary = false; // Indica se o usuário está parado
+    const stationaryThreshold = 5; // Distância em metros para considerar o usuário parado
+    const closeToRouteThreshold = 30; // Distância em metros para considerar o usuário perto da rota
+    const notificationInterval = 5000; // Tempo mínimo entre notificações
+
+    let lastNotificationTime = Date.now();
+
     try {
         window.navigationWatchId = navigator.geolocation.watchPosition(
             async (position) => {
                 const { latitude: userLat, longitude: userLon } = position.coords;
-                userCurrentLocation = { latitude: userLat, longitude: userLon };
 
+                // Se a localização inicial não estiver validada, verifica proximidade com uma rua
+                if (!lastKnownPosition) {
+                    const onStreet = await isUserOnStreet(userLat, userLon);
+                    if (!onStreet) {
+                        showNotification("Por favor, mova-se para a rua mais próxima para iniciar a navegação.", "warning");
+                        return;
+                    }
+                    showNotification("Navegação iniciada. Siga as instruções exibidas.", "info");
+                    lastKnownPosition = { latitude: userLat, longitude: userLon };
+                }
+
+                const distanceMoved = lastKnownPosition
+                    ? calculateDistance(lastKnownPosition.latitude, lastKnownPosition.longitude, userLat, userLon)
+                    : 0;
+
+                if (distanceMoved < stationaryThreshold) {
+                    if (!userStationary) {
+                        userStationary = true;
+                        console.log("Usuário parado.");
+                    }
+                    return; // Não recalcula se o usuário está parado
+                }
+
+                // Marca que o usuário está se movendo
+                userStationary = false;
+
+                userCurrentLocation = { latitude: userLat, longitude: userLon };
                 updateUserMarker(userLat, userLon);
 
                 const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
@@ -1042,20 +1073,72 @@ function trackUserMovement(destLat, destLon, instructions, profile = 'foot-walki
                     return;
                 }
 
-                // Atualiza navegação
-                if (instructions.length) {
-                    updateRealTimeNavigation(userLat, userLon, instructions);
+                // Verifica proximidade com o próximo ponto da rota
+                const distanceToNextPoint = calculateDistance(
+                    userLat,
+                    userLon,
+                    instructions[0]?.lat || destLat,
+                    instructions[0]?.lon || destLon
+                );
+
+                if (distanceToNextPoint < closeToRouteThreshold) {
+                    console.log("Usuário próximo à rota. Não é necessário recalcular.");
+                } else if (!recalculationInProgress && Date.now() - lastNotificationTime > notificationInterval) {
+                    recalculationInProgress = true;
+                    showNotification("Você está fora da rota planejada. Recalculando...", "warning");
+
+                    const routeRecalculated = await createRouteToDestination(destLat, destLon, profile);
+                    if (routeRecalculated) {
+                        const newInstructions = await fetchRouteInstructions(
+                            userLat,
+                            userLon,
+                            destLat,
+                            destLon,
+                            profile
+                        );
+
+                        if (newInstructions.length > 0) {
+                            instructions.length = 0;
+                            Array.prototype.push.apply(instructions, newInstructions);
+                            displayTurnInstructions(newInstructions);
+                        }
+                    } else {
+                        showNotification("Erro ao recalcular a rota. Verifique sua conexão.", "error");
+                    }
+
+                    recalculationInProgress = false;
+                    lastNotificationTime = Date.now();
                 }
 
+                // Atualiza navegação em tempo real
+                if (instructions.length > 0) {
+                    updateRealTimeNavigation(userLat, userLon, instructions);
+                }
             },
             (error) => {
-                console.error("Erro ao rastrear localização:", error);
-                showNotification("Erro ao rastrear localização. Verifique as permissões.", "error");
+                let errorMessage;
+
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = "Permissão de localização negada.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = "Localização indisponível.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = "Tempo limite ao obter localização.";
+                        break;
+                    default:
+                        errorMessage = "Erro desconhecido ao rastrear localização.";
+                }
+
+                console.error(errorMessage, error);
+                showNotification(errorMessage, "error");
             },
-            { enableHighAccuracy: true }
+            { enableHighAccuracy: true, maximumAge: 0 }
         );
     } catch (error) {
-        console.error("Erro ao iniciar rastreamento:", error);
+        console.error("Erro ao iniciar rastreamento em tempo real:", error);
         showNotification("Erro ao rastrear o movimento do usuário.", "error");
     }
 }
@@ -1073,24 +1156,20 @@ function updateRealTimeNavigation(currentLat, currentLon, routeInstructions) {
 
     const nextInstruction = routeInstructions[0];
 
-    // Valida se a instrução contém as propriedades esperadas
     if (!nextInstruction || !nextInstruction.lat || !nextInstruction.lon || !nextInstruction.text) {
         console.error("Instrução inválida ou incompleta:", nextInstruction);
-        showNotification("Erro ao processar as instruções de navegação. Tente recalcular a rota.", "error");
+        showNotification("Erro ao processar instruções de navegação. Tente recalcular a rota.", "error");
         return;
     }
 
-    // Calcula a distância até o próximo ponto
-    const distanceToNext = calculateDistance(currentLat, currentLon, nextInstruction.lat, nextInstruction.lon);
-    console.log(`Distância para o próximo ponto: ${distanceToNext} metros.`);
+    const distanceToNextPoint = calculateDistance(currentLat, currentLon, nextInstruction.lat, nextInstruction.lon);
+    console.log(`Distância para o próximo ponto: ${distanceToNextPoint} metros.`);
 
-    // Notifica o usuário e remove a instrução concluída se dentro do alcance
-    if (distanceToNext < 50) {
-        routeInstructions.shift(); // Remove a instrução já completada
-        notifyDirectionChange(nextInstruction.text); // Notifica o usuário
+    if (distanceToNextPoint < 50) {
+        notifyDirectionChange(nextInstruction.text);
+        routeInstructions.shift();
     }
 
-    // Atualiza a interface com as próximas instruções
     if (routeInstructions.length > 0) {
         displayTurnInstructions(routeInstructions);
     } else {
@@ -1100,6 +1179,30 @@ function updateRealTimeNavigation(currentLat, currentLon, routeInstructions) {
     }
 }
 
+
+async function isUserOnStreet(lat, lon) {
+    try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            console.error("Erro ao verificar localização na OSM:", response.statusText);
+            return false;
+        }
+
+        const data = await response.json();
+        if (data.address && data.address.road) {
+            console.log("Usuário está em uma rua:", data.address.road);
+            return true;
+        }
+
+        console.warn("Usuário não está em uma rua.");
+        return false;
+    } catch (error) {
+        console.error("Erro ao verificar localização na OSM:", error);
+        return false;
+    }
+}
 
 
 
