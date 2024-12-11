@@ -46,21 +46,6 @@ body, html {
     display: none;
 }
 
-/* Barra de progresso */
-#progress-bar-container {
-  width: 100%;
-  height: 10px;
-  background-color: #ccc;
-}
-#progress-bar {
-  width: 0;
-  height: 100%;
-  background-color: #4caf50;
-}
-.hidden {
-  display: none;
-}
-
 /* Estilo para o contêiner de instruções de navegação */
 #navigation-instructions {
     position: fixed;
@@ -493,7 +478,14 @@ body, html {
     }
 }
 
-.notification {
+L.Symbol.arrowHead({
+    pixelSize: 10, // Tamanho da seta
+    polygon: true, // Usar forma de seta (true) ou não (false)
+    pathOptions: { color: 'red', fillOpacity: 0.7 } // Cor e opacidade
+});
+
+
+.notification-container {
     position: fixed;
     top: 20px;
     right: 20px;

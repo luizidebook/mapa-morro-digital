@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +11,13 @@
     <link rel="stylesheet" href="styles.css">
     
     <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     
-    <!-- Leaflet Routing Machine -->
+    <!-- Leaflet Extensions -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.8.0/leaflet.polylineDecorator.min.js"></script>
     
     <!-- Awesomplete -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
@@ -28,7 +31,17 @@
     
     <!-- Fuse.js (Busca Inteligente) -->
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
-    
+
+    <!-- Meta Tags -->
+    <meta name="description" content="Descrição do site Morro Digital.">
+    <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
+    <meta name="author" content="Morro Digital">
+    <meta property="og:title" content="Morro Digital">
+    <meta property="og:description" content="Descrição do site Morro Digital.">
+    <meta property="og:image" content="link_da_imagem">
+    <meta property="og:url" content="URL do site">
+
+
     <!-- Meta Tags -->
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
@@ -149,44 +162,10 @@
         </div>
 
         <div id="notification-container" class="notification-container"></div>
+       </div>
+<div id="navigation-instruction" class="navigation-instruction" style="display:none;"></div>
 
 
-<div id="help-modal" class="modal hidden">
-    <div class="modal-content">
-        <h2>Ajuda</h2>
-        <p>Aqui você pode aprender como usar o sistema de navegação interativa.</p>
-    </div>
-</div>
-
-<div id="navigation-instructions" class="navigation-instructions-container" style="display:none;">
-</div>
-<div id="navigation-bar" class="navigation-bar hidden">
-  <p class="navigation-status">Navegação ativa</p>
-</div>
-
-
-<!-- Atualizações na Interface -->
-<div id="progress-bar-container" style="display:none;">
-    <div id="progress-bar"></div>
-    <span id="progress-text"></span>
-</div>
-<div id="transport-profile" class="transport-profile">Modo: Caminhada</div>
-
-  <div id="route-summary-modal" class="hidden">
-    <div id="route-summary-content"></div>
-    <button id="close-summary">Fechar</button>
-  </div>
-</div>
-
-<div id="route-summary-modal" class="hidden">
-    <div id="route-summary-content"></div>
-    <button id="close-summary">Fechar</button>
-</div>
-
-
-<div id="user-location-popup" class="popup-container hidden"></div>
-
-    <script src="enhancedNavigation.js"></script>
     <script src="scripts.js" defer></script>
     <script>
         if ('serviceWorker' in navigator) {
