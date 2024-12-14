@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<!DOCTYPE html>
-<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,13 +9,12 @@
     <link rel="stylesheet" href="styles.css">
     
     <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     
-    <!-- Leaflet Extensions -->
+    <!-- Leaflet Routing Machine -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.8.0/leaflet.polylineDecorator.min.js"></script>
     
     <!-- Awesomplete -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
@@ -31,17 +28,7 @@
     
     <!-- Fuse.js (Busca Inteligente) -->
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
-
-    <!-- Meta Tags -->
-    <meta name="description" content="Descrição do site Morro Digital.">
-    <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
-    <meta name="author" content="Morro Digital">
-    <meta property="og:title" content="Morro Digital">
-    <meta property="og:description" content="Descrição do site Morro Digital.">
-    <meta property="og:image" content="link_da_imagem">
-    <meta property="og:url" content="URL do site">
-
-
+    
     <!-- Meta Tags -->
     <meta name="description" content="Descrição do site Morro Digital.">
     <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
@@ -52,38 +39,39 @@
     <meta property="og:url" content="URL do site">
 </head>
 
+
 <body>
+
+<!-- Mapa -->
 <div id="map-container">
     <div id="map"></div>
 </div>
-<div id="navigation-bar" class="hidden">
-    <div id="navigation-instructions"></div>
-</div>
-<div id="route-stats" class="hidden"></div>
-<div id="route-steps" class="hidden"></div>
-<div id="transport-profile">Perfil: Caminhando</div>
 
-    
+<!-- Modal mensagem de erro -->
+<div id="error-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Erro</h2>
+        <p id="error-message"></p>
+        <button onclick="hideModal('error-modal')">Fechar</button>
+    </div>
+</div>
+
+<!-- Modal Offline -->
+<div id="offline-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Modo Offline</h2>
+        <p>Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
+        <button onclick="hideModal('offline-modal')">Entendido</button>
+    </div>
+</div>
+
 <!-- Modal do Assistente -->
         <div id="assistant-modal" class="modal">
             <button id="close-assistant-modal" class="close-menu-btn" onclick="hideModal('assistant-modal')">X</button>
             <div class="modal-content" id="assistant-modal-text"></div>
         </div>
 
-<!-- Modal do Carrossel -->
-<div id="carousel-modal" class="carousel-modal">
-    <div class="modal-content">
-        <span id="carousel-modal-close" onclick="hideModal('carousel-modal')" class="modal-close">&times;</span>
-        <div class="swiper-container">
-            <div class="swiper-wrapper">
-                <!-- Slides do carrossel -->
-            </div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-pagination"></div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Boas vindas e idioma -->
         <div id="welcome-modal" class="welcome-modal">
             <div class="modal-content">
                 <p id="welcome-message"></p>
@@ -105,6 +93,8 @@
                 </div>
             </div>
         </div>
+        
+<!-- Botões Menu Lateral  -->
         <button id="menu-btn" class="menu-toggle" aria-label="Menu" onclick="showTutorialStep('ask-interest')">&#9776;</button>
         <div id="floating-menu" class="floating-menu">
             <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
@@ -113,6 +103,8 @@
             <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
             <button class="menu-btn" data-feature="sobre" aria-label="Sobre"><i class="fas fa-info-circle"></i></button>
         </div>
+
+<!-- Botões de Opções Submenus  -->
         <div id="menu" class="menu">
             <button id="close-menu-btn" class="close-side-menu-btn" onclick="closeSideMenu()">X</button>        
             <div id="touristSpots-submenu" class="submenu" data-feature="touristSpots"></div>
@@ -129,9 +121,10 @@
         
         <button id="tutorial-btn" class="control-btn" style="display:none;" onclick="initializeTutorial()">Iniciar Tutorial</button>
         </div>
+
+<!-- Botões de Controle -->
         <div class="control-buttons">
-    
-            <button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')">Iniciar</button>
+             <button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" data-action="next" onclick="nextTutorialStep()">Iniciar</button>
             <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" onclick="performControlAction('pontos-turisticos')" class="menu-btn" data-feature="pontos-turisticos">Pontos Turísticos</button>
             <button id="passeios-btn" class="control-btn" style="display:none" onclick="storeAndProceed('passeios')" class="menu-btn" data-feature="passeios">Passeios</button>
             <button id="praias-btn" class="control-btn" style="display:none" data-action="praias" onclick="performControlAction('praias')" class="menu-btn" data-feature="praias">Praias</button>
@@ -140,13 +133,9 @@
             <button id="pousadas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('pousadas')" class="menu-btn" data-feature="pousadas">Pousadas</button>
             <button id="lojas-btn" class="control-btn" style="display:none" onclick="storeAndProceed('lojas')" class="menu-btn" data-feature="lojas">Lojas</button>
             <button id="emergencias-btn" class="control-btn" style="display:none" onclick="storeAndProceed('emergencias')" class="menu-btn" data-feature="emergencias">Emergências</button>
-             
-           <button class="control-btn" id="tutorial-end-btn" style="display:none;" data-action="finish" onclick="performControlAction('finish')">Encerrar Tutorial</button>
-            <button class="control-btn" id="create-itinerary-btn" style="display: none;" data-action="next" onclick="performControlAction('next')">Criar Roteiro</button>
                <button class="control-btn" id="about-more-btn" style="display: none;">Fotos</button>
             <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route">Como Chegar</button>
             <button class="control-btn" id="reserve-restaurants-btn" style="display: none;">Reservar Mesa</button>
-            <button class="control-btn" id="speak-attendent-btn" style="display: none;">Site</button>
             <button class="control-btn" id="call-btn" style="display: none;">Ligar</button>
             <button class="control-btn" id="reserve-inns-btn" style="display: none;">Reservar Quarto</button>
             <button class="control-btn" id="reserve-chairs-btn" style="display: none;">Reservar Cadeiras</button>
@@ -154,17 +143,78 @@
             <button class="control-btn" id="tour-btn" style="display: none;">Reservar Passeio</button>
             <button id="tutorial-send-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')">Enviar</button>      
            <button id="access-site-btn" class="control-btn" style="display:none;" data-action="access-site" onclick="performControlAction('access-site')">Acessar Site</button>
+            <button id="start-navigation-button" class="control-btn" style="display:none;">Iniciar Navegação</button>
+            <button id="navigation-end-btn" class="control-btn" style="display:none;" onclick="endNavigation()">Parar Navegação</button>
             <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')">Acessar Menu</button>
-<button id="start-route-btn" class="control-btn" style="display:none;">Iniciar Navegação</button>
-<button id="navigation-end-btn" class="control-btn" style="display:none;" onclick="endNavigation()">Parar Navegação</button>
-
-<button id="start-route-btn" class="control-btn" style="display: none;">Iniciar Rota</button>
+            <button id="start-route-btn" class="control-btn" style="display: none;">Iniciar Rota</button>
+              <button id="cancel-navigation-button" style="display:none;">Cancelar Navegação</button>
+        <button id="pause-navigation-button" class="control-btn" style="display:none;">Pausar</button>
         </div>
 
-        <div id="notification-container" class="notification-container"></div>
-       </div>
-<div id="navigation-instruction" class="navigation-instruction" style="display:none;"></div>
+<!-- Modal do Carrossel -->
+        <div id="carousel-modal" class="carousel-modal">
+          <div class="modal-content">
+           <span id="carousel-modal-close" onclick="hideModal('carousel-modal')" class="modal-close">&times;</span>
+          <!-- Slides do carrossel -->
+          <div class="swiper-container">
+          <div class="swiper-wrapper">
+          </div>
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-pagination"></div>
+        </div>
+        </div>
+</div>
 
+
+ <!-- O conteúdo será preenchido dinamicamente pela função showRoutePreview -->
+<div id="route-preview" class="route-preview hidden"></div>
+
+
+
+<!-- Modal Resumo da Rota -->
+<div id="route-summary" class="hidden">
+    <h3>Resumo da Rota</h3>
+    <p id="route-distance">Distância: </p>
+    <p id="route-eta">Tempo Estimado: </p>
+</div>
+
+<!-- Modal de instruções sobre a Rota -->
+<div id="navigation-instructions" class="hidden">
+    <h3>Instruções de Navegação</h3>
+    <ul id="instructions-list">
+        <li class="instruction-step">
+            <span class="direction-arrow">⬆️</span> Siga em frente por 200 metros.
+        </li>
+        <li class="instruction-step active-instruction">
+            <span class="direction-arrow">↰</span> Vire à esquerda em 50 metros.
+        </li>
+    </ul>
+</div>
+    <!-- Barra de Progresso -->
+    <div id="progress-bar-container" class="hidden">
+        <div id="progress-bar" style="width: 0;"></div>
+        <span id="progress-text"></span>
+    </div>
+
+<!-- Contêiner para exibir notificações temporárias -->
+<div id="notification-container" class="notification-container"></div>
+
+<div id="error-modal" class="modal">
+    <div class="modal-content">
+        <h2>Erro</h2>
+        <p id="error-message"></p>
+        <button onclick="hideModal('error-modal')">Fechar</button>
+    </div>
+</div>
+
+<div id="offline-modal" class="modal">
+    <div class="modal-content">
+        <h2>Modo Offline</h2>
+        <p>Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
+        <button onclick="hideModal('offline-modal')">Entendido</button>
+    </div>
+</div>
 
     <script src="scripts.js" defer></script>
     <script>
