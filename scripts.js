@@ -675,128 +675,135 @@ async function fetchRouteInstructions(startLat, startLon, destLat, destLon) {
     }
 }
 
-// Atualiza a exibição das instruções passo a passo com design visual aprimorado
 function displayStepByStepInstructions(instruction) {
     const instructionContainer = document.getElementById("navigation-instructions");
 
     if (!instructionContainer) {
         console.error("Erro: Modal de instruções não encontrado.");
-        showNotification(translations[selectedLanguage]?.noInstructions || "Erro ao exibir instruções.", "error");
+        showNotification("Erro ao exibir instruções. Contate o suporte.", "error");
         return;
     }
 
     if (!instruction || !instruction.text) {
         instructionContainer.innerHTML = `
             <div class="instruction-step">
-                <p>${translations[selectedLanguage]?.noInstructions || "Nenhuma instrução disponível no momento."}</p>
+                <p>Nenhuma instrução disponível no momento.</p>
             </div>
         `;
         instructionContainer.classList.add("hidden");
         return;
     }
 
-    const icon = getDirectionIcon(instruction.text);
-    const stepNumber = instruction.stepNumber ? `<span class="step-number">#${instruction.stepNumber}</span>` : '';
-
     instructionContainer.innerHTML = `
         <div class="instruction-step">
-            <div class="icon-container">
-                <span class="direction-arrow">${icon}</span>
-            </div>
-            <div class="instruction-details">
-                <p class="instruction-text">${instruction.text} ${stepNumber}</p>
-                <p class="instruction-distance">${instruction.distance} ${translations[selectedLanguage]?.meters || "metros"} restantes</p>
-            </div>
+            <span class="direction-arrow">${getDirectionIcon(instruction.text)}</span>
+            <p class="instruction-text">${instruction.text}</p>
+            <p class="instruction-distance">${instruction.distance} metros restantes</p>
         </div>
     `;
-
     instructionContainer.classList.remove("hidden");
+
     console.log("Instrução exibida:", instruction.text);
 }
 
 
-// Monitora a posição do usuário e ajusta a navegação com novos elementos de feedback
+
 function trackUserMovement(destLat, destLon, instructions) {
     if (!navigator.geolocation) {
-        showNotification("Geolocalização não é suportada pelo navegador.", "error");
+        console.error("Geolocalização não é suportada pelo navegador.");
+        showNotification("Seu navegador não suporta geolocalização.", "error");
+        giveVoiceFeedback("Seu navegador não suporta geolocalização.");
         return;
     }
 
-    let lastPosition = null;
-    const movementThreshold = 10; // Movimento mínimo em metros para atualizar a posição
+    console.log("Iniciando rastreamento do movimento do usuário.");
 
-    window.navigationWatchId = navigator.geolocation.watchPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
+    try {
+        window.navigationWatchId = navigator.geolocation.watchPosition(
+            async (position) => {
+                const { latitude: userLat, longitude: userLon } = position.coords;
 
-            // Evitar atualizações desnecessárias
-            if (lastPosition) {
-                const movementDistance = calculateDistance(lastPosition.latitude, lastPosition.longitude, latitude, longitude);
-                if (movementDistance < movementThreshold) {
+                // Atualiza o marcador no mapa
+                updateUserMarker(userLat, userLon);
+
+                // Calcula a distância ao destino
+                const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
+                console.log(`Distância até o destino: ${distanceToDestination} metros.`);
+
+                // Verifica se o usuário chegou ao destino
+                if (distanceToDestination < 50) {
+                    showNotification("Você chegou ao seu destino!", "success");
+                    giveVoiceFeedback("Você chegou ao seu destino.");
+                    endNavigation();
                     return;
                 }
-            }
-            lastPosition = { latitude, longitude };
 
-            // Atualizar marcador no mapa
-            updateUserMarker(latitude, longitude);
+                // Atualiza as instruções em tempo real
+                const updatedInstructions = await fetchRouteInstructions(userLat, userLon, destLat, destLon);
+                updateRealTimeNavigation(userLat, userLon, updatedInstructions);
 
-            // Verificar proximidade ao destino
-            const distanceToDestination = calculateDistance(latitude, longitude, destLat, destLon);
-            if (distanceToDestination < 50) {
-                showNotification("Você chegou ao destino!", "success");
-                endNavigation();
-                return;
-            }
-
-            // Atualizar instruções em tempo real
-            updateRealTimeNavigation(latitude, longitude, instructions);
-        },
-        (error) => {
-            console.error("Erro ao rastrear posição:", error);
-            showNotification("Erro ao rastrear localização.", "error");
-        },
-        { enableHighAccuracy: true }
-    );
+                // Verifica se o usuário saiu da rota
+                if (distanceToDestination > 100 && updatedInstructions.length === 0) {
+                    showNotification("Você está fora da rota planejada. Recalculando rota...", "warning");
+                    giveVoiceFeedback("Você saiu da rota. Recalculando...");
+                    handleRecalculation(destLat, destLon);
+                }
+            },
+            (error) => {
+                console.error("Erro ao rastrear localização:", error);
+                let errorMessage = "Erro ao rastrear localização. Verifique as permissões.";
+                if (error.code === error.PERMISSION_DENIED) {
+                    errorMessage = "Permissão de localização negada.";
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    errorMessage = "Localização indisponível.";
+                } else if (error.code === error.TIMEOUT) {
+                    errorMessage = "Tempo limite ao obter localização.";
+                }
+                showNotification(errorMessage, "error");
+            },
+            { enableHighAccuracy: true }
+        );
+    } catch (error) {
+        console.error("Erro ao iniciar rastreamento em tempo real:", error);
+        showNotification("Erro ao rastrear o movimento do usuário. Tente novamente.", "error");
+    }
 }
+
+
 
 
 // Atualiza a navegação em tempo real com barra de progresso detalhada
-function updateRealTimeNavigation(userLat, userLon, routeInstructions) {
-    if (!routeInstructions || routeInstructions.length === 0) {
-        showNotification("Nenhuma instrução disponível.", "error");
+function updateRealTimeNavigation(userLat, userLon, instructions, lastPosition = null, movementThreshold = 10) {
+    if (!instructions || instructions.length === 0) {
+        console.error("Nenhuma instrução disponível.");
+        showNotification(translations[selectedLanguage]?.noInstructions || "Nenhuma instrução disponível.", "error");
         return;
     }
 
-    const nextInstruction = routeInstructions[0];
+    const nextInstruction = instructions[0];
     const distanceToNext = calculateDistance(userLat, userLon, nextInstruction.lat, nextInstruction.lon);
 
-    // Verificar proximidade à próxima instrução
-    if (distanceToNext < 50) {
-        routeInstructions.shift(); // Remover a instrução concluída
-        displayStepByStepInstructions(routeInstructions[0]); // Exibir a próxima instrução
-
-        if (routeInstructions.length === 0) {
-            showNotification("Você chegou ao destino!", "success");
-            endNavigation();
-            return;
+    if (lastPosition) {
+        const movementDistance = calculateDistance(lastPosition.lat, lastPosition.lon, userLat, userLon);
+        if (movementDistance < movementThreshold) {
+            console.log("Usuário não se moveu significativamente. Navegação não atualizada.");
+            return; // Não atualiza se o movimento for menor que o limiar
         }
     }
 
-    // Verificar desvios
-    const distanceToRoute = calculateDistance(userLat, userLon, nextInstruction.lat, nextInstruction.lon);
-    if (distanceToRoute > 100) {
-        showNotification("Você saiu da rota planejada. Recalculando...", "warning");
-        handleRecalculation(selectedDestination.lat, selectedDestination.lon);
+    if (distanceToNext < 50) {
+        instructions.shift();
+        displayStepByStepInstructions(instructions[0]);
+    } else {
+        displayStepByStepInstructions(nextInstruction);
     }
 
-    // Atualizar progresso
-    const totalDistance = calculateTotalRouteDistance(routeInstructions);
-    const distanceCovered = totalDistance - calculateDistanceToDestination(routeInstructions);
-    updateProgressBar(distanceCovered, totalDistance);
-
-    console.log(`Distância até o próximo ponto: ${distanceToNext} metros.`);
+    updateUserMarker(userLat, userLon);
+    console.log(`Instrução atualizada: ${nextInstruction.text}`);
 }
+
+
+
 
 
 function addDirectionArrows(routeCoordinates) {
