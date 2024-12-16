@@ -58,6 +58,7 @@ const navigationInstructionsContainer = document.getElementById("navigation-inst
 const progressBar = document.getElementById("progress-bar"); // Barra de progresso
 
  // // Chaves das APIs necessárias
+const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3'; // Substitua pelo seu API Key do OpenRouteService
 const OPENROUTESERVICE_API_KEY = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3';
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
@@ -426,88 +427,6 @@ function getTileLayer() {
     });
 }
 
-async function requestLocationPermission() {
-    if (!navigator.geolocation) {
-        console.error("Geolocalização não é suportada pelo navegador.");
-        showNotification("Seu navegador não suporta geolocalização.", "error");
-        return null;
-    }
-
-    try {
-        return new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    console.log("Permissão concedida. Localização inicial:", { latitude, longitude });
-                    resolve({ latitude, longitude });
-                                        // Inicia o rastreamento contínuo após obter permissão
-                    startPositionTracking();
-                },
-                (error) => {
-                    const errorMessage = mapGeolocationError(error);
-                    console.error(errorMessage);
-                    showNotification(errorMessage, "error");
-                    reject(errorMessage);
-                },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
-            );
-        });
-    } catch (error) {
-        console.error("Erro ao solicitar permissão de localização:", error);
-        showNotification("Erro ao obter localização. Tente novamente.", "error");
-        return null;
-    }
-}
-
-function startPositionTracking(onLocationUpdate, onError) {
-    if (!navigator.geolocation) {
-        console.error("Geolocalização não suportada pelo navegador.");
-        showNotification("Seu navegador não suporta geolocalização.", "error");
-        return;
-    }
-
-    try {
-        // Inicia o rastreamento contínuo
-        navigationWatchId = navigator.geolocation.watchPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                userCurrentLocation = { latitude, longitude };
-                console.log("Localização atualizada em tempo real:", userCurrentLocation);
-
-                // Executa callback com a nova posição
-                if (typeof onLocationUpdate === "function") {
-                    onLocationUpdate(userCurrentLocation);
-                }
-            },
-            (error) => {
-                const errorMessage = mapGeolocationError(error);
-                console.error("Erro ao rastrear posição:", errorMessage);
-
-                // Executa callback de erro, se fornecido
-                if (typeof onError === "function") {
-                    onError(errorMessage);
-                }
-            },
-            { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-        );
-
-        console.log("Rastreamento contínuo iniciado.");
-    } catch (error) {
-        console.error("Erro ao iniciar rastreamento de localização:", error);
-        showNotification("Erro ao iniciar rastreamento. Tente novamente.", "error");
-    }
-}
-
-// Função para parar o rastreamento contínuo
-function stopPositionTracking() {
-    if (navigationWatchId !== null) {
-        navigator.geolocation.clearWatch(navigationWatchId);
-        navigationWatchId = null;
-        console.log("Rastreamento contínuo interrompido.");
-    }
-}
-
-
 
 // Ajusta o mapa para a localização atual do usuário
 function adjustMapWithLocationUser(lat, lon) {
@@ -518,8 +437,7 @@ function adjustMapWithLocationUser(lat, lon) {
     markers.push(marker);
 }
 
-
-
+// Ajusta o mapa para localização selecionada pelo usuário
 function adjustMapWithLocation(lat, lon, name = '', description = '', zoom = 15, offsetYPercent = 10) {
     try {
         // Remove marcadores antigos antes de adicionar um novo
@@ -562,7 +480,21 @@ function adjustMapWithLocation(lat, lon, name = '', description = '', zoom = 15,
     }
 }
 
-// Etapa 1: Configuração Inicial
+// Inicia o fluxo de criação da rota
+async function startRouteCreation() {
+    try {
+        validateDestination(); // Verifica se o destino foi selecionado
+        const userLocation = await getCurrentLocation(); // Obtém a localização do usuário
+        const routeData = await createRoute(userLocation); // Cria a rota com base nos dados
+
+        currentRouteData = routeData; // Armazena os dados da rota para navegação
+        startRoutePreview(); // Inicia o modo de pré-visualização
+    } catch (error) {
+        handleError("Erro ao iniciar a criação da rota.", error);
+    }
+}
+
+// Validação do destino
 function validateDestination() {
     if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
         handleError("Destino inválido. Por favor, selecione um destino válido.");
@@ -572,9 +504,123 @@ function validateDestination() {
 }
 
 
-// Função para iniciar a criação de rota até o destino selecionado
+// Obtém a localização atual do usuário
+async function getCurrentLocation() {
+    try {
+        const position = await requestLocationPermission();
+        if (!position) {
+            showNotification("Localização do usuário não está disponível.", "error");
+            return null;
+        }
 
-// Cria a rota no mapa
+        const { latitude, longitude } = position;
+        userCurrentLocation = { latitude, longitude };
+        console.log("Localização atual obtida:", userCurrentLocation);
+
+        // Adiciona marcador no mapa para indicar a posição inicial
+        const marker = L.marker([latitude, longitude]).addTo(map)
+            .bindPopup(translations[selectedLanguage]?.youAreHere || "Você está aqui!")
+            .openPopup();
+        markers.push(marker);
+
+        // Inicia o rastreamento contínuo da localização
+        startPositionTracking(
+            (updatedLocation) => {
+                console.log("Atualizando posição em tempo real:", updatedLocation);
+                updateUserMarker(updatedLocation.latitude, updatedLocation.longitude);
+            },
+            (error) => {
+                console.error("Erro no rastreamento contínuo:", error);
+                showNotification("Erro ao rastrear localização em tempo real.", "error");
+            }
+        );
+
+        return userCurrentLocation;
+    } catch (error) {
+        console.error("Erro ao obter localização atual:", error);
+        showNotification("Erro ao obter localização. Tente novamente.", "error");
+        return null;
+    }
+}
+
+// Solicita permissão para acessar a localização do usuário
+// Solicita permissão para acessar a localização
+async function requestLocationPermission() {
+    if (!navigator.geolocation) {
+        showNotification("Seu navegador não suporta geolocalização.", "error");
+        return null;
+    }
+
+    try {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    resolve({ latitude, longitude });
+                },
+                (error) => {
+                    const errorMessage = mapGeolocationError(error);
+                    console.error(errorMessage);
+                    showNotification(errorMessage, "error");
+                    reject(new Error(errorMessage));
+                },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+            );
+        });
+    } catch (error) {
+        console.error("Erro ao solicitar permissão de localização:", error.message);
+        showNotification("Erro inesperado ao obter localização. Tente novamente.", "error");
+        return null;
+    }
+}
+
+// Inicia o rastreamento da posição do usuário
+function startPositionTracking(onLocationUpdate, onError) {
+    if (!navigator.geolocation) {
+        showNotification("Seu navegador não suporta geolocalização.", "error");
+        return;
+    }
+
+    try {
+        if (navigationWatchId !== null) {
+            console.warn("Rastreamento contínuo já ativo.");
+            return;
+        }
+
+        navigationWatchId = navigator.geolocation.watchPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                if (typeof onLocationUpdate === "function") {
+                    onLocationUpdate({ latitude, longitude });
+                }
+            },
+            (error) => {
+                const errorMessage = mapGeolocationError(error);
+                console.error("Erro no rastreamento contínuo:", errorMessage);
+                if (typeof onError === "function") {
+                    onError(errorMessage);
+                }
+            },
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+        );
+
+        console.log("Rastreamento contínuo iniciado.");
+    } catch (error) {
+        console.error("Erro ao iniciar rastreamento de localização:", error.message);
+        showNotification("Erro ao iniciar rastreamento de localização. Tente novamente.", "error");
+    }
+}
+
+// Função para parar o rastreamento contínuo
+function stopPositionTracking() {
+    if (navigationWatchId !== null) {
+        navigator.geolocation.clearWatch(navigationWatchId);
+        navigationWatchId = null;
+        console.log("Rastreamento contínuo interrompido.");
+    }
+}
+
+// Função para iniciar a criação de rota até o destino selecionado
 async function createRoute(userLocation) {
     try {
         prepareMapForNewRoute();
@@ -600,7 +646,6 @@ async function createRoute(userLocation) {
     }
 }
 
-
 // Limpa o mapa antes de traçar uma nova rota
 function prepareMapForNewRoute() {
     clearCurrentRoute();
@@ -608,166 +653,58 @@ function prepareMapForNewRoute() {
     console.log("Mapa preparado para nova rota.");
 }
 
-
-
-const apiKey = '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3'; // Substitua pelo seu API Key do OpenRouteService
-
-// Cria a rota para o destino usando a localização atual do usuário
-async function createRouteToDestination(lat, lon) {
-    if (!userCurrentLocation) {
-        showNotification("Erro: Localização atual não disponível.", "error");
-        return null;
+// Função para limpar a rota atual
+function clearCurrentRoute() {
+    if (window.currentRoute) {
+        map.removeLayer(window.currentRoute);
+        window.currentRoute = null;
     }
+}
 
-    const { latitude: startLat, longitude: startLon } = userCurrentLocation;
+// Limpa todos os marcadores e camadas não essenciais do mapa
+function clearAllMarkers() {
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+}
+
+// Traça a rota usando a API OpenRouteService
+async function plotRouteOnMap(startLat, startLon, destLat, destLon) {
+    const profile = "foot-walking";
+    const url = `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`;
 
     try {
-        prepareMapForNewRoute(); // Limpa o mapa antes de traçar uma nova rota
-        showNotification("Calculando rota para pedestre...", "info", 3000);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Erro ao consultar API.");
 
-        const routeData = await plotRouteOnMap(startLat, startLon, lat, lon);
-        if (!routeData) {
-            showNotification("Rota não encontrada. Verifique o destino selecionado.", "error");
-            return null;
-        }
+        const routeData = await response.json();
+        const coordinates = routeData.features[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
 
-        displayRouteSummary(routeData); // Exibe distância e ETA
-        const instructions = await fetchRouteInstructions(startLat, startLon, lat, lon);
+        if (window.currentRoute) map.removeLayer(window.currentRoute);
 
-        if (!instructions || instructions.length === 0) {
-            showNotification("Erro: Nenhuma instrução disponível para esta rota.", "error");
-            return null;
-        }
+        window.currentRoute = L.polyline(coordinates, { color: "blue", weight: 5, dashArray: "10,5" }).addTo(map);
 
-        showRoutePreview(routeData); // Pré-visualização
-        return { routeData, instructions };
+        // Adiciona marcadores de início e fim
+        L.marker([startLat, startLon], { title: "Início" }).addTo(map).bindPopup("Início da rota").openPopup();
+        L.marker([destLat, destLon], { title: "Destino" }).addTo(map).bindPopup("Destino final").openPopup();
+
+        map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
+        return routeData;
     } catch (error) {
-        console.error("Erro ao criar rota:", error);
-        showNotification("Erro ao criar a rota. Tente novamente.", "error");
-        return null;
+        console.error("Erro ao traçar a rota no mapa:", error);
+        showNotification("Erro ao traçar a rota. Tente novamente.", "error");
+        throw error;
     }
 }
 
-
-
-
-
-
-function showRoutePreview(routeData) {
-    const summary = routeData?.features[0]?.properties?.summary;
-    if (!summary) {
-        showNotification("Não foi possível gerar o resumo da rota.", "error");
-        return;
-    }
-
-    const eta = Math.round(summary.duration / 60);
-    const distance = (summary.distance / 1000).toFixed(2);
-    const previewHTML = `
-        <h3>Resumo da Rota</h3>
-        <p>Distância: ${distance} km</p>
-        <p>Tempo Estimado: ${eta} minutos</p>
-    `;
-    const previewContainer = document.getElementById("route-preview");
-    previewContainer.innerHTML = previewHTML;
-    previewContainer.classList.remove("hidden");
-    previewContainer.classList.add("show");
-}
-
-function hideRoutePreview() {
-    const previewContainer = document.getElementById("route-preview");
-    if (!previewContainer) {
-        console.error("O contêiner de resumo da rota (#route-preview) não foi encontrado.");
-        return;
-    }
-
-    // Limpa o conteúdo do contêiner e aplica classes para escondê-lo
-    previewContainer.innerHTML = "";
-    previewContainer.classList.add("hidden");
-    previewContainer.classList.remove("show");
-
-    console.log("Resumo da rota escondido com sucesso.");
-}
-
-
-function toggleNavigationPause() {
-    const pauseButton = document.getElementById("pause-navigation-button");
-    if (!pauseButton) return;
-
-    if (isNavigationPaused) {
-        isNavigationPaused = false;
-        navigator.geolocation.watchPosition(...lastWatchPositionArgs);
-        showNotification("Navegação retomada.", "info");
-        pauseButton.textContent = "Pausar Navegação";
-    } else {
-        isNavigationPaused = true;
-        navigator.geolocation.clearWatch(window.navigationWatchId);
-        showNotification("Navegação pausada.", "warning");
-        pauseButton.textContent = "Retomar Navegação";
-    }
-}
-
-
-function notifyDeviation(userLat, userLon, routeCoordinates) {
-    console.log("Verificando desvios na rota...");
-
-    try {
-        if (!routeCoordinates || routeCoordinates.length === 0) {
-            console.warn("Coordenadas da rota não disponíveis.");
-            showNotification("Erro: Rota não disponível. Recalculando...", "error");
-            recalculateRoute(selectedDestination.lat, selectedDestination.lon);
-            return;
-        }
-
-        // Calcula a distância mais curta do usuário até a rota
-        const distanceToRoute = routeCoordinates.reduce((minDist, coord) => {
-            const dist = calculateDistance(userLat, userLon, coord[0], coord[1]);
-            return Math.min(minDist, dist);
-        }, Infinity);
-
-        console.log(`Distância do usuário à rota: ${distanceToRoute} metros.`);
-
-        // Se o desvio for significativo (> 100 metros), recalcula a rota
-        if (distanceToRoute > 100) {
-            console.warn("Desvio detectado. Recalculando a rota...");
-            showNotification(
-                translations[getSelectedLanguage()]?.offRoute || "Você está fora da rota. Recalculando...",
-                "warning"
-            );
-            giveVoiceFeedback(translations[getSelectedLanguage()]?.offRoute || "Você está fora da rota.");
-            recalculateRoute(selectedDestination.lat, selectedDestination.lon);
-        }
-    } catch (error) {
-        console.error("Erro ao verificar desvios:", error);
-        showNotification("Erro ao detectar desvios na rota.", "error");
-    }
-}
-
-
-
-
-function findClosestRoutePoint(lat, lon, routeCoordinates) {
-    return routeCoordinates.reduce((closest, coord) => {
-        const dist = calculateDistance(lat, lon, coord[0], coord[1]);
-        return dist < closest.distance ? { point: coord, distance: dist } : closest;
-    }, { point: null, distance: Infinity }).point;
-}
-
-
-
-
-
-// Inicia o fluxo de criação da rota
-async function startRouteCreation() {
-    try {
-        validateDestination(); // Verifica se o destino foi selecionado
-        const userLocation = await getCurrentLocation(); // Obtém a localização do usuário
-        const routeData = await createRoute(userLocation); // Cria a rota com base nos dados
-
-        currentRouteData = routeData; // Armazena os dados da rota para navegação
-        startRoutePreview(); // Inicia o modo de pré-visualização
-    } catch (error) {
-        handleError("Erro ao iniciar a criação da rota.", error);
-    }
+function finalizeRouteMarkers(userLat, userLon, destLat, destLon) {
+    L.marker([userLat, userLon]).addTo(map).bindPopup("🚶 Você está aqui!").openPopup();
+    L.marker([destLat, destLon])
+        .addTo(map)
+        .bindPopup(`📍 Destino: ${selectedDestination.name || "Destino sem nome"}`)
+        .openPopup();
 }
 
 
@@ -782,85 +719,26 @@ function startRoutePreview() {
     displayStartNavigationButton(); // Adiciona botão de iniciar navegação
 }
 
+// Exibe o resumo da rota no painel lateral
+function displayRouteSummary(routeData) {
+    const summary = routeData.features[0].properties.summary;
+    const etaMinutes = Math.round(summary.duration / 60);
+    const distanceKm = (summary.distance / 1000).toFixed(2);
 
-async function recalculateRoute(destLat, destLon, profile = "foot-walking") {
-    console.log("Iniciando recalculo da rota...");
+    const summaryHTML = `
+        <div class="route-summary">
+            <h3>Resumo da Rota</h3>
+            <p>🛣️ Distância: <strong>${distanceKm} km</strong></p>
+            <p>⏱️ Tempo estimado: <strong>${etaMinutes} minutos</strong></p>
+        </div>
+    `;
 
-    try {
-        if (!userCurrentLocation || !userCurrentLocation.latitude || !userCurrentLocation.longitude) {
-            console.error("Localização do usuário não disponível para recalculo.");
-            showNotification(
-                translations[getSelectedLanguage()]?.locationNotAvailable || "Erro ao obter localização atual.",
-                "error"
-            );
-            return;
-        }
-
-        const { latitude: userLat, longitude: userLon } = userCurrentLocation;
-
-        // Notifica o usuário sobre o recalculo
-        showNotification(
-            translations[getSelectedLanguage()]?.recalculatingRoute || "Recalculando a rota. Aguarde...",
-            "info"
-        );
-        giveVoiceFeedback(
-            translations[getSelectedLanguage()]?.recalculatingRoute || "Recalculando a rota."
-        );
-
-        // Chama a API para obter a nova rota
-        const newInstructions = await fetchRouteInstructions(userLat, userLon, destLat, destLon, profile);
-        if (!newInstructions || newInstructions.length === 0) {
-            console.error("Falha ao obter instruções para a nova rota.");
-            showNotification(
-                translations[getSelectedLanguage()]?.routeError || "Erro ao recalcular a rota.",
-                "error"
-            );
-            return;
-        }
-
-        // Atualiza o trajeto no mapa
-        drawPath(userLat, userLon, newInstructions);
-
-        // Atualiza as instruções passo a passo
-        displayStepByStepInstructions(newInstructions[0], true);
-
-        // Atualiza o estado global das instruções
-        instructions = newInstructions;
-
-        showNotification(
-            translations[getSelectedLanguage()]?.routeRecalculated || "Rota recalculada com sucesso.",
-            "success"
-        );
-        console.log("Recalculo concluído. Instruções atualizadas:", newInstructions);
-    } catch (error) {
-        console.error("Erro ao recalcular a rota:", error);
-        showNotification(
-            translations[getSelectedLanguage()]?.recalculationError || "Erro inesperado ao recalcular a rota.",
-            "error"
-        );
+    const summaryContainer = document.getElementById("route-summary");
+    if (summaryContainer) {
+        summaryContainer.innerHTML = summaryHTML;
+        summaryContainer.style.display = "block";
     }
 }
-
-
-// Função auxiliar para atualizar o caminho recalculado no mapa
-function updateRecalculatedPath(coordinates) {
-    try {
-        // Remove rota anterior, se existir
-        if (window.navigationPath) {
-            map.removeLayer(window.navigationPath);
-        }
-
-        // Traça a nova rota recalculada
-        window.navigationPath = L.polyline(coordinates, { color: "blue", weight: 5 }).addTo(map);
-        map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
-
-        console.log("Novo caminho recalculado desenhado no mapa.");
-    } catch (error) {
-        console.error("Erro ao atualizar o caminho recalculado:", error);
-        showNotification("Erro ao atualizar o mapa com a nova rota.", "error");
-    }
-}
-
 
 // Exibe botões de navegação e tutorial
 function displayStartNavigationButton() {
@@ -899,122 +777,81 @@ function displayStartNavigationButton() {
     });
 }
 
-// Oculta todos os controles no mapa
-function hideAllControls() {
-    const controlButtons = document.querySelectorAll(".control-btn");
-    controlButtons.forEach((button) => {
-        button.style.display = "none";
-    });
-}
+// Inicia a navegação com base na rota existente
+async function startNavigation() {
+    try {
+        if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
+            throw new Error("Destino inválido. Por favor, selecione um destino.");
+        }
 
-function finalizeRouteMarkers(userLat, userLon, destLat, destLon) {
-    L.marker([userLat, userLon]).addTo(map).bindPopup("🚶 Você está aqui!").openPopup();
-    L.marker([destLat, destLon])
-        .addTo(map)
-        .bindPopup(`📍 Destino: ${selectedDestination.name || "Destino sem nome"}`)
-        .openPopup();
-}
+        const userLocation = await requestLocationPermission();
+        if (!userLocation) return;
 
-// Inicia a navegação ativa
-function startInteractiveNavigation() {
-    isNavigationActive = true; // Ativa o modo de navegação
-    if (!validateNavigationPrerequisites()) return;
+        const instructions = await fetchRouteInstructions(
+            userLocation.latitude,
+            userLocation.longitude,
+            selectedDestination.lat,
+            selectedDestination.lon
+        );
 
-    const { latitude: startLat, longitude: startLon } = userCurrentLocation;
-    const { lat: destLat, lon: destLon } = selectedDestination;
-    hideRouteSummary();
+        if (!instructions.length) {
+            throw new Error("Nenhuma instrução disponível para a rota.");
+        }
 
-    trackUserMovement(destLat, destLon, instructions);
-}
+        displayStepByStepInstructions(instructions[0], true);
+        startPositionTracking(
+            (updatedLocation) => {
+                trackUserMovement(selectedDestination.lat, selectedDestination.lon, instructions);
+                drawPath(updatedLocation.latitude, updatedLocation.longitude, instructions);
+            },
+            (error) => {
+                console.error("Erro no rastreamento contínuo:", error);
+                showNotification("Erro ao rastrear localização em tempo real.", "error");
+            }
+        );
 
-
-
-function validateNavigationPrerequisites() {
-    if (!selectedDestination?.lat || !selectedDestination?.lon) {
-        return handleError("Destino inválido. Verifique os dados e tente novamente.");
-    }
-    if (!window.currentRoute) {
-        return handleError("Nenhuma rota disponível. Por favor, gere a rota primeiro.");
-    }
-    if (!userCurrentLocation) {
-        return handleError("Localização do usuário não disponível. Tente novamente.");
-    }
-    return true;
-}
-
-
-
-
-function togglePreviewMode() {
-    isPreviewMode = !isPreviewMode;
-
-    if (isPreviewMode) {
-    } else {
-        showNotification("Modo de navegação ativado. Acompanhamento em tempo real iniciado.", "success");
-        startInteractiveNavigation();
+        showNotification("Navegação iniciada com sucesso!", "success");
+    } catch (error) {
+        console.error("Erro ao iniciar a navegação:", error.message);
+        showNotification("Erro ao iniciar a navegação. Tente novamente.", "error");
     }
 }
 
-const navigationTexts = {
-    en: {
-        straight: "Continue straight for {distance} meters.",
-        turnLeft: "Turn left in {distance} meters.",
-        turnRight: "Turn right in {distance} meters.",
-        slightLeft: "Take a slight left in {distance} meters.",
-        slightRight: "Take a slight right in {distance} meters.",
-        uTurn: "Make a U-turn in {distance} meters.",
-        prepareLeft: "Prepare to turn left.",
-        prepareRight: "Prepare to turn right.",
-        offRoute: "You are off route. Recalculating...",
-        arrived: "You have arrived at your destination.",
-        closeToTurn: "You are close to your turn. Turn {direction} now.",
-        unknown: "Unknown instruction. Please follow the map.",
-    },
-    pt: {
-        straight: "Siga em frente por {distance} metros.",
-        turnLeft: "Vire à esquerda em {distance} metros.",
-        turnRight: "Vire à direita em {distance} metros.",
-        slightLeft: "Vire levemente à esquerda em {distance} metros.",
-        slightRight: "Vire levemente à direita em {distance} metros.",
-        uTurn: "Faça um retorno em {distance} metros.",
-        prepareLeft: "Prepare-se para virar à esquerda.",
-        prepareRight: "Prepare-se para virar à direita.",
-        offRoute: "Você saiu da rota. Recalculando...",
-        arrived: "Você chegou ao seu destino.",
-        closeToTurn: "Você está próximo de virar. Vire {direction} agora.",
-        unknown: "Instrução desconhecida. Siga o mapa.",
-    },
-    // Outros idiomas podem ser adicionados aqui
-};
 
-// Função para gerar mensagens com base no texto e parâmetros
-function getNavigationText(key, params = {}, lang = "en") {
-    let message = navigationTexts[lang][key] || navigationTexts[lang].unknown;
-    Object.keys(params).forEach(param => {
-        message = message.replace(`{${param}}`, params[param]);
-    });
-    return message;
-}
+// Busca as instruções detalhadas da rota
+async function fetchRouteInstructions(startLat, startLon, destLat, destLon) {
+    try {
+        const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=true`;
+        const response = await fetch(url);
 
-function generateRouteInstructions(routeData) {
-    if (!routeData?.features?.length) {
-        showNotification("Erro ao gerar instruções da rota.", "error");
+        if (!response.ok) {
+            throw new Error("Erro ao consultar a API de instruções de rota.");
+        }
+
+        const routeData = await response.json();
+        if (!routeData.features || routeData.features.length === 0) {
+            throw new Error("Dados de rota inválidos retornados.");
+        }
+
+        const instructions = routeData.features[0].properties.segments[0].steps.map((step, index) => ({
+            id: index + 1,
+            text: step.instruction,
+            distance: Math.round(step.distance),
+            lat: step.way_points ? routeData.features[0].geometry.coordinates[step.way_points[0]][1] : null,
+            lon: step.way_points ? routeData.features[0].geometry.coordinates[step.way_points[0]][0] : null,
+            directionIcon: getDirectionIcon(step.instruction),
+        }));
+
+        return instructions;
+    } catch (error) {
+        console.error("Erro ao buscar instruções de rota:", error.message);
+        showNotification("Erro ao carregar instruções de rota. Tente novamente.", "error");
         return [];
     }
-
-    const steps = routeData.features[0].properties.segments[0]?.steps || [];
-    return steps.map((step, index) => {
-        const distance = Math.round(step.distance);
-        const direction = step.instruction;
-        return {
-            index,
-            text: `${getNavigationText("continue")} ${direction.toLowerCase()} ${getNavigationText("forDistance").replace("{distance}", distance)}`,
-            distance,
-        };
-    });
 }
 
-// Atualiza a exibição das instruções passo a passo com design visual aprimorado
+
+// Exibe instruções passo a passo no modal
 function displayStepByStepInstructions(instruction, isFirstStep = false) {
     console.log("Exibindo instruções passo a passo...");
 
@@ -1072,160 +909,276 @@ function displayStepByStepInstructions(instruction, isFirstStep = false) {
         );
 
         console.log("Instrução exibida com sucesso:", instruction.text);
-
-        // Feedback adicional
-        giveVoiceFeedback(instruction.text);
-        showNotification(`🧭 ${instruction.text}`, "info");
     } catch (error) {
-        console.error("Erro ao exibir instruções passo a passo:", error);
+        console.error("Erro ao exibir instruções passo a passo:", error.message);
         showNotification("Erro ao exibir instruções. Tente novamente.", "error");
     }
 }
 
 
-
-
-
-// Desenha o caminho no mapa com elementos visuais aprimorados
-function drawPath(userLat, userLon, instructions) {
-    if (!instructions || instructions.length === 0) {
-        console.warn("Nenhum caminho a desenhar.");
-        return;
+// Cria a rota para o destino usando a localização atual do usuário
+async function createRouteToDestination(lat, lon) {
+    if (!userCurrentLocation) {
+        showNotification("Erro: Localização atual não disponível.", "error");
+        return null;
     }
 
-    const latLngs = instructions.map(inst => [inst.lat, inst.lon]);
-    latLngs.unshift([userLat, userLon]);
+    const { latitude: startLat, longitude: startLon } = userCurrentLocation;
 
-    if (window.navigationPath) {
-        map.removeLayer(window.navigationPath);
+    try {
+        prepareMapForNewRoute(); // Limpa o mapa antes de traçar uma nova rota
+        showNotification("Calculando rota para pedestre...", "info", 3000);
+
+        const routeData = await plotRouteOnMap(startLat, startLon, lat, lon);
+        if (!routeData) {
+            showNotification("Rota não encontrada. Verifique o destino selecionado.", "error");
+            return null;
+        }
+
+        displayRouteSummary(routeData); // Exibe distância e ETA
+        const instructions = await fetchRouteInstructions(startLat, startLon, lat, lon);
+
+        if (!instructions || instructions.length === 0) {
+            showNotification("Erro: Nenhuma instrução disponível para esta rota.", "error");
+            return null;
+        }
+
+        showRoutePreview(routeData); // Pré-visualização
+        return { routeData, instructions };
+    } catch (error) {
+        console.error("Erro ao criar rota:", error);
+        showNotification("Erro ao criar a rota. Tente novamente.", "error");
+        return null;
     }
-
-    window.navigationPath = L.polyline(latLngs, { color: 'blue', weight: 5, dashArray: '10,5' }).addTo(map);
-
-    // Adiciona marcadores interativos no caminho
-    instructions.forEach(inst => {
-        const marker = L.marker([inst.lat, inst.lon], {
-            icon: L.icon({
-                iconUrl: 'images/direction-icon.png', // Ícone personalizado para direções
-                iconSize: [25, 25],
-                iconAnchor: [12, 12],
-            }),
-        }).bindPopup(`
-            <div class="popup-instruction">
-                <p>${inst.text}</p>
-                <p>${inst.distance} ${translations[selectedLanguage]?.meters || "metros"} restantes</p>
-            </div>
-        `);
-        marker.addTo(map);
-    });
-
-    map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
-    console.log("Caminho desenhado no mapa com marcadores detalhados.");
 }
 
-// Atualiza a barra de progresso visual com estilo aprimorado
-function updateNavigationProgress(userLat, userLon, destLat, destLon) {
-    const progressBar = document.getElementById("progress-bar");
-    const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
-
-    if (!progressBar) {
-        console.error("Barra de progresso não encontrada.");
+function showRoutePreview(routeData) {
+    const previewContainer = document.getElementById("route-preview");
+    if (!previewContainer) {
+        console.error("Elemento #route-preview não encontrado.");
         return;
     }
 
-    const progress = Math.min(100, Math.max(0, 100 - (distanceToDestination / 1000) * 100));
-    progressBar.style.width = `${progress}%`;
-    progressBar.textContent = `${distanceToDestination.toFixed(0)} metros restantes`;
+    const summary = routeData?.features[0]?.properties?.summary;
+    if (!summary) {
+        console.error("Resumo da rota não encontrado.");
+        return;
+    }
 
-    if (progress > 75) {
-        progressBar.style.backgroundColor = "green";
-    } else if (progress > 50) {
-        progressBar.style.backgroundColor = "orange";
+    const eta = Math.round(summary.duration / 60);
+    const distance = (summary.distance / 1000).toFixed(2);
+
+    const previewHTML = `
+        <h3>Resumo da Rota</h3>
+        <p>Distância: ${distance} km</p>
+        <p>Tempo Estimado: ${eta} minutos</p>
+    `;
+
+    previewContainer.innerHTML = previewHTML;
+    previewContainer.classList.remove("hidden");
+}
+
+function hideRoutePreview() {
+    const previewContainer = document.getElementById("route-preview");
+    if (!previewContainer) {
+        console.error("Elemento #route-preview não encontrado.");
+        return;
+    }
+
+    previewContainer.classList.add("hidden");
+    previewContainer.innerHTML = "";
+    console.log("Pré-visualização da rota escondida com sucesso.");
+}
+
+function toggleNavigationPause() {
+    const pauseButton = document.getElementById("pause-navigation-button");
+    if (!pauseButton) return;
+
+    if (isNavigationPaused) {
+        isNavigationPaused = false;
+        navigator.geolocation.watchPosition(...lastWatchPositionArgs);
+        showNotification("Navegação retomada.", "info");
+        pauseButton.textContent = "Pausar Navegação";
     } else {
-        progressBar.style.backgroundColor = "red";
+        isNavigationPaused = true;
+        navigator.geolocation.clearWatch(window.navigationWatchId);
+        showNotification("Navegação pausada.", "warning");
+        pauseButton.textContent = "Retomar Navegação";
     }
+}
 
-    if (distanceToDestination < 50) {
-        finalizeRouteOnArrival(userLat, userLon, destLat, destLon);
+// Notifica quando o usuário sai da rota
+function notifyDeviation(userLat, userLon, routeCoordinates) {
+    console.log("Verificando desvios na rota...");
+
+    try {
+        if (!routeCoordinates || routeCoordinates.length === 0) {
+            console.warn("Coordenadas da rota não disponíveis.");
+            showNotification("Erro: Rota não disponível. Recalculando...", "error");
+            recalculateRoute(selectedDestination.lat, selectedDestination.lon);
+            return;
+        }
+
+        // Calcula a distância mais curta do usuário até a rota
+        const distanceToRoute = routeCoordinates.reduce((minDist, coord) => {
+            const dist = calculateDistance(userLat, userLon, coord[0], coord[1]);
+            return Math.min(minDist, dist);
+        }, Infinity);
+
+        console.log(`Distância do usuário à rota: ${distanceToRoute} metros.`);
+
+        // Se o desvio for significativo (> 100 metros), recalcula a rota
+        if (distanceToRoute > 100) {
+            console.warn("Desvio detectado. Recalculando a rota...");
+            showNotification("Você está fora da rota. Recalculando...", "warning");
+            giveVoiceFeedback("Você está fora da rota. Recalculando...");
+            recalculateRoute(selectedDestination.lat, selectedDestination.lon);
+        }
+    } catch (error) {
+        console.error("Erro ao verificar desvios:", error.message);
+        showNotification("Erro ao detectar desvios na rota.", "error");
+    }
+}
+
+// Recalcula a rota em caso de desvio
+async function recalculateRoute(destLat, destLon, profile = "foot-walking") {
+    console.log("Iniciando recalculo da rota...");
+
+    try {
+        if (!userCurrentLocation || !userCurrentLocation.latitude || !userCurrentLocation.longitude) {
+            console.error("Localização do usuário não disponível para recalculo.");
+            showNotification("Erro ao obter localização atual.", "error");
+            return;
+        }
+
+        const { latitude: userLat, longitude: userLon } = userCurrentLocation;
+
+        // Notifica o usuário sobre o recalculo
+        showNotification("Recalculando a rota. Aguarde...", "info");
+        giveVoiceFeedback("Recalculando a rota.");
+
+        // Chama a API para obter a nova rota
+        const newInstructions = await fetchRouteInstructions(userLat, userLon, destLat, destLon, profile);
+        if (!newInstructions || newInstructions.length === 0) {
+            console.error("Falha ao obter instruções para a nova rota.");
+            showNotification("Erro ao recalcular a rota. Tente novamente.", "error");
+            return;
+        }
+
+        // Atualiza o trajeto no mapa
+        drawPath(userLat, userLon, newInstructions);
+
+        // Atualiza as instruções passo a passo
+        displayStepByStepInstructions(newInstructions[0], true);
+
+        // Atualiza o estado global das instruções
+        instructions = newInstructions;
+
+        showNotification("Rota recalculada com sucesso.", "success");
+        console.log("Recalculo concluído. Instruções atualizadas:", newInstructions);
+    } catch (error) {
+        console.error("Erro ao recalcular a rota:", error.message);
+        showNotification("Erro inesperado ao recalcular a rota.", "error");
     }
 }
 
 
+// Oculta todos os controles no mapa
+function hideAllControls() {
+    const controlButtons = document.querySelectorAll(".control-btn");
+    controlButtons.forEach((button) => {
+        button.style.display = "none";
+    });
+}
+
+
+const navigationTexts = {
+    en: {
+        straight: "Continue straight for {distance} meters.",
+        turnLeft: "Turn left in {distance} meters.",
+        turnRight: "Turn right in {distance} meters.",
+        slightLeft: "Take a slight left in {distance} meters.",
+        slightRight: "Take a slight right in {distance} meters.",
+        uTurn: "Make a U-turn in {distance} meters.",
+        prepareLeft: "Prepare to turn left.",
+        prepareRight: "Prepare to turn right.",
+        offRoute: "You are off route. Recalculating...",
+        arrived: "You have arrived at your destination.",
+        closeToTurn: "You are close to your turn. Turn {direction} now.",
+        unknown: "Unknown instruction. Please follow the map.",
+    },
+    pt: {
+        straight: "Siga em frente por {distance} metros.",
+        turnLeft: "Vire à esquerda em {distance} metros.",
+        turnRight: "Vire à direita em {distance} metros.",
+        slightLeft: "Vire levemente à esquerda em {distance} metros.",
+        slightRight: "Vire levemente à direita em {distance} metros.",
+        uTurn: "Faça um retorno em {distance} metros.",
+        prepareLeft: "Prepare-se para virar à esquerda.",
+        prepareRight: "Prepare-se para virar à direita.",
+        offRoute: "Você saiu da rota. Recalculando...",
+        arrived: "Você chegou ao seu destino.",
+        closeToTurn: "Você está próximo de virar. Vire {direction} agora.",
+        unknown: "Instrução desconhecida. Siga o mapa.",
+    },
+    // Outros idiomas podem ser adicionados aqui
+};
+
+// Função para gerar mensagens com base no texto e parâmetros
+function getNavigationText(key, params = {}, lang = "en") {
+    let message = navigationTexts[lang][key] || navigationTexts[lang].unknown;
+    Object.keys(params).forEach(param => {
+        message = message.replace(`{${param}}`, params[param]);
+    });
+    return message;
+}
+
+
+// Atualiza a barra de progresso da navegação em tempo real
+function updateNavigationProgress(userLat, userLon, destLat, destLon) {
+    try {
+        const progressBar = document.getElementById("progress-bar");
+        if (!progressBar) {
+            throw new Error("Elemento de barra de progresso não encontrado.");
+        }
+
+        const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
+        const progress = Math.max(0, 100 - (distanceToDestination / 1000) * 100);
+
+        progressBar.style.width = `${progress}%`;
+        progressBar.textContent = `${distanceToDestination.toFixed(0)} metros restantes`;
+
+        if (distanceToDestination < 50) {
+            finalizeRouteOnArrival(userLat, userLon, destLat, destLon);
+        }
+
+        console.log(`Progresso atualizado: ${progress}% concluído.`);
+    } catch (error) {
+        console.error("Erro ao atualizar o progresso da navegação:", error.message);
+        showNotification("Erro ao atualizar progresso.", "error");
+    }
+}
 
 // Feedback visual aprimorado ao detectar mudanças de direção
 function notifyDirectionChange(instruction) {
-    console.log("Notificando mudança de direção...");
-
-    try {
-        if (!instruction || typeof instruction.text !== "string") {
-            console.error("Instrução inválida ou ausente.");
-            showNotification(
-                translations[getSelectedLanguage()]?.directionChangeError || "Erro ao processar mudança de direção.",
-                "error"
-            );
-            return;
-        }
-
-        const directionModal = document.getElementById("direction-modal");
-
-        if (!directionModal) {
-            console.error("Modal de direção não encontrado.");
-            return;
-        }
-
-        const icon = getDirectionIcon(instruction.text);
-
-        // Atualiza o conteúdo do modal de direção
-        directionModal.innerHTML = `
-            <div class="direction-modal-content">
-                <span class="direction-icon">${icon}</span>
-                <p class="direction-text">${instruction.text}</p>
-            </div>
-        `;
-
-        directionModal.style.display = "block";
-
-        // Oculta o modal após um tempo definido
-        setTimeout(() => {
-            directionModal.style.display = "none";
-        }, 5000);
-
-        // Fornece feedback de voz
-        giveVoiceFeedback(instruction.text);
-
-        console.log("Mudança de direção exibida:", instruction.text);
-    } catch (error) {
-        console.error("Erro ao notificar mudança de direção:", error);
-        showNotification(
-            translations[getSelectedLanguage()]?.directionChangeError || "Erro ao exibir mudança de direção.",
-            "error"
-        );
-    }
-}
-
-
-// Função auxiliar para haptic feedback (vibração em dispositivos móveis)
-function triggerHapticFeedback(eventType) {
-    if (!navigator.vibrate) {
-        console.warn("Dispositivo não suporta vibração.");
+    const directionModal = document.getElementById("direction-modal");
+    if (!directionModal) {
+        console.error("Elemento #direction-modal não encontrado.");
         return;
     }
 
-    switch (eventType) {
-        case "directionChange":
-            navigator.vibrate([200, 100, 200]); // Vibração padrão para mudança de direção
-            break;
-        case "alert":
-            navigator.vibrate([500, 200, 500]); // Vibração forte para alertas
-            break;
-        case "notification":
-            navigator.vibrate(300); // Vibração curta para notificações
-            break;
-        default:
-            console.warn("Tipo de evento de vibração não reconhecido.");
-    }
+    const directionIcon = getDirectionIcon(instruction.text);
+    const directionText = instruction.text || "Mudança de direção desconhecida.";
 
-    console.log("Feedback tátil ativado para o evento:", eventType);
+    directionModal.querySelector(".direction-icon").textContent = directionIcon;
+    directionModal.querySelector(".direction-text").textContent = directionText;
+
+    directionModal.classList.remove("hidden");
+
+    // Oculta o modal após 5 segundos
+    setTimeout(() => {
+        directionModal.classList.add("hidden");
+    }, 5000);
 }
 
 
@@ -1280,24 +1233,20 @@ function showUserLocationPopup(lat, lon) {
 function initializeInstructionModal() {
     const modal = document.getElementById("instruction-modal");
     if (!modal) {
-        console.error("Modal de instruções não encontrado.");
+        console.error("Elemento #instruction-modal não encontrado.");
         return;
     }
 
-    modal.innerHTML = `
-        <div class="instruction-modal-header">
-            <h2>${translations[selectedLanguage]?.navigationInstructions || "Instruções de Navegação"}</h2>
-            <button id="close-modal" class="close-modal-btn">X</button>
-        </div>
-        <div id="instruction-content" class="instruction-modal-content"></div>
-    `;
+    const closeModalButton = modal.querySelector("#close-modal");
+    if (closeModalButton) {
+        closeModalButton.addEventListener("click", () => {
+            modal.classList.add("hidden");
+        });
+    }
 
-    document.getElementById("close-modal").addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    console.log("Modal de instruções inicializado.");
+    console.log("Modal de instruções inicializado com sucesso.");
 }
+
 
 // Inicialização de estilos personalizados e configuração de eventos
 function applyCustomStyles() {
@@ -1323,13 +1272,9 @@ function applyCustomStyles() {
 applyCustomStyles();
 initializeInstructionModal();
 
-
-
-
-
 // Desenha o caminho no mapa com elementos visuais aprimorados
 function drawPath(userLat, userLon, instructions) {
-    console.log("Desenhando o trajeto no mapa...");
+    console.log("Desenhando trajeto no mapa...");
 
     try {
         if (!instructions || instructions.length === 0) {
@@ -1340,40 +1285,42 @@ function drawPath(userLat, userLon, instructions) {
 
         // Cria uma lista de coordenadas a partir das instruções
         const latLngs = instructions.map(inst => [inst.lat, inst.lon]);
-        latLngs.unshift([userLat, userLon]); // Adiciona a posição atual do usuário no início do trajeto
+        latLngs.unshift([userLat, userLon]); // Adiciona a posição inicial do usuário
 
-        // Remove o caminho anterior, se existir
+        // Remove o trajeto anterior, se existir
         if (window.navigationPath) {
             map.removeLayer(window.navigationPath);
         }
 
-        // Configura o estilo da linha do trajeto
+        // Configura e adiciona o trajeto ao mapa
         window.navigationPath = L.polyline(latLngs, {
-            color: "blue", // Cor do trajeto
-            weight: 5, // Espessura da linha
-            dashArray: "10, 5", // Estilo tracejado
-            lineJoin: "round", // Suaviza as curvas
+            color: "blue",
+            weight: 6,
+            dashArray: "10, 5",
+            lineJoin: "round",
         }).addTo(map);
 
-        // Ajusta o mapa para mostrar o caminho completo
+        // Ajusta o mapa para exibir o caminho completo
         map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
 
         // Adiciona marcadores interativos ao longo do trajeto
         instructions.forEach((inst, index) => {
-            const marker = L.marker([inst.lat, inst.lon], {
-                icon: L.icon({
-                    iconUrl: "images/direction-icon.png", // Ícone personalizado
-                    iconSize: [25, 25],
-                    iconAnchor: [12, 12],
-                }),
-            }).bindPopup(`
-                <div class="popup-instruction">
-                    <h4>Passo ${index + 1}</h4>
-                    <p>${inst.text}</p>
-                    <p>${inst.distance} metros restantes</p>
-                </div>
-            `);
-            marker.addTo(map);
+            if (inst.lat && inst.lon) {
+                const marker = L.marker([inst.lat, inst.lon], {
+                    icon: L.icon({
+                        iconUrl: "images/direction-icon.png",
+                        iconSize: [25, 25],
+                        iconAnchor: [12, 12],
+                    }),
+                }).bindPopup(`
+                    <div class="popup-instruction">
+                        <h4>Passo ${index + 1}</h4>
+                        <p>${inst.text}</p>
+                        <p>${inst.distance} ${translations[selectedLanguage]?.meters || "metros"} restantes</p>
+                    </div>
+                `);
+                marker.addTo(map);
+            }
         });
 
         // Adiciona setas decorativas ao longo do trajeto
@@ -1381,7 +1328,7 @@ function drawPath(userLat, userLon, instructions) {
 
         console.log("Caminho desenhado no mapa com sucesso.");
     } catch (error) {
-        console.error("Erro ao desenhar o trajeto no mapa:", error);
+        console.error("Erro ao desenhar o trajeto no mapa:", error.message);
         showNotification("Erro ao desenhar o trajeto no mapa.", "error");
     }
 }
@@ -1399,7 +1346,7 @@ function addDirectionArrows(latLngs) {
             map.removeLayer(window.routeDecorator);
         }
 
-        // Adiciona setas ao longo da linha do trajeto
+        // Adiciona setas decorativas ao longo do trajeto
         const polyline = L.polyline(latLngs, { color: "blue", weight: 5 }).addTo(map);
         window.routeDecorator = L.polylineDecorator(polyline, {
             patterns: [
@@ -1417,221 +1364,100 @@ function addDirectionArrows(latLngs) {
 
         console.log("Setas decorativas adicionadas ao trajeto.");
     } catch (error) {
-        console.error("Erro ao adicionar setas decorativas:", error);
+        console.error("Erro ao adicionar setas decorativas:", error.message);
+    }
+}
+
+// Atualiza a barra de progresso visual
+function updateNavigationProgress(userLat, userLon, destLat, destLon) {
+    console.log("Atualizando barra de progresso...");
+
+    try {
+        const progressBar = document.getElementById("progress-bar");
+        if (!progressBar) throw new Error("Barra de progresso não encontrada.");
+
+        const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
+        const progress = Math.max(0, Math.min(100, 100 - (distanceToDestination / 1000) * 100));
+
+        progressBar.style.width = `${progress}%`;
+        progressBar.textContent = `${distanceToDestination.toFixed(0)} ${translations[selectedLanguage]?.meters || "metros"} restantes`;
+
+        // Ajusta a cor da barra de progresso com base na proximidade do destino
+        if (distanceToDestination < 50) {
+            finalizeRouteOnArrival(userLat, userLon, destLat, destLon);
+        } else if (progress > 75) {
+            progressBar.style.backgroundColor = "green";
+        } else if (progress > 50) {
+            progressBar.style.backgroundColor = "orange";
+        } else {
+            progressBar.style.backgroundColor = "red";
+        }
+
+        console.log(`Barra de progresso atualizada: ${progress}% completado.`);
+    } catch (error) {
+        console.error("Erro ao atualizar a barra de progresso:", error.message);
+        showNotification("Erro ao atualizar a barra de progresso.", "error");
+    }
+}
+
+// Exibe a barra de navegação
+function showNavigationBar() {
+    try {
+        const navBar = document.getElementById("navigation-bar");
+        if (!navBar) throw new Error("Barra de navegação não encontrada.");
+
+        navBar.classList.remove("hidden");
+        navBar.style.opacity = 1; // Garante visibilidade total
+        console.log("Barra de navegação exibida.");
+        showNotification("Barra de navegação ativada.", "info");
+    } catch (error) {
+        console.error("Erro ao exibir a barra de navegação:", error.message);
+    }
+}
+
+// Oculta a barra de navegação
+function hideNavigationBar() {
+    try {
+        const navBar = document.getElementById("navigation-bar");
+        if (navBar) {
+            navBar.classList.add("hidden");
+            navBar.style.opacity = 0; // Esconde visualmente
+            console.log("Barra de navegação oculta.");
+        }
+    } catch (error) {
+        console.error("Erro ao ocultar a barra de navegação:", error.message);
     }
 }
 
 
-// Função auxiliar para adicionar setas decorativas ao trajeto
-function addDirectionArrows(latLngs) {
+// Notifica o usuário sobre a próxima instrução
+function notifyNextInstruction(instruction) {
+    console.log("Notificando próxima instrução...");
+
     try {
-        if (!L.PolylineDecorator) {
-            console.warn("Biblioteca PolylineDecorator não encontrada. Setas não adicionadas.");
+        if (!instruction || !instruction.text) {
+            console.error("Instrução inválida ou ausente.");
+            showNotification("Erro ao processar a próxima instrução.", "error");
             return;
         }
 
-        // Remove decorações anteriores, se existirem
-        if (window.routeDecorator) {
-            map.removeLayer(window.routeDecorator);
-        }
-
-        // Adiciona setas ao longo da linha do trajeto
-        const polyline = L.polyline(latLngs, { color: "blue", weight: 5 }).addTo(map);
-        window.routeDecorator = L.polylineDecorator(polyline, {
-            patterns: [
-                {
-                    offset: 12,
-                    repeat: 50,
-                    symbol: L.Symbol.arrowHead({
-                        pixelSize: 10,
-                        polygon: true,
-                        pathOptions: { color: "blue" },
-                    }),
-                },
-            ],
-        }).addTo(map);
-
-        console.log("Setas decorativas adicionadas ao trajeto.");
-    } catch (error) {
-        console.error("Erro ao adicionar setas decorativas:", error);
-    }
-}
-
-
-// Atualiza a barra de progresso visual com estilo aprimorado
-function updateNavigationProgress(userLat, userLon, destLat, destLon) {
-    const progressBar = document.getElementById("progress-bar");
-    const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
-
-    if (!progressBar) {
-        console.error("Elemento de barra de progresso não encontrado.");
-        return;
-    }
-
-    const progress = Math.max(0, 100 - (distanceToDestination / 1000) * 100);
-    progressBar.style.width = `${progress}%`;
-    progressBar.textContent = `${distanceToDestination.toFixed(0)} ${translations[selectedLanguage]?.meters || "metros"} restantes`;
-
-    // Adiciona um indicador de chegada
-    if (distanceToDestination < 50) {
-        finalizeRouteOnArrival(userLat, userLon, destLat, destLon);
-    }
-
-    console.log(`Progresso atualizado: ${progress}% concluído.`);
-}
-
-// Feedback visual aprimorado ao detectar mudanças de direção
-function notifyDirectionChange(instruction) {
-    if (!instruction || typeof instruction !== "string") {
-        showNotification(translations[selectedLanguage]?.directionChangeError || "Erro ao processar alteração de direção.", "error");
-        return;
-    }
-
-    const directionModal = document.getElementById("navigation-instructions");
-    if (!directionModal) {
-        console.error("Modal de direção não encontrado.");
-        return;
-    }
-
-    const icon = getDirectionIcon(instruction);
-    directionModal.innerHTML = `
-        <div class="direction-modal-content">
-            <span class="direction-icon">${icon}</span>
-            <p class="direction-text">${instruction}</p>
-        </div>
-    `;
-    directionModal.style.display = "block";
-
-    // Oculta o modal após um tempo
-    setTimeout(() => {
-        directionModal.style.display = "none";
-    }, 5000);
-
-    triggerHapticFeedback("directionChange");
-    giveVoiceFeedback(instruction);
-
-    console.log("Mudança de direção exibida:", instruction);
-}
-
-
-// Estilo aprimorado de feedback visual
-function showUserLocationPopup(lat, lon) {
-    const timestamp = new Date().toLocaleString(selectedLanguage || "pt-BR");
-    const message = translations[selectedLanguage]?.youAreHere || "Você está aqui!";
-    
-    const popupContent = `
-        <div class="user-popup">
-            <strong>${message}</strong>
-            <p>Latitude: ${lat.toFixed(5)}</p>
-            <p>Longitude: ${lon.toFixed(5)}</p>
-            <p>${translations[selectedLanguage]?.timestamp || "Horário"}: ${timestamp}</p>
-        </div>
-    `;
-
-    L.popup()
-        .setLatLng([lat, lon])
-        .setContent(popupContent)
-        .openOn(map);
-
-    console.log("Popup da localização do usuário exibido.");
-}
-
-// Integra o modal de instruções com uma interface moderna
-function initializeInstructionModal() {
-    const modal = document.getElementById("instruction-modal");
-    if (!modal) {
-        console.error("Modal de instruções não encontrado.");
-        return;
-    }
-
-    modal.innerHTML = `
-        <div class="instruction-modal-header">
-            <h2>${translations[selectedLanguage]?.navigationInstructions || "Instruções de Navegação"}</h2>
-            <button id="close-modal" class="close-modal-btn">X</button>
-        </div>
-        <div id="instruction-content" class="instruction-modal-content"></div>
-    `;
-
-    document.getElementById("close-modal").addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    console.log("Modal de instruções inicializado.");
-}
-
-// Inicialização de estilos personalizados e configuração de eventos
-function applyCustomStyles() {
-    const style = document.createElement("style");
-    style.textContent = `
-        .instruction-step { display: flex; align-items: center; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; }
-        .instruction-step.detailed-step { background: #f9f9f9; }
-        .icon-container { margin-right: 10px; }
-        .direction-arrow { font-size: 1.5em; color: #007bff; }
-        .instruction-text { font-size: 1.2em; font-weight: bold; }
-        .instruction-distance { color: #666; font-size: 0.9em; }
-        .user-popup { font-size: 0.9em; }
-        .progress-bar { height: 20px; background: linear-gradient(to right, #4caf50, #8bc34a); border-radius: 10px; }
-        .direction-modal-content { display: flex; align-items: center; padding: 15px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; }
-        .direction-icon { font-size: 2em; margin-right: 15px; color: #007bff; }
-        .direction-text { font-size: 1.5em; font-weight: bold; }
-    `;
-    document.head.appendChild(style);
-    console.log("Estilos personalizados aplicados.");
-}
-
-// Chamada inicial para configurar elementos visuais
-applyCustomStyles();
-initializeInstructionModal();
-
-function highlightCurrentInstruction(instructionIndex) {
-    const instructionElements = document.querySelectorAll(".instruction-step");
-
-    if (!instructionElements || instructionElements.length === 0) {
-        console.warn("Nenhuma instrução encontrada para destacar.");
-        return;
-    }
-
-    instructionElements.forEach((element, index) => {
-        element.classList.toggle("active-instruction", index === instructionIndex);
-    });
-
-    console.log(`Instrução atual destacada: Passo ${instructionIndex + 1}`);
-}
-
-function notifyNextInstruction(instruction) {
-    if (instruction) {
+        // Atualiza o modal de instruções
         displayStepByStepInstructions(instruction);
+
+        // Feedback de voz
         giveVoiceFeedback(`Instrução: ${instruction.text}`);
 
-        // Animação para destacar instruções
+        // Destaque visual na interface
         const instructionContainer = document.getElementById("navigation-instructions");
         if (instructionContainer) {
             instructionContainer.classList.add("highlight");
             setTimeout(() => instructionContainer.classList.remove("highlight"), 1000);
         }
-    }
-}
 
- 
-
-// Exibe o resumo da rota no painel lateral
-function displayRouteSummary(routeData) {
-    const summary = routeData.features[0].properties.summary;
-    const etaMinutes = Math.round(summary.duration / 60);
-    const distanceKm = (summary.distance / 1000).toFixed(2);
-
-    const summaryHTML = `
-        <div class="route-summary">
-            <h3>Resumo da Rota</h3>
-            <p>🛣️ Distância: <strong>${distanceKm} km</strong></p>
-            <p>⏱️ Tempo estimado: <strong>${etaMinutes} minutos</strong></p>
-        </div>
-    `;
-
-    const summaryContainer = document.getElementById("route-summary");
-    if (summaryContainer) {
-        summaryContainer.innerHTML = summaryHTML;
-        summaryContainer.style.display = "block";
+        console.log("Próxima instrução notificada com sucesso:", instruction.text);
+    } catch (error) {
+        console.error("Erro ao notificar próxima instrução:", error.message);
+        showNotification("Erro ao processar instruções. Tente novamente.", "error");
     }
 }
 
@@ -1654,175 +1480,63 @@ function hideRouteSummary() {
     console.log("Resumo da rota ocultado com sucesso.");
 }
 
-
 // Finaliza a navegação ao chegar ao destino
 function finalizeRouteOnArrival(userLat, userLon, destLat, destLon) {
-    showNotification("🎉 Você chegou ao seu destino!", "success");
-    giveVoiceFeedback("Parabéns! Você chegou ao destino.");
-
-    // Adiciona animação visual no destino
-    const destinationMarker = L.marker([destLat, destLon], { title: "Destino" }).addTo(map).bindPopup("Destino final").openPopup();
-    destinationMarker.setIcon(L.icon({ iconUrl: "images/flag.png", iconSize: [40, 40] }));
-
-    setTimeout(() => {
-        clearNavigationState();
-        map.removeLayer(destinationMarker);
-    }, 5000);
-}
-
-
-        
-
-
-// Finaliza a navegação
-function endNavigation() {
-    if (window.navigationWatchId) {
-        navigator.geolocation.clearWatch(window.navigationWatchId);
-        window.navigationWatchId = null;
-    }
-
-    clearCurrentRoute();
-    clearAllMarkers();
-    hideNavigationBar();
-
-    const instructionContainer = document.getElementById("navigation-instructions");
-    if (instructionContainer) {
-        instructionContainer.classList.add("hidden");
-    }
-
-    isNavigationActive = false;
-    showNotification("Navegação concluída. Você chegou ao seu destino.", "success");
-    console.log("Navegação finalizada.");
-}
-
-// Inicia a navegação com base na rota existente
-async function startNavigation() {
-    console.log("Iniciando navegação...");
-
     try {
-        if (!selectedDestination || !selectedDestination.lat || !selectedDestination.lon) {
-            showNotification("Destino inválido. Por favor, selecione um destino.", "error");
-            return;
-        }
+        showNotification("🎉 Você chegou ao seu destino!", "success");
+        giveVoiceFeedback("Parabéns! Você chegou ao destino.");
 
-        // Obtém a localização inicial
-        const userLocation = await getCurrentLocation();
-        if (!userLocation) return;
-
-        const { latitude, longitude } = userLocation;
-
-        // Obtém as instruções da rota
-        const instructions = await fetchRouteInstructions(latitude, longitude, selectedDestination.lat, selectedDestination.lon);
-        if (!instructions || instructions.length === 0) {
-            showNotification("Erro ao carregar instruções. Tente novamente.", "error");
-            return;
-        }
-
-        // Exibe a primeira instrução
-        displayStepByStepInstructions({
-            text: `Para começar, siga estas instruções: ${instructions[0].text}`,
-            distance: instructions[0].distance,
-        }, true);
-
-        // Inicia o rastreamento contínuo
-        startPositionTracking(
-            (updatedLocation) => {
-                trackUserMovement(selectedDestination.lat, selectedDestination.lon, instructions);
-                drawPath(updatedLocation.latitude, updatedLocation.longitude, instructions);
-            },
-            (error) => {
-                console.error("Erro no rastreamento contínuo:", error);
-                showNotification("Erro ao rastrear localização em tempo real.", "error");
-            }
-        );
-
-        showNotification("Navegação iniciada com sucesso!", "success");
-    } catch (error) {
-        console.error("Erro ao iniciar a navegação:", error);
-        showNotification("Erro ao iniciar a navegação. Tente novamente.", "error");
-    }
-}
-
-
-
-
-// Obtém a localização atual do usuário
-async function getCurrentLocation() {
-    try {
-        const position = await requestLocationPermission();
-        if (!position) {
-            showNotification("Localização do usuário não está disponível.", "error");
-            return null;
-        }
-
-        const { latitude, longitude } = position;
-        userCurrentLocation = { latitude, longitude };
-        console.log("Localização atual obtida:", userCurrentLocation);
-
-        // Adiciona marcador no mapa para indicar a posição inicial
-        const marker = L.marker([latitude, longitude]).addTo(map)
-            .bindPopup(translations[selectedLanguage]?.youAreHere || "Você está aqui!")
+        const destinationMarker = L.marker([destLat, destLon], { title: "Destino" })
+            .addTo(map)
+            .bindPopup("Destino final")
             .openPopup();
-        markers.push(marker);
 
-        // Inicia o rastreamento contínuo da localização
-        startPositionTracking(
-            (updatedLocation) => {
-                console.log("Atualizando posição em tempo real:", updatedLocation);
-                updateUserMarker(updatedLocation.latitude, updatedLocation.longitude);
-            },
-            (error) => {
-                console.error("Erro no rastreamento contínuo:", error);
-                showNotification("Erro ao rastrear localização em tempo real.", "error");
-            }
+        destinationMarker.setIcon(
+            L.icon({
+                iconUrl: "images/flag.png",
+                iconSize: [40, 40],
+            })
         );
 
-        return userCurrentLocation;
+        setTimeout(() => {
+            clearNavigationState();
+            map.removeLayer(destinationMarker);
+        }, 5000);
     } catch (error) {
-        console.error("Erro ao obter localização atual:", error);
-        showNotification("Erro ao obter localização. Tente novamente.", "error");
-        return null;
+        console.error("Erro ao finalizar rota no destino:", error.message);
+        showNotification("Erro ao finalizar rota. Tente novamente.", "error");
     }
 }
 
-
-
-
-
-
-// Função para limpar a rota atual
-function clearCurrentRoute() {
-    if (window.currentRoute) {
-        map.removeLayer(window.currentRoute);
-        window.currentRoute = null;
-    }
-}
-
-
-// Limpa todos os marcadores e camadas não essenciais do mapa
-function clearAllMarkers() {
-    map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
-    });
-}
-
-// Inicia uma rota interativa do usuário até o destino selecionado
-// A função:
-// 1. Verifica se há um destino selecionado. Caso contrário, exibe um alerta.
-// 2. Obtém a localização atual do usuário utilizando a função `getCurrentLocation`.
-// 3. Plota a rota no mapa utilizando as coordenadas do usuário e do destino.
-// 4. Adiciona um marcador personalizado na localização atual do usuário.
-// 5. Ajusta o zoom do mapa para que a rota inteira seja exibida.
-// 6. Ativa o rastreamento em tempo real da posição do usuário no mapa com `trackUserMovement`.
-
-// Navegação interativa em tempo real
-function startInteractiveRoute(userLat, userLon, destLat, destLon, instructions, profile = 'foot-walking') {
-    console.log("Iniciando navegação interativa...");
-
+// Finaliza a navegação e limpa os estados globais
+function endNavigation() {
     try {
-        // Valida os parâmetros de entrada
+        if (navigationWatchId !== null) {
+            navigator.geolocation.clearWatch(navigationWatchId);
+            navigationWatchId = null;
+        }
+
+        clearCurrentRoute();
+        clearAllMarkers();
+        hideNavigationBar();
+
+        const instructionContainer = document.getElementById("navigation-instructions");
+        if (instructionContainer) {
+            instructionContainer.classList.add("hidden");
+        }
+
+        isNavigationActive = false;
+        showNotification("Navegação concluída. Você chegou ao seu destino.", "success");
+        console.log("Navegação finalizada.");
+    } catch (error) {
+        console.error("Erro ao finalizar navegação:", error.message);
+        showNotification("Erro ao finalizar a navegação. Tente novamente.", "error");
+    }
+}
+
+// Inicia o fluxo de navegação interativa
+function startInteractiveRoute(userLat, userLon, destLat, destLon, instructions, profile = 'foot-walking') {
+    try {
         if (!validateCoordinates(userLat, userLon, destLat, destLon)) {
             throw new Error("Coordenadas inválidas fornecidas para navegação interativa.");
         }
@@ -1835,34 +1549,21 @@ function startInteractiveRoute(userLat, userLon, destLat, destLon, instructions,
             throw new Error(`Perfil de transporte inválido: ${profile}`);
         }
 
-        // Exibe uma notificação de início
         showNotification("Navegação interativa iniciada.", "info");
 
-        // Exibe as instruções detalhadas na interface
-        displayInteractiveTurnInstructions(instructions);
+        // Exibe as instruções na interface
+        displayStepByStepInstructions(instructions[0], true);
 
-        // Configura o rastreamento do movimento do usuário em tempo real
+        // Configura o rastreamento do usuário em tempo real
         trackUserMovement(destLat, destLon, instructions);
-
-        // Mostra a barra de navegação com o status inicial
-        showNavigationBar("Navegação ativa");
-
-        // Log do evento de início de navegação
-        logEvent("StartInteractiveRoute", {
-            userLat,
-            userLon,
-            destLat,
-            destLon,
-            profile,
-        });
 
         console.log("Navegação interativa iniciada com sucesso.");
     } catch (error) {
-        // Trata e registra qualquer erro ocorrido
-        handleError("Erro ao iniciar navegação interativa.", error);
-        logEvent("ErrorInteractiveRoute", { error: error.message });
+        console.error("Erro ao iniciar navegação interativa:", error.message);
+        showNotification("Erro ao iniciar a navegação. Tente novamente.", "error");
     }
 }
+
 
 function updateInstructionsOnProgress(userLat, userLon, routeSteps) {
     const nextStep = routeSteps[0];
@@ -1887,7 +1588,6 @@ function validateRouteData(routeData) {
     return true;
 }
 
-
 async function handleRecalculation(destLat, destLon) {
     try {
         showNotification("⚠️ Você desviou da rota. Recalculando...", "warning");
@@ -1909,8 +1609,6 @@ async function handleRecalculation(destLat, destLon) {
     }
 }
 
-
-
 function clearNavigationState() {
     console.log("Limpando estado global da navegação...");
 
@@ -1926,47 +1624,7 @@ function clearNavigationState() {
     console.log("Estado da navegação limpo.");
 }
 
-
-// Obtém instruções detalhadas da rota a partir da API OpenRouteService
-async function fetchRouteInstructions(startLat, startLon, destLat, destLon) {
-    try {
-        const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=true`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(translations[selectedLanguage]?.routeError || "Erro na API de instruções de rota.");
-        }
-
-        const routeData = await response.json();
-        const instructions = routeData.features[0].properties.segments[0].steps.map((step, index) => ({
-            id: index + 1,
-            text: step.instruction,
-            distance: Math.round(step.distance),
-            lat: step.way_points ? routeData.features[0].geometry.coordinates[step.way_points[0]][1] : null,
-            lon: step.way_points ? routeData.features[0].geometry.coordinates[step.way_points[0]][0] : null,
-            directionIcon: getDirectionIcon(step.instruction),
-        }));
-
-        return instructions;
-    } catch (error) {
-        console.error("Erro ao buscar instruções de rota:", error);
-        showNotification(translations[selectedLanguage]?.routeError || "Erro ao carregar as instruções da rota.", "error");
-        return [];
-    }
-}
-
-
-
-// Ativa o rastreamento em tempo real da localização do usuário no mapa
-// A função:
-// 1. Verifica se o navegador suporta a API de geolocalização.
-// 2. Usa `navigator.geolocation.watchPosition` para rastrear a posição atual do usuário.
-// 3. Atualiza o marcador do usuário com a nova posição no mapa.
-// 4. Centraliza o mapa na posição do usuário com uma animação suave.
-// 5. Trata erros de geolocalização, como permissões negadas ou timeout.
-
-
-// Monitora a posição do usuário em tempo real e ajusta a navegação
+// Rastreia a posição do usuário em tempo real e ajusta a navegação
 function trackUserMovement(destLat, destLon, instructions) {
     console.log("Monitorando a posição do usuário em tempo real...");
 
@@ -1998,30 +1656,15 @@ function trackUserMovement(destLat, destLon, instructions) {
                 drawPath(userLat, userLon, instructions);
             },
             (error) => {
-                console.error("Erro ao monitorar posição:", error);
+                console.error("Erro ao monitorar posição:", error.message);
                 showNotification("Erro ao monitorar a localização do usuário.", "error");
             }
         );
     } catch (error) {
-        console.error("Erro na função trackUserMovement:", error);
+        console.error("Erro na função trackUserMovement:", error.message);
         showNotification("Erro ao monitorar a posição do usuário. Tente novamente.", "error");
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 async function checkIfUserIsOnRoad(lat, lon) {
@@ -2080,9 +1723,6 @@ function displaySingleInstruction(instruction) {
 }
 
 
-
-
-
 function translateInstruction(text) {
     const translations = {
         en: {
@@ -2102,7 +1742,7 @@ function translateInstruction(text) {
     return translations[selectedLanguage]?.[text] || text;
 }
 
-// Atualiza a navegação em tempo real com barra de progresso detalhada
+// Atualiza as instruções de navegação em tempo real
 function updateRealTimeNavigation(userLat, userLon, instructions, destLat, destLon) {
     console.log("Atualizando navegação em tempo real...");
 
@@ -2148,39 +1788,10 @@ function updateRealTimeNavigation(userLat, userLon, instructions, destLat, destL
 
         console.log(`Navegação atualizada. Distância para a próxima instrução: ${distanceToNext} metros.`);
     } catch (error) {
-        console.error("Erro ao atualizar a navegação em tempo real:", error);
+        console.error("Erro ao atualizar a navegação em tempo real:", error.message);
         showNotification("Erro ao atualizar a navegação. Tente novamente.", "error");
     }
 }
-
-
-
-
-function drawPath(userLat, userLon, instructions) {
-    try {
-        if (!instructions || instructions.length === 0) {
-            console.warn("Nenhum caminho disponível para desenhar.");
-            return;
-        }
-
-        const latLngs = instructions.map(inst => [inst.lat, inst.lon]);
-        latLngs.unshift([userLat, userLon]);
-
-        if (window.navigationPath) {
-            map.removeLayer(window.navigationPath);
-        }
-
-        window.navigationPath = L.polyline(latLngs, { color: "blue", weight: 5 }).addTo(map);
-        map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
-
-        console.log("Caminho desenhado com sucesso no mapa.");
-    } catch (error) {
-        console.error("Erro ao desenhar o caminho no mapa:", error);
-        showNotification("Erro ao desenhar o caminho no mapa.", "error");
-    }
-}
-
-
 
 function getDirectionIcon(instructionText) {
     const directionMap = {
@@ -2217,14 +1828,13 @@ function getDirectionIcon(instructionText) {
     return directionMap[instructionText] || "ℹ️";
 }
 
-
-
-
-
 function updateNavigationProgress(userLat, userLon, destLat, destLon) {
     try {
         const progressBar = document.getElementById("progress-bar");
-        if (!progressBar) throw new Error("Barra de progresso não encontrada.");
+        if (!progressBar) {
+            console.error("Elemento #progress-bar não encontrado.");
+            return;
+        }
 
         const distanceToDestination = calculateDistance(userLat, userLon, destLat, destLon);
         const progress = Math.min(100, Math.max(0, 100 - (distanceToDestination / 1000) * 100));
@@ -2237,10 +1847,8 @@ function updateNavigationProgress(userLat, userLon, destLat, destLon) {
         }
     } catch (error) {
         console.error("Erro ao atualizar o progresso da navegação:", error);
-        showNotification("Erro ao atualizar progresso.", "error");
     }
 }
-
 
 
 async function isUserOnStreet(lat, lon) {
@@ -2267,43 +1875,34 @@ async function isUserOnStreet(lat, lon) {
     }
 }
 
-
-// Fornece feedback de voz ao usuário
+// Fornece feedback de voz para o usuário
 function giveVoiceFeedback(text) {
-    if (!('speechSynthesis' in window)) {
+    if (!("speechSynthesis" in window)) {
         console.warn("Síntese de fala não suportada pelo navegador.");
-        showNotification("Seu navegador não suporta síntese de fala.", "warning");
-        return;
-    }
-
-    if (!text || typeof text !== 'string') {
-        console.error("Texto inválido para síntese de fala:", text);
         return;
     }
 
     try {
         const utterance = new SpeechSynthesisUtterance(text);
 
-        // Configurações da fala
-        utterance.lang = 'pt-BR'; // Configura o idioma para português do Brasil
-        utterance.rate = 1.0;    // Velocidade da fala (1.0 é normal)
-        utterance.pitch = 1.0;   // Tom da fala
-        utterance.volume = 1.0;  // Volume (0.0 a 1.0)
+        // Configurações de síntese
+        utterance.lang = "pt-BR";
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
 
         utterance.onerror = (error) => {
-            console.error("Erro na síntese de fala:", error);
+            console.error("Erro na síntese de fala:", error.message);
             showNotification("Erro ao gerar áudio de navegação.", "error");
         };
 
         window.speechSynthesis.speak(utterance);
         console.log("Feedback de voz gerado com sucesso:", text);
     } catch (error) {
-        console.error("Erro ao processar síntese de fala:", error);
+        console.error("Erro ao processar síntese de fala:", error.message);
         showNotification("Erro ao processar feedback de voz.", "error");
     }
 }
-
-
 
 function calculateETA(routeData) {
     if (!routeData || !routeData.features || routeData.features.length === 0) {
@@ -2332,13 +1931,6 @@ function debouncedUpdate(userLat, userLon, destLat, destLon, debounceTime = 1000
         console.log("Atualização da posição do usuário concluída após debounce.");
     }, debounceTime);
 }
-
-// Oculta a barra de navegação
-function hideNavigationBar() {
-    const navBar = document.getElementById("navigation-bar");
-    if (navBar) navBar.classList.add("hidden");
-}
-
 
 
 // Atualiza as instruções de navegação em tempo real
@@ -2379,91 +1971,48 @@ function updateNavigationInstructions(instructionKey, distance = null) {
 }
 
 
-
-
-// Notifica o usuário sobre uma alteração na direção
-function notifyDirectionChange(instruction) {
-    try {
-        if (!instruction || typeof instruction.text !== "string") {
-            throw new Error("Instrução inválida para notificação de mudança de direção.");
-        }
-
-        const directionModal = document.getElementById("direction-modal");
-        if (!directionModal) {
-            throw new Error("Modal de direção não encontrado.");
-        }
-
-        const directionIcon = getDirectionIcon(instruction.text);
-        directionModal.innerHTML = `
-            <div class="direction-modal-content">
-                <span class="direction-icon">${directionIcon}</span>
-                <p class="direction-text">${instruction.text}</p>
-            </div>
-        `;
-        directionModal.style.display = "block";
-
-        setTimeout(() => {
-            directionModal.style.display = "none";
-        }, 5000);
-
-        giveVoiceFeedback(instruction.text);
-        console.log("Mudança de direção exibida com sucesso:", instruction.text);
-    } catch (error) {
-        console.error("Erro ao notificar mudança de direção:", error);
-        showNotification("Erro ao exibir instruções de mudança de direção.", "error");
-    }
-}
-
-
-
-
-
-
-
-
-
-// Exibe uma notificação na interface do usuário
-function showNotification(message, type = 'info', duration = 1000, persistent = false) {
-    const notificationContainer = document.getElementById('notification-container');
+// Exibe uma notificação visual na interface do usuário
+function showNotification(message, type = "info", duration = 5000, persistent = false) {
+    const notificationContainer = document.getElementById("notification-container");
     if (!notificationContainer) {
-        console.error("Contêiner de notificações (#notification-container) não encontrado.");
+        console.error("Contêiner de notificações não encontrado.");
         return;
     }
 
-    if (!message || typeof message !== 'string') {
-        console.error("Mensagem de notificação inválida:", message);
+    if (!message || typeof message !== "string") {
+        console.error("Mensagem inválida para notificação:", message);
         return;
     }
 
     const iconMap = {
-        info: 'ℹ️',
-        success: '✅',
-        error: '❌',
-        warning: '⚠️'
+        info: "ℹ️",
+        success: "✅",
+        error: "❌",
+        warning: "⚠️",
     };
 
     try {
-        // Previne notificações duplicadas
+        // Evita notificações duplicadas
         if (notificationContainer.lastElementChild?.textContent === message) {
-            console.warn("Notificação duplicada detectada. Ignorada:", message);
+            console.warn("Notificação duplicada ignorada:", message);
             return;
         }
 
-        const notification = document.createElement('div');
+        const notification = document.createElement("div");
         const uniqueId = `notification-${Date.now()}`;
 
         notification.id = uniqueId;
         notification.className = `notification notification-${type}`;
-        notification.innerHTML = `<span class="notification-icon">${iconMap[type] || 'ℹ️'}</span> ${message}`;
+        notification.innerHTML = `<span class="notification-icon">${iconMap[type] || "ℹ️"}</span> ${message}`;
 
-        // Configura atributos de acessibilidade
-        notification.setAttribute('role', 'alert');
-        notification.setAttribute('aria-live', 'assertive');
+        // Configura acessibilidade
+        notification.setAttribute("role", "alert");
+        notification.setAttribute("aria-live", "assertive");
 
         notificationContainer.appendChild(notification);
         console.log(`Notificação exibida (${type}):`, message);
 
-        // Remove automaticamente a notificação
+        // Remove automaticamente após o tempo configurado
         if (!persistent) {
             setTimeout(() => {
                 const elementToRemove = document.getElementById(uniqueId);
@@ -2474,11 +2023,9 @@ function showNotification(message, type = 'info', duration = 1000, persistent = 
             }, duration);
         }
     } catch (error) {
-        console.error("Erro ao exibir notificação:", error);
+        console.error("Erro ao exibir notificação:", error.message);
     }
 }
-
-
 
 // Atualiza a posição do marcador do usuário
 function clearMarkers() {
@@ -2496,25 +2043,21 @@ function clearMarkers() {
     console.log('Todos os marcadores foram removidos do mapa.');
 }
 
+// Atualiza ou cria o marcador do usuário no mapa
 function updateUserMarker(lat, lon) {
     if (!userLocationMarker) {
-        userLocationMarker = L.marker([lat, lon], {
-            icon: L.icon({
-                iconUrl: "images/user-icon.png",
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-            }),
-        })
+        userLocationMarker = L.marker([lat, lon])
             .addTo(map)
-            .bindPopup("Você está aqui!");
+            .bindPopup(translations[selectedLanguage]?.youAreHere || "You are here!")
+            .openPopup();
+        console.log(translations[selectedLanguage]?.markerCreated || "User marker created.");
     } else {
         userLocationMarker.setLatLng([lat, lon]);
+        userLocationMarker.getPopup().setContent(translations[selectedLanguage]?.youAreHere || "You are here!");
+        console.log(translations[selectedLanguage]?.markerUpdated || "User marker updated.");
     }
-
-    console.log(`Marcador do usuário atualizado para: (${lat}, ${lon}).`);
+    console.log(`User position updated to: (${lat}, ${lon}).`);
 }
-
-
 
 // Calcula a distância entre dois pontos
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -2529,7 +2072,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c * 1000); // Retorna em metros
 }
-
 
 let lastRecalculationTime = 0;
 
@@ -2559,8 +2101,6 @@ function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
     }
 }
 
-
-
 // Cria um Popup na localização do usuário
 function showUserLocationPopup(lat, lon) {
     const timestamp = new Date().toLocaleString(selectedLanguage || "pt-BR");
@@ -2577,54 +2117,6 @@ function showUserLocationPopup(lat, lon) {
 
     console.log("Popup da localização do usuário exibido.");
 }
-
-
-// Exibe a barra de navegação
-function showNavigationBar() {
-    const navBar = document.getElementById("navigation-bar");
-    if (!navBar) {
-        handleError("Barra de navegação não encontrada.");
-        return;
-    }
-
-    navBar.classList.remove("hidden");
-    navBar.style.opacity = 1; // Garante visibilidade total
-    console.log("Barra de navegação exibida.");
-    showNotification("Barra de navegação ativada.", "info");
-}
-
-
-// Traça a rota usando a API OpenRouteService
-async function plotRouteOnMap(startLat, startLon, destLat, destLon) {
-    const profile = "foot-walking";
-    const url = `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Erro ao consultar API.");
-
-        const routeData = await response.json();
-        const coordinates = routeData.features[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
-
-        if (window.currentRoute) map.removeLayer(window.currentRoute);
-
-        window.currentRoute = L.polyline(coordinates, { color: "blue", weight: 5, dashArray: "10,5" }).addTo(map);
-
-        // Adiciona marcadores de início e fim
-        L.marker([startLat, startLon], { title: "Início" }).addTo(map).bindPopup("Início da rota").openPopup();
-        L.marker([destLat, destLon], { title: "Destino" }).addTo(map).bindPopup("Destino final").openPopup();
-
-        map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
-        return routeData;
-    } catch (error) {
-        console.error("Erro ao traçar a rota no mapa:", error);
-        showNotification("Erro ao traçar a rota. Tente novamente.", "error");
-        throw error;
-    }
-}
-
-
-
 
 
 // Busca dados do OpenStreetMap
@@ -2650,7 +2142,6 @@ function fetchOSMData(query) {
 }
 
 // Personaliza o pop-up de informações exibido no mapa
-// Exibe informações adicionais ao clicar em um ponto no mapa
 function customizeOSMPopup(marker, data) {
     const popupContent = `
         <b>${data.name}</b><br>
@@ -2682,7 +2173,6 @@ function hideAssistantModal() {
     }
 }
 
-
 // Função para fechar o modal do assistente
 function closeAssistantModal() {
     const modal = document.getElementById('assistant-modal'); // Seleciona o modal pelo ID
@@ -2693,71 +2183,6 @@ function closeAssistantModal() {
         console.error('Modal do assistente não encontrado.'); // Log de erro caso o modal não exista
     }
 }
-
-// ======================
-// Estilo e Ajustes de Modais
-// ======================
-
-// Ajusta o estilo de um modal específico
-// Utilizado para centralizar ou aplicar alterações dinâmicas
-// function adjustModalStyles(modal, type) {
-//    if (type === 'assistant') {
-//        Object.assign(modal.style, {
-//          top: '40%',
-//        left: '37%',
-//            transform: 'translate(-50%, -50%)',
-//          width: '70%',
-//          maxWidth: '600px',
-//          background: 'white',
-//          padding: '20px',
-//      });
-//  } else if (type === 'carousel') {
-//      Object.assign(modal.style, {
-//          top: '40%',
-//          left: '37%',
-//          width: '70%',
-//          height: '50%',
-//      });
-//  }
-// }
-
-// Ajusta o estilo de todos os modais e botões de controle
-// Baseado na interface atual (e.g., visibilidade de menus laterais)
-// function adjustModalAndControls() {
-//    const assistantModal = document.getElementById('assistant-modal');
-//    const carouselModal = document.getElementById('carousel-modal');
-//    const sideMenu = document.querySelector('.menu');
-//    const controlButtons = document.querySelector('.control-buttons');
-//    const mapContainer = document.getElementById('map');
-//
-//    if (!sideMenu.classList.contains('hidden')) {
-//        Object.assign(assistantModal.style, { left: '40%' });
-//        Object.assign(controlButtons.style, { left: '40%' });
-//        Object.assign(mapContainer.style, { width: '100%', height: '100%' });
-//    } else {
-//        restoreModalAndControlsStyles();
-//    }
-
-//    if (map) {
-//        map.invalidateSize(); // Atualiza o tamanho do mapa após ajustes
-//    }
-// }
-
-// Restaura o estilo padrão de modais e controles
-// Reverte as alterações aplicadas dinamicamente
-//function restoreModalAndControlsStyles() {
-//  const assistantModal = document.getElementById('assistant-modal');
-//  const controlButtons = document.querySelector('.control-buttons');
-//  const mapContainer = document.getElementById('map');
-
-//  Object.assign(assistantModal.style, {
-//      left: '50%',
-//      top: '50%',
-//      transform: 'translate(-50%, -50%)',
-//  });
-//  Object.assign(controlButtons.style, { left: '50%' });
-//  Object.assign(mapContainer.style, { width: '100%', height: '100%' });
-// }
 
 // ======================
 // Funções do Carrossel
@@ -3384,20 +2809,6 @@ function performControlAction(action) {
     }
 }
 
-// Trata cliques nos botões de submenu e ajusta o mapa e a interface
-// Parâmetros:
-// - lat: Latitude do local selecionado.
-// - lon: Longitude do local selecionado.
-// - name: Nome do local selecionado.
-// - description: Descrição do local selecionado.
-// - controlButtonsFn: Função que exibe os botões de controle específicos para o submenu.
-// A função:
-// 1. Remove todos os marcadores existentes no mapa.
-// 2. Ajusta a localização do mapa para o local selecionado.
-// 3. Atualiza o destino selecionado no estado global e salva no cache do navegador.
-// 4. Envia o destino para um Service Worker para sincronização.
-// 5. Exibe os botões de controle associados ao submenu.
-// 6. Obtém imagens relacionadas ao local e exibe detalhes em um modal.
 // Função para ocultar o modal do assistente
 function hideAssistantModal() {
     const modal = document.getElementById('assistant-modal');
