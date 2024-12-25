@@ -166,6 +166,12 @@
         </div>
 </div>
 
+
+ <!-- O conteúdo será preenchido dinamicamente pela função showRoutePreview -->
+<div id="route-preview" class="route-preview hidden"></div>
+
+
+
 <!-- Modal Resumo da Rota -->
 <div id="route-summary" class="hidden">
     <h3>Resumo da Rota</h3>
@@ -176,6 +182,7 @@
 <!-- Modal de instruções sobre a Rota -->
 <div id="navigation-instructions" class="hidden">
     <h3>Instruções de Navegação</h3>
+    <ul id="instructions-list">
         <li class="instruction-step">
             <span class="direction-arrow">⬆️</span> Siga em frente por 200 metros.
         </li>
@@ -184,37 +191,11 @@
         </li>
     </ul>
 </div>
-<!-- Barra de progresso da navegação -->
-<div id="progress-bar-container">
-    <div id="progress-bar"></div>
-</div>
-
-<!-- Modal para exibir mudanças de direção -->
-<div id="direction-modal" class="hidden">
-    <div class="direction-modal-content">
-        <span class="direction-icon"></span>
-        <p class="direction-text"></p>
+    <!-- Barra de Progresso -->
+    <div id="progress-bar-container" class="hidden">
+        <div id="progress-bar" style="width: 0;"></div>
+        <span id="progress-text"></span>
     </div>
-</div>
-
-<!-- Modal para exibir instruções detalhadas -->
-<div id="instruction-modal" class="hidden">
-    <div class="instruction-modal-header">
-        <h2>Instruções de Navegação</h2>
-        <button id="close-modal" class="close-modal-btn">X</button>
-    </div>
-    <div id="instruction-content" class="instruction-modal-content"></div>
-</div>
-
-<!-- Pré-visualização da rota -->
-<div id="route-preview" class="hidden">
-    <!-- Este contêiner será preenchido dinamicamente pelas funções -->
-</div>
-
-<!-- Indicador de progresso complementar (opcional) -->
-<div id="progress-indicator" class="hidden">
-    <!-- Conteúdo adicional de progresso, caso necessário -->
-</div>
 
 <!-- Contêiner para exibir notificações temporárias -->
 <div id="notification-container" class="notification-container"></div>
@@ -245,6 +226,14 @@
                 console.log('Service Worker registration failed:', error);
             });
         }
+    </script>
+
+    <script>
+        // Ensure floating-menu toggle consistency
+        const floatingMenu = document.getElementById('floating-menu');
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            floatingMenu.classList.toggle('hidden');
+        });
     </script>
     </body>
     
