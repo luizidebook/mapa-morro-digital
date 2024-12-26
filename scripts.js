@@ -2271,10 +2271,11 @@ function clearMarkers(filterFn) {
 }
 
 
-// 18. plotRouteOnMap - Plota a rota no mapa com base em destinos - Linha 82
+// 18. plotRouteOnMap - Plota a rota no mapa com base em destinos
+// 18. plotRouteOnMap - Plota a rota no mapa com base em destinos
 async function plotRouteOnMap(startLat, startLon, destLat, destLon) {
   const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}`;
-  
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -2292,14 +2293,15 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon) {
 
     prepareMapForNewRoute();
 
+    // Criamos a Polyline sem chamar a função addDirectionArrows()
     window.currentRoute = L.polyline(coordinates, {
       color: "blue",
       weight: 6,
       dashArray: "10, 5",
     }).addTo(map);
 
+    // Ajusta o mapa para mostrar bem toda a rota
     map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
-    addDirectionArrows(coordinates);
 
     console.log(getGeneralText("pathDrawnSuccess", selectedLanguage));
     return routeData;
@@ -2314,7 +2316,8 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon) {
 }
 
 
-// 19. calculateDistance - Calcula a distância entre dois pontos - Linha 86
+
+// 19. calculateDistance - Calcula a distância entre dois pontos
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // raio da Terra em km
   const dLat = (Number(lat2) - Number(lat1)) * (Math.PI / 180);
@@ -2417,9 +2420,9 @@ function clearAllMarkers() {
     }
 
     // 7) Marca a navegação como ativa e inicializa watchers
-    isNavigationActive = true;
-    instructions = routeInstructions;   // salva globalmente para referência
-    currentStepIndex = 0;
+    updateNavigationState({ instructions, currentStepIndex: 0 });
+    console.log("[startNavigation] Instruções de rota recebidas:", instructions.length);
+
 
     // 8) (Opcional) Salva rota no histórico, se quiser:
     // saveRouteToHistory(routeData); 
