@@ -138,6 +138,8 @@
     <button id="pousadas-btn" class="control-btn" style="display:none" onclick="performControlAction('pousadas')" class="menu-btn" data-feature="pousadas" data-i18n="inns">Pousadas</button>
     <button id="lojas-btn" class="control-btn" style="display:none" onclick="performControlAction('lojas')" class="menu-btn" data-feature="lojas" data-i18n="shops">Lojas</button>
     <button id="emergencias-btn" class="control-btn" style="display:none" onclick="performControlAction('emergencias')" class="menu-btn" data-feature="emergencias" data-i18n="emergencies">Emergências</button>
+
+      <button id="criar-roteiro-personalizado-btn" class="control-btn" style="display:none" onclick="performControlAction('roteiro')" class="menu-btn" data-feature="roteiro" data-i18n="Roteiro Personalizado">Roteiro Personalizado</button>
     
     <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
     <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" data-i18n="createRoute">Como Chegar</button>
@@ -181,6 +183,15 @@
     <p id="route-distance" data-i18n="route_distance">Distância: </p>
     <p id="route-eta" data-i18n="route_eta">Tempo Estimado: </p>
 </div>
+
+<!-- Perfil de Transporte (apenas emojis) -->
+<select id="transport-profile-select">
+  <option value="foot-walking" selected>🚶</option>
+  <option value="driving-car">🚗</option>
+  <option value="cycling-regular">🚲</option>
+</select>
+
+
 
 <!-- Modal de instruções sobre a Rota -->
 <div id="navigation-instructions" class="hidden">
