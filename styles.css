@@ -81,6 +81,96 @@ body, html {
     pointer-events: none; /* Elementos flutuantes não interferem com o mapa */
 }
 
+/* Ícone do passo da instrução */
+.instruction-marker-icon {
+  /* se quiser ocultar o “HTML: ⚠️”, use background ou outro approach */
+  background-color: transparent;
+  /* ou: border: 2px solid #ff7700; border-radius:50%; ... */
+}
+
+/* Ícone do step atual (marker pulsante) */
+.next-step-marker .pulsing-icon {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 165, 0, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 6px 2px rgba(255, 165, 0, 0.5);
+  animation: pulse 1s infinite;
+}
+
+/* Animação de pulsar */
+@keyframes pulse {
+  0%   { transform: scale(1);   }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1);   }
+}
+
+
+/* Tooltip customizado */
+.my-custom-tooltip {
+  background-color: #FFC;
+  color: #333;
+  border: 1px solid #CCC;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Exemplo de ícone pulsante em formato de círculo com radar expansivo */
+.radar-marker {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.3);
+  animation: radar-pulse 1.5s infinite;
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0.0;
+  }
+}
+/* Ícone em formato de seta com efeito de “piscar” */
+.blinking-arrow {
+  position: relative;
+  width: 0;
+  height: 0;
+  /* 
+    Exemplo de uma seta feita com bordas triangulares.
+    Ajuste o "border" para criar uma seta de diferentes tamanhos e inclinações.
+  */
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 20px solid red;  /* Cor da seta */
+
+  /* Animação: muda a opacidade para simular um piscar */
+  animation: arrowBlink 1s infinite;
+}
+
+@keyframes arrowBlink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+
 /* Container do resumo da rota */
 .route-preview {
     display: none; /* Inicialmente oculto */

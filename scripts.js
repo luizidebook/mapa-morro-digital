@@ -3,29 +3,359 @@
 // ======================
 
 //NOVAS FUNÇÔES IMPLEMENTADAS PARA TESTE--------------------------------------------------
+
 /**
- * Monta o texto final da instrução, integrando dados do step (incluindo a manobra mapeada),
- * nome de rua/local, e distância, tudo pronto para exibição.
- *
+ * @function showInstructionsOnMap
+ * @description Cria marcadores no mapa para cada step da rota e exibe o texto em popups (ou tooltips).
+ * @param {Array<Object>} instructions - Lista de { lat, lon, text, distance, maneuverKey... }
+ * @param {Object} map - Instância do L.map (Leaflet).
+ */
+function showInstructionsOnMap(instructions, map) {
+  if (!instructions || instructions.length === 0) {
+    console.warn("[showInstructionsOnMap] Nenhuma instrução para exibir.");
+    return;
+  }
+
+  // Remove marcadores antigos, se preferir
+  // (Se quiser reaproveitar, pode armazenar em um array global e removê-los antes)
+  // ex.: clearInstructionMarkers(); // se quiser fazer algo do tipo
+
+  instructions.forEach((step, idx) => {
+    // Ícone customizado (se desejar)
+    const instructionIcon = L.divIcon({
+      className: "instruction-marker-icon", 
+      html: "⚠️", 
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    const marker = L.marker([step.lat, step.lon], { icon: instructionIcon }).addTo(map);
+
+    // Exemplo: popup
+    marker.bindPopup(`
+      <strong>Passo ${idx+1}</strong><br>
+      ${step.text} <br>
+      (${step.distance}m)
+    `);
+    // Para exibir sempre aberto: marker.openPopup()
+
+    // Opcional: se quiser exibir *tooltip* permanente
+    // marker.bindTooltip(step.text, { permanent: true }).openTooltip();
+  });
+
+  console.log(`[showInstructionsOnMap] Exibidas ${instructions.length} instruções no mapa.`);
+}
+
+
+function showInstructionsWithTooltip(instructions, map) {
+  instructions.forEach((step, idx) => {
+    const marker = L.marker([step.lat, step.lon]).addTo(map);
+
+    marker.bindTooltip(`${step.text}`, {
+      permanent: true,         // Fica sempre visível
+      direction: 'top',        // Posição do tooltip (top, bottom, left, right, auto)
+      className: 'my-custom-tooltip'
+    }).openTooltip();
+  });
+}
+
+
+function goToInstructionStep(stepIndex) {
+  const instr = navigationState.instructions;
+  if (!instr || instr.length===0) {
+    console.warn("[goToInstructionStep] Nenhuma instrução definida.");
+    return;
+  }
+  if (stepIndex<0) stepIndex=0;
+  if (stepIndex>=instr.length) stepIndex=instr.length-1;
+
+  navigationState.currentStepIndex = stepIndex;
+  updateInstructionModal(instr, stepIndex, navigationState.lang);
+
+  const step = instr[stepIndex];
+  speakInstruction(step.text, navigationState.lang==="pt"?"pt-BR":"en-US");
+  highlightNextStepInMap(step);
+
+  console.log(`[goToInstructionStep] Step manual => ${stepIndex}`);
+}
+
+function nextInstructionStep() {
+  goToInstructionStep(navigationState.currentStepIndex + 1);
+}
+
+function prevInstructionStep() {
+  goToInstructionStep(navigationState.currentStepIndex - 1);
+}
+
+
+
+/**
+ * Exibe várias rotas no mapa, cada uma com cor diferente.
+ * routeDataArray: [ { routeCoords: [[lat,lon],...], distance, duration, label }, ... ]
+ */
+function showRouteAlternatives(routeDataArray) {
+  clearCurrentRoute();
+  const colors = ["blue","green","purple","orange"];
+
+  routeDataArray.forEach((rd, index) => {
+    const color = colors[index % colors.length];
+    const polyline = L.polyline(rd.routeCoords, {
+      color,
+      weight: 5,
+      opacity: 0.8
+    }).addTo(map);
+
+    polyline.on("click", () => {
+      console.log(`[showRouteAlternatives] Rota ${index+1} selecionada.`);
+      // Se quiser iniciar a navegação nessa rota
+    });
+
+    polyline.bindPopup(`${rd.label || ('Rota '+(index+1))} - Dist:${rd.distance} km, ~${rd.duration} min`);
+  });
+
+  const allPoints = routeDataArray.flatMap(r => r.routeCoords);
+  const bounds = L.latLngBounds(allPoints);
+  map.fitBounds(bounds, { padding: [50,50] });
+}
+
+
+
+function enableEcoMode() {
+  console.log("[enableEcoMode] Ativando modo economia...");
+
+  if (window.positionWatcher) {
+    navigator.geolocation.clearWatch(window.positionWatcher);
+    window.positionWatcher = null;
+  }
+
+  window.positionWatcher = navigator.geolocation.watchPosition(
+    (pos) => {
+      if (navigationState.isPaused) return;
+      // Se quiser, chamar updateRealTimeNavigation a cada X segundos
+    },
+    (error) => {
+      console.error("[enableEcoMode] watchPosition erro:", error);
+      fallbackToSensorNavigation();
+    },
+    {
+      enableHighAccuracy: false,
+      maximumAge: 30000,
+      timeout: 30000
+    }
+  );
+
+  document.body.classList.add("eco-mode");
+  showNotification("Modo ECO ativado: GPS menos frequente!", "info");
+}
+
+
+/**
+ * Salva no localStorage as instruções e coordenadas da rota, para uso offline.
+ * @function cacheRouteData
+ * @param {Array<Object>} routeInstructions - Array de steps { id, raw, text, distance, lat, lon }.
+ * @param {Array<Array<number>>} routeLatLngs - Array de [lat, lon] descrevendo a rota.
+ * @returns {void}
+ */
+function cacheRouteData(routeInstructions, routeLatLngs) {
+  try {
+    const data = {
+      instructions: routeInstructions,
+      route: routeLatLngs,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('cachedRoute', JSON.stringify(data));
+    console.log("[cacheRouteData] Rota salva no cache local (localStorage).");
+    showNotification("Rota salva em cache para uso offline.", "success");
+  } catch (err) {
+    console.error("[cacheRouteData] Erro ao salvar rota no cache:", err);
+    showNotification(getGeneralText("routeDataError", navigationState.lang), "error");
+  }
+}
+
+/**
+ * Carrega a rota do cache local (localStorage) para uso offline.
+ * @function loadRouteFromCache
+ * @returns {Object|null} Objeto { instructions, route, timestamp } ou null se não houver.
+ */
+function loadRouteFromCache() {
+  try {
+    const dataStr = localStorage.getItem('cachedRoute');
+    if (!dataStr) {
+      console.warn("[loadRouteFromCache] Nenhuma rota salva no cache.");
+      return null;
+    }
+    const data = JSON.parse(dataStr);
+    console.log("[loadRouteFromCache] Rota carregada do cache:", data);
+    showNotification("Rota carregada do cache com sucesso.", "info");
+    return data;
+  } catch (err) {
+    console.error("[loadRouteFromCache] Erro ao carregar rota do cache:", err);
+    showNotification(getGeneralText("routeDataError", navigationState.lang), "error");
+    return null;
+  }
+}
+
+
+
+
+/**
+ * Calcula a menor distância (em metros) do ponto atual (userLat, userLon)
+ * até a polyline da rota (array de [lat, lon]).
+ * Usado para detectar "off-route" com mais precisão.
+ */
+/**
+ * Retorna a menor distância (em metros) entre um ponto (userLat,userLon) e a polyline.
+ * polylineLatLngs: array de [lat, lon].
+ */
+function distanceToPolyline(userLat, userLon, polylineLatLngs) {
+  let minDist = Infinity;
+
+  for (let i = 0; i < polylineLatLngs.length - 1; i++) {
+    const p1 = polylineLatLngs[i];
+    const p2 = polylineLatLngs[i + 1];
+    const dist = pointToSegmentDistance(userLat, userLon, p1[0], p1[1], p2[0], p2[1]);
+    if (dist < minDist) minDist = dist;
+  }
+  return minDist;
+}
+
+/**
+ * Calcula a distância do ponto (latA, lonA) para um segmento [lat1,lon1 -> lat2,lon2].
+ * Retorno em metros (aprox).
+ */
+function pointToSegmentDistance(latA, lonA, lat1, lon1, lat2, lon2) {
+  const R = 6371000; 
+  const rad = Math.PI / 180;
+
+  // Converter lat/lon para coordenadas "planas" aproximadas
+  const Ax = R * lonA * rad * Math.cos(latA * rad);
+  const Ay = R * latA * rad;
+  const x1 = R * lon1 * rad * Math.cos(lat1 * rad);
+  const y1 = R * lat1 * rad;
+  const x2 = R * lon2 * rad * Math.cos(lat2 * rad);
+  const y2 = R * lat2 * rad;
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const segLen2 = dx*dx + dy*dy;
+
+  if (segLen2 === 0) {
+    // p1 == p2
+    return Math.sqrt((Ax - x1)**2 + (Ay - y1)**2);
+  }
+
+  let t = ((Ax - x1)*dx + (Ay - y1)*dy) / segLen2;
+  t = Math.max(0, Math.min(1, t));
+
+  const projx = x1 + t * dx;
+  const projy = y1 + t * dy;
+
+  return Math.sqrt((Ax - projx)**2 + (Ay - projy)**2);
+}
+
+let nextStepMarker = null;
+
+/**
+ * @function highlightNextStepInMap
+ * @description Mostra (ou atualiza) um marcador especial para o “próximo passo”.
+ * @param {Object} step - Objeto contendo { lat, lon, text, ... }.
+ */
+function highlightNextStepInMap(step) {
+  if (!step) {
+    console.warn("[highlightNextStepInMap] Step indefinido.");
+    return;
+  }
+
+  // Remove marcador anterior, se houver
+  if (window.nextStepMarker) {
+    map.removeLayer(window.nextStepMarker);
+    window.nextStepMarker = null;
+  }
+
+  // Ícone em formato de “seta piscante”
+  const highlightIcon = L.divIcon({
+    className: "blinking-arrow" // corresponde ao CSS da seta piscante
+  });
+
+  window.nextStepMarker = L.marker([step.lat, step.lon], { icon: highlightIcon }).addTo(map);
+
+  // Exibe um popup (se desejar)
+  window.nextStepMarker.bindPopup(`↪️ Próximo passo: ${step.text}`).openPopup();
+
+  console.log("[highlightNextStepInMap] Step destacado com seta piscante:", step.text);
+}
+
+
+
+
+
+
+/**
+ * Auxiliar: calcula distância de um ponto (latA, lonA) a um segmento (lat1, lon1) - (lat2, lon2).
+ * Retorna a distância em metros.
+ */
+function pointToSegmentDistance(latA, lonA, lat1, lon1, lat2, lon2) {
+  // Converter para radianos e projetar, ou use um approach simplificado "Euclidiano" 
+  // se as distâncias forem pequenas e a precisão não for crítica.
+  // Aqui é só um exemplo simplificado em coordenadas do "plano".
+  
+  // 1) Converta lat/long para x,y aproximados (flat equirectangular):
+  const R = 6371000; // metros
+  const rad = Math.PI / 180;
+
+  const Ax = R * lonA * rad * Math.cos(latA * rad);
+  const Ay = R * latA * rad;
+
+  const x1 = R * lon1 * rad * Math.cos(lat1 * rad);
+  const y1 = R * lat1 * rad;
+  const x2 = R * lon2 * rad * Math.cos(lat2 * rad);
+  const y2 = R * lat2 * rad;
+
+  // 2) Encontra projeção do ponto A no segmento p1->p2
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const segLen2 = dx*dx + dy*dy;
+
+  if (segLen2 === 0) {
+    // p1 e p2 são o mesmo ponto
+    const distP1 = Math.sqrt((Ax - x1)*(Ax - x1) + (Ay - y1)*(Ay - y1));
+    return distP1;
+  }
+
+  let t = ((Ax - x1)*dx + (Ay - y1)*dy) / segLen2;
+  if (t < 0) t = 0;
+  if (t > 1) t = 1;
+
+  const projx = x1 + t * dx;
+  const projy = y1 + t * dy;
+
+  // 3) Distância do ponto A ao ponto projetado
+  const dist = Math.sqrt((Ax - projx)*(Ax - projx) + (Ay - projy)*(Ay - projy));
+  return dist;
+}
+
+/**
+ * Tenta falar uma instrução em voz alta (Speech Synthesis).
+ * @function speakInstruction
+ * @param {string} text - Texto a ser falado.
+ * @param {string} [lang='pt-BR'] - Idioma de fala (ex.: 'en-US', 'pt-BR').
+ * @returns {void}
+ */
+function speakInstruction(text, voiceLang = "pt-BR") {
+  if (!('speechSynthesis' in window)) {
+    console.warn("[speakInstruction] speechSynthesis não suportado.");
+    return;
+  }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = voiceLang;
+  window.speechSynthesis.speak(utterance);
+  console.log("[speakInstruction] Falando instrução:", text);
+}
+
+
+/**
  * @function getDetailedInstructionText
- * @param {object} step - Objeto de instrução, contendo pelo menos:
- *  - {string} raw        : instrução bruta (ex.: "Head south on Rua das Flores")
- *  - {string} text       : texto traduzido da manobra (ex.: "Vire à esquerda")
- *  - {string} streetName : se a ORS já trouxer
- *  - {number} distance   : distância em metros
- * @param {string} [lang='pt'] - Idioma atual (ex.: 'pt', 'en', etc.)
- * @returns {string} Texto detalhado (ex.: "Vire à esquerda na Rua das Flores (200m)")
- * 
- * @description
- * 1) Primeiro, chama mapORSInstruction(step.raw) para extrair:
- *    - maneuverKey (head_south, turn_left, etc.)
- *    - placeName (ex.: "Rua das Flores", "Praia do Encanto", "Pousada Maravilha")
- *    - placeType, isPOI, etc.
- * 2) Usa step.text como base para a manobra ("Vire à esquerda", etc.).
- * 3) Se 'placeName' ou 'streetName' existirem, adiciona "na <placeName>".
- * 4) Se 'distance' existir, anexa "(X m)".
- * 5) Retorna a frase final.
- * 6) Logs opcionais no console ([getDetailedInstructionText]).
+ * @description Monta um texto final para a instrução, unindo manobra + placeName + distância etc.
  */
 function getDetailedInstructionText(step, lang = "pt") {
   if (!step) {
@@ -33,42 +363,37 @@ function getDetailedInstructionText(step, lang = "pt") {
     return "Sem instrução";
   }
 
-  // 1) Mapeia a instrução bruta para obter placeName, etc.
-  const { maneuverKey, placeName, placeType } = mapORSInstruction(step.raw);
+  const { maneuverKey, placeName } = mapORSInstruction(step.raw);
 
-  // 2) Usa o step.text como base da manobra (ex.: "Vire à esquerda")
-  //    ou fallback se precisar (ex.: getGeneralText(maneuverKey, lang))
-  const baseText = step.text || getGeneralText(maneuverKey, lang) || getGeneralText("continueStraight", lang);
+  // Usa step.text como base (por ex.: "Vire à esquerda")
+  let baseText = step.text || getGeneralText(maneuverKey, lang);
+  if (baseText.startsWith("⚠️")) {
+    baseText = step.raw; // fallback se a chave não existe
+  }
 
-  // 3) Constrói o segmento de local
   let placeSegment = "";
   if (placeName) {
-    // Pega a tradução de "on" ou "na"
     const onWord = getGeneralText("on", lang) || "na";
     placeSegment = ` ${onWord} ${placeName}`;
   } else if (step.streetName) {
-    // Se a ORS trouxe 'streetName', usa-o
     const onWord = getGeneralText("on", lang) || "na";
     placeSegment = ` ${onWord} ${step.streetName}`;
   }
 
-  // 4) Distância "(200m)"
   let distSegment = "";
   if (typeof step.distance === "number") {
     distSegment = ` (${step.distance}m)`;
   }
 
-  // Monta o texto final
-  const detailedText = `${baseText}${placeSegment}${distSegment}`;
-  // console.log(`[getDetailedInstructionText] Final: "${detailedText}", placeType: ${placeType}`);
-
-  return detailedText;
+  return `${baseText}${placeSegment}${distSegment}`;
 }
 
 
 
 /**
- * Atualiza chaves do objeto navigationState pontualmente (merge).
+ * @function updateNavigationState
+ * @description Atualiza o objeto global 'navigationState' com base em um 'merge' de propriedades.
+ * @param {object} newState - Propriedades que deseja atualizar no estado de navegação.
  */
 function updateNavigationState(newState) {
   if (typeof newState !== 'object' || newState === null) {
@@ -80,66 +405,52 @@ function updateNavigationState(newState) {
 }
 
 
+
 /************************************************************************************
  * 1) mapORSInstruction: Função auxiliar que mapeia a string bruta da ORS
  *    para as chaves do seu dicionário OSM (head_north, turn_left, etc.)
  ************************************************************************************/
-/**
- * Analisa a string bruta de instrução (vinda da OpenRouteService ou outra fonte)
- * e converte para uma chave de manobra (ex.: "turn_left", "arrive_destination").
- * Também tenta extrair, se possível, nomes de ruas/locais para enriquecer a instrução,
- * integrando-se a dados do OpenStreetMap ou base de POIs.
- *
- * @function mapORSInstruction
- * @param {string} rawInstruction - Texto da instrução (ex.: "Head south on Rua das Flores").
- * @returns {object} - Objeto contendo:
- *    - {string} maneuverKey: chave p/ manobra (ex.: "head_south", "turn_left", "arrive_destination")
- *    - {string} placeName: nome do lugar (ex.: "Rua das Flores", "Praia do Encanto", "Pousada Maravilha")
- *    - {string} placeType: tipo (ex.: "rua", "praia", "pousada"), se identificado
- *    - {boolean} isPOI: se é um local de interesse (pousada, restaurante, loja, praia etc.)
- *
- * @description
- *  1) Converte a instrução para lowercase e detecta palavras-chave (arrive, depart, turn left...).
- *  2) Captura nomes de lugares (ruas/praças/praias/pousadas etc.) usando regex ou heurísticas.
- *  3) Retorna um objeto rico, para as funções que geram texto final (getDetailedInstructionText) exibirem.
- *  4) Logs padronizados [mapORSInstruction].
- */
+/****************************************************************************
+ * 
+ * @param {string} rawInstruction - Instrução bruta da ORS, ex.: "Turn left onto Rua X".
+ * @param {string} lang - Código de idioma (ex.: "pt", "en", "es", "he").
+ * 
+ * @returns {object} Objeto com:
+ *   - maneuverKey: string representando a manobra mapeada,
+ *   - placeName: nome do local extraído (se houver),
+ *   - placeType: tipo do local (rua, praia, pousada, escada etc.),
+ *   - isPOI: boolean indicando se é um ponto de interesse,
+ *   -  * Converte a instrução bruta da ORS (ex.: "Turn left onto Rua X")
+ * em { maneuverKey, placeName, placeType, isPOI, maneuverText } para uso interno.
+maneuverText: texto traduzido (opcional) para exibição ao usuário.
+ ****************************************************************************/
 function mapORSInstruction(rawInstruction) {
   if (!rawInstruction) {
     console.warn("[mapORSInstruction] Instrução inválida ou vazia.");
-    return {
-      maneuverKey: "unknown",
-      placeName: "",
-      placeType: "",
-      isPOI: false
-    };
+    return { maneuverKey: "unknown", placeName: "", placeType: "", isPOI: false };
   }
 
-  // Normaliza
   const text = rawInstruction.toLowerCase();
-
-  // 1) Detectar manobra (maneuverKey)
   let maneuverKey = "unknown";
 
-  if (text.includes("depart"))            maneuverKey = "head_north";
-  else if (text.includes("arrive"))       maneuverKey = "arrive_destination";
-  else if (text.includes("head north"))   maneuverKey = "head_north";
-  else if (text.includes("head south"))   maneuverKey = "head_south";
-  else if (text.includes("head east"))    maneuverKey = "head_east";
-  else if (text.includes("head west"))    maneuverKey = "head_west";
-  else if (text.includes("turn left"))    maneuverKey = "turn_left";
-  else if (text.includes("turn right"))   maneuverKey = "turn_right";
-  else if (text.includes("sharp left"))   maneuverKey = "turn_sharp_left";
-  else if (text.includes("sharp right"))  maneuverKey = "turn_sharp_right";
-  else if (text.includes("slight left"))  maneuverKey = "turn_slight_left";
-  else if (text.includes("slight right")) maneuverKey = "turn_slight_right";
+  if (text.includes("depart"))              maneuverKey = "head_north";
+  else if (text.includes("arrive"))         maneuverKey = "arrive_destination";
+  else if (text.includes("head north"))     maneuverKey = "head_north";
+  else if (text.includes("head south"))     maneuverKey = "head_south";
+  else if (text.includes("head east"))      maneuverKey = "head_east";
+  else if (text.includes("head west"))      maneuverKey = "head_west";
+  else if (text.includes("turn left"))      maneuverKey = "turn_left";
+  else if (text.includes("turn right"))     maneuverKey = "turn_right";
+  else if (text.includes("sharp left"))     maneuverKey = "turn_sharp_left";
+  else if (text.includes("sharp right"))    maneuverKey = "turn_sharp_right";
+  else if (text.includes("slight left"))    maneuverKey = "turn_slight_left";
+  else if (text.includes("slight right"))   maneuverKey = "turn_slight_right";
   else if (text.includes("continue straight")) maneuverKey = "continue_straight";
-  else if (text.includes("keep left"))    maneuverKey = "keep_left";
-  else if (text.includes("keep right"))   maneuverKey = "keep_right";
-  else if (text.includes("merge"))        maneuverKey = "merge";
+  else if (text.includes("keep left"))      maneuverKey = "keep_left";
+  else if (text.includes("keep right"))     maneuverKey = "keep_right";
+  else if (text.includes("merge"))          maneuverKey = "merge";
   else if (text.includes("u-turn") || text.includes("u turn")) maneuverKey = "u_turn";
 
-  // Rotatória
   if (text.includes("roundabout")) {
     if (text.includes("exit")) {
       const exitMatch = text.match(/(\d+)(st|nd|rd|th)\s+exit/);
@@ -148,31 +459,25 @@ function mapORSInstruction(rawInstruction) {
       } else {
         maneuverKey = "exit_roundabout";
       }
-    } else if (text.includes("enter")) {
-      maneuverKey = "enter_roundabout";
     } else {
       maneuverKey = "enter_roundabout";
     }
   }
 
-  // Ferry
   if (text.includes("ferry")) {
     maneuverKey = "ferry";
   }
 
-  // 2) Extrair nome do lugar (placeName) e deduzir placeType
-  // Exemplo simples: "Turn left onto Rua das Flores"
+  // placeName e heurísticas
   let placeName = "";
   let placeType = "";
   let isPOI = false;
 
-  // Tenta capturar substring após "onto" ou "on"
   const ontoRegex = /(onto|on)\s+([^.,]+)/i;
   const ontoMatch = rawInstruction.match(ontoRegex);
   if (ontoMatch && ontoMatch[2]) {
-    placeName = ontoMatch[2].trim(); // ex.: "Rua das Flores"
+    placeName = ontoMatch[2].trim();
   } else {
-    // Tenta capturar “praia”, “pousada”, etc.
     const knownPOIRegex = /(praia|rua|av\.|avenida|pousada|restaurante|loja|hotel|escada|praça)\s+(.*)/i;
     const matchPOI = rawInstruction.match(knownPOIRegex);
     if (matchPOI && matchPOI[0]) {
@@ -183,40 +488,31 @@ function mapORSInstruction(rawInstruction) {
   }
 
   if (placeName) {
-    // Heurísticas para placeType
-    const placeLower = placeName.toLowerCase();
-    if (placeLower.includes("rua") || placeLower.includes("av") || placeLower.includes("avenida")) {
+    const lower = placeName.toLowerCase();
+    if (lower.includes("rua") || lower.includes("av") || lower.includes("avenida")) {
       placeType = "rua";
-    } else if (placeLower.includes("praia")) {
+    } else if (lower.includes("praia")) {
       placeType = "praia";
       isPOI = true;
-    } else if (placeLower.includes("pousada") || placeLower.includes("hotel")) {
+    } else if (lower.includes("pousada") || lower.includes("hotel")) {
       placeType = "pousada";
       isPOI = true;
-    } else if (placeLower.includes("restaurante")) {
+    } else if (lower.includes("restaurante")) {
       placeType = "restaurante";
       isPOI = true;
-    } else if (placeLower.includes("loja")) {
+    } else if (lower.includes("loja")) {
       placeType = "loja";
       isPOI = true;
-    } else if (placeLower.includes("praça")) {
+    } else if (lower.includes("praça")) {
       placeType = "praça";
-    } else if (placeLower.includes("escada")) {
+    } else if (lower.includes("escada")) {
       placeType = "escada";
     } else {
       placeType = "desconhecido";
     }
   }
 
-  console.log(`[mapORSInstruction] Maneuver: "${maneuverKey}", Place: "${placeName}" (type: ${placeType}), isPOI: ${isPOI}`);
-
-  // Retorna objeto
-  return {
-    maneuverKey,
-    placeName,
-    placeType,
-    isPOI
-  };
+  return { maneuverKey, placeName, placeType, isPOI };
 }
 
 
@@ -1037,24 +1333,19 @@ function getGeneralText(key, lang = 'pt') {
     }
   };
 
-// Checa se o idioma realmente existe no objeto de traduções
   if (!translationsData[lang]) {
-    console.warn(`[getGeneralText] Idioma '${lang}' não encontrado. Fazendo fallback para 'pt'.`);
-    lang = 'pt'; 
+    console.warn(`[getGeneralText] Idioma '${lang}' não encontrado. Fallback 'pt'.`);
+    lang = 'pt';
   }
 
-  // Se a chave existir no idioma atual
   if (translationsData[lang][key]) {
     return translationsData[lang][key];
-  } 
-  // Caso não encontre a chave, mas exista em 'pt'
-  else if (translationsData['pt'][key]) {
-    console.warn(`[getGeneralText] Chave '${key}' ausente em '${lang}', mas existe em 'pt'. Usando fallback 'pt'.`);
+  } else if (translationsData['pt'][key]) {
+    console.warn(`[getGeneralText] Chave '${key}' ausente em '${lang}', mas existe em 'pt'.`);
     return translationsData['pt'][key];
   }
 
-  // Se não encontrou a chave em nenhum lugar
-  console.warn(`[getGeneralText] Chave '${key}' não encontrada em nenhum idioma. Retornando aviso.`);
+  console.warn(`[getGeneralText] Chave '${key}' não encontrada em nenhum idioma.`);
   return `⚠️ ${key}`;
 }
 
@@ -1064,13 +1355,8 @@ function getGeneralText(key, lang = 'pt') {
 // Exemplo de função para inicializar esse estado
 ////////////////////////////////////////////
 /**
- * Reinicializa e configura o estado global de navegação, incluindo camadas no mapa
- * e reinício de variáveis de controle. Garante também que o idioma atual seja salvo.
  * @function initNavigationState
- * @returns {void}
- *
- /**
- * Reseta o estado de navegação (isActive, isPaused, instructions, etc.)
+ * @description Reinicializa variáveis e camadas de navegação.
  */
 function initNavigationState() {
   console.log("[initNavigationState] Reinicializando estado de navegação...");
@@ -1089,6 +1375,8 @@ function initNavigationState() {
 
   console.log("[initNavigationState] Estado de navegação reiniciado.");
 }
+
+
 
 
 
@@ -1184,119 +1472,123 @@ function restoreFeatureUI(feature) {
 
 /**
  * Verifica se o usuário está suficientemente próximo do step atual
- * para avançar a instrução, exibindo e logando a próxima instrução caso exista.
- *
+ * e avança a instrução se sim.
  * @function handleNextInstructionIfClose
- * @param {number} lat - Latitude atual do usuário.
- * @param {number} lon - Longitude atual do usuário.
- * @description
- *  1) Obtém a instrução (step) com base em currentStepIndex.
- *  2) Calcula distância até step.lat/step.lon.
- *  3) Se menor que um limite (ex.: 15m), avança currentStepIndex.
- *  4) Usa getDetailedInstructionText e updateInstructionModal para exibir a instrução seguinte.
- *  5) Logs padronizados no console ([handleNextInstructionIfClose]).
+ * @param {number} lat  - Latitude atual do usuário
+ * @param {number} lon  - Longitude atual do usuário
  */
 function handleNextInstructionIfClose(lat, lon) {
-  // step atual, baseado em variáveis globais (ex.: instructions[] e currentStepIndex)
-  const step = instructions[currentStepIndex];
-  if (!step) {
-    console.log("[handleNextInstructionIfClose] Não há step atual para avançar.");
+  const instructions = navigationState.instructions;
+  const currentIndex = navigationState.currentStepIndex;
+  const lang = navigationState.lang || "pt";
+
+  if (!instructions || instructions.length === 0) {
+    console.log("[handleNextInstructionIfClose] Não há instruções no estado global.");
     return;
   }
 
-  // Distância até o step atual
+  const step = instructions[currentIndex];
+  if (!step) {
+    console.log("[handleNextInstructionIfClose] Step atual é inválido (fim?).");
+    return;
+  }
+
+  // Distância ao step atual
   const distToStep = calculateDistance(lat, lon, step.lat, step.lon);
-  // Verifica se a distância é menor que 15m (ajuste conforme necessidade)
   if (distToStep < 15) {
     // Avança
-    currentStepIndex++;
-    console.log(`[handleNextInstructionIfClose] Avançando para passo ${currentStepIndex}. Distância: ${distToStep.toFixed(1)}m`);
+    navigationState.currentStepIndex++;
+    console.log(`[handleNextInstructionIfClose] Avançando para passo ${navigationState.currentStepIndex}. Distância: ${distToStep.toFixed(1)}m`);
 
-    // Verifica se há próxima instrução
-    const nextStep = instructions[currentStepIndex];
+    // Verifica se ainda há próxima instrução
+    const nextStep = instructions[navigationState.currentStepIndex];
     if (nextStep) {
-      // Gera texto detalhado (já integrado a mapORSInstruction)
-      const detail = getDetailedInstructionText(nextStep, navigationState.lang);
-
-      // Atualiza o modal
-      updateInstructionModal(instructions, currentStepIndex, navigationState.lang);
-
-      // Mostra notificação com instrução da próxima manobra
-      showNotification(detail, "info");
+      // Mostra notificação
+      showNotification(nextStep.text, "info");
+      updateInstructionModal(instructions, navigationState.currentStepIndex, lang);
+      speakInstruction(nextStep.text, lang === "pt" ? "pt-BR" : "en-US");
     } else {
       console.log("[handleNextInstructionIfClose] Fim das instruções (nenhum nextStep).");
+      showNotification(getGeneralText("destinationReached", lang), "success");
     }
   }
 }
 
 
-
+/**
+ * Exemplo de plotagem de rota com múltiplos waypoints (ORS).
+ * @async
+ * @function plotRouteOnMapMultiWaypoints
+ * @param {number} startLat - Latitude de origem.
+ * @param {number} startLon - Longitude de origem.
+ * @param {Array<Object>} waypointsArray - Array de objetos { lat, lon } das paradas intermediárias.
+ * @param {string} [profile='foot-walking'] - Perfil de rota (foot-walking, driving-car etc.).
+ * @returns {Promise<Object|null>} Retorna o objeto routeData da API ou null em caso de erro.
+ */
 async function plotRouteOnMapMultiWaypoints(startLat, startLon, waypointsArray = [], profile = 'foot-walking') {
-    try {
-        // Montar a query para múltiplos waypoints na API do OpenRouteService
-        // Exemplo: start => waypoint1 => waypoint2 => ... => final
-        // Formato esperado: 
-        //  coordinates: [[lonStart, latStart], [lonW1, latW1], ..., [lonFinal, latFinal]]
-        
-        const coordinates = [
-            [startLon, startLat], 
-            ...waypointsArray.map(wp => [wp.lon, wp.lat])
-        ];
+  try {
+    const coordinates = [
+      [startLon, startLat],
+      ...waypointsArray.map(wp => [wp.lon, wp.lat])
+    ];
 
-        const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
-        
-        // Body da requisição para rotas complexas
-        const bodyPayload = {
-            coordinates,     // array de [lon, lat]
-            instructions: true,
-            optimize_waypoints: false // se quiser otimizar a ordem, setar true
-        };
+    const url = `https://api.openrouteservice.org/v2/directions/${profile}`;
+    const bodyPayload = {
+      coordinates,
+      instructions: true,
+      optimize_waypoints: false
+    };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(bodyPayload)
-        });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bodyPayload)
+    });
 
-        if (!response.ok) {
-            console.error("Erro ao obter rota complexa. Status:", response.status);
-            // Tratar erros específicos, ex.: 429, 503, etc.
-            showNotification(`Erro da API (código ${response.status}).`, "error");
-            return null;
-        }
-
-        const routeData = await response.json();
-
-        // Extração das coordenadas
-        const routeCoords = routeData.features[0].geometry.coordinates;
-        const latLngs = routeCoords.map(([lon, lat]) => [lat, lon]);
-
-        // Preparar mapa para nova rota
-        prepareMapForNewRoute();
-
-        // Criar polyline
-        window.currentRoute = L.polyline(latLngs, {
-            color: 'blue',
-            weight: 6,
-            dashArray: '10, 5'
-        }).addTo(map);
-
-        map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
-
-        // (Opcional) Adicionar setas nas linhas, se quiser
-        addDirectionArrows(latLngs);
-        
-        return routeData;
-
-    } catch (error) {
-        console.error("Erro ao plotar rota complexa:", error);
-        showNotification("Falha ao plotar rota com múltiplos destinos.", "error");
-        return null;
+    if (!response.ok) {
+      console.error("[plotRouteOnMapMultiWaypoints] Erro da API ORS:", response.status);
+      showNotification(`Erro da API (código ${response.status}).`, "error");
+      return null;
     }
+
+    const routeData = await response.json();
+    const routeCoords = routeData.features?.[0]?.geometry?.coordinates;
+    if (!routeCoords) {
+      console.warn("[plotRouteOnMapMultiWaypoints] Nenhuma rota retornada.");
+      showNotification("Falha ao obter rota complexa (waypoints).", "warning");
+      return null;
+    }
+
+    // Converte para latLng
+    const latLngs = routeCoords.map(([lon, lat]) => [lat, lon]);
+
+    // Prepara o mapa
+    prepareMapForNewRoute();
+
+    // Cria a polyline
+    window.currentRoute = L.polyline(latLngs, {
+      color: 'blue',
+      weight: 6,
+      dashArray: '10, 5'
+    }).addTo(map);
+
+    // Ajusta bounds
+    map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
+    // Se quiser setas:
+    addDirectionArrows(latLngs);
+
+    showNotification("Rota com múltiplos waypoints plotada com sucesso.", "success");
+    return routeData;
+  } catch (error) {
+    console.error("[plotRouteOnMapMultiWaypoints] Erro geral:", error);
+    showNotification("Falha ao plotar rota com múltiplos destinos.", "error");
+    return null;
+  }
 }
+
 
 
 
@@ -1673,10 +1965,7 @@ let debounceTimer = null;      // Para uso na função debouncedUpdate
 /************************************************************
  *  ESTADO GLOBAL DE NAVEGAÇÃO (EXEMPLO)
  ************************************************************/
-/**
- * Estado global de navegação.
- */
-// Estado global de navegação
+// Exemplo de objeto global para gerenciar estado de navegação
 const navigationState = {
   isActive: false,
   isPaused: false,
@@ -1686,8 +1975,9 @@ const navigationState = {
   selectedDestination: null,
   currentRouteLayer: null,
   routeMarkersLayer: null,
-  lang: 'pt'  // pode ser 'en', 'es', 'he', etc.
+  lang: 'pt'
 };
+
 
 const notificationContainer = document.getElementById("notification-container");
 const navigationInstructionsContainer = document.getElementById("route-summary");
@@ -1715,31 +2005,41 @@ const queries = {
 // ====================================================================
 // GAMIFICAÇÃO BÁSICA - Exemplo de check-in em parceiro
 // ====================================================================
-const TOCA_DO_MORCEGO_COORDS = { lat: -13.3782, lon: -38.9140 }; // Ajuste se necessário
-const PARTNER_CHECKIN_RADIUS = 50; // Distância para "chegar"
+const TOCA_DO_MORCEGO_COORDS = { lat: -13.3782, lon: -38.9140 };
+const PARTNER_CHECKIN_RADIUS = 50;
 
-// Verifica se chegou perto do parceiro e dispara recompensas
+/**
+ * Chamado no watchPosition. Verifica se user está perto de algum parceiro.
+ */
 function checkNearbyPartners(userLat, userLon) {
-    const distanceToToca = calculateDistance(userLat, userLon, TOCA_DO_MORCEGO_COORDS.lat, TOCA_DO_MORCEGO_COORDS.lon);
-    if (distanceToToca < PARTNER_CHECKIN_RADIUS) {
-        handleUserArrivalAtPartner("Toca do Morcego");
-    }
-    // No futuro, inclua outros parceiros aqui
+  const distToca = calculateDistance(userLat, userLon, TOCA_DO_MORCEGO_COORDS.lat, TOCA_DO_MORCEGO_COORDS.lon);
+  if (distToca < PARTNER_CHECKIN_RADIUS) {
+    handleUserArrivalAtPartner("Toca do Morcego");
+  }
 }
 
-// Ao chegar num parceiro, exibe pop-up e dá pontos
 function handleUserArrivalAtPartner(partnerName) {
-    let visitedPartners = JSON.parse(localStorage.getItem('visitedPartners') || '[]');
-    if (visitedPartners.includes(partnerName)) {
-        return; 
-    }
-    visitedPartners.push(partnerName);
-    localStorage.setItem('visitedPartners', JSON.stringify(visitedPartners));
+  let visited = JSON.parse(localStorage.getItem('visitedPartners') || '[]');
+  if (visited.includes(partnerName)) return;
 
-    // Exemplo: awarding points
-    awardPointsToUser(partnerName, 10);
-    showNotification(`Você chegou em ${partnerName}! Ganhou um Drink e 10 pontos!`, 'success');
+  visited.push(partnerName);
+  localStorage.setItem('visitedPartners', JSON.stringify(visited));
+
+  awardPointsToUser(partnerName, 10);
+  showNotification(`Você chegou em ${partnerName}! Ganhou 10 pontos!`, "success");
 }
+
+
+function awardPointsToUser(partnerName, points) {
+  let totalPoints = parseInt(localStorage.getItem('userPoints') || '0', 10);
+  totalPoints += points;
+  localStorage.setItem('userPoints', totalPoints);
+
+  showNotification(`+${points} pontos em ${partnerName}. Total: ${totalPoints}`, "success");
+  console.log("[awardPointsToUser] Pontos totais:", totalPoints);
+}
+
+
 
 
 // ====================================================================
@@ -2218,45 +2518,35 @@ if (startCreateRouteBtn) {
 
 // 7. getCurrentLocation - Obtém a localização atual do usuário - Linha 34
 /**
- * Obtém a localização atual (GPS).
- * Retorna {latitude, longitude} ou null em caso de falha.
+ * Obtém a localização atual do usuário via Geolocation API.
+ * Exibe notificação de erro se falhar.
+ * @async
+ * @function getCurrentLocation
+ * @param {Object} [options] - Opções de geolocalização (ex: { enableHighAccuracy: true }).
+ * @returns {Promise<{latitude: number, longitude: number} | null>}
  */
-async function getCurrentLocation() {
-  if (!("geolocation" in navigator)) {
-    console.error("[getCurrentLocation] Geolocalização não suportada.");
-    showNotification("Seu navegador não suporta geolocalização.", "error");
+async function getCurrentLocation(options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }) {
+  console.log("[getCurrentLocation] Solicitando posição atual...");
+
+  if (!('geolocation' in navigator)) {
+    console.warn("[getCurrentLocation] Geolocalização não suportada no navegador.");
+    showNotification(getGeneralText("trackingError", navigationState.lang), "error");
     return null;
   }
 
   try {
     const position = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 5000
-      });
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
     });
-
     const { latitude, longitude } = position.coords;
-    console.log("[getCurrentLocation] Localização:", latitude, longitude);
+    console.log("[getCurrentLocation] Localização obtida:", latitude, longitude);
     return { latitude, longitude };
   } catch (error) {
     console.error("[getCurrentLocation] Erro:", error);
-    let msg = "Não foi possível obter sua localização.";
-    if (error.code === error.PERMISSION_DENIED) {
-      msg = "Permissão de localização negada.";
-    } else if (error.code === error.POSITION_UNAVAILABLE) {
-      msg = "Localização indisponível.";
-    } else if (error.code === error.TIMEOUT) {
-      msg = "Tempo limite excedido.";
-    }
-    showNotification(msg, "error");
+    showNotification(getGeneralText("trackingError", navigationState.lang), "error");
     return null;
   }
 }
-
-
-
 
 // 8. useCurrentLocation - Centraliza o mapa na posição do usuário
 async function useCurrentLocation() {
@@ -2286,32 +2576,28 @@ let userPosition = null;
  * @param {number} [options.maximumAge=10000] - Cache de leituras antigas (ms).
  * @param {number} [options.timeout=15000] - Tempo limite (ms) para resposta do GPS.
  */
+/**
+ * Inicia o watchPosition, caso 'trackingActive' esteja true.
+ */
 function startPositionTracking(options = {}) {
-  // Desestrutura opções, definindo defaults
-  const {
-    enableHighAccuracy = true,
-    maximumAge = 10000,
-    timeout = 15000
-  } = options;
+  const { enableHighAccuracy = true, maximumAge = 10000, timeout = 15000 } = options;
 
   if (!trackingActive) {
-    console.warn("[startPositionTracking] Rastreamento está inativo. Abortando.");
+    console.warn("[startPositionTracking] trackingActive=false, abortando...");
     return;
   }
 
   if (!("geolocation" in navigator)) {
-    console.warn("[startPositionTracking] Geolocalização não suportada pelo navegador.");
+    console.warn("[startPositionTracking] Geolocalização não suportada.");
     return;
   }
 
-  // Se já existe um watchId ativo, limpamos antes de criar um novo
   if (watchId !== null) {
-    console.log("[startPositionTracking] Limpando watchPosition anterior antes de iniciar outro.");
+    console.log("[startPositionTracking] Limpando watch anterior.");
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
 
-  // Inicia o watchPosition
   watchId = navigator.geolocation.watchPosition(
     (position) => {
       userPosition = {
@@ -2319,43 +2605,18 @@ function startPositionTracking(options = {}) {
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy
       };
-
       console.log("[startPositionTracking] Posição atualizada:", userPosition);
-
-      // Exemplo: se estiver usando Service Worker e quiser avisar todos os clients
-      if (typeof self !== "undefined" && self.clients) {
-        self.clients.matchAll().then((clients) => {
-          clients.forEach((client) => {
-            client.postMessage({ action: 'positionUpdate', payload: userPosition });
-          });
-        });
-      }
-
-      // Opcional: você pode chamar alguma função que atualize o mapa ou UI
-      // updateMapWithUserLocation(userPosition);
     },
     (error) => {
-      console.error("[startPositionTracking] Erro ao rastrear posição:", error);
-      // Se quiser notificar via Service Worker:
-      if (typeof self !== "undefined" && self.clients) {
-        self.clients.matchAll().then((clients) => {
-          clients.forEach((client) => {
-            client.postMessage({ action: 'trackingError', payload: error.message });
-          });
-        });
-      }
-      // Opcional: showNotification("Não foi possível obter localização.", "error");
+      console.error("[startPositionTracking] Erro:", error);
+      showNotification("Não foi possível obter localização.", "error");
+      fallbackToSensorNavigation(); // Ativa fallback
     },
-    {
-      enableHighAccuracy,
-      maximumAge,
-      timeout
-    }
+    { enableHighAccuracy, maximumAge, timeout }
   );
 
   console.log("[startPositionTracking] watchPosition iniciado. watchId =", watchId);
 }
-
 
 // 10. updateMapWithUserLocation - Atualiza o mapa com a localização do usuário - Linha 46
 function updateMapWithUserLocation(zoomLevel = 15) {
@@ -2380,7 +2641,7 @@ function detectMotion() {
     }
 }
 
-// 12. adjustMapWithLocationUser - Ajusta o mapa para a localização do usuário - Linha 54
+// 12. adjuMapWithLocationUser - Ajusta o mapa para a localização do usuário - Linha 54
 function adjustMapWithLocationUser(lat, lon) {
     map.setView([lat, lon], 15);
     const marker = L.marker([lat, lon]).addTo(map)
@@ -2399,22 +2660,16 @@ function centerMapOnUser(lat, lon) {
 // 14. adjustMapZoomBySpeed - Ajusta o zoom com base na velocidade - Linha 62
 function adjustMapZoomBySpeed(speed) {
   if (!map) return;
-  
+
   let newZoom;
-  if (speed < 3) {
-    newZoom = 17; // Caminhada lenta
-  } else if (speed < 8) {
-    newZoom = 15; // Caminhada rápida / jogging
-  } else if (speed < 15) {
-    newZoom = 13; // Bicicleta ou veículo lento
-  } else {
-    newZoom = 11; // Carro mais rápido
-  }
+  if (speed < 1)      newZoom = 17;
+  else if (speed < 3) newZoom = 16;
+  else if (speed < 8) newZoom = 15;
+  else                newZoom = 13;
 
   map.setZoom(newZoom);
-  showNotification(`Zoom ajustado de acordo com velocidade: ~${speed.toFixed(1)} m/s.`, "info");
+  console.log(`[adjustMapZoomBySpeed] Velocidade ~${speed.toFixed(1)} => Zoom=${newZoom}`);
 }
-
 
 // 15. adjustMapWithLocation - Ajusta a posição do mapa conforme dados de GPS - Linha 66
 function adjustMapWithLocation(
@@ -2447,7 +2702,6 @@ function adjustMapWithLocation(
   }
 }
 
-
 // ======================
 // NAVEGAÇÃO E ROTAS (Funções 16 - 28)
 // ======================
@@ -2459,10 +2713,9 @@ function clearCurrentRoute() {
     window.currentRoute = null;
     console.log("Rota atual removida do mapa.");
   } else {
-    console.log("Nenhuma rota estava ativa para ser removida.");
+    console.log("Nenhuma rota estava ativa para remover.");
   }
 }
-
 
 // 17. clearMarkers - Remove todos os marcadores do mapa - Linha 78
 
@@ -2484,21 +2737,10 @@ function clearMarkers(filterFn) {
 
 
 // 18. plotRouteOnMap - Plota a rota no mapa com base em destinos
-/**
- * Plota a rota (apenas a polyline) no mapa, sem instruções detalhadas.
- */
-async function plotRouteOnMap(
-  startLat, startLon,
-  destLat, destLon,
-  profile = 'foot-walking'
-) {
+async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile = 'foot-walking') {
   console.log("[plotRouteOnMap] Plotando rota no mapa...");
 
-  const url = `https://api.openrouteservice.org/v2/directions/${profile}`
-    + `?api_key=${apiKey}`
-    + `&start=${startLon},${startLat}`
-    + `&end=${destLon},${destLat}`
-    + `&instructions=false`;
+  const url = `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=false`;
 
   try {
     const response = await fetch(url);
@@ -2506,68 +2748,102 @@ async function plotRouteOnMap(
       console.warn("[plotRouteOnMap] Erro ao obter rota. status:", response.status);
       return null;
     }
-    const routeData = await response.json();
-    if (!routeData.features || !routeData.features[0]) {
+    const data = await response.json();
+    if (!data.features || !data.features[0]) {
       console.warn("[plotRouteOnMap] Nenhum dado de rota retornado.");
       return null;
     }
 
-    const coords = routeData.features[0].geometry.coordinates; // [ [lon, lat], ...]
+    const coords = data.features[0].geometry.coordinates;
     if (!coords || coords.length === 0) {
       console.warn("[plotRouteOnMap] Nenhuma coordenada na rota.");
       return null;
     }
 
     const latLngs = coords.map(([lon, lat]) => [lat, lon]);
-
-    // Remove rota anterior se houver
     if (window.currentRoute) {
       map.removeLayer(window.currentRoute);
     }
-
-    // Cria nova polyline
-    window.currentRoute = L.polyline(latLngs, {
-      color: "blue",
-      weight: 5,
-      opacity: 0.9,
-      dashArray: "10, 5"
-    }).addTo(map);
-
-    // Ajusta zoom para caber a rota
+    window.currentRoute = L.polyline(latLngs, { color: "blue", weight: 5 }).addTo(map);
     map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
-    console.log("[plotRouteOnMap] Rota plotada com sucesso.");
 
-    return routeData;
+    console.log("[plotRouteOnMap] Rota plotada com sucesso.");
+    return data;
   } catch (error) {
     console.error("[plotRouteOnMap] Erro:", error);
     return null;
   }
 }
 
-
-
-
-
 // 19. calculateDistance - Calcula a distância entre dois pontos
-/**
- * Retorna a distância (em metros) entre dois pontos (lat1, lon1) e (lat2, lon2).
- */
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // raio da Terra em km
+  const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) *
-    Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c * 1000; // converte para metros
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c * 1000;
 }
 
+/**
+ * @function distanceToPolyline
+ * @description Calcula distância do ponto (userLat, userLon) até uma polylinha (array de [lat, lon]).
+ */
+function distanceToPolyline(userLat, userLon, polylineCoords) {
+  // Exemplo simples: pegamos a menor distância do user a cada segmento da polyline.
+  // (Implementação simplificada; para algo robusto, pode usar libs específicas).
+  let minDist = Infinity;
+  for (let i = 0; i < polylineCoords.length - 1; i++) {
+    const p1 = polylineCoords[i];
+    const p2 = polylineCoords[i + 1];
+    const dist = distancePointToSegment(userLat, userLon, p1[0], p1[1], p2[0], p2[1]);
+    if (dist < minDist) minDist = dist;
+  }
+  return minDist;
+}
 
+/**
+ * Calcula a distância (em metros) do ponto (latA, lonA) a um segmento [lat1, lon1 -> lat2, lon2].
+ * Usa uma projeção equiretangular aproximada para simplificar.
+ * @function pointToSegmentDistance
+ * @param {number} latA - Latitude do ponto A.
+ * @param {number} lonA - Longitude do ponto A.
+ * @param {number} lat1 - Latitude do 1º ponto do segmento.
+ * @param {number} lon1 - Longitude do 1º ponto do segmento.
+ * @param {number} lat2 - Latitude do 2º ponto do segmento.
+ * @param {number} lon2 - Longitude do 2º ponto do segmento.
+ * @returns {number} Distância em metros.
+ */
+function pointToSegmentDistance(latA, lonA, lat1, lon1, lat2, lon2) {
+  const R = 6371000; // raio médio da Terra em metros
+  const rad = Math.PI / 180;
+
+  // Converte lat/lon para coord x,y aproximadas
+  const Ax = R * lonA * rad * Math.cos(latA * rad);
+  const Ay = R * latA * rad;
+  const x1 = R * lon1 * rad * Math.cos(lat1 * rad);
+  const y1 = R * lat1 * rad;
+  const x2 = R * lon2 * rad * Math.cos(lat2 * rad);
+  const y2 = R * lat2 * rad;
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const segLen2 = dx * dx + dy * dy;
+
+  // Se p1 == p2
+  if (segLen2 === 0) {
+    return Math.sqrt((Ax - x1) ** 2 + (Ay - y1) ** 2);
+  }
+
+  let t = ((Ax - x1) * dx + (Ay - y1) * dy) / segLen2;
+  t = Math.max(0, Math.min(1, t));
+
+  const projx = x1 + t * dx;
+  const projy = y1 + t * dy;
+  return Math.sqrt((Ax - projx) ** 2 + (Ay - projy) ** 2);
+}
 
 // 20. getLocationWithTimeout - Obtém localização com tempo limite - Linha 90
 function getLocationWithTimeout(timeout = 10000) {
@@ -2602,120 +2878,114 @@ function clearAllMarkers() {
 }
 
 // 22. startNavigation - Inicia a navegação até o destino
-/**
- * Inicia todo o fluxo de navegação:
- *  1) Valida destino
- *  2) Obtém localização do usuário, se não existir
- *  3) Limpa rota anterior
- *  4) Busca instruções
- *  5) Atualiza instruções no modal
- *  6) Plota rota no mapa
- *  7) watchPosition => updateRealTimeNavigation
- */
 async function startNavigation() {
   console.log("[startNavigation] Iniciando...");
 
-  // 1) Valida destino
   if (!validateDestination(selectedDestination)) {
-    console.warn("[startNavigation] Destino inválido. Abortando.");
+    console.warn("[startNavigation] Destino inválido ou não definido.");
+    showNotification(getGeneralText("invalidDestination", navigationState.lang), "warning");
     return;
   }
 
   try {
-    // 2) userLocation
+    // Garante localização
     if (!userLocation) {
       userLocation = await getCurrentLocation();
       if (!userLocation) {
-        console.warn("[startNavigation] Falha ao obter localização do usuário.");
+        console.error("[startNavigation] Falha ao obter localização do usuário.");
+        showNotification(getGeneralText("locationUnavailable", navigationState.lang), "error");
         return;
       }
     }
 
-    // 3) Limpa rota anterior
+    // Limpa rota anterior
     clearCurrentRoute();
 
-    // 4) Notifica início
-    showNotification(getGeneralText("navigationStarted", navigationState.lang), "success");
-    // giveVoiceFeedback(getGeneralText("navigationStarted", navigationState.lang));
+    const navStartedMsg = getGeneralText("navigationStarted", navigationState.lang);
+    showNotification(navStartedMsg, "success");
+    speakInstruction(navStartedMsg, navigationState.lang === "pt" ? "pt-BR" : "en-US");
 
-    // 5) Busca instruções
-    const routeInstructions = await fetchRouteInstructions(
+    // Obtém instruções
+    const instructions = await fetchRouteInstructions(
       userLocation.latitude,
       userLocation.longitude,
       selectedDestination.lat,
       selectedDestination.lon,
       navigationState.lang
     );
-    if (!routeInstructions || routeInstructions.length === 0) {
-      console.error("[startNavigation] Nenhuma instrução disponível.");
+
+    if (!instructions || instructions.length === 0) {
       showNotification(getGeneralText("noInstructions", navigationState.lang), "error");
       return;
     }
 
-    // 6) Atualiza modal com as primeiras instruções
-    updateInstructionModal(routeInstructions, 0, navigationState.lang);
-
-    // Plota rota (opcional, mas recomendável)
-    await plotRouteOnMap(
+    // Plota rota no mapa
+    const routeData = await plotRouteOnMap(
       userLocation.latitude,
       userLocation.longitude,
       selectedDestination.lat,
       selectedDestination.lon
     );
 
-    // 7) Atualiza o estado global
+    let routeLatLngs = [];
+    if (routeData?.features?.[0]) {
+      routeLatLngs = routeData.features[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+    }
+
+    // Atualiza o modal de instruções
+    updateInstructionModal(instructions, 0, navigationState.lang);
+
+    // Define estado
     updateNavigationState({
-      instructions: routeInstructions,
+      instructions,
       currentStepIndex: 0,
       isActive: true,
       isPaused: false
     });
-    console.log("[startNavigation] Instruções obtidas:", routeInstructions.length);
 
-    // watchPosition => updateRealTimeNavigation
+    // **Novo**: já destaca o primeiro step com a seta piscante
+    highlightNextStepInMap(instructions[0]);
+
+    // watchPosition
     window.positionWatcher = navigator.geolocation.watchPosition(
       (pos) => {
         if (navigationState.isPaused) return;
-
-        const { latitude, longitude } = pos.coords;
+        const { latitude, longitude, speed } = pos.coords;
         userLocation = { latitude, longitude };
 
-        const distToDest = calculateDistance(
-          latitude,
-          longitude,
-          selectedDestination.lat,
-          selectedDestination.lon
-        );
-        if (distToDest <= 25) {
-          console.log("[startNavigation] Chegou ao destino!");
-          showNotification(getGeneralText("arrivedAtDestination", navigationState.lang), "success");
-          endNavigation();
-          return;
-        }
+        // Gatilhos de gamificação
+        checkNearbyPartners(latitude, longitude);
 
-        // Chama updateRealTimeNavigation p/ avançar step se estiver perto
+        // Atualiza a navegação
         updateRealTimeNavigation(
           latitude,
           longitude,
-          routeInstructions,
+          instructions,
           selectedDestination.lat,
           selectedDestination.lon,
-          navigationState.lang
+          navigationState.lang,
+          routeLatLngs,
+          speed || 0
         );
       },
-      (error) => {
-        console.error("[startNavigation] watchPosition erro:", error);
+      (err) => {
+        console.error("[startNavigation] watchPosition erro:", err);
         showNotification(getGeneralText("trackingError", navigationState.lang), "error");
+        fallbackToSensorNavigation();
       },
       { enableHighAccuracy: true }
     );
 
-    console.log("[startNavigation] Navegação iniciada com sucesso.");
   } catch (error) {
     console.error("[startNavigation] Erro:", error);
     showNotification(getGeneralText("routeError", navigationState.lang), "error");
   }
 }
+
+
+
+
+
 
 
 
@@ -2765,7 +3035,7 @@ function monitorUserState() {
 // ====================================================================
 function trackUserMovement(destLat, destLon, routeInstructions, lang = selectedLanguage) {
   if (window.positionWatcher !== undefined) {
-    console.warn("Já existe um watchPosition ativo. Evitando criação duplicada.");
+    console.warn("[trackUserMovement] Já existe um watchPosition ativo.");
     return;
   }
 
@@ -2775,35 +3045,32 @@ function trackUserMovement(destLat, destLon, routeInstructions, lang = selectedL
 
   window.positionWatcher = navigator.geolocation.watchPosition(
     (position) => {
-      if (isNavigationPaused) {
-        console.log("Navegação está pausada. Ignorando updates de posição.");
-        return;
-      }
+      if (isNavigationPaused) return;
       const { latitude, longitude } = position.coords;
       userLocation = { latitude, longitude };
 
+      checkNearbyPartners(latitude, longitude); // Gamificação
+
       const distanceToDestination = calculateDistance(latitude, longitude, destLat, destLon);
       if (distanceToDestination <= 25) {
-        console.log("Usuário chegou ao destino!");
+        console.log("[trackUserMovement] Usuário chegou ao destino!");
         showNotification("Você chegou ao seu destino!", "success");
         endNavigation();
         return;
       }
 
       updateRealTimeNavigation(
-        latitude,
-        longitude,
+        latitude, longitude,
         instructions,
-        destLat,
-        destLon,
+        destLat, destLon,
         lang
       );
-
-      handleNextInstructionIfClose?.(latitude, longitude); // se existir
+      handleNextInstructionIfClose(latitude, longitude);
     },
     (error) => {
-      console.error("Erro no rastreamento de localização:", error);
+      console.error("[trackUserMovement] Erro no rastreamento:", error);
       showNotification("Erro ao rastrear o usuário.", "error");
+      fallbackToSensorNavigation();
     },
     { enableHighAccuracy: true }
   );
@@ -2811,12 +3078,16 @@ function trackUserMovement(destLat, destLon, routeInstructions, lang = selectedL
 
 
 
+
 // 26. fallbackToSensorNavigation - Ativa fallback se o GPS falhar
 function fallbackToSensorNavigation() {
   showNotification("GPS indisponível. Ativando sensores de movimento...", "info");
-  detectMotion(); // assume que detectMotion() existe
-  console.log("Fallback para navegação por sensores ativado.");
+  detectMotion(); // Se tiver uma detectMotion() implementada
+  console.log("[fallbackToSensorNavigation] Navegação fallback por sensores ativada.");
 }
+
+
+
 
 
 // 27. alertGPSFailure - Alerta falha no GPS - Linha 118
@@ -2854,14 +3125,17 @@ function handleUserIdleState(lastLocation, currentLocation) {
 }
 
 // 30. showNotification - Exibe notificações e alertas ao usuário - Linha 130
+/**
+ * Exibe uma notificação flutuante por alguns segundos.
+ * @function showNotification
+ * @param {string} message - Texto da notificação.
+ * @param {string} [type='info'] - Pode ser "info", "success", "warning", "error".
+ * @param {number} [duration=3000] - Tempo de exibição em ms.
+ */
 function showNotification(message, type = "info", duration = 3000) {
-  if (tutorialIsActive) {
-    duration = 5000;
-  }
-
   const container = document.getElementById("notification-container");
   if (!container) {
-    console.warn("❌ Container de notificações não encontrado.");
+    console.warn("[showNotification] #notification-container não encontrado.");
     return;
   }
 
@@ -2871,19 +3145,18 @@ function showNotification(message, type = "info", duration = 3000) {
     warning: "⚠️",
     error: "❌",
   };
-
   const notification = document.createElement("div");
   notification.className = `notification notification-${type}`;
   notification.innerHTML = `<span>${iconMap[type] || "ℹ️"}</span> ${message}`;
 
   container.appendChild(notification);
 
-  if (type === "error" || type === "warning") {
-    triggerHapticFeedback("recalculating");
-  }
-
-  setTimeout(() => notification.remove(), duration);
+  setTimeout(() => {
+    notification.remove();
+  }, duration);
 }
+
+
 
 
 // 31. triggerHapticFeedback - Fornece vibração durante alertas ou navegação - Linha 134
@@ -2925,209 +3198,211 @@ function triggerHapticFeedback(type = "short") {
 // ======================
 
 // 32. updateRealTimeNavigation - Atualiza a navegação em tempo real (turn-by-turn)
-
-/**
- * Atualiza a navegação em tempo real (turn-by-turn):
- * - Se estiver perto do step atual, avança.
- * - Se estiver muito perto do destino final, encerra a navegação.
- */
 function updateRealTimeNavigation(
-  userLat,
-  userLon,
+  userLat, userLon,
   instructions,
-  destLat,
-  destLon,
-  lang = 'pt'
+  destLat, destLon,
+  lang,
+  routeLatLngs = [],
+  userSpeed = 0
 ) {
   let currentIndex = navigationState.currentStepIndex;
   const currentStep = instructions[currentIndex];
-
   if (!currentStep) {
-    console.log("[updateRealTimeNavigation] Não há step (talvez fim da rota).");
+    console.log("[updateRealTimeNavigation] Nenhum step (rota finalizada?).");
     return;
   }
 
-  // Distância até o step atual
+  // Ajusta zoom pela velocidade, se quiser
+  if (userSpeed > 0) {
+    adjustMapZoomBySpeed(userSpeed);
+  }
+
+  // Verifica se usuário chegou ao step
   const distToStep = calculateDistance(userLat, userLon, currentStep.lat, currentStep.lon);
   if (distToStep < 15) {
-    // Avança
+    // Avança step
     navigationState.currentStepIndex++;
     currentIndex = navigationState.currentStepIndex;
-    console.log(`[updateRealTimeNavigation] Avançando para passo ${currentIndex}, dist: ${distToStep}m`);
 
     if (currentIndex < instructions.length) {
       updateInstructionModal(instructions, currentIndex, lang);
-      // (Opcional) giveVoiceFeedback(instructions[currentIndex].text, lang)
+      speakInstruction(instructions[currentIndex].text, lang === "pt" ? "pt-BR" : "en-US");
+
+      // >>> Destaca o novo step com a seta piscante <<<
+      highlightNextStepInMap(instructions[currentIndex]);
+
     } else {
-      showNotification("Todas as instruções concluídas. Destino à frente!", "success");
+      // fim das instruções => destino
+      showNotification(getGeneralText("destinationReached", lang), "success");
       return;
     }
   }
 
-  // Distância ao destino
+  // Checa distância ao destino
   const distToDest = calculateDistance(userLat, userLon, destLat, destLon);
   if (distToDest < 25) {
-    showNotification(getGeneralText("arrivedAtDestination", lang), "success");
-    // giveVoiceFeedback(getGeneralText("arrivedAtDestination", lang), ...)
+    const arrivedMsg = getGeneralText("arrivedAtDestination", lang);
+    showNotification(arrivedMsg, "success");
+    speakInstruction(arrivedMsg, lang === "pt" ? "pt-BR" : "en-US");
     endNavigation();
+    return;
+  }
+
+  // Detecta se está fora da polilinha principal
+  if (routeLatLngs.length > 0) {
+    const offRouteDist = distanceToPolyline(userLat, userLon, routeLatLngs);
+    if (offRouteDist > 50) {
+      console.log("[updateRealTimeNavigation] Desvio detectado (>50m).");
+      notifyDeviation();
+    }
   }
 }
-
-
 
  
 // 33. recalculateRoute - Recalcula a rota ao detectar desvios
-/**
- * Recalcula a rota quando o usuário se desvia do caminho, solicita um novo trajeto,
- * ou mesmo altera a modalidade (ex.: caminhada -> carro).
- * @async
- * @function recalculateRoute
- * @param {number} userLat - Latitude atual do usuário.
- * @param {number} userLon - Longitude atual do usuário.
- * @param {number} destLat - Latitude do destino final.
- * @param {number} destLon - Longitude do destino final.
- * @param {object} [options] - Opções extras para personalizar o recálculo.
- * @param {string} [options.lang='pt'] - Idioma para exibir mensagens (ex.: 'pt', 'en').
- * @param {boolean} [options.forceRestartTracking=false] - Se true, reinicia o watchPosition ao final.
- * @param {string} [options.transportMode='foot-walking'] - Modalidade de transporte (ex.: 'foot-walking', 'driving-car', etc.).
- * @param {boolean} [options.bigDeviation=false] - Indica se houve grande desvio (distância muito alta do trajeto).
- * @description
- *  1) Valida coordenadas.  
- *  2) Se for mudança de modalidade, aplica essa info ao fetchRouteInstructions.  
- *  3) Remove watchers se necessário.  
- *  4) Chama API para novas instruções.  
- *  5) Limpa rota anterior e plota nova.  
- *  6) Atualiza estado global e exibe notificações.  
- *  7) (Opcional) Reinicia watchPosition com configurações adequadas à nova modalidade.
- */
 async function recalculateRoute(userLat, userLon, destLat, destLon, options = {}) {
-  // Desestrutura as opções
-  const {
-    lang = 'pt',
-    forceRestartTracking = false,
-    transportMode = 'foot-walking',
-    bigDeviation = false
-  } = options;
-
-  console.log("[recalculateRoute] Iniciando recálculo de rota...");
+  const { lang = "pt", bigDeviation = false, profile = "foot-walking" } = options;
+  console.log("[recalculateRoute] Recalculando...");
 
   try {
-    // 1) Verifica coordenadas básicas
-    if (
-      typeof userLat !== "number" ||
-      typeof userLon !== "number" ||
-      typeof destLat !== "number" ||
-      typeof destLon !== "number"
-    ) {
-      console.warn("[recalculateRoute] Coordenadas inválidas. Abortando.");
-      showNotification(getGeneralText("invalidDestination", lang), "error");
-      return;
+    if (window.positionWatcher) {
+      navigator.geolocation.clearWatch(window.positionWatcher);
+      window.positionWatcher = null;
     }
 
-    // 2) Se quiser logar o modo de transporte e se houve desvio grande
     if (bigDeviation) {
-      console.log("[recalculateRoute] Desvio significativo detectado.");
       showNotification(getGeneralText("routeDeviated", lang), "warning");
+      speakInstruction(getGeneralText("offRoute", lang), lang === "pt" ? "pt-BR" : "en-US");
     }
 
-    console.log("[recalculateRoute] Modo de transporte selecionado:", transportMode);
-
-    // 3) Opcional: se quisermos parar watchPosition antes de recalcular
-    //    (ex.: se bigDeviation for true ou se a gente mudar as configs do geolocalizador)
-    if (bigDeviation || forceRestartTracking) {
-      if (window.positionWatcher) {
-        console.log("[recalculateRoute] Limpando watchPosition anterior para reconfigurar.");
-        navigator.geolocation.clearWatch(window.positionWatcher);
-        window.positionWatcher = null;
-      }
-    }
-
-    // 4) Busca novas instruções (API de rotas).
-    //    Se a API suportar diferentes perfis, podemos passar 'transportMode'.
-    //    Exemplo: fetchRouteInstructions(..., transportMode)
-    const instructions = await fetchRouteInstructions(
-      userLat,
-      userLon,
-      destLat,
-      destLon,
+    const newInstructions = await fetchRouteInstructions(
+      userLat, userLon,
+      destLat, destLon,
       lang,
-      transportMode
+      profile
     );
-    if (!instructions || instructions.length === 0) {
-      console.warn("[recalculateRoute] Sem instruções na nova rota.");
-      showNotification(getGeneralText("routeError", lang), "error");
+
+    if (!newInstructions || newInstructions.length === 0) {
+      showNotification(getGeneralText("noInstructions", lang), "error");
       return;
     }
 
-    // 5) Limpa rota anterior do mapa
     clearCurrentRoute();
-    console.log("[recalculateRoute] Rota anterior removida.");
 
-    // 6) Plota nova rota no mapa
-    await plotRouteOnMap(userLat, userLon, destLat, destLon, transportMode);
-    console.log("[recalculateRoute] Nova rota plotada com sucesso.");
+    const routeData = await plotRouteOnMap(userLat, userLon, destLat, destLon, profile);
+    let routeLatLngs = [];
+    if (routeData?.features?.[0]) {
+      routeLatLngs = routeData.features[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+    }
 
-    // 7) Atualiza o estado de navegação
     updateNavigationState({
-      instructions,
+      instructions: newInstructions,
       currentStepIndex: 0,
-      isActive: true,          // Reativa a navegação
-      selectedProfile: transportMode, // Guarda o modo de transporte no estado
+      isActive: true,
+      isPaused: false
     });
 
-    // 8) Notificação de sucesso
     showNotification(getGeneralText("routeRecalculatedOk", lang), "success");
-    console.log("[recalculateRoute] Rota recalculada com sucesso.");
 
-    // 9) Se quisermos reiniciar o rastreamento
-    if (forceRestartTracking || bigDeviation) {
-      startPositionTracking({
-        highAccuracy: transportMode !== 'foot-walking', 
-        // Ex.: modo carro => não precisa super high accuracy, 
-        // mas depende do seu caso
-      });
-    }
+    // Destaca o step inicial novamente com a seta piscante
+    highlightNextStepInMap(newInstructions[0]);
+
+    // Reativa watchPosition
+    window.positionWatcher = navigator.geolocation.watchPosition(
+      (pos) => {
+        if (navigationState.isPaused) return;
+        const { latitude, longitude, speed } = pos.coords;
+
+        updateRealTimeNavigation(
+          latitude, longitude,
+          newInstructions,
+          destLat, destLon,
+          lang,
+          routeLatLngs,
+          speed || 0
+        );
+      },
+      (error) => {
+        console.error("[recalculateRoute] watchPosition erro:", error);
+        fallbackToSensorNavigation();
+      },
+      { enableHighAccuracy: true }
+    );
+
   } catch (error) {
-    console.error("[recalculateRoute] Erro ao recalcular:", error);
-    showNotification(getGeneralText("createRouteError", lang), "error");
+    console.error("[recalculateRoute] Erro:", error);
+    showNotification(getGeneralText("routeError", lang), "error");
   }
 }
 
+
+
+
+
+
 // 34. notifyDeviation - Notifica quando o usuário desvia da rota
+/**
+ * Notifica que o usuário saiu da rota e dispara recálculo.
+ * @function notifyDeviation
+ */
 function notifyDeviation() {
-    showNotification('Você desviou da rota. Recalculando...', 'warning');
-    // Vamos usar userLocation e selectedDestination, se disponíveis
-    if (userLocation && selectedDestination && selectedDestination.lat && selectedDestination.lon) {
-        recalculateRoute(
-            userLocation.latitude,
-            userLocation.longitude,
-            selectedDestination.lat,
-            selectedDestination.lon
-        );
-    } else {
-        console.error("Não foi possível recalcular rota (coords indisponíveis).");
-    }
+  const lang = navigationState.lang || 'pt';
+  showNotification(getGeneralText("routeDeviated", lang), "warning");
+
+  if (userLocation && selectedDestination) {
+    recalculateRoute(
+      userLocation.latitude,
+      userLocation.longitude,
+      selectedDestination.lat,
+      selectedDestination.lon,
+      { bigDeviation: true, lang }
+    );
+  }
 }
+
+
+
 
 
 // 35. validateDestination - Valida se o destino tem lat/lon
 /**
- * Verifica se o destino é válido (lat, lon).
+ * Verifica se o destino fornecido é válido (possui lat e lon numéricos).
+ * Emite notificação de alerta se estiver inválido.
  * @function validateDestination
- * @param {Object} [destination=selectedDestination] - Objeto de destino com lat, lon, e opcionalmente name.
- * @returns {boolean} Retorna true se for válido, false se for inválido.
+ * @param {Object} [destination=selectedDestination] - Objeto do destino contendo lat, lon, name, etc.
+ * @returns {boolean} Retorna true se o destino for válido, false caso contrário.
  */
 function validateDestination(destination = selectedDestination) {
-  if (!destination || !destination.lat || !destination.lon) {
-    showNotification('Destino inválido. Por favor, selecione outro.', 'error');
+  console.log("[validateDestination] Checando destino...");
+
+  // Caso destino não exista ou seja null/undefined
+  if (!destination) {
+    showNotification(getGeneralText("invalidDestination", navigationState.lang), "warning");
+    console.warn("[validateDestination] Nenhum destino fornecido.");
     return false;
   }
-  if (!destination.name) {
-    console.warn('[validateDestination] Destino sem nome. Prosseguindo...');
+
+  // Verifica se lat e lon são números
+  if (
+    typeof destination.lat !== "number" ||
+    typeof destination.lon !== "number" ||
+    Number.isNaN(destination.lat) ||
+    Number.isNaN(destination.lon)
+  ) {
+    showNotification(getGeneralText("invalidDestination", navigationState.lang), "warning");
+    console.warn("[validateDestination] Propriedades lat/lon ausentes ou inválidas:", destination);
+    return false;
   }
-  console.log(`[validateDestination] Destino válido: ${destination.name || 'Sem nome'}.`);
+
+  // (Opcional) Poderíamos também checar limites geográficos, se quisermos
+  // Ex: se lat/lon estiverem fora de -180..180 ou -90..90
+
+  console.log("[validateDestination] Destino considerado válido:", destination);
   return true;
 }
+
+
 
 
 
@@ -3158,25 +3433,21 @@ function notifyNextInstruction(instruction) {
 
 
 // 39. shouldRecalculateRoute - Verifica se a rota precisa ser recalculada (ex. via user input ou heurísticas)
-function shouldRecalculateRoute() {
-    // Em vez de rely em detectMotion() como boolean, podemos apenas checar alguma condição:
-    if (userLocation && selectedDestination) {
-        const distance = calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            selectedDestination.lat,
-            selectedDestination.lon
-        );
-        // Se a distância for muito maior do que o esperado, consideramos que desviou
-        if (distance > 2000) {
-            console.log('Desvio grande detectado. Chama notifyDeviation().');
-            notifyDeviation();
-        }
-    } else {
-        console.warn('Não há dados de userLocation ou selectedDestination para verificar desvio.');
-    }
-    console.log('Verificação de recalculo de rota concluída.');
+function shouldRecalculateRoute(userLat, userLon, instructions) {
+  // Lógica simples: se o user está a mais de X metros do step atual, retorna true
+  // (poderia comparar com polilinha real da rota, etc.)
+  const currentIndex = navigationState.currentStepIndex;
+  const currentStep = instructions[currentIndex];
+  if (!currentStep) return false;
+
+  const distToStep = calculateDistance(userLat, userLon, currentStep.lat, currentStep.lon);
+  if (distToStep > 50) {
+    console.log("[shouldRecalculateRoute] Desvio detectado. Dist:", distToStep);
+    return true;
+  }
+  return false;
 }
+
 
 // 40. analyzeRouteForObstacles - Analisa a rota para detectar obstáculos (placeholder)
 function analyzeRouteForObstacles(route) {
@@ -3234,55 +3505,113 @@ function startRoutePreview() {
 
 // 43. endNavigation - Finaliza a navegação
 /**
- * Encerra a navegação, limpa watchers, reseta estado,
- * oculta modal de instruções, etc.
+ * Finaliza a navegação em andamento, limpando o watchPosition e resetando estado.
+ * @function endNavigation
+ * @returns {void}
  */
 function endNavigation() {
+  console.log("[endNavigation] Encerrando navegação...");
+
+  // Seta estado como inativo
   navigationState.isActive = false;
   navigationState.isPaused = false;
 
+  // Remove watchPosition se existir
   if (window.positionWatcher !== undefined) {
     navigator.geolocation.clearWatch(window.positionWatcher);
     window.positionWatcher = undefined;
   }
 
+  // Limpa a rota no mapa
   clearCurrentRoute();
+
+  // Reinicializa o estado de navegação (opcional)
   initNavigationState();
 
+  // Oculta modal de instruções
   const instructionsModal = document.getElementById("navigation-instructions");
   if (instructionsModal) {
     instructionsModal.classList.add("hidden");
     instructionsModal.innerHTML = "";
   }
 
+  // Exibe notificação e log
   showNotification(getGeneralText("navEnded", navigationState.lang), "info");
-  console.log("[endNavigation] Navegação encerrada.");
+  console.log("[endNavigation] Navegação encerrada com sucesso.");
 }
+
 
 
 
 // 44. finalizeRouteOnArrival - Conclui a rota ao chegar ao destino - Linha 186
-function finalizeRouteOnArrival() {
-    showNotification('Você chegou ao seu destino.', 'success');
-    endNavigation();
-}
-
-// 45. pauseNavigation - Pausa a navegação em progresso - Linha 190
+/**
+ * @function pauseNavigation
+ * @description Pausa a navegação em andamento (para de atualizar steps).
+ */
 function pauseNavigation() {
-  if (!isNavigationActive) {
-    console.warn("Navegação não está ativa para ser pausada.");
+  if (!navigationState.isActive) {
+    console.warn("[pauseNavigation] Navegação não está ativa.");
+    return;
+  }
+  if (navigationState.isPaused) {
+    console.log("[pauseNavigation] Navegação já está pausada.");
     return;
   }
 
-  isNavigationPaused = true;
-  if (window.positionWatcher !== undefined) {
+  navigationState.isPaused = true;
+  if (window.positionWatcher) {
     navigator.geolocation.clearWatch(window.positionWatcher);
-    window.positionWatcher = undefined;
+    window.positionWatcher = null;
+  }
+  showNotification(getGeneralText("navPaused", navigationState.lang), "info");
+  console.log("[pauseNavigation] Navegação pausada.");
+}
+
+/**
+ * @function continueNavigation
+ * @description Retoma a navegação pausada, reativando watchPosition e a lógica de steps.
+ */
+function continueNavigation() {
+  if (!navigationState.isActive) {
+    console.warn("[continueNavigation] Não há navegação ativa para continuar.");
+    return;
+  }
+  if (!navigationState.isPaused) {
+    console.log("[continueNavigation] Navegação já está em andamento.");
+    return;
   }
 
-  showNotification("Navegação pausada.", "info");
-  console.log("Navegação pausada.");
+  navigationState.isPaused = false;
+  showNotification(getGeneralText("navResumed", navigationState.lang), "success");
+
+  // Reinicia watchPosition para voltar ao real-time
+  if (navigationState.instructions && navigationState.instructions.length > 0) {
+    const instructions = navigationState.instructions;
+    const dest = navigationState.selectedDestination;
+    if (dest?.lat && dest?.lon) {
+      window.positionWatcher = navigator.geolocation.watchPosition(
+        (pos) => {
+          updateRealTimeNavigation(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            instructions,
+            dest.lat,
+            dest.lon,
+            navigationState.lang
+          );
+        },
+        (err) => {
+          console.error("[continueNavigation] watchPosition erro:", err);
+          showNotification(getGeneralText("trackingError", navigationState.lang), "error");
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+  }
+
+  console.log("[continueNavigation] Navegação retomada.");
 }
+
 
 
 // 46. continueNavigation - Retoma a navegação pausada - Linha 194
@@ -3515,32 +3844,37 @@ function displayStartNavigationButton() {
 }
 
 // 58. displayStepByStepInstructions - Mostra 3 instruções passo a passo
-function displayStepByStepInstructions(instructions, currentStepIndex = 0, lang = 'pt') {
-  const container = document.getElementById("navigation-instructions");
+/**
+ * @function displayStepByStepInstructions
+ * @description Mostra todas as instruções de rota num container, como uma lista rolável.
+ * @param {Array} instructions - Lista de { raw, text, lat, lon, distance, maneuverKey, ... }
+ * @param {string} [lang='pt'] - Idioma
+ */
+function displayStepByStepInstructions(instructions, lang = "pt") {
+  const container = document.getElementById("full-instructions-list");
   if (!container) {
-    console.error("Elemento #navigation-instructions não encontrado.");
+    console.error("[displayStepByStepInstructions] #full-instructions-list não encontrado.");
     return;
   }
 
-  container.innerHTML = ""; // Limpa instruções anteriores
+  container.innerHTML = ""; // Limpa
+  if (!instructions || instructions.length === 0) {
+    container.innerHTML = `<p>${getGeneralText("noInstructionsAvailable", lang)}</p>`;
+    return;
+  }
 
-  // Exemplo: pega 3 instruções a partir do currentStepIndex
-  const stepsToShow = instructions.slice(currentStepIndex, currentStepIndex + 3);
-  stepsToShow.forEach((step, idx) => {
-    const stepLangText = translateInstruction(step.text, lang);
+  instructions.forEach((step, idx) => {
+    const detailText = getDetailedInstructionText(step, lang);
+    const directionIcon = getDirectionIcon(step.maneuverKey);
+
     const li = document.createElement("li");
-    li.className = idx === 0 ? "active-instruction" : "pending-instruction";
-    li.innerHTML = `
-      <span class="direction-arrow">${getDirectionIcon(step.text)}</span>
-      ${stepLangText} (${step.distance} m)
-    `;
+    li.innerHTML = `<span class="direction-arrow">${directionIcon}</span> ${detailText}`;
     container.appendChild(li);
   });
 
   container.classList.remove("hidden");
-  console.log("✅ Instruções passo a passo exibidas no modal.");
+  console.log(`[displayStepByStepInstructions] Exibidas ${instructions.length} instruções.`);
 }
-
 
 // 59. fetchNextThreeInstructions - Retorna as próximas três instruções - Linha 246
 function fetchNextThreeInstructions(route) {
@@ -3569,31 +3903,38 @@ function cacheTranslatedInstructions(instructions) {
 
 // 63. updateInstructionModal - Atualiza o modal de instruções - Linha 262
 /**
- * Exibe até 3 instruções no #navigation-instructions,
- * incluindo ícone de seta (getDirectionIcon).
+ * Atualiza o modal de instruções de navegação, exibindo passos a partir de currentStepIndex.
+ * @function updateInstructionModal
+ * @param {Array<Object>} instructions - Array de steps { text, distance, raw, lat, lon }.
+ * @param {number} currentStepIndex - Índice atual do passo na rota.
+ * @param {string} [lang='pt'] - Idioma para exibir instruções.
+ * @returns {void}
  */
 function updateInstructionModal(instructions, currentStepIndex, lang = 'pt') {
   const container = document.getElementById("navigation-instructions");
   if (!container) {
-    console.error("[updateInstructionModal] #navigation-instructions não encontrado.");
+    console.error("[updateInstructionModal] Elemento #navigation-instructions não encontrado.");
     return;
   }
 
-  // Limpa conteúdo anterior
+  // Limpa HTML anterior
   container.innerHTML = "";
 
-  // Exibe no máximo 3
+  // Exibe até 3 passos (ou menos se estiver perto do fim)
   for (let i = currentStepIndex; i < currentStepIndex + 3 && i < instructions.length; i++) {
     const step = instructions[i];
-
-    // Pode usar step.raw ou derivar a key de step.raw
-    // Mas se no step já houver 'maneuverKey', poderia usar esse
+    // Ícone direcional
     const directionIcon = getDirectionIcon(step.raw);
 
+    // Cria <li>
     const li = document.createElement("li");
-    li.className = (i === currentStepIndex) ? "instruction-step active-instruction"
-                                           : "instruction-step pending-instruction";
+    li.className = (i === currentStepIndex)
+      ? "instruction-step active-instruction"
+      : "instruction-step pending-instruction";
 
+    // Monta um texto
+    //  - se quiser algo mais detalhado, use getDetailedInstructionText(step, lang)
+    //  - abaixo uso step.text + distance
     li.innerHTML = `
       <span class="direction-arrow">${directionIcon}</span>
       ${step.text} <small>(${step.distance}m)</small>
@@ -3601,11 +3942,13 @@ function updateInstructionModal(instructions, currentStepIndex, lang = 'pt') {
     container.appendChild(li);
   }
 
+  // Exibe o container
   container.classList.remove("hidden");
   container.style.display = "block";
 
-  console.log(`[updateInstructionModal] Instruções a partir do passo ${currentStepIndex}.`);
+  console.log(`[updateInstructionModal] Exibindo passos de ${currentStepIndex} até ${currentStepIndex + 2}.`);
 }
+
 
 
 
@@ -4530,37 +4873,27 @@ function collectInterestData() {
 }
 
 //119. Recalcula a rota se o usuário sair da trajetória original
-async function handleRouteDeviation(userLat, userLon, destLat, destLon, lang = selectedLanguage) {
-    try {
-        showNotification(getGeneralText("recalculatingRoute", lang), "warning");
-        giveVoiceFeedback(getGeneralText("offRoute", lang));
+/**
+ * Lida com desvios de rota fora do fluxo normal do updateRealTimeNavigation.
+ * @function handleRouteDeviation
+ * @param {number} userLat - Latitude atual do usuário.
+ * @param {number} userLon - Longitude atual do usuário.
+ * @param {number} destLat - Latitude do destino.
+ * @param {number} destLon - Longitude do destino.
+ * @param {string} [lang=navigationState.lang] - Idioma.
+ */
+/**
+ * Lida com desvios fora do fluxo normal, sem usar qualquer modal.
+ */
+function handleRouteDeviation(userLat, userLon, destLat, destLon, lang = selectedLanguage) {
+  console.log("[handleRouteDeviation] Recalculo manual ou situação especial.");
+  showNotification(getGeneralText("recalculatingRoute", lang), "warning");
+  speakInstruction(getGeneralText("offRoute", lang), lang === "pt" ? "pt-BR" : "en-US");
 
-        const instructions = await fetchRouteInstructions(userLat, userLon, destLat, destLon, lang);
-
-        if (instructions.length === 0) {
-            showNotification(getGeneralText("routeError", lang), "error");
-            return;
-        }
-
-        updateInstructionModal(instructions, 0, lang);
-        drawPath(userLat, userLon, instructions, lang);
-        startPositionTracking((updatedLocation) => {
-            updateRealTimeNavigation(
-                updatedLocation.latitude,
-                updatedLocation.longitude,
-                instructions,
-                destLat,
-                destLon,
-                lang
-            );
-        });
-
-        console.log("✅ Rota recalculada com sucesso.");
-    } catch (error) {
-        console.error("Erro ao recalcular rota:", error.message);
-        showNotification(getGeneralText("fetchingInstructionsError", lang), "error");
-    }
+  recalculateRoute(userLat, userLon, destLat, destLon, { bigDeviation: true, lang });
 }
+
+
 
 // 116. checkIfUserIsOnRoad - Verifica se o usuário está em uma estrada
 async function checkIfUserIsOnRoad(lat, lon) {
@@ -4584,69 +4917,44 @@ async function checkIfUserIsOnRoad(lat, lon) {
 }
 
 // 119. createRouteToDestination - Cria rota até um destino no mapa
-async function createRouteToDestination(lat, lon, lang = selectedLanguage) {
-    if (!userCurrentLocation) {
-        showNotification(getGeneralText("locationUnavailable", lang), "error");
-        return null;
+async function createRouteToDestination(lat, lon, lang = 'pt') {
+  if (!userLocation) {
+    showNotification("Localização do usuário indisponível.", "error");
+    return null;
+  }
+
+  try {
+    prepareMapForNewRoute();
+    showNotification("Calculando rota...", "info");
+
+    const routeData = await plotRouteOnMap(userLocation.latitude, userLocation.longitude, lat, lon);
+    if (!routeData) {
+      showNotification("Nenhuma rota encontrada!", "error");
+      return null;
     }
 
-    try {
-        // Prepara o mapa para uma nova rota
-        prepareMapForNewRoute();
-        showNotification(getGeneralText("calculatingRoute", lang), "info", 3000);
-
-        // Traça a rota e obtém dados da API
-        const routeData = await plotRouteOnMap(
-            userCurrentLocation.latitude,
-            userCurrentLocation.longitude,
-            lat,
-            lon
-        );
-
-        if (!routeData) {
-            showNotification(getGeneralText("routeNotFound", lang), "error");
-            return null;
-        }
-
-        // Busca instruções de navegação
-        const instructions = await fetchRouteInstructions(
-            userCurrentLocation.latitude,
-            userCurrentLocation.longitude,
-            lat,
-            lon,
-            lang
-        );
-
-        if (!instructions || instructions.length === 0) {
-            showNotification(getGeneralText("noInstructionsAvailable", lang), "error");
-            return null;
-        }
-
-        // Atualiza o modal com as instruções da rota
-        updateInstructionModal(instructions, 0, lang);
-        drawPath(userCurrentLocation.latitude, userCurrentLocation.longitude, instructions, lang);
-
-        // Iniciar o rastreamento do movimento do usuário
-        trackUserMovement((location) => {
-            updateRealTimeNavigation(
-                location.latitude,
-                location.longitude,
-                instructions,
-                lat,
-                lon,
-                lang
-            );
-        });
-
-        // Notificação de sucesso
-        showNotification(getGeneralText("routePlotted", lang), "success");
-        return { routeData, instructions };
-    } catch (error) {
-        console.error(getGeneralText("createRouteError", lang), error.message);
-        showNotification(getGeneralText("createRouteError", lang), "error");
-        return null;
+    const instructions = await fetchRouteInstructions(
+      userLocation.latitude, userLocation.longitude,
+      lat, lon,
+      lang
+    );
+    if (!instructions || instructions.length === 0) {
+      showNotification("Sem instruções.", "error");
+      return null;
     }
+
+    updateInstructionModal(instructions, 0, lang);
+    showNotification("Rota plotada com sucesso.", "success");
+    return { routeData, instructions };
+  } catch (error) {
+    console.error("[createRouteToDestination] Erro:", error);
+    showNotification("Erro ao criar rota.", "error");
+    return null;
+  }
 }
+
+
+
 
 //119.1 Função para iniciar a criação de rota até o destino selecionado
 async function createRoute(userLocation) {
@@ -5101,36 +5409,29 @@ function displayOSMData(data, subMenuId, feature) {
 }
 
 // 138. drawPath - Desenha um caminho no mapa
-function drawPath(userLat, userLon, instructions) {
-    try {
-        // Remove rota anterior
-        if (window.navigationPath) {
-            map.removeLayer(window.navigationPath);
-        }
-
-        // Mapeia coordenadas das instruções
-        const latLngs = instructions.map(step => [step.lat, step.lon]);
-        latLngs.unshift([userLat, userLon]);  // Adiciona a posição atual como ponto inicial
-
-        // Desenha nova linha de rota
-        window.navigationPath = L.polyline(latLngs, {
-            color: "blue",
-            weight: 6,
-            dashArray: "10, 5"
-        }).addTo(map);
-
-        // Adiciona setas decorativas na linha
-        addInteractiveArrowsOnRoute();
-
-        // Ajusta o mapa para exibir a nova rota
-        map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
-
-        console.log("🗺️ Nova rota desenhada no mapa.");
-    } catch (error) {
-        console.error("❌ Erro ao desenhar rota no mapa:", error.message);
-        showNotification("Erro ao exibir a nova rota no mapa.", "error");
+function drawPath(userLat, userLon, instructions, lang) {
+  try {
+    if (window.navigationPath) {
+      map.removeLayer(window.navigationPath);
     }
+    const latLngs = instructions.map(step => [step.lat, step.lon]);
+    latLngs.unshift([userLat, userLon]);
+
+    window.navigationPath = L.polyline(latLngs, {
+      color: "blue",
+      weight: 6,
+      dashArray: "10, 5"
+    }).addTo(map);
+
+    addInteractiveArrowsOnRoute(latLngs); // Se quiser setas
+    map.fitBounds(window.navigationPath.getBounds(), { padding: [50, 50] });
+    console.log("[drawPath] Nova rota desenhada no mapa.");
+  } catch (error) {
+    console.error("[drawPath] Erro ao desenhar rota:", error);
+    showNotification(getGeneralText("failedToPlotRoute", lang), "error");
+  }
 }
+
 
 
 // 139. enableDarkMode - Ativa o modo escuro na interface
@@ -5140,35 +5441,72 @@ function enableDarkMode() {
 }
 
 // 140. enableEcoMode - Ativa o modo econômico
-function showNearbyPOIs() {
-    const poiRequest = fetchPOIs(currentRouteData);
-    poiRequest.then((pois) => {
-        pois.forEach((poi) => {
-            L.marker([poi.lat, poi.lon])
-                .addTo(map)
-                .bindPopup(`📍 ${poi.name}`);
-        });
-        console.log("POIs adicionados ao mapa.");
-    }).catch(() => {
-        console.warn("Nenhum POI encontrado.");
-    });
+/**
+ * Ativa o modo Eco (economia de bateria), reduzindo frequência do GPS.
+ * @function enableEcoMode
+ * @returns {void}
+ */
+function enableEcoMode() {
+  console.log("[enableEcoMode] Ativando modo de economia de energia/GPS...");
+
+  // Se já existir um watch ativo, cancela
+  if (window.positionWatcher) {
+    navigator.geolocation.clearWatch(window.positionWatcher);
+    window.positionWatcher = null;
+  }
+
+  // Define um watchPosition com menor precisão e maior maximumAge
+  window.positionWatcher = navigator.geolocation.watchPosition(
+    (pos) => {
+      if (navigationState.isPaused) return;
+      // Se quiser, podemos chamar updateRealTimeNavigation a cada X leituras, etc.
+      console.log("[enableEcoMode] Posição atual (Eco):", pos.coords);
+    },
+    (error) => {
+      console.error("[enableEcoMode] watchPosition erro:", error);
+      fallbackToSensorNavigation(); // fallback caso falhe
+    },
+    {
+      enableHighAccuracy: false,   // Menor precisão
+      maximumAge: 30000,           // Pode reutilizar leituras por 30s
+      timeout: 30000
+    }
+  );
+
+  // Ajuste visual para mostrar que o modo Eco está ativo
+  document.body.classList.add("eco-mode");
+  showNotification("Modo ECO ativado. GPS menos frequente!", "info");
+  console.log("[enableEcoMode] Modo ECO habilitado com sucesso.");
 }
 
+
 // 141. enableEcoModeTracking - Monitora o modo econômico
+/**
+ * Ajusta o zoom do mapa com base na velocidade do usuário (m/s).
+ * @function adjustMapZoomBySpeed
+ * @param {number} speed - Velocidade do usuário em m/s.
+ * @returns {void}
+ */
 function adjustMapZoomBySpeed(speed) {
-    let zoomLevel;
+  if (!map) {
+    console.warn("[adjustMapZoomBySpeed] Mapa não inicializado.");
+    return;
+  }
 
-    if (speed < 5) {
-        zoomLevel = 17;  // Caminhada lenta
-    } else if (speed < 15) {
-        zoomLevel = 15;  // Caminhada rápida ou bicicleta
-    } else {
-        zoomLevel = 13;  // Veículo rápido
-    }
+  let newZoom;
+  // Exemplo simples (ajuste a gosto):
+  if (speed < 1) {
+    newZoom = 17; // caminhada lenta
+  } else if (speed < 3) {
+    newZoom = 16; // caminhada normal
+  } else if (speed < 8) {
+    newZoom = 15; // corrida ou bike leve
+  } else {
+    newZoom = 13; // carro
+  }
 
-    map.setZoom(zoomLevel);
-    showNotification(`🔍 Zoom ajustado para ${zoomLevel}.`, "info");
-    console.log(`🔍 Zoom ajustado para: ${zoomLevel} com velocidade de ${speed} m/s.`);
+  map.setZoom(newZoom);
+  console.log(`[adjustMapZoomBySpeed] speed=${speed.toFixed(1)} => zoom=${newZoom}`);
 }
 
 // 142. enrichInstructionsWithOSM - Enriquece instruções de navegação com dados OSM
@@ -5196,111 +5534,133 @@ async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
 
 
 // 143. fetchOSMData - Busca dados do OpenStreetMap
+/**
+ * Busca dados do OpenStreetMap via Overpass-API, usando a query fornecida.
+ * @async
+ * @function fetchOSMData
+ * @param {string} query - String do Overpass (ex.: '[out:json];node["tourism"="attraction"];out body;').
+ * @returns {Promise<Object|null>} Retorna o objeto JSON com `elements[]` ou null em caso de erro.
+ *
+ * Exemplo de uso:
+ *   const data = await fetchOSMData('[out:json];node["amenity"="restaurant"](around:10000,-13.376,-38.913);out body;');
+ */
 async function fetchOSMData(query) {
   try {
+    // Monta URL para Overpass
     const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    console.log("[fetchOSMData] Iniciando busca no Overpass-API:", overpassUrl);
+
+    // Faz a requisição
     const response = await fetch(overpassUrl);
     if (!response.ok) {
-      console.error('Erro ao buscar dados OSM:', response.statusText);
+      console.error("[fetchOSMData] HTTP Erro Overpass:", response.status, response.statusText);
+      showNotification("Erro ao buscar dados OSM. Verifique sua conexão.", "error");
       return null;
     }
 
+    // Tenta parsear JSON
     const data = await response.json();
     if (!data.elements || data.elements.length === 0) {
-      console.warn('Nenhum dado OSM encontrado para a query.');
+      console.warn("[fetchOSMData] Nenhum dado encontrado (elements vazio).");
+      showNotification("Nenhum dado OSM encontrado para esta busca.", "info");
       return null;
     }
 
-    console.log(`fetchOSMData: retornado ${data.elements.length} elementos.`);
+    console.log(`[fetchOSMData] Retornados ${data.elements.length} elementos do OSM.`);
     return data;
   } catch (error) {
-    console.error('Erro geral ao buscar dados do Overpass-API:', error);
+    console.error("[fetchOSMData] Erro geral ao buscar dados do OSM:", error);
+    showNotification("Ocorreu um erro ao buscar dados no OSM (Overpass).", "error");
     return null;
   }
 }
 
 
+
 // 144. fetchRouteInstructions - Busca instruções de rota
 /**
- * Consulta a OpenRouteService para obter instruções passo a passo (turn-by-turn).
- * - Converte rawInstruction => maneuverKey via mapORSInstruction.
- * - Tenta usar getGeneralText(maneuverKey, lang) p/ texto traduzido.
+ * @function fetchRouteInstructions
+ * @description Busca instruções passo a passo de rota (turn-by-turn) do OpenRouteService.
  */
 async function fetchRouteInstructions(
   startLat, startLon,
-  destLat, destLon,
-  lang = 'pt',
-  profile = 'foot-walking'
+  endLat, endLon,
+  lang = "pt",
+  profile = "foot-walking"
 ) {
-  console.log(`[fetchRouteInstructions] Iniciando - perfil '${profile}', idioma '${lang}'...`);
-
-  const apiUrl = `https://api.openrouteservice.org/v2/directions/${profile}`
-    + `?api_key=${apiKey}`
-    + `&start=${startLon},${startLat}`
-    + `&end=${destLon},${destLat}`
-    + `&instructions=true&language=${lang}`;
+  console.log(`[fetchRouteInstructions] Fetch. Lang=${lang}, profile=${profile}`);
+  const baseUrl = "https://api.openrouteservice.org/v2/directions";
+  const url = `${baseUrl}/${profile}?api_key=${apiKey}&start=${startLon},${startLat}&end=${endLon},${endLat}&instructions=true&language=${lang}`;
 
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetch(url);
     if (!response.ok) {
-      console.error("[fetchRouteInstructions] Falha na requisição:", response.status);
+      console.error(`[fetchRouteInstructions] HTTP Error: ${response.status}`);
+      showNotification(getGeneralText("fetchingInstructionsError", lang), "error");
       return [];
     }
     const data = await response.json();
     if (!data.features || !data.features[0]) {
-      console.warn("[fetchRouteInstructions] Nenhuma feature retornada.");
+      showNotification(getGeneralText("noInstructionsAvailable", lang), "warning");
       return [];
     }
 
     const routeFeature = data.features[0];
     const segments = routeFeature.properties?.segments;
     if (!segments || segments.length === 0) {
-      console.warn("[fetchRouteInstructions] Segments ausentes.");
+      showNotification(getGeneralText("noInstructionsAvailable", lang), "warning");
       return [];
     }
 
     const steps = segments[0].steps;
     if (!steps || steps.length === 0) {
-      console.warn("[fetchRouteInstructions] Nenhum step encontrado.");
+      showNotification(getGeneralText("noInstructionsAvailable", lang), "warning");
       return [];
     }
 
-    // Array de [lon, lat]
-    const coordinates = routeFeature.geometry.coordinates;
-
-    // Monta cada step
-    const finalSteps = steps.map((step, index) => {
+    const coords = routeFeature.geometry.coordinates; // [ [lon, lat], ...]
+    const mappedInstructions = steps.map((step, idx) => {
       const coordsIndex = step.way_points[0];
-      const [lon, lat] = coordinates[coordsIndex];
-      const rawInstruction = step.instruction || "";
-
-      // Mapeia manobra
-      const { maneuverKey } = mapORSInstruction(rawInstruction);
-
-      // Tenta traduzir
-      let translated = getGeneralText(maneuverKey, lang);
-      if (!translated || translated.startsWith("⚠️")) {
-        // fallback: usar o texto cru
-        translated = rawInstruction;
+      let lat = 0, lon = 0;
+      if (typeof coordsIndex === "number" && coords[coordsIndex]) {
+        const [lonC, latC] = coords[coordsIndex];
+        lat = latC;
+        lon = lonC;
       }
 
+      const raw = step.instruction || "";
+      const mapped = mapORSInstruction(raw);
+
+      let text = getGeneralText(mapped.maneuverKey, lang);
+      if (text.startsWith("⚠️")) {
+        text = raw; // fallback
+      }
+
+      // Monta final
       return {
-        id: index + 1,
-        raw: rawInstruction,
-        text: translated,
-        distance: Math.round(step.distance), // metros
+        id: idx + 1,
+        raw,
+        text,
+        distance: Math.round(step.distance),
         lat,
-        lon
+        lon,
+        maneuverKey: mapped.maneuverKey,
+        placeName: mapped.placeName,
+        placeType: mapped.placeType,
+        isPOI: mapped.isPOI
       };
     });
 
-    console.log(`[fetchRouteInstructions] Steps obtidos: ${finalSteps.length}`);
-    return finalSteps;
+    console.log(`[fetchRouteInstructions] Retornadas ${mappedInstructions.length} instruções.`);
+    return mappedInstructions;
+
   } catch (error) {
-    console.error("[fetchRouteInstructions] Erro geral:", error);
+    console.error("[fetchRouteInstructions] Erro:", error);
+    showNotification(getGeneralText("fetchingInstructionsError", lang), "error");
     return [];
   }
 }
+
 
 
 
@@ -5376,77 +5736,44 @@ function getAvailableActivities(itineraryData) {
 
 // 148. getDirectionIcon - Retorna ícone de direção
 /**
- * Retorna um ícone que representa a manobra ou direção,
- * suportando as chaves geradas por mapORSInstruction.
- *
- * @function getDirectionIcon
- * @param {string} maneuverKey - A chave de manobra (ex.: "turn_left", "head_north").
- * @returns {string} - Um emoji ou símbolo que represente visualmente a direção.
- * @description
- *  1) Usa um dicionário com chaves como "head_north", "turn_left", etc. para escolher um emoji.
- *  2) Se não for encontrado, retorna '⬆️' como padrão (seguir em frente).
- *  3) Logs padronizados [getDirectionIcon].
- *
- * Exemplo de uso:
- *   getDirectionIcon("turn_left") => "⬅️"
- *   getDirectionIcon("head_east") => "➡️"
- *   getDirectionIcon("roundabout_exit_2") => "🔄2" (caso queira exibir algo específico para a saída)
+ * Retorna um ícone (emoji ou HTML) para a manobra (ex.: "turn_left" => "⬅️").
  */
 function getDirectionIcon(maneuverKey) {
-  // Dicionário principal de manobras para emojis
-  // Você pode estender à vontade (ferry, merge, etc.).
   const iconMap = {
     head_north: "⬆️",
     head_south: "⬇️",
     head_east:  "➡️",
     head_west:  "⬅️",
-
-    turn_left:       "⬅️",
-    turn_right:      "➡️",
+    turn_left: "⬅️",
+    turn_right: "➡️",
     turn_sharp_left: "↰",
     turn_sharp_right:"↱",
     turn_slight_left:"↲",
     turn_slight_right:"↳",
     continue_straight:"⬆️",
-    keep_left:       "↰",
-    keep_right:      "↱",
-    merge:           "🔀",
-    u_turn:          "↩️",
-
-    enter_roundabout:"🔄",
-    exit_roundabout: "🔄", // Se desejar algo específico p/ "exit" e "enter"
-
-    ferry:           "⛴️",
+    keep_left: "↰",
+    keep_right:"↱",
+    u_turn: "↩️",
+    enter_roundabout: "🔄",
+    exit_roundabout:  "🔄",
+    ferry: "⛴️",
     arrive_destination: "✅"
   };
 
-  // Se a manobra for algo como "exit_roundabout_2" (ex.: roundabout com # da saída),
-  // podemos extrair e exibir algo custom. Exemplo:
   if (maneuverKey.startsWith("exit_roundabout_")) {
-    const exitNum = maneuverKey.replace("exit_roundabout_", ""); // ex.: "2"
-    return `🔄${exitNum}`; // rotatória + número da saída
+    const exitNum = maneuverKey.replace("exit_roundabout_", "");
+    return `🔄${exitNum}`;
   }
 
-  // Verifica se existe no dicionário
   if (iconMap[maneuverKey]) {
     return iconMap[maneuverKey];
   }
 
-  // 4) Compatibilidade com instruções genéricas tipo "left", "right", "forward", "back"
-  const genericMap = {
-    left:  "⬅️",
-    right: "➡️",
-    forward: "⬆️",
-    back:  "⬇️"
-  };
-  if (genericMap[maneuverKey]) {
-    return genericMap[maneuverKey];
-  }
-
-  // 5) Ícone padrão caso não reconheça
-  console.warn(`[getDirectionIcon] Chave de manobra não reconhecida: "${maneuverKey}". Retornando '⬆️' por padrão.`);
+  console.warn(`[getDirectionIcon] Manobra não reconhecida: "${maneuverKey}".`);
   return "⬆️";
 }
+
+
 
 
 // 149. getImagesForLocation - Busca imagens para um local
@@ -6295,20 +6622,15 @@ handleReservation('reserve-restaurants-btn', 'url-to-destination');
 // ========== DESVIOS, ERROS E SITUAÇÕES ESPECIAIS (Funções 158 - 166) ==========  
 
 // 158. handleRouteDeviation - Lida com desvios de rota
-function handleRouteDeviation(userLat, userLon) {
-    const distanceFromRoute = calculateDistance(userLat, userLon, currentRouteData.start.lat, currentRouteData.start.lon);
-    
-    if (distanceFromRoute > 50) {
-        showNotification("⚠️ Fora da rota. Recalculando...", "warning");
-        triggerHapticFeedback("recalculating");
-        startRouteCreation();  // Recalcula com base na nova localização
-    }
-}
 
 // 159. handleRouteDeviationOffline - Lida com desvios de rota offline
-function handleRouteDeviationOffline() {
-    showNotification('Sem conexão. Ajuste manual da rota necessário.', 'warning');
+function handleRouteDeviation(userLat, userLon, destLat, destLon, lang = selectedLanguage) {
+  console.log("[handleRouteDeviation] Recalculo da rota...");
+  showNotification(getGeneralText("recalculatingRoute", lang), "warning");
+
+  recalculateRoute(userLat, userLon, destLat, destLon, { bigDeviation: true, lang });
 }
+
 
 // 160. handleSpecialScenarios - Lida com condições especiais
 function handleSpecialScenarios(userLat, userLon, instructions) {
@@ -7267,11 +7589,11 @@ function stopPositionTracking() {
     watchId = null;
     console.log("[stopPositionTracking] Rastreamento encerrado via clearWatch.");
   }
-
-  userPosition = null;  // Se quiser limpar a última posição
-  trackingActive = false; 
+  userPosition = null;
+  trackingActive = false;
   console.log("[stopPositionTracking] trackingActive =", trackingActive);
 }
+
 // 212. toggleDarkMode - Alterna modo escuro
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
@@ -7317,10 +7639,25 @@ function toggleNavigationInstructions() {
 
 
 // 215. toggleRouteSummary - Alterna resumo da rota
+/**
+ * @function toggleRouteSummary
+ * @description Alterna a exibição do bloco de resumo de rota (#route-summary).
+ */
 function toggleRouteSummary() {
-    const modal = document.getElementById('route-summary-modal');
-    modal.classList.toggle('hidden');
+  const summaryEl = document.getElementById("route-summary");
+  if (!summaryEl) return;
+
+  if (summaryEl.classList.contains("hidden")) {
+    summaryEl.classList.remove("hidden");
+    summaryEl.style.display = "block";
+    showNotification("Resumo da rota exibido.", "info");
+  } else {
+    summaryEl.classList.add("hidden");
+    summaryEl.style.display = "none";
+    showNotification("Resumo da rota ocultado.", "info");
+  }
 }
+
 
 // 216. translateInstruction - Tradução de instruções
 function translateInstruction(instruction, lang = 'pt') {
@@ -7691,13 +8028,18 @@ function applyLanguage(lang) {
 
 
 // 233. awardPoinawardPointsToUser              -
+/**
+ * Exemplo de conceder pontos.
+ */
 function awardPointsToUser(partnerName, points) {
-    let currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
-    currentPoints += points;
-    localStorage.setItem('userPoints', currentPoints);
-    showNotification(`Você ganhou ${points} ponto(s) em ${partnerName}!`, 'success', 5000);
-    console.log(`Pontos totais do usuário: ${currentPoints}`);
+  let currentPoints = parseInt(localStorage.getItem('userPoints') || '0', 10);
+  currentPoints += points;
+  localStorage.setItem('userPoints', currentPoints);
+
+  showNotification(`Ganhou ${points} ponto(s) em ${partnerName}. Total: ${currentPoints}`, "success");
+  console.log(`[awardPointsToUser] Novo total de pontos: ${currentPoints}`);
 }
+
 
 // 233.1. showMarketingPopup
 function showMarketingPopup(message) {

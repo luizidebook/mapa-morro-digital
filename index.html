@@ -193,20 +193,6 @@
 
 
 
-<!-- Modal de instruções sobre a Rota -->
-<div id="navigation-instructions" class="hidden">
-    <h3 data-i18n="instructions_title">Instruções de Navegação</h3>
-    <ul id="instructions-list">
-        <!-- Exemplo inicial (poderá ser removido ao atualizar dinamicamente) -->
-        <li class="instruction-step">
-            <span class="direction-arrow">⬆️</span> Siga em frente por 200 metros.
-        </li>
-        <li class="instruction-step active-instruction">
-            <span class="direction-arrow">↰</span> Vire à esquerda em 50 metros.
-        </li>
-    </ul>
-</div>
-
 <!-- Barra de Progresso -->
 <div id="progress-bar" class="progress-bar hidden" style="display:none;">0% completo</div>
 </div>
@@ -237,21 +223,5 @@
 
 <!-- scripts.js -->
 <script src="scripts.js" defer></script>
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-        .then(function(registration) {
-            console.log('Service Worker registered with scope:', registration.scope);
-        }).catch(function(error) {
-            console.log('Service Worker registration failed:', error);
-        });
-    }
-
-    // Ensure floating-menu toggle consistency
-    const floatingMenu = document.getElementById('floating-menu');
-    document.getElementById('menu-btn').addEventListener('click', () => {
-        floatingMenu.classList.toggle('hidden');
-    });
-</script>
 </body>
 </html>
