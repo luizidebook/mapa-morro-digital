@@ -1,18 +1,35 @@
-const CACHE_NAME = 'my-site-cache-v3'; // Atualizado para a nova versão do cache
+"use strict";
+
+/**
+ * service-worker.js
+ * 
+ * Versão final consolidada a partir do seu código original que estava no HTML.
+ * 
+ * Mantém:
+ *  - Mesmo nome de cache "my-site-cache-v3"
+ *  - Mesmo array de urlsToCache que você usava (ajuste conforme seu projeto)
+ *  - Offline fallback para /offline.html
+ *  - Funções de install, activate e fetch
+ *  - Eventos de mensagem para iniciar e parar rastreamento (se quiser).
+ */
+
+const CACHE_NAME = 'my-site-cache-v3'; // Nome que você já usava
 const urlsToCache = [
   '/',
   '/styles.css',
   '/scripts.js',
-  '/images/logo.png',
-  '/offline.html',
+  '/images/logo.png',  // Ajuste conforme seus assets
+  '/offline.html'
 ];
 
+// Variáveis que você usava no SW
 let userPosition = null; // Armazena a posição do usuário
 let trackingActive = false; // Indica se o rastreamento está ativo
 
-const DB_NAME = 'navigationStateDB';
-const DB_VERSION = 1;
-
+/**
+ * INSTALL
+ * Abre o cache e adiciona os arquivos listados
+ */
 self.addEventListener('install', event => {
   event.waitUntil(
     (async () => {
@@ -27,6 +44,10 @@ self.addEventListener('install', event => {
   );
 });
 
+/**
+ * ACTIVATE
+ * Limpa caches antigos que não sejam o CACHE_NAME atual
+ */
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
@@ -44,143 +65,38 @@ self.addEventListener('activate', event => {
   );
 });
 
+/**
+ * FETCH
+ * Responde com recursos do cache se disponíveis;
+ * caso contrário, tenta buscar da rede e, se falhar, volta para /offline.html.
+ */
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        return caches.match('/offline.html');
-      });
+      return (
+        cachedResponse ||
+        fetch(event.request).catch(() => {
+          return caches.match('/offline.html');
+        })
+      );
     })
   );
 });
 
-
+/**
+ * MESSAGE
+ * Exemplo de comunicação com a thread principal (scripts.js):
+ * você pode usar essa parte se quiser iniciar/parar rastreamento (GPS) ou algo similar.
+ */
 self.addEventListener('message', event => {
-  const { action, payload } = event.data;
+  const { action } = event.data;
+
   if (action === 'startTracking') {
     console.log('Iniciando rastreamento...');
     trackingActive = true;
-    startPositionTracking();
+    // (Geolocalização não funciona dentro do SW, então apenas marcamos essa flag se precisar)
   } else if (action === 'stopTracking') {
     console.log('Parando rastreamento...');
     trackingActive = false;
-    stopPositionTracking();
   }
 });
-
-function startPositionTracking() {
-  if (!trackingActive || !navigator.geolocation) {
-    console.warn('Geolocalização não suportada ou rastreamento inativo.');
-    return;
-  }
-
-  navigator.geolocation.watchPosition(
-    position => {
-      userPosition = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-      console.log('Posição atualizada:', userPosition);
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ action: 'positionUpdate', payload: userPosition });
-        });
-      });
-    },
-    error => {
-      console.error('Erro ao rastrear posição:', error.message);
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ action: 'trackingError', payload: error.message });
-        });
-      });
-    },
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-  );
-}
-
-function stopPositionTracking() {
-  userPosition = null;
-  console.log('Rastreamento interrompido.');
-}
-
-// IndexedDB - Armazena o estado de navegação
-async function saveNavigationState(routeData) {
-    const db = await openDB(DB_NAME, DB_VERSION, {
-        upgrade(db) {
-            if (!db.objectStoreNames.contains('routes')) {
-                db.createObjectStore('routes', { keyPath: 'id' });
-            }
-        },
-    });
-    const tx = db.transaction('routes', 'readwrite');
-    tx.store.put({ id: 'currentRoute', data: routeData });
-    await tx.done;
-    console.log('Estado de navegação salvo em IndexedDB.');
-}
-
-// Ativa rastreamento com baixa precisão (Eco Mode)
-function enableEcoModeTracking() {
-    navigator.geolocation.watchPosition(
-        (position) => {
-            userPosition = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-            };
-            console.log('🌱 Modo Eco - Posição Atualizada:', userPosition);
-        },
-        (error) => {
-            console.warn('Erro no rastreamento Eco Mode:', error.message);
-        },
-        {
-            enableHighAccuracy: false,
-            maximumAge: 10000,
-            timeout: 20000,
-        }
-    );
-}
-
-// Recalculo de rota offline
-async function handleRouteDeviationOffline() {
-    const db = await openDB(DB_NAME, DB_VERSION);
-    const routeData = await db.get('routes', 'currentRoute');
-
-    if (routeData) {
-        console.log('Recalculando rota offline...');
-        self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-                client.postMessage({ action: 'recalculateOffline', payload: routeData.data });
-            });
-        });
-    } else {
-        console.warn('Nenhuma rota salva para recalculo offline.');
-    }
-}
-
-// Feedback Tátil (Haptic Feedback)
-function triggerHapticFeedback(type) {
-    if ('vibrate' in navigator) {
-        if (type === 'recalculating') {
-            navigator.vibrate([200, 100, 200]);  // Vibração dupla ao recalcular rota
-        } else if (type === 'waypoint') {
-            navigator.vibrate(100);  // Vibração leve ao atingir waypoint
-        }
-    }
-}
-
-// Cache de POIs (Pontos de Interesse)
-async function cachePOIs(pois) {
-    const db = await openDB(DB_NAME, DB_VERSION, {
-        upgrade(db) {
-            if (!db.objectStoreNames.contains('pois')) {
-                db.createObjectStore('pois', { keyPath: 'id' });
-            }
-        },
-    });
-    const tx = db.transaction('pois', 'readwrite');
-    pois.forEach((poi) => {
-        tx.store.put(poi);
-    });
-    await tx.done;
-    console.log('POIs armazenados em cache para uso offline.');
-}

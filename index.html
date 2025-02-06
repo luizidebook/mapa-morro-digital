@@ -1,45 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="title">Morro de São Paulo Digital</title>
-    
-    <!-- CSS Principal -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    
-    <!-- Leaflet Routing Machine -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    
-    <!-- Awesomplete -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
-    
-    <!-- Swiper -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Fuse.js (Busca Inteligente) -->
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
-    
-    <!-- Meta Tags -->
-    <meta name="description" content="Descrição do site Morro Digital.">
-    <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos">
-    <meta name="author" content="Morro Digital">
-    <meta property="og:title" content="Morro Digital">
-    <meta property="og:description" content="Descrição do site Morro Digital.">
-    <meta property="og:image" content="link_da_imagem">
-    <meta property="og:url" content="URL do site">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title data-i18n="title">Morro de São Paulo Digital</title>
+
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+  <!-- Awesomplete -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+
+  <!-- Swiper -->
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <!-- Fuse.js (Busca Inteligente) -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+
+  <!-- Metatags -->
+  <meta name="description" content="Descrição do site Morro Digital." />
+  <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos" />
+  <meta name="author" content="Morro Digital" />
+  <meta property="og:title" content="Morro Digital" />
+  <meta property="og:description" content="Descrição do site Morro Digital." />
+  <meta property="og:image" content="link_da_imagem" />
+  <meta property="og:url" content="URL do site" />
 </head>
-
-
 <body>
 
 <!-- Mapa -->
@@ -47,27 +47,15 @@
     <div id="map"></div>
 </div>
 
-<!-- Modal mensagem de erro -->
-<div id="error-modal" class="modal hidden">
-    <div class="modal-content">
-        <h2 data-i18n="routeError">Erro</h2>
-        <p id="error-message"></p>
-        <button onclick="hideModal('error-modal')" data-i18n="close_modal">Fechar</button>
-    </div>
-</div>
+<!-- Barra de Progresso -->
+<div id="progress-bar" class="progress-bar hidden" style="display:none;">0% completo</div>
 
-<!-- Modal Offline -->
-<div id="offline-modal" class="modal hidden">
-    <div class="modal-content">
-        <h2 data-i18n="offlineTitle">Modo Offline</h2>
-        <p data-i18n="offlineMsg">Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
-        <button onclick="hideModal('offline-modal')" data-i18n="close_modal">Entendido</button>
-    </div>
-</div>
+<!-- Contêiner para exibir notificações temporárias -->
+<div id="notification-container" class="notification-container"></div>
 
 <!-- Modal do Assistente -->
 <div id="assistant-modal" class="modal">
-    <button id="close-assistant-modal" class="close-menu-btn" onclick="closeAssistantModal()" data-i18n="close_modal">X</button>
+    <button id="close-assistant-modal" class="close-btn" onclick="closeAssistantModal()" data-i18n="close_modal">X</button>
     <div class="modal-content" id="assistant-modal-text"></div>
 </div>
 
@@ -96,7 +84,6 @@
 </div>
         
 <!-- Botões Menu Lateral  -->
-<button id="menu-btn" class="menu-toggle" aria-label="Menu">&#9776;</button>
 <div id="floating-menu" class="floating-menu hidden">
     <button class="menu-btn" data-feature="dicas" aria-label="Dicas"><i class="fas fa-lightbulb"></i></button>
     <button class="menu-btn zoom-in" aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
@@ -120,7 +107,6 @@
     <div id="emergencies-submenu" class="submenu" data-feature="emergencies"></div>
     <div id="tips-submenu" class="submenu" data-feature="tips"></div>
     <div id="about-submenu" class="submenu" data-feature="about"></div>
-    <div id="education-submenu" class="submenu" data-feature="education"></div>
 
     <!-- Botão de iniciar tutorial manual (exemplo) -->
     <button id="tutorial-btn" class="control-btn" style="display:none;" onclick="initializeTutorial()" data-i18n="start_tutorial">Iniciar Tutorial</button>
@@ -184,41 +170,28 @@
     <p id="route-eta" data-i18n="route_eta">Tempo Estimado: </p>
 </div>
 
-<!-- Perfil de Transporte (apenas emojis) -->
-<select id="transport-profile-select">
-  <option value="foot-walking" selected>🚶</option>
-  <option value="driving-car">🚗</option>
-  <option value="cycling-regular">🚲</option>
-</select>
-
-
-
-<!-- Barra de Progresso -->
-<div id="progress-bar" class="progress-bar hidden" style="display:none;">0% completo</div>
+<!-- Componente Fixo para Instruções -->
+<div id="instruction-banner" class="instruction-banner hidden">
+  <div class="instruction-icon">
+    <span id="instruction-arrow">⬅️</span>
+  </div>
+  <div class="instruction-text">
+    <h2 id="instruction-main">Turn left</h2>
+    <p id="instruction-details">200m - Rua Caminho do Farol</p>
+  </div>
 </div>
 
-<!-- Barra de Progresso -->
-<div id="progress-bar" class="progress-bar" style="display:none;">0% completo</div>
-
-<!-- Contêiner para exibir notificações temporárias -->
-<div id="notification-container" class="notification-container"></div>
-
-<!-- Repetição do modal de erro (se quiser unificar em um só, pode remover este) -->
-<div id="error-modal" class="modal">
-    <div class="modal-content">
-        <h2 data-i18n="routeError">Erro</h2>
-        <p id="error-message"></p>
-        <button onclick="hideModal('error-modal')" data-i18n="close_modal">Fechar</button>
-    </div>
-</div>
-
-<!-- Modal Offline (repetido apenas como exemplo) -->
-<div id="offline-modal" class="modal">
-    <div class="modal-content">
-        <h2 data-i18n="offlineTitle">Modo Offline</h2>
-        <p data-i18n="offlineMsg">Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
-        <button onclick="hideModal('offline-modal')" data-i18n="close_modal">Entendido</button>
-    </div>
+<!-- Rodapé de Resumo da Rota -->
+<div id="route-footer" class="route-footer hidden">
+  <div class="route-details">
+    <span id="route-time">19 min</span>
+    <span id="route-distance">3.1 mi</span>
+  </div>
+  <div class="route-actions">
+    <button id="start-navigation-btn" class="route-btn start-btn">Start</button>
+    <button id="menu-details-btn" class="route-btn details-btn">List menu</button>
+    <button id="cancel-route-btn" class="route-btn cancel-btn">X</button>
+  </div>
 </div>
 
 <!-- scripts.js -->

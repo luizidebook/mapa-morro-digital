@@ -34,7 +34,49 @@ body, html {
   /* Sombra para destacar */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+/* Animação para o Banner de Instruções */
+.instruction-banner {
+  transform: translateY(-100%); /* Começa fora da tela */
+  transition: transform 0.3s ease-in-out;
+}
 
+.instruction-banner.hidden {
+  transform: translateY(-100%); /* Escondido acima da tela */
+}
+
+.instruction-banner:not(.hidden) {
+  transform: translateY(0); /* Totalmente visível */
+}
+
+/* Animação para o Rodapé */
+.route-footer {
+  transform: translateY(100%); /* Começa fora da tela */
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+}
+
+.route-footer.hidden {
+  transform: translateY(100%); /* Escondido abaixo da tela */
+  opacity: 0;
+}
+
+.route-footer:not(.hidden) {
+  transform: translateY(0); /* Totalmente visível */
+  opacity: 1;
+}
+
+/* Botões com Animação de Clique */
+.route-btn {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.route-btn:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.route-btn:active {
+  transform: scale(0.95); /* Pequena redução no tamanho ao clicar */
+}
 
 #map {
     width: 100%;
@@ -103,6 +145,127 @@ body, html {
   0%   { transform: scale(1);   }
   50%  { transform: scale(1.3); }
   100% { transform: scale(1);   }
+}
+
+/* Componente Fixo de Instruções */
+.instruction-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 80%;
+  background-color: #28a745; /* Fundo verde */
+  color: white;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.instruction-banner.hidden {
+  display: none;
+}
+
+.instruction-icon {
+  font-size: 2rem;
+  margin-right: 15px;
+}
+
+.instruction-text h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: bold;
+}
+
+.instruction-text p {
+  font-size: 1rem;
+  margin: 5px 0 0;
+  opacity: 0.9;
+}
+
+/* Rodapé de Resumo da Rota */
+.route-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff; /* Fundo branco */
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.route-footer.hidden {
+  display: none;
+}
+
+.route-details {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.route-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.route-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.start-btn {
+  background-color: #007bff; /* Azul */
+  color: white;
+}
+
+.start-btn:hover {
+  background-color: #0056b3;
+}
+
+.details-btn {
+  background-color: #f8f9fa; /* Cinza claro */
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.details-btn:hover {
+  background-color: #e2e6ea;
+}
+
+.cancel-btn {
+  background-color: #dc3545; /* Vermelho */
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #a71d2a;
+}
+
+.start-marker-icon {
+  background-color: #28a745;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  font-size: 1rem;
+}
+
+.end-marker-icon {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  font-size: 1rem;
 }
 
 
