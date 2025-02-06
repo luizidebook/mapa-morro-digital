@@ -2100,7 +2100,6 @@ async function loadResources(callback) {
 
   try {
     // Mensagem traduzida
-    showNotification(getGeneralText("loadingResources", selectedLanguage), "info");
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     if (loader) loader.style.display = "none";
@@ -2146,10 +2145,6 @@ function setLanguage(lang) {
     if (welcomeModal) {
       welcomeModal.style.display = "none";
     }
-
-    // Notificação de idioma alterado
-    const msg = getGeneralText("languageChanged", lang).replace("{lang}", lang);
-    showNotification(msg, "success");
 
     console.log(`Idioma definido para: ${lang}`);
     // opcionalmente iniciar tutorial
@@ -2925,7 +2920,6 @@ async function startNavigation() {
   clearCurrentRoute();
 
   // Notifica usuário e prepara estado
-  showNotification(getGeneralText("navigationStarted", selectedLanguage), "success");
   navigationState.isActive = true;
   navigationState.isPaused = false;
   navigationState.currentStepIndex = 0;
@@ -3467,7 +3461,6 @@ function startRoutePreview() {
     }
     // Exibe o resumo e o botão
     displayRouteSummary(currentRouteData);
-    showNotification("Pré-visualização da rota ativada.", "info");
     displayStartNavigationButton();
 }
 
