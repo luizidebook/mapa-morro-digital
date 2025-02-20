@@ -9,12 +9,24 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
+/* Container principal do mapa */
 #map-container {
-    position: relative;
     width: 100%;
     height: 100%;
-    background-color: #eaeaea;
+    overflow: hidden; /* Garante que nenhum conteúdo transborde */
+    z-index: 1;
 }
+
+#map {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease-in-out;
+    overflow: hidden; /* Garante que nenhum conteúdo transborde */
+    z-index: 1;
+}
+
+/* Não aplicar transformações no container principal – apenas nas camadas internas (como o tilePane) */
+
 
 /* Estilo para o select de transporte */
 #transport-profile-select {
@@ -34,6 +46,8 @@ body, html {
   /* Sombra para destacar */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+
 /* Animação para o Banner de Instruções */
 .instruction-banner {
   transform: translateY(-100%); /* Começa fora da tela */
@@ -76,12 +90,6 @@ body, html {
 
 .route-btn:active {
   transform: scale(0.95); /* Pequena redução no tamanho ao clicar */
-}
-
-#map {
-    width: 100%;
-    height: 100%;
-    z-index: 1;
 }
 
 .welcome-modal, .modal {
@@ -152,15 +160,35 @@ body, html {
   position: fixed;
   top: 0;
   left: 0;
-  width: 70%;
-  background-color: #28a745; /* Fundo verde */
+  width: 97%;
+  background-color: #28a745;
   color: white;
   padding: 15px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   z-index: 1000;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.route-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 94%;
+  background-color: #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.route-details {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
 }
 
 .instruction-banner.hidden {
@@ -184,21 +212,6 @@ body, html {
   opacity: 0.9;
 }
 
-/* Rodapé de Resumo da Rota */
-.route-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #fff; /* Fundo branco */
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
 .route-footer.hidden {
   display: none;
 }
@@ -215,7 +228,7 @@ body, html {
 }
 
 .route-btn {
-  padding: 10px 15px;
+  padding: 10px 10px;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
@@ -267,6 +280,19 @@ body, html {
   line-height: 24px;
   font-size: 1rem;
 }
+
+.leaflet-control-rotate {
+  top: 10px !important;
+  right: 10px !important;
+  /* Ajuste outras propriedades conforme necessário */
+}
+
+.leaflet-tile-pane {
+  transform-origin: 50% 50%;
+  /* Outras propriedades se necessário */
+}
+
+
 
 
 /* Tooltip customizado */
@@ -3407,6 +3433,12 @@ h2 {
     font-size: 18px;
     cursor: pointer;
 }
+
+.leaflet-control-container .leaflet-touch .leaflet-control-layers {
+  top: 50px;
+}
+
+
 
 #route-steps {
     max-height: 300px;
