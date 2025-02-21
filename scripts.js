@@ -1019,42 +1019,121 @@ function centerMapOnUser(lat, lon, heading) {
 
 
 /**
- * 20. updateUserMarker
+ * Calcula o rumo (bearing) entre dois pontos geográficos.
+ * @param {number} lat1 - Latitude do ponto de partida.
+ * @param {number} lon1 - Longitude do ponto de partida.
+ * @param {number} lat2 - Latitude do ponto de destino.
+ * @param {number} lon2 - Longitude do ponto de destino.
+ * @returns {number} Rumo em graus (0-360).
+ */
+function computeBearing(lat1, lon1, lat2, lon2) {
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+  const dLon = (lon2 - lon1) * toRad;
+  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
+  const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) -
+            Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
+  let bearing = Math.atan2(y, x) * toDeg;
+  return (bearing + 360) % 360;
+}
+
 /**
- * Atualiza ou cria o marcador do usuário e aplica a rotação de acordo com o heading.
+ * Atualiza ou cria o marcador do usuário, aplicando animação, rotação e demais melhorias:
+ * 
+ * - Filtra leituras com precisão acima de 15m.
+ * - Só atualiza se o movimento for significativo (maior que 1m).
+ * - Anima a transição do marcador entre posições.
+ * - O ícone é uma seta que sempre aponta para a direção do caminho a ser percorrido.
+ * - Exibe um círculo indicando a margem de erro da leitura GPS.
+ * - Integra com a bússola, caso a função setMapRotation esteja definida.
+ *
+ * Se existir um destino definido em window.routeDestination (objeto com {lat, lon}),
+ * o rumo é calculado automaticamente a partir da posição atual até esse destino.
  *
  * @param {number} lat - Latitude atual do usuário.
  * @param {number} lon - Longitude atual do usuário.
- * @param {number} [heading] - (Opcional) Valor do heading em graus.
+ * @param {number} [heading] - (Opcional) Rumo informado pelo GPS.
+ * @param {number} [accuracy] - (Opcional) Precisão da leitura GPS (em metros).
+ * @param {Array} [iconSize] - (Opcional) Tamanho do ícone no formato [largura, altura]. Padrão: [60, 60].
  */
-function updateUserMarker(lat, lon, heading) {
-  // Se o marcador já existe, atualiza sua posição
+function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
+  console.log(`[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`);
+
+  // 1. Ignora leituras com precisão ruim (accuracy > 15m)
+  if (accuracy !== undefined && accuracy > 15) {
+    console.log("[updateUserMarker] Precisão GPS baixa. Atualização ignorada.");
+    return;
+  }
+
+  // 2. Atualiza somente se o movimento for significativo (maior que 1m)
+  if (window.lastPosition) {
+    const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, lat, lon);
+    if (distance < 1) {
+      console.log("[updateUserMarker] Movimento insignificante. Atualização ignorada.");
+      return;
+    }
+  }
+  window.lastPosition = { lat, lon };
+
+  // 3. Se houver um destino definido, calcula o rumo com base nele.
+  // Assim, a seta apontará para o caminho que o usuário precisa seguir.
+  if (window.routeDestination) {
+    heading = computeBearing(lat, lon, window.routeDestination.lat, window.routeDestination.lon);
+  } else if (heading === undefined) {
+    heading = 0;
+  }
+
+  // 4. Define o ícone como uma seta usando Font Awesome.
+  // A aparência (cor, tamanho, etc.) será controlada via CSS pela classe ".user-marker".
+  const iconHtml = '<i class="fas fa-location-arrow"></i>';
+
+  // 5. Configuração do tamanho do ícone (padrão: [60, 60])
+  const finalIconSize = iconSize || [60, 60];
+  // Define o iconAnchor para que a ponta da seta (parte inferior central) fique fixa.
+  const finalIconAnchor = [ finalIconSize[0] / 2, finalIconSize[1] ];
+
+  // 6. Atualiza ou cria o marcador do usuário com animação suave
   if (window.userMarker) {
-    window.userMarker.setLatLng([lat, lon]);
-    // Se o heading for fornecido e o elemento do marcador existir, aplica a rotação
-    if (heading !== undefined && window.userMarker._icon) {
+    const currentPos = window.userMarker.getLatLng();
+    animateMarker(window.userMarker, currentPos, [lat, lon], 300);
+    if (window.userMarker._icon) {
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   } else {
-    // Cria um novo marcador com um ícone personalizado (por exemplo, uma seta)
     window.userMarker = L.marker([lat, lon], {
       icon: L.divIcon({
-        className: 'user-marker',
-        html: '<i class="fas fa-location-arrow"></i>',  // Exemplo com Font Awesome
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
+        className: 'user-marker',  // A classe ".user-marker" será estilizada via CSS
+        html: iconHtml,
+        iconSize: finalIconSize,
+        iconAnchor: finalIconAnchor
       })
     }).addTo(map);
-    if (heading !== undefined && window.userMarker._icon) {
+    if (window.userMarker._icon) {
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   }
 
-  // Se existir a função setMapRotation, aplica a rotação no mapa
-  if (typeof setMapRotation === 'function' && heading !== undefined) {
-    setMapRotation(180);
+// 7. Atualiza ou cria o círculo que indica a precisão do GPS
+if (accuracy !== undefined) {
+  if (window.userAccuracyCircle) {
+    window.userAccuracyCircle.setLatLng([lat, lon]);
+    window.userAccuracyCircle.setRadius(accuracy);
+  } else {
+    window.userAccuracyCircle = L.circle([lat, lon], {
+      radius: accuracy,
+      className: 'gps-accuracy-circle',  // Classe customizada para o círculo
+      // Os valores abaixo poderão ser sobrescritos pelo CSS (usando !important, se necessário)
+    }).addTo(map);
   }
 }
+
+
+  // 8. Se existir a função de integração com a bússola, utiliza o heading calculado
+  if (typeof setMapRotation === 'function') {
+    setMapRotation(heading);
+  }
+}
+
 
 
 
@@ -1145,6 +1224,7 @@ async function createRoute(userLocation) {
         }
 
         finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
+        updateUserMarker();
         return routeData;
     } catch (error) {
         console.error("Erro ao criar rota:", error);
@@ -1887,7 +1967,6 @@ async function fetchRouteInstructions(startLat, startLon, destLat, destLon, lang
   }
 }
 
-
 /**
  * 51. finalizeRouteMarkers
  * Adiciona marcadores de origem e destino no mapa.
@@ -1897,16 +1976,11 @@ async function fetchRouteInstructions(startLat, startLon, destLat, destLon, lang
  * @param {Object} destination - Objeto com lat, lon e (opcionalmente) name do destino.
  */
 function finalizeRouteMarkers(userLat, userLon, destination) {
-  // Armazena o marcador de partida globalmente
-  window.originRouteMarker = L.marker([userLat, userLon])
-    .addTo(map)
-    .bindPopup("📍 Ponto de partida!")
-    .openPopup();
 
   // Armazena o marcador de destino globalmente
   window.destRouteMarker = L.marker([destination.lat, destination.lon])
     .addTo(map)
-    .bindPopup(`🏁 Destino: ${destination.name || "Destino"}`)
+    .bindPopup(`🏁${destination.name || "Destino"}`)
     .openPopup();
 
   console.log("[finalizeRouteMarkers] Marcadores de origem e destino adicionados.");
@@ -7716,7 +7790,7 @@ function initContinuousLocationTracking() {
     (position) => {
       const { latitude, longitude, accuracy } = position.coords;
       userLocation = { latitude, longitude, accuracy };
-      updateUserMarkerModified(latitude, longitude); // Atualiza o marcador (a rotação será atualizada pela função deviceOrientationHandler)
+      updateUserMarker(latitude, longitude); // Atualiza o marcador (a rotação será atualizada pela função deviceOrientationHandler)
       console.log("initContinuousLocationTrackingModified: Localização atualizada:", userLocation);
     },
     (error) => {
@@ -7755,7 +7829,7 @@ function deviceOrientationHandler(event) {
   
   // Se desejar, atualize também o marcador do usuário para refletir a direção
   if (userLocation) {
-    updateUserMarkerModified(userLocation.latitude, userLocation.longitude, heading);
+    updateUserMarker(userLocation.latitude, userLocation.longitude, heading);
   }
   
   console.log("deviceOrientationHandler: Heading atualizado para", heading, "°.");
@@ -7856,3 +7930,447 @@ function hideRouteFooter() {
     console.warn("Elemento 'route-footer' não encontrado.");
   }
 }
+
+/**
+ * Anima suavemente o marcador do usuário da posição atual para a nova posição.
+ *
+ * @param {Object} marker - O marcador do Leaflet.
+ * @param {L.LatLng} fromLatLng - Ponto de partida.
+ * @param {Array} toLatLng - Ponto de chegada ([lat, lon]).
+ * @param {number} duration - Duração da animação em milissegundos.
+ */
+function animateMarker(marker, fromLatLng, toLatLng, duration) {
+  let startTime = null;
+  
+  function animate(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const newLat = fromLatLng.lat + (toLatLng[0] - fromLatLng.lat) * progress;
+    const newLng = fromLatLng.lng + (toLatLng[1] - fromLatLng.lng) * progress;
+    marker.setLatLng([newLat, newLng]);
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+  
+  requestAnimationFrame(animate);
+}
+
+/**
+ * @function createCustomIcon
+ * @description Cria um ícone personalizado para marcadores no mapa usando HTML e CSS.
+ * @param {string} iconType - Tipo do ícone (ex: "user", "destination", "warning").
+ * @returns {Object} Retorna um objeto `L.divIcon()` personalizado.
+ */
+function createCustomIcon(iconType) {
+  console.log(`[createCustomIcon] Criando ícone para tipo: ${iconType}`);
+
+  // 🟢 1. Define classes e ícones personalizados para diferentes tipos de marcadores
+  const iconConfig = {
+    user: { className: "user-location-icon", html: "📍", color: "#007BFF" },
+    destination: { className: "destination-icon", html: "🏁", color: "#28a745" },
+    warning: { className: "warning-icon", html: "⚠️", color: "#FFC107" },
+    default: { className: "default-icon", html: "📌", color: "#DC3545" }
+  };
+
+  // 🟢 2. Obtém a configuração do ícone ou usa a padrão se o tipo for inválido
+  const config = iconConfig[iconType] || iconConfig.default;
+
+  // 🟢 3. Cria o ícone personalizado usando `L.divIcon()`
+  return L.divIcon({
+    className: config.className,
+    html: `<div style="color: ${config.color}; font-size: 24px;">${config.html}</div>`,
+    iconSize: [30, 30], // Define o tamanho do ícone
+    iconAnchor: [15, 30] // Define o ponto de ancoragem para alinhamento correto
+  });
+}
+
+/**
+ * Para cada segmento da rota (definida por um array de {lat, lon}),
+ * calcula a projeção do ponto do usuário sobre o segmento e retorna o
+ * ponto de projeção, o índice do segmento e o fator de projeção (t).
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {Object} { closestPoint: {lat, lon}, segmentIndex, t }
+ */
+function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
+  let minDistance = Infinity;
+  let bestProjection = null;
+  let bestIndex = -1;
+  let bestT = 0;
+
+  for (let i = 0; i < routeCoordinates.length - 1; i++) {
+    const A = routeCoordinates[i];
+    const B = routeCoordinates[i+1];
+    const dx = B.lon - A.lon;
+    const dy = B.lat - A.lat;
+    const magSq = dx * dx + dy * dy;
+    // Se o segmento é um ponto único, pule
+    if (magSq === 0) continue;
+    
+    // Fator de projeção t (pode estar fora do intervalo [0, 1])
+    const t = ((userLon - A.lon) * dx + (userLat - A.lat) * dy) / magSq;
+    // Projeção restrita ao segmento
+    const tClamped = Math.max(0, Math.min(1, t));
+    const projLon = A.lon + tClamped * dx;
+    const projLat = A.lat + tClamped * dy;
+    
+    const d = calculateDistance(userLat, userLon, projLat, projLon);
+    if (d < minDistance) {
+      minDistance = d;
+      bestProjection = { lat: projLat, lon: projLon };
+      bestIndex = i;
+      bestT = tClamped;
+    }
+  }
+  
+  return {
+    closestPoint: bestProjection,
+    segmentIndex: bestIndex,
+    t: bestT
+  };
+}
+
+/**
+ * Calcula o rumo (bearing) entre dois pontos geográficos.
+ * @param {number} lat1 - Latitude do ponto de partida.
+ * @param {number} lon1 - Longitude do ponto de partida.
+ * @param {number} lat2 - Latitude do ponto de destino.
+ * @param {number} lon2 - Longitude do ponto de destino.
+ * @returns {number} Rumo em graus (0-360).
+ */
+function computeBearing(lat1, lon1, lat2, lon2) {
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+  const dLon = (lon2 - lon1) * toRad;
+  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
+  const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) -
+            Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
+  let bearing = Math.atan2(y, x) * toDeg;
+  return (bearing + 360) % 360;
+}
+
+/**
+ * Calcula a distância (em metros) entre dois pontos usando a fórmula de Haversine.
+ * @param {number} lat1 
+ * @param {number} lon1 
+ * @param {number} lat2 
+ * @param {number} lon2 
+ * @returns {number} Distância em metros.
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Raio da Terra em metros
+  const toRad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toRad;
+  const dLon = (lon2 - lon1) * toRad;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+            Math.sin(dLon/2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/**
+ * Para cada segmento da rota (definida por um array de {lat, lon}),
+ * calcula a projeção do ponto do usuário sobre o segmento e retorna o
+ * ponto de projeção, o índice do segmento e o fator de projeção (t).
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {Object} { closestPoint: {lat, lon}, segmentIndex, t }
+ */
+function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
+  let minDistance = Infinity;
+  let bestProjection = null;
+  let bestIndex = -1;
+  let bestT = 0;
+
+  for (let i = 0; i < routeCoordinates.length - 1; i++) {
+    const A = routeCoordinates[i];
+    const B = routeCoordinates[i+1];
+    const dx = B.lon - A.lon;
+    const dy = B.lat - A.lat;
+    const magSq = dx * dx + dy * dy;
+    // Se o segmento é um ponto único, pule
+    if (magSq === 0) continue;
+    
+    // Fator de projeção t (pode estar fora do intervalo [0, 1])
+    const t = ((userLon - A.lon) * dx + (userLat - A.lat) * dy) / magSq;
+    // Projeção restrita ao segmento
+    const tClamped = Math.max(0, Math.min(1, t));
+    const projLon = A.lon + tClamped * dx;
+    const projLat = A.lat + tClamped * dy;
+    
+    const d = calculateDistance(userLat, userLon, projLat, projLon);
+    if (d < minDistance) {
+      minDistance = d;
+      bestProjection = { lat: projLat, lon: projLon };
+      bestIndex = i;
+      bestT = tClamped;
+    }
+  }
+  
+  return {
+    closestPoint: bestProjection,
+    segmentIndex: bestIndex,
+    t: bestT
+  };
+}
+
+/**
+ * Calcula o rumo que o usuário deve seguir com base na rota.
+ * Utiliza a projeção do ponto do usuário sobre a rota para identificar
+ * o segmento e, a partir dele, determina o rumo em direção ao próximo ponto.
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {number} Rumo (bearing) em graus.
+ */
+function getRouteBearingForUser(userLat, userLon, routeCoordinates) {
+  if (!routeCoordinates || routeCoordinates.length < 2) return 0;
+  
+  const { closestPoint, segmentIndex } = getClosestPointOnRoute(userLat, userLon, routeCoordinates);
+  
+  // Se o usuário estiver no último segmento, use o último ponto
+  const nextPoint = (segmentIndex < routeCoordinates.length - 1)
+                      ? routeCoordinates[segmentIndex + 1]
+                      : routeCoordinates[routeCoordinates.length - 1];
+  
+  return computeBearing(closestPoint.lat, closestPoint.lon, nextPoint.lat, nextPoint.lon);
+}
+
+/**
+ * Calcula o rumo (bearing) entre dois pontos geográficos.
+ * @param {number} lat1 - Latitude do ponto de partida.
+ * @param {number} lon1 - Longitude do ponto de partida.
+ * @param {number} lat2 - Latitude do ponto de destino.
+ * @param {number} lon2 - Longitude do ponto de destino.
+ * @returns {number} Rumo em graus (0-360).
+ */
+function computeBearing(lat1, lon1, lat2, lon2) {
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+  const dLon = (lon2 - lon1) * toRad;
+  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
+  const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) -
+            Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
+  let bearing = Math.atan2(y, x) * toDeg;
+  return (bearing + 360) % 360;
+}
+
+/**
+ * Calcula a distância (em metros) entre dois pontos usando a fórmula de Haversine.
+ * @param {number} lat1 
+ * @param {number} lon1 
+ * @param {number} lat2 
+ * @param {number} lon2 
+ * @returns {number} Distância em metros.
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Raio da Terra em metros
+  const toRad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toRad;
+  const dLon = (lon2 - lon1) * toRad;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+            Math.sin(dLon/2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/**
+ * Para cada segmento da rota (definida por um array de {lat, lon}),
+ * calcula a projeção do ponto do usuário sobre o segmento e retorna o
+ * ponto de projeção, o índice do segmento e o fator de projeção (t).
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {Object} { closestPoint: {lat, lon}, segmentIndex, t }
+ */
+function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
+  let minDistance = Infinity;
+  let bestProjection = null;
+  let bestIndex = -1;
+  let bestT = 0;
+
+  for (let i = 0; i < routeCoordinates.length - 1; i++) {
+    const A = routeCoordinates[i];
+    const B = routeCoordinates[i+1];
+    const dx = B.lon - A.lon;
+    const dy = B.lat - A.lat;
+    const magSq = dx * dx + dy * dy;
+    // Se o segmento é um ponto único, pule
+    if (magSq === 0) continue;
+    
+    // Fator de projeção t (pode estar fora do intervalo [0, 1])
+    const t = ((userLon - A.lon) * dx + (userLat - A.lat) * dy) / magSq;
+    // Projeção restrita ao segmento
+    const tClamped = Math.max(0, Math.min(1, t));
+    const projLon = A.lon + tClamped * dx;
+    const projLat = A.lat + tClamped * dy;
+    
+    const d = calculateDistance(userLat, userLon, projLat, projLon);
+    if (d < minDistance) {
+      minDistance = d;
+      bestProjection = { lat: projLat, lon: projLon };
+      bestIndex = i;
+      bestT = tClamped;
+    }
+  }
+  
+  return {
+    closestPoint: bestProjection,
+    segmentIndex: bestIndex,
+    t: bestT
+  };
+}
+
+/**
+ * Calcula o rumo que o usuário deve seguir com base na rota.
+ * Utiliza a projeção do ponto do usuário sobre a rota para identificar
+ * o segmento e, a partir dele, determina o rumo em direção ao próximo ponto.
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {number} Rumo (bearing) em graus.
+ */
+function getRouteBearingForUser(userLat, userLon, routeCoordinates) {
+  if (!routeCoordinates || routeCoordinates.length < 2) return 0;
+  
+  const { closestPoint, segmentIndex } = getClosestPointOnRoute(userLat, userLon, routeCoordinates);
+  
+  // Se o usuário estiver no último segmento, use o último ponto
+  const nextPoint = (segmentIndex < routeCoordinates.length - 1)
+                      ? routeCoordinates[segmentIndex + 1]
+                      : routeCoordinates[routeCoordinates.length - 1];
+  
+  return computeBearing(closestPoint.lat, closestPoint.lon, nextPoint.lat, nextPoint.lon);
+}
+
+/**
+ * Atualiza ou cria o marcador do usuário, aplicando animação, rotação e demais melhorias:
+ * 
+ * - Filtra leituras com precisão acima de 15m.
+ * - Atualiza somente se o movimento for significativo (maior que 1m).
+ * - Anima a transição do marcador entre posições.
+ * - O ícone é uma seta que aponta para o caminho a ser percorrido, conforme calculado a partir da rota.
+ * - Exibe um círculo indicando a margem de erro da leitura GPS.
+ * - Integra com a bússola, caso a função setMapRotation esteja definida.
+ *
+ * Se existir uma rota definida em window.routePath (array de {lat, lon}),
+ * o rumo é calculado automaticamente a partir da posição do usuário até o segmento da rota.
+ *
+ * @param {number} lat - Latitude atual do usuário.
+ * @param {number} lon - Longitude atual do usuário.
+ * @param {number} [heading] - (Opcional) Rumo informado pelo GPS.
+ * @param {number} [accuracy] - (Opcional) Precisão da leitura GPS (em metros).
+ * @param {Array} [iconSize] - (Opcional) Tamanho do ícone no formato [largura, altura]. Padrão: [60, 60].
+ */
+function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
+  console.log(`[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`);
+
+  // 1. Ignora leituras com precisão ruim (accuracy > 15m)
+  if (accuracy !== undefined && accuracy > 15) {
+    console.log("[updateUserMarker] Precisão GPS baixa. Atualização ignorada.");
+    return;
+  }
+
+  // 2. Atualiza somente se o movimento for significativo (maior que 1m)
+  if (window.lastPosition) {
+    const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, lat, lon);
+    if (distance < 1) {
+      console.log("[updateUserMarker] Movimento insignificante. Atualização ignorada.");
+      return;
+    }
+  }
+  window.lastPosition = { lat, lon };
+
+  // 3. Se existir uma rota definida, calcula o rumo com base no segmento da rota.
+  if (window.routePath && window.routePath.length >= 2) {
+    heading = getRouteBearingForUser(lat, lon, window.routePath);
+  } else if (heading === undefined) {
+    heading = 0;
+  }
+
+  // 4. Define o ícone como uma seta usando Font Awesome.
+  // A aparência (cor, tamanho, etc.) será controlada via CSS pela classe ".user-marker".
+  const iconHtml = '<i class="fas fa-location-arrow"></i>';
+
+  // 5. Configuração do tamanho do ícone (padrão: [60, 60])
+  const finalIconSize = iconSize || [60, 60];
+  // Define o iconAnchor para que a ponta inferior central (a ponta da seta) fique fixa.
+  const finalIconAnchor = [ finalIconSize[0] / 2, finalIconSize[1] ];
+
+  // 6. Atualiza ou cria o marcador do usuário com animação suave
+  if (window.userMarker) {
+    const currentPos = window.userMarker.getLatLng();
+    animateMarker(window.userMarker, currentPos, [lat, lon], 300);
+    if (window.userMarker._icon) {
+      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
+    }
+  } else {
+    window.userMarker = L.marker([lat, lon], {
+      icon: L.divIcon({
+        className: 'user-marker',  // Estilize esse ícone via styles.css
+        html: iconHtml,
+        iconSize: finalIconSize,
+        iconAnchor: finalIconAnchor
+      })
+    }).addTo(map);
+    if (window.userMarker._icon) {
+      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
+    }
+  }
+
+  // 7. Atualiza ou cria o círculo que indica a precisão do GPS
+  if (accuracy !== undefined) {
+    if (window.userAccuracyCircle) {
+      window.userAccuracyCircle.setLatLng([lat, lon]);
+      window.userAccuracyCircle.setRadius(accuracy);
+    } else {
+      window.userAccuracyCircle = L.circle([lat, lon], {
+        radius: accuracy,
+        color: 'blue',
+        fillColor: 'blue',
+        fillOpacity: 1,
+        weight: 5
+      }).addTo(map);
+    }
+  }
+
+  // 8. Se existir a função de integração com a bússola, utiliza o heading calculado
+  if (typeof setMapRotation === 'function') {
+    setMapRotation(heading);
+  }
+}
+
+
+/**
+ * Calcula o rumo que o usuário deve seguir com base na rota.
+ * Utiliza a projeção do ponto do usuário sobre a rota para identificar
+ * o segmento e, a partir dele, determina o rumo em direção ao próximo ponto.
+ *
+ * @param {number} userLat - Latitude do usuário.
+ * @param {number} userLon - Longitude do usuário.
+ * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
+ * @returns {number} Rumo (bearing) em graus.
+ */
+function getRouteBearingForUser(userLat, userLon, routeCoordinates) {
+  if (!routeCoordinates || routeCoordinates.length < 2) return 0;
+  
+  const { closestPoint, segmentIndex } = getClosestPointOnRoute(userLat, userLon, routeCoordinates);
+  
+  // Se o usuário estiver no último segmento, use o último ponto
+  const nextPoint = (segmentIndex < routeCoordinates.length - 1)
+                      ? routeCoordinates[segmentIndex + 1]
+                      : routeCoordinates[routeCoordinates.length - 1];
+  
+  return computeBearing(closestPoint.lat, closestPoint.lon, nextPoint.lat, nextPoint.lon);
+}
+
