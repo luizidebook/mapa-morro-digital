@@ -1224,8 +1224,8 @@ async function createRoute(userLocation) {
         }
 
         finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
-        updateUserMarker();
         return routeData;
+        updateUserMarker();
     } catch (error) {
         console.error("Erro ao criar rota:", error);
         showNotification("Erro ao criar rota. Verifique sua conexão e tente novamente.", "error");
@@ -1456,39 +1456,51 @@ async function startNavigation() {
  * endNavigation
  * Finaliza a navegação, limpando estados e parando o monitoramento.
  */
+/**
+ * endNavigation
+ * Finaliza a navegação, limpando estados e parando o monitoramento.
+ */
 function endNavigation() {
   console.log("[endNavigation] Encerrando navegação...");
 
-  // Seta estado para inativo
+  // 1) Define o estado como inativo
   navigationState.isActive = false;
   navigationState.isPaused = false;
-  
-  // Remove o watchPosition, se estiver ativo
+
+  // 2) Desativa rotação automática, se estiver ativa
+  stopRotationAuto();
+
+  // 3) Remove o watchPosition, se estiver ativo
   if (window.positionWatcher !== undefined) {
     navigator.geolocation.clearWatch(window.positionWatcher);
     window.positionWatcher = undefined;
   }
 
-  // Limpa o modal de instruções
+  // 4) Limpa o modal de instruções (se existir)
   const instructionsModal = document.getElementById("navigation-instructions");
   if (instructionsModal) {
     instructionsModal.classList.add("hidden");
     instructionsModal.innerHTML = "";
   }
-  
-  // Limpa a rota e os marcadores do mapa
+
+  // 5) Remove a rota e marcadores do mapa
   clearCurrentRoute();
-  clearFinalizedRouteMarkers();
+  clearRouteMarkers();  // Remove marcadores de origem/destino
   hideInstructionBanner();
   hideRouteFooter();
+
+  // 6) Reinicia o estado de navegação global
   initNavigationState();
-  
-  // Reseta a rotação do mapa
+
+  // 7) Reseta a rotação do mapa (caso exista alguma manipulação via CSS)
   setMapRotation(0);
 
+  // 8) Exibe notificação de navegação encerrada
   showNotification(getGeneralText("navEnded", navigationState.lang), "info");
+
   console.log("[endNavigation] Navegação encerrada com sucesso.");
 }
+
 
 
 /**
@@ -1888,84 +1900,297 @@ function drawPath(userLat, userLon, instructions, lang) {
  * 49. enrichInstructionsWithOSM
 /**
  * enrichInstructionsWithOSM
- * Enriquece as instruções com dados adicionais do OSM (ex.: POIs próximos).
+ * Enriquece as instruções com dados adicionais do OSM (ex.: POIs próximos ou dados de nome de rua).
  *
- * @param {Array} instructions - Array de instruções.
- * @param {string} lang - Código do idioma.
- * @returns {Promise<Array>} - Array de instruções possivelmente enriquecidas.
+ * @param {Array} instructions - Array de instruções originalmente retornadas pelo fetchRouteInstructions.
+ * @param {string} [lang='pt'] - Idioma para eventuais mensagens ou dicionário. (Ex.: "pt", "en", "es"...)
+ * @returns {Promise<Array>} - Array de instruções possivelmente enriquecidas com mais detalhes.
  */
 async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
   try {
+    // Fazemos um map assíncrono de cada passo para buscar dados extras do OSM
     const enriched = await Promise.all(
       instructions.map(async (step) => {
-        // Exemplo: fetchPOIs retorna um array de POIs próximos (defina essa função conforme sua API)
-        const pois = await fetchPOIs(step.lat, step.lon);
+        // Exemplo de chamada a uma função fetchPOIs (você pode implementar):
+        // const pois = await fetchPOIs(step.lat, step.lon);
+        // Aqui, chamamos fetchPOIs ou fetchOSMData com radius e filtragens.
+
+        // Exemplo (simples) de sobreescrever "enrichedInfo" com uma string
+        // gerada a partir do resultado de um fetch. (Aqui, apenas simulação.)
+        const pois = await fakeFetchPOIsNearby(step.lat, step.lon);
+
         if (pois && pois.length > 0) {
-          const extraMsg = getGeneralText("pois_nearby", lang).replace("{count}", pois.length);
+          // Monta um pequeno resumo dos POIs próximos
+          const extraMsg = getGeneralText("pois_nearby", lang) 
+            ? getGeneralText("pois_nearby", lang).replace("{count}", pois.length) 
+            : `Existem ${pois.length} POIs próximos.`;
+
           step.enrichedInfo = extraMsg;
+        } else {
+          // Caso não haja POIs, podemos deixar a enrichedInfo vazia ou com alguma mensagem default
+          step.enrichedInfo = null;
         }
+
         return step;
       })
     );
-    console.log("[enrichInstructionsWithOSM] Instruções enriquecidas.");
+
+    console.log("[enrichInstructionsWithOSM] Instruções enriquecidas com dados do OSM/POIs.");
     return enriched;
+
   } catch (error) {
     console.error("[enrichInstructionsWithOSM] Erro ao enriquecer instruções:", error);
-    return instructions; // fallback: retorna as instruções originais
+    // Em caso de falha, retorne as instruções originais (fallback)
+    return instructions;
   }
 }
+
+// Exemplo de função fake para ilustrar a busca de POIs próximos
+// Você pode substituí-la por algo que utilize Overpass ou outro endpoint real.
+async function fakeFetchPOIsNearby(lat, lon) {
+  // Por simplicidade, vamos retornar um array fictício com 2 POIs
+  // Em um caso real, você chamaria fetchOSMData(algumaQuery) com bounding box/raio etc.
+  return [
+    { name: "POI 1", lat: lat + 0.0002, lon: lon + 0.0002 },
+    { name: "POI 2", lat: lat - 0.0002, lon: lon - 0.0002 }
+  ];
+}
+
 
 
 /**
  * 50. fetchRouteInstructions
 /**
  * fetchRouteInstructions
- * Busca instruções de rota (turn-by-turn) via API ORS.
+ * Busca instruções de rota (turn-by-turn) via API OpenRouteService,
+ * mapeando cada passo e (opcionalmente) enriquecendo com dados do OSM.
  *
- * @param {number} startLat - Latitude de início.
- * @param {number} startLon - Longitude de início.
- * @param {number} destLat - Latitude de destino.
- * @param {number} destLon - Longitude de destino.
- * @param {string} lang - Código do idioma (ex.: "pt").
- * @param {string} [profile="foot-walking"] - Perfil de navegação.
- * @returns {Promise<Array>} - Array de instruções formatadas.
+ * @param {number} startLat  - Latitude de origem.
+ * @param {number} startLon  - Longitude de origem.
+ * @param {number} destLat   - Latitude do destino.
+ * @param {number} destLon   - Longitude do destino.
+ * @param {string} [lang="pt"] - Idioma (pode ser "pt", "en", "es", etc.).
+ * @param {number} [timeoutMs=10000] - Tempo máximo (ms) antes de abortar a requisição.
+ * @param {boolean} [shouldEnrich=true] - Se true, chama enrichInstructionsWithOSM() ao final.
+ * @returns {Promise<Array>} - Array de instruções formatadas ou array vazio se falhar.
  */
-async function fetchRouteInstructions(startLat, startLon, destLat, destLon, lang = "pt", profile = "foot-walking") {
-  const apiUrl = `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}` +
-    `&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=true&language=${lang}`;
-  
+async function fetchRouteInstructions(
+  startLat,
+  startLon,
+  destLat,
+  destLon,
+  lang = "pt",
+  timeoutMs = 10000,
+  shouldEnrich = true
+) {
+  // Controlador de abort para timeout
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    const response = await fetch(apiUrl);
+    // Monta a URL com perfil fixo "foot-walking", mas você pode torná-lo dinâmico se quiser
+    const profile = "foot-walking"; 
+    const url = `https://api.openrouteservice.org/v2/directions/${profile}?` +
+      `start=${startLon},${startLat}&end=${destLon},${destLat}&language=${lang}` +
+      `&api_key=${apiKey}&instructions=true`;
+
+    // Faz a requisição, passando o signal para controlar o timeout
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(id); // Cancela o timer quando obteve resposta
+
+    // Verifica se a resposta HTTP foi bem sucedida
     if (!response.ok) {
-      console.error("[fetchRouteInstructions] Erro na API:", response.status);
+      showNotification(`Falha ao obter rota (status ${response.status})`, "error");
       return [];
     }
+
+    // Lê o JSON com os dados da rota
     const data = await response.json();
-    const steps = data.features[0].properties.segments[0].steps;
-    const coords = data.features[0].geometry.coordinates;
-    // Mapeia cada step para um objeto mais simples
+
+    // Tipicamente, as instruções (steps) vêm em: data.features[0].properties.segments[0].steps
+    // e as coordenadas do trajeto vêm em data.features[0].geometry.coordinates
+    const steps = data.features?.[0]?.properties?.segments?.[0]?.steps;
+    const coords = data.features?.[0]?.geometry?.coordinates;
+
+    // Verificações básicas
+    if (!steps || !coords) {
+      showNotification(getGeneralText("noInstructions", lang), "error");
+      return [];
+    }
+
+    // Mapeia cada step em um objeto custom
     const finalSteps = steps.map((step, index) => {
-      const [lon, lat] = coords[step.way_points[0]];
+      const coordIndex = step.way_points?.[0] ?? 0;
+      const [lon, lat] = coords[coordIndex];
+
+      // Usamos mapORSInstruction se quisermos extrair "maneuverKey" e "placeName"
       const { maneuverKey, placeName } = mapORSInstruction(step.instruction);
-      const text = step.instruction || getGeneralText(maneuverKey, lang);
+
+      // Exemplo de nome de rua se estiver disponível
+      //   -> Você pode extrair do "step.instruction" ou de step.name se existir
+      // const streetName = step.name || placeName;
+
       return {
         id: index + 1,
-        raw: step.instruction,
-        maneuverKey,
-        streetName: placeName,
-        text,
-        distance: Math.round(step.distance),
+        raw: step.instruction,      // instrução bruta
+        text: step.instruction,     // texto amigável (podemos traduzir ou manipular)
+        distance: Math.round(step.distance), // distância em metros
         lat,
-        lon
+        lon,
+        maneuverKey,  // "turn_left", "turn_right", etc.
+        streetName: placeName // se quiser usar a extração do mapORSInstruction
       };
     });
-    console.log("[fetchRouteInstructions] Instruções obtidas:", finalSteps.length);
+
+    // Se quisermos enriquecer cada step com dados do OSM (POIs, etc.)
+    // passamos o array finalSteps para a função enrichInstructionsWithOSM
+    // caso shouldEnrich === true
+    if (shouldEnrich) {
+      // Chama a função de enriquecimento e retorna o resultado
+      const enrichedSteps = await enrichInstructionsWithOSM(finalSteps, lang);
+      return enrichedSteps;
+    }
+
+    // Se não quisermos enriquecer, retornamos finalSteps direto
     return finalSteps;
-  } catch (error) {
-    console.error("[fetchRouteInstructions] Erro ao buscar instruções:", error);
+
+  } catch (err) {
+    clearTimeout(id);
+    console.error("[fetchRouteInstructions] Erro ou timeout na requisição:", err);
+    showNotification("Tempo excedido ou erro ao buscar rota. Tente novamente.", "error");
     return [];
   }
 }
+
+
+/**
+ * enrichInstructionsWithOSM
+ * Enriquece as instruções com dados adicionais (ex.: POIs próximos, nomes de ruas,
+ * ou outras informações obtidas do OpenStreetMap).
+ *
+ * @param {Array} instructions - Array de instruções originalmente retornadas pelo fetchRouteInstructions.
+ * @param {string} [lang='pt'] - Idioma para eventuais mensagens de POIs, etc. (Ex.: "pt", "en", "es"...)
+ * @returns {Promise<Array>} - Array de instruções já com informação extra em step.enrichedInfo (ou outra prop).
+ */
+async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
+  try {
+    // Fazemos um map assíncrono de cada passo, buscando dados extras do OSM
+    const enriched = await Promise.all(
+      instructions.map(async (step) => {
+        // Exemplo fictício:
+        // -> Chamaria fetchPOIs, fetchOSMData ou outro endpoint real
+        // para descobrir POIs em um raio de X metros do step.lat, step.lon
+
+        // Aqui simulamos com a fakeFetchPOIsNearby
+        const pois = await fakeFetchPOIsNearby(step.lat, step.lon);
+
+        if (pois && pois.length > 0) {
+          // Monta uma string do tipo "Existem 2 POIs próximos"
+          const extraMsg = getGeneralText("pois_nearby", lang)
+            ? getGeneralText("pois_nearby", lang).replace("{count}", pois.length)
+            : `Existem ${pois.length} POIs próximos.`;
+
+          step.enrichedInfo = extraMsg;
+        } else {
+          // Caso não haja POIs, podemos deixar essa prop vazia
+          step.enrichedInfo = null;
+        }
+
+        // Retornamos o step com a nova propriedade
+        return step;
+      })
+    );
+
+    console.log("[enrichInstructionsWithOSM] Instruções enriquecidas com dados do OSM/POIs.");
+    return enriched;
+  } catch (error) {
+    console.error("[enrichInstructionsWithOSM] Erro ao enriquecer instruções:", error);
+    // Em caso de falha, retornamos as instruções originais (fallback).
+    return instructions;
+  }
+}
+
+
+// --------------------------
+// EXEMPLO de função fake para ilustrar busca de POIs
+// Substitua por fetchOSMData(query) ou outro approach Overpass real
+async function fakeFetchPOIsNearby(lat, lon) {
+  // Simulação: apenas retorna 2 POIs fixos
+  return [
+    { name: "POI Exemplo 1", lat: lat + 0.0002, lon: lon + 0.0002 },
+    { name: "POI Exemplo 2", lat: lat - 0.0002, lon: lon - 0.0002 }
+  ];
+}
+
+
+/**
+ * Extrai da instrução bruta a manobra, a direção e o nome do local.
+ */
+function mapORSInstruction(rawInstruction) {
+  let maneuverKey = "unknown";
+  let placeName = "";
+  let prepositionUsed = "";
+
+  if (!rawInstruction) return { maneuverKey, placeName, prepositionUsed };
+
+  const text = rawInstruction.toLowerCase();
+
+  // Captura direções com "head", permitindo também intercardeais com espaço (ex.: "south east")
+  const headRegex = /^head\s+(north(?:\s*east|west)?|south(?:\s*east|west)?|east(?:\s*north|south)?|west(?:\s*north|south)?|northeast|southeast|southwest|northwest)/;
+  const headMatch = text.match(headRegex);
+  if (headMatch) {
+    const direction = headMatch[1].replace(/\s+/g, "_");
+    maneuverKey = `head_${direction}`;
+  } else if (text.includes("turn sharp left")) {
+    maneuverKey = "turn_sharp_left";
+  } else if (text.includes("turn sharp right")) {
+    maneuverKey = "turn_sharp_right";
+  } else if (text.includes("turn slight left")) {
+    maneuverKey = "turn_slight_left";
+  } else if (text.includes("turn slight right")) {
+    maneuverKey = "turn_slight_right";
+  } else if (text.includes("turn left")) {
+    maneuverKey = "turn_left";
+  } else if (text.includes("turn right")) {
+    maneuverKey = "turn_right";
+  } else if (text.includes("continue straight")) {
+    maneuverKey = "continue_straight";
+  } else if (text.includes("keep left")) {
+    maneuverKey = "keep_left";
+  } else if (text.includes("keep right")) {
+    maneuverKey = "keep_right";
+  } else if (text.includes("u-turn")) {
+    maneuverKey = "u_turn";
+  } else if (text.includes("enter roundabout")) {
+    maneuverKey = "enter_roundabout";
+  } else if (text.includes("exit roundabout")) {
+    maneuverKey = "exit_roundabout";
+  } else if (text.includes("ferry")) {
+    maneuverKey = "ferry";
+  } else if (text.includes("end of road")) {
+    maneuverKey = "end_of_road";
+  }
+
+  // Detecta a preposição: "on", "onto" ou "in"
+  const prepositionRegex = /\b(on|onto|in)\b/;
+  const prepositionMatch = text.match(prepositionRegex);
+  if (prepositionMatch) {
+    prepositionUsed = prepositionMatch[1];
+  }
+
+  // Extrai o nome do local após a preposição detectada
+  if (prepositionUsed) {
+    const placeRegex = new RegExp(`\\b(?:${prepositionUsed})\\b\\s+(.+?)(?:[,\\.]|$)`, 'i');
+    const placeMatch = rawInstruction.match(placeRegex);
+    if (placeMatch && placeMatch[1]) {
+      placeName = placeMatch[1].trim();
+    }
+  }
+
+  return { maneuverKey, placeName, prepositionUsed };
+}
+
+
 
 /**
  * 51. finalizeRouteMarkers
@@ -2054,9 +2279,10 @@ function updateRouteFooter(routeData, lang = selectedLanguage) {
  * 54. updateInstructionBanner
 /**
  * updateInstructionBanner
- * Atualiza o banner de instruções na interface.
+ * Atualiza o banner de instruções no modal usando as funções de mapeamento e tradução.
  *
- * @param {Object} instruction - Objeto contendo os detalhes da instrução atual.
+ * @param {Object} instruction - Objeto contendo a instrução atual.
+ *        Espera-se que instruction.raw contenha o texto bruto (ex.: "Head southwest on Main Street").
  * @param {string} lang - Código do idioma.
  */
 function updateInstructionBanner(instruction, lang = selectedLanguage) {
@@ -2067,30 +2293,28 @@ function updateInstructionBanner(instruction, lang = selectedLanguage) {
   }
   const arrowEl = document.getElementById("instruction-arrow");
   const mainEl = document.getElementById("instruction-main");
-  const detailsEl = document.getElementById("instruction-details");
 
-  // Valores padrão para cada propriedade
-  const maneuverKey = instruction.maneuverKey || "unknown";
-  const text = instruction.text || "Instrução não disponível";
-  const streetName = instruction.streetName || "";
-  const distance = (instruction.distance !== undefined) ? instruction.distance : "0";
+  // Usa buildInstructionMessage para montar o texto curto da instrução
+  let finalMessage = "";
+  if (instruction.raw) {
+    finalMessage = buildInstructionMessage(instruction.raw, lang);
+  } else {
+    finalMessage = instruction.text || getGeneralText("unknown", lang);
+  }
 
-  // Verifica se getDirectionIcon existe; se não, usa um valor padrão
+  // Obtém o ícone correspondente à manobra
+  const mapped = instruction.raw ? mapORSInstruction(instruction.raw) : { maneuverKey: "unknown" };
   const directionIcon = (typeof getDirectionIcon === "function")
-    ? getDirectionIcon(maneuverKey)
+    ? getDirectionIcon(mapped.maneuverKey)
     : "➡️";
 
-  if (arrowEl) {
-    arrowEl.textContent = directionIcon;
-  }
-  if (mainEl) {
-    mainEl.textContent = text;
-  }
-  if (detailsEl) {
-    detailsEl.textContent = `${distance}m - ${streetName}`;
-  }
+  if (arrowEl) arrowEl.textContent = directionIcon;
+  if (mainEl) mainEl.textContent = finalMessage;
+
+  // Exibe o modal
   banner.classList.remove("hidden");
   banner.style.display = "flex";
+  console.log("updateInstructionBanner: Banner atualizado com:", finalMessage);
 }
 
 /**
@@ -3912,16 +4136,39 @@ function removeExistingHighlights() {
 
 /**
  * 148. mapORSInstruction - Mapeia a instrução bruta da ORS para { maneuverKey, placeName, ... }
+ /**
+ * Mapeia uma instrução bruta (ex.: "Head southwest on Main Street")
+ * para um objeto com:
+ *   - maneuverKey: chave da manobra (ex.: "head_southwest")
+ *   - placeName: nome do local extraído (ex.: "Main Street")
+ *   - prepositionUsed: preposição identificada (ex.: "on", "onto" ou "in")
  */
 function mapORSInstruction(rawInstruction) {
   let maneuverKey = "unknown";
   let placeName = "";
-  if (!rawInstruction) {
-    return { maneuverKey, placeName };
-  }
+  let prepositionUsed = "";
+
+  if (!rawInstruction) return { maneuverKey, placeName, prepositionUsed };
+
   const text = rawInstruction.toLowerCase();
 
-  if (text.includes("turn left")) {
+  // Verifica se a instrução começa com "head" e captura direções (incluindo intercardeais)
+  // A regex permite que direções com espaço sejam capturadas e depois convertidas para underscore.
+  const headRegex = /^head\s+(north(?:\s*east|west)?|south(?:\s*east|west)?|east(?:\s*north|south)?|west(?:\s*north|south)?|northeast|southeast|southwest|northwest)/;
+  const headMatch = text.match(headRegex);
+  if (headMatch) {
+    // Remove possíveis espaços no nome da direção e substitui por underline (ex.: "south east" → "south_east")
+    const direction = headMatch[1].replace(/\s+/g, "_");
+    maneuverKey = `head_${direction}`;
+  } else if (text.includes("turn sharp left")) {
+    maneuverKey = "turn_sharp_left";
+  } else if (text.includes("turn sharp right")) {
+    maneuverKey = "turn_sharp_right";
+  } else if (text.includes("turn slight left")) {
+    maneuverKey = "turn_slight_left";
+  } else if (text.includes("turn slight right")) {
+    maneuverKey = "turn_slight_right";
+  } else if (text.includes("turn left")) {
     maneuverKey = "turn_left";
   } else if (text.includes("turn right")) {
     maneuverKey = "turn_right";
@@ -3943,13 +4190,23 @@ function mapORSInstruction(rawInstruction) {
     maneuverKey = "end_of_road";
   }
 
-  // Extrair o nome da rua ou local
-  const match = rawInstruction.match(/on\s+([\w\s\d]+)/i);
-  if (match && match[1]) {
-    placeName = match[1].trim();
+  // Detecta a preposição utilizada: "on", "onto" ou "in"
+  const prepositionRegex = /\b(on|onto|in)\b/;
+  const prepositionMatch = text.match(prepositionRegex);
+  if (prepositionMatch) {
+    prepositionUsed = prepositionMatch[1];
   }
-  console.log(`[mapORSInstruction] Maneuver: "${maneuverKey}", Place: "${placeName}"`);
-  return { maneuverKey, placeName };
+
+  // Extrai o nome do local com base na preposição detectada
+  if (prepositionUsed) {
+    const placeRegex = new RegExp(`\\b(?:${prepositionUsed})\\b\\s+(.+?)(?:[,\\.]|$)`, 'i');
+    const placeMatch = rawInstruction.match(placeRegex);
+    if (placeMatch && placeMatch[1]) {
+      placeName = placeMatch[1].trim();
+    }
+  }
+
+  return { maneuverKey, placeName, prepositionUsed };
 }
 
 
@@ -4435,6 +4692,14 @@ if ('serviceWorker' in navigator) {
             }
         });
     }
+
+    document.getElementById('carousel-modal-close').addEventListener('click', function() {
+  const modal = document.getElementById('carousel-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+});
+
 
     
 
@@ -5174,7 +5439,6 @@ function applyLanguage(lang) {
   updateInterfaceLanguage(lang);
   console.log(`applyLanguage: Idioma aplicado: ${lang}`);
 }
-
 /**
  * 199. getGeneralText - Retorna o texto traduzido para uma chave e idioma.
  */
@@ -5182,24 +5446,24 @@ function getGeneralText(key, lang = 'pt') {
   const translationsData = {
     pt: {
       // NOVAS CHAVES ADICIONADAS OU AJUSTADAS
-      title: "Morro de São Paulo Digital",              // <title data-i18n="title">
-      chooseLanguage: "Escolha seu idioma:",            // data-i18n="chooseLanguage"
-      tourist_spots: "Pontos Turísticos",               // data-i18n="tourist_spots" (botão)
-      tours: "Passeios",                                // data-i18n="tours"
-      beaches: "Praias",                                // data-i18n="beaches"
-      parties: "Festas",                                // data-i18n="parties"
-      restaurants: "Restaurantes",                      // data-i18n="restaurants"
-      inns: "Pousadas",                                 // data-i18n="inns"
-      shops: "Lojas",                                   // data-i18n="shops"
-      emergencies: "Emergências",                       // data-i18n="emergencies"
-      cancel_navigation: "Cancelar Navegação",          // data-i18n="cancel_navigation"
-      start_route: "Iniciar Rota",                      // data-i18n="start_route"
-      route_summary_title: "Resumo da Rota",            // data-i18n="route_summary_title"
-      route_distance: "Distância:",                     // data-i18n="route_distance"
-      route_eta: "Tempo Estimado:",                     // data-i18n="route_eta"
-      instructions_title: "Instruções de Navegação",    // data-i18n="instructions_title"
+      title: "Morro de São Paulo Digital",
+      chooseLanguage: "Escolha seu idioma:",
+      tourist_spots: "Pontos Turísticos",
+      tours: "Passeios",
+      beaches: "Praias",
+      parties: "Festas",
+      restaurants: "Restaurantes",
+      inns: "Pousadas",
+      shops: "Lojas",
+      emergencies: "Emergências",
+      cancel_navigation: "Cancelar Navegação",
+      start_route: "Iniciar Rota",
+      route_summary_title: "Resumo da Rota",
+      route_distance: "Distância:",
+      route_eta: "Tempo Estimado:",
+      instructions_title: "Instruções de Navegação",
 
-      // Chaves já existentes (mantidas e/ou conferidas com o checklist)
+      // Chaves já existentes
       close_modal: "X",
       close_modal_carousel:"X",
       close_menu: "Fechar Menu",
@@ -5362,29 +5626,35 @@ function getGeneralText(key, lang = 'pt') {
       // ================================
       // NOVAS CHAVES PARA SUPORTE A INSTRUÇÕES OSM
       // ================================
-      head_north: "Siga para o norte",
-      head_south: "Siga para o sul",
-      head_east: "Siga para o leste",
-      head_west: "Siga para o oeste",
-      turn_sharp_left: "Vire acentuadamente à esquerda",
-      turn_sharp_right: "Vire acentuadamente à direita",
-      turn_slight_left: "Vire levemente à esquerda",
-      turn_slight_right: "Vire levemente à direita",
+      // Chaves de instruções OSM
+      continue_straight: "Siga em frente",
+      continue_straight_on: "Siga em frente na",
       turn_left: "Vire à esquerda",
+      turn_left_on: "Vire à esquerda na",
       turn_right: "Vire à direita",
-      continue_straight: "Continue em frente",
-      keep_left: "Mantenha-se à esquerda",
-      keep_right: "Mantenha-se à direita",
-      u_turn: "Faça um retorno",
-      enter_roundabout: "Entre na rotatória",
-      exit_roundabout: "Saia da rotatória",
-      ferry: "Atravesse via balsa",
-      end_of_road: "Vá até o fim da via",
-      arrive_destination: "Você chegou ao destino final"
+      turn_right_on: "Vire à direita na",
+      head_north: "Siga para o norte",
+      head_north_on: "Siga para o norte na",
+      head_south: "Siga para o sul",
+      head_south_on: "Siga para o sul na",
+      head_east: "Siga para o leste",
+      head_east_on: "Siga para o leste na",
+      head_west: "Siga para o oeste",
+      head_west_on: "Siga para o oeste na",
+      head_northeast: "Siga para o nordeste",
+      head_northeast_on: "Siga para o nordeste na",
+      head_southeast: "Siga para o sudeste",
+      head_southeast_on: "Siga para o sudeste na",
+      head_southwest: "Siga para o sudoeste",
+      head_southwest_on: "Siga para o sudoeste na",
+      head_northwest: "Siga para o noroeste",
+      head_northwest_on: "Siga para o noroeste na",
+      arrive_destination: "Você chegou ao destino final",
+      // Outras chaves (mantidas ou adaptadas conforme necessidade)
+      unknown: "Instrução desconhecida"
     },
 
     en: {
-      // NEW KEYS ADDED OR ADJUSTED
       title: "Morro de São Paulo Digital",
       chooseLanguage: "Choose your language:",
       tourist_spots: "Tourist Spots",
@@ -5402,7 +5672,6 @@ function getGeneralText(key, lang = 'pt') {
       route_eta: "Estimated Time:",
       instructions_title: "Navigation Instructions",
 
-      // Existing keys (verified/renamed to match HTML)
       close_modal: "X",
       close_modal_carousel:"X",
       close_menu: "Close Menu",
@@ -5539,7 +5808,7 @@ function getGeneralText(key, lang = 'pt') {
       buyTicket: "Buy Ticket",
       reserveTour: "Reserve Tour",
       viewItinerary: "View Itinerary",
-      navigationStarted_en: "Navigation started.",
+      navigationStarted_pt: "Navigation started.",
       turnLeft: "Turn left",
       turnRight: "Turn right",
       continueStraight: "Continue straight",
@@ -5565,29 +5834,33 @@ function getGeneralText(key, lang = 'pt') {
       // ================================
       // NOVAS CHAVES PARA SUPORTE A INSTRUÇÕES OSM
       // ================================
-      head_north: "Head north",
-      head_south: "Head south",
-      head_east: "Head east",
-      head_west: "Head west",
-      turn_sharp_left: "Turn sharply left",
-      turn_sharp_right: "Turn sharply right",
-      turn_slight_left: "Turn slightly left",
-      turn_slight_right: "Turn slightly right",
-      turn_left: "Turn left",
-      turn_right: "Turn right",
+      // Chaves para instruções OSM
       continue_straight: "Continue straight",
-      keep_left: "Keep left",
-      keep_right: "Keep right",
-      u_turn: "Make a U-turn",
-      enter_roundabout: "Enter the roundabout",
-      exit_roundabout: "Exit the roundabout",
-      ferry: "Take the ferry",
-      end_of_road: "Follow the road to the end",
-      arrive_destination: "You have arrived at your final destination"
+      continue_straight_on: "Continue straight on",
+      turn_left: "Turn left",
+      turn_left_on: "Turn left on",
+      turn_right: "Turn right",
+      turn_right_on: "Turn right on",
+      head_north: "Head north",
+      head_north_on: "Head north on",
+      head_south: "Head south",
+      head_south_on: "Head south on",
+      head_east: "Head east",
+      head_east_on: "Head east on",
+      head_west: "Head west",
+      head_west_on: "Head west on",
+      head_northeast: "Head northeast",
+      head_northeast_on: "Head northeast on",
+      head_southeast: "Head southeast",
+      head_southeast_on: "Head southeast on",
+      head_southwest: "Head southwest",
+      head_southwest_on: "Head southwest on",
+      head_northwest: "Head northwest",
+      head_northwest_on: "Head northwest on",
+      unknown: "Unknown instruction"
     },
 
     es: {
-      // ========== CHAVES ADICIONADAS OU AJUSTADAS PARA ESPANHOL ==========
       title: "Morro de São Paulo Digital",
       chooseLanguage: "Elige tu idioma:",
       tourist_spots: "Lugares Turísticos",
@@ -5605,7 +5878,6 @@ function getGeneralText(key, lang = 'pt') {
       route_eta: "Tiempo Estimado:",
       instructions_title: "Instrucciones de Navegación",
 
-      // ========== CHAVES JÁ EXISTENTES (traduzidas para o Espanhol) ==========
       close_modal: "X",
       close_modal_carousel:"X",
       close_menu: "Cerrar Menú",
@@ -5766,31 +6038,36 @@ function getGeneralText(key, lang = 'pt') {
       minutes: "minutos",
 
       // ================================
-      // NOVAS CHAVES PARA SUPORTE A INSTRUÇÕES OSM
+      // NOVAS CHAVES PARA SUPORTE A INSTRUCCIONES OSM
       // ================================
-      head_north: "Dirígete hacia el norte",
-      head_south: "Dirígete hacia el sur",
-      head_east: "Dirígete hacia el este",
-      head_west: "Dirígete hacia el oeste",
-      turn_sharp_left: "Gira bruscamente a la izquierda",
-      turn_sharp_right: "Gira bruscamente a la derecha",
-      turn_slight_left: "Gira levemente a la izquierda",
-      turn_slight_right: "Gira levemente a la derecha",
-      turn_left: "Gira a la izquierda",
-      turn_right: "Gira a la derecha",
+      // Chaves para instruções OSM
+es: {
       continue_straight: "Continúa recto",
-      keep_left: "Mantente a la izquierda",
-      keep_right: "Mantente a la derecha",
-      u_turn: "Haz un giro en U",
-      enter_roundabout: "Entra a la rotonda",
-      exit_roundabout: "Sal de la rotonda",
-      ferry: "Cruza en ferry",
-      end_of_road: "Sigue hasta el final de la vía",
-      arrive_destination: "Has llegado a tu destino final"
+      continue_straight_on: "Continúa recto en",
+      turn_left: "Gira a la izquierda",
+      turn_left_on: "Gira a la izquierda en",
+      turn_right: "Gira a la derecha",
+      turn_right_on: "Gira a la derecha en",
+      head_north: "Dirígete hacia el norte",
+      head_north_on: "Dirígete hacia el norte en",
+      head_south: "Dirígete hacia el sur",
+      head_south_on: "Dirígete hacia el sur en",
+      head_east: "Dirígete hacia el este",
+      head_east_on: "Dirígete hacia el este en",
+      head_west: "Dirígete hacia el oeste",
+      head_west_on: "Dirígete hacia el oeste en",
+      head_northeast: "Dirígete hacia el noreste",
+      head_northeast_on: "Dirígete hacia el noreste en",
+      head_southeast: "Dirígete hacia el sureste",
+      head_southeast_on: "Dirígete hacia el sureste en",
+      head_southwest: "Dirígete hacia el suroeste",
+      head_southwest_on: "Dirígete hacia el suroeste en",
+      head_northwest: "Dirígete hacia el noroeste",
+      head_northwest_on: "Dirígete hacia el noroeste en",
+      unknown: "Instrucción desconocida",
     },
 
     he: {
-      // ========== CHAVES ADICIONADAS OU AJUSTADAS PARA HEBRAICO ==========
       title: "מורו דה סאו פאולו דיגיטלי",
       chooseLanguage: "בחר את השפה שלך:",
       tourist_spots: "אתרי תיירות",
@@ -5808,7 +6085,6 @@ function getGeneralText(key, lang = 'pt') {
       route_eta: "זמן משוער:",
       instructions_title: "הוראות ניווט",
 
-      // ========== CHAVES JÁ EXISTENTES (traduzidas para o Hebraico) ==========
       close_modal: "X",
       close_modal_carousel:"X",
       close_menu: "סגור תפריט",
@@ -5971,25 +6247,31 @@ function getGeneralText(key, lang = 'pt') {
       // ================================
       // NOVAS CHAVES PARA SUPORTE A INSTRUÇÕES OSM
       // ================================
+      // Chaves para instruções OSM
+      continue_straight: "המשך ישר",
+      continue_straight_on: "המשך ישר על",
+      turn_left: "פנה שמאלה",
+      turn_left_on: "פנה שמאלה על",
+      turn_right: "פנה ימינה",
+      turn_right_on: "פנה ימינה על",
       head_north: "התחל צפונה",
+      head_north_on: "התחל צפונה על",
       head_south: "התחל דרומה",
+      head_south_on: "התחל דרומה על",
       head_east: "התחל מזרחה",
+      head_east_on: "התחל מזרחה על",
       head_west: "התחל מערבה",
-      turn_sharp_left: "פנה בחדות שמאלה",
-      turn_sharp_right: "פנה בחדות ימינה",
-      turn_slight_left: "פנה קלות שמאלה",
-      turn_slight_right: "פנה קלות ימינה",
-      turn_left: "פנה שמאלה ",
-      turn_right: "פנה ימינה ",
-      continue_straight: "המשך ישר ",
-      keep_left: "הישאר בצד שמאל",
-      keep_right: "הישאר בצד ימין",
-      u_turn: "בצע פניית פרסה",
-      enter_roundabout: "היכנס לכיכר",
-      exit_roundabout: "צא מהכיכר",
-      ferry: "חצה במעבורת",
-      end_of_road: "סע עד סוף הדרך",
-      arrive_destination: "הגעת ליעד שלך"
+      head_west_on: "התחל מערבה על",
+      head_northeast: "התחל צפון-מזרח",
+      head_northeast_on: "התחל צפון-מזרח על",
+      head_southeast: "התחל דרום-מזרח",
+      head_southeast_on: "התחל דרום-מזרח על",
+      head_southwest: "התחל דרום-מערב",
+      head_southwest_on: "התחל דרום-מערב על",
+      head_northwest: "התחל צפון-מערב",
+      head_northwest_on: "התחל צפון-מערב על",
+      unknown: "הוראה לא ידועה",
+    }
     }
   };
 
@@ -6008,6 +6290,7 @@ function getGeneralText(key, lang = 'pt') {
   console.warn(`[getGeneralText] Chave '${key}' não encontrada em nenhum idioma.`);
   return `⚠️ ${key}`;
 }
+
 
 
 /****************************************************************************
@@ -8374,3 +8657,49 @@ function getRouteBearingForUser(userLat, userLon, routeCoordinates) {
   return computeBearing(closestPoint.lat, closestPoint.lon, nextPoint.lat, nextPoint.lon);
 }
 
+/**
+ * Compõe a mensagem final da instrução.
+ * Se houver um local, utiliza a chave combinada (ex.: "head_southwest_on")
+ * que já inclui a preposição na tradução.
+ * Caso contrário, retorna apenas a tradução da manobra.
+ *
+ * Exemplo:
+ *   Raw: "Head southwest on Main Street"
+ *   => Objeto mapeado: { maneuverKey: "head_southwest", placeName: "Main Street", prepositionUsed: "on" }
+ *   => Mensagem final (pt): "Siga para o sudoeste na Main Street"
+ */
+/**
+ * Monta a mensagem final a partir da instrução bruta.
+ */
+function buildInstructionMessage(rawInstruction, lang = 'pt') {
+  const { maneuverKey, placeName } = mapORSInstruction(rawInstruction);
+  // Se há um local, utiliza a chave combinada com preposição
+  if (placeName) {
+    return getGeneralText(`${maneuverKey}_on`, lang) + " " + placeName;
+  } else {
+    return getGeneralText(maneuverKey, lang);
+  }
+}
+
+/**
+ * Atualiza e exibe a lista de instruções na interface.
+ * Recebe um array de instruções brutas e o idioma selecionado.
+ * O elemento com id "instructions-container" deve existir na página.
+ */
+function updateInstructionDisplay(rawInstructions, lang = 'pt') {
+  const container = document.getElementById("instruction-banner");
+  if (!container) {
+    console.error("Elemento 'instruction-banner' não encontrado.");
+    return;
+  }
+  // Limpa o conteúdo atual
+  container.innerHTML = "";
+
+  rawInstructions.forEach(instruction => {
+    const message = buildInstructionMessage(instruction, lang);
+    // Cria um elemento para cada instrução (por exemplo, um <li>)
+    const li = document.createElement("li");
+    li.textContent = message;
+    container.appendChild(li);
+  });
+}
