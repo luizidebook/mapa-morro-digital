@@ -469,24 +469,33 @@ let userPosition = null;
 
 // Objeto global para armazenar o estado da navegação.
 // Este objeto é utilizado para controlar flags, índices e buffers durante o fluxo.
-let navigationState = {
-  isActive: false,
-  isPaused: false,
-  watchId: null,
-  currentStepIndex: 0,
-  instructions: [],
-  lang: selectedLanguage || "pt",
-  headingBuffer: [],
-  currentHeading: 0,
-  rotationInterval: 1000,   // Intervalo mínimo (em ms) para atualizar a rotação
-  minRotationDelta: 5,      // Delta mínimo para considerar alteração no heading
-  alpha: 0.2,               // Fator de suavização para a rotação
-  tilt: 0,
-  isRotationEnabled: true,
-  selectedDestination: null,
-  currentRouteLayer: null,
-  routeMarkersLayer: null
+const navigationState = {
+  // Controle básico da navegação
+  isActive: false,               // Indica se a navegação está ativa
+  isPaused: false,               // Indica se a navegação está pausada
+  watchId: null,                 // ID do watchPosition (se aplicável)
+  currentStepIndex: 0,           // Índice do passo atual na rota
+  instructions: [],              // Array de instruções (passos da rota)
+  selectedDestination: null,     // Destino selecionado
+  lang: 'pt',                    // Idioma atual
+
+  // Propriedades para controle da rotação
+  isRotationEnabled: true,       // Habilita ou desabilita a rotação automática
+  quietMode: true,               // Se true, ativa o modo silencioso (atualizações menos frequentes)
+  rotationInterval: 1000,        // Intervalo mínimo (em ms) entre atualizações de rotação
+  speed: 0,                      // Velocidade atual do usuário em m/s (atualize conforme necessário)
+  manualOverride: false,         // Se true, ignora rotações automáticas e usa manualAngle
+  manualAngle: 0,                // Ângulo manual (em graus) a ser aplicado se manualOverride for true
+  tilt: 10,                      // Inclinação (em graus) aplicada na visualização (ex.: para efeito 3D)
+  rotationMode: "compass",       // Define o modo de rotação ("north-up" para fixo no norte ou "compass" para seguir o heading)
+  headingBuffer: [],             // Buffer para armazenar leituras de heading e suavizar a rotação
+  minRotationDelta: 2,           // Variação mínima (em graus) necessária para atualizar a rotação
+  alpha: 0.2,                    // Fator de suavização (valor entre 0 e 1)
+  currentHeading: 0,             // Último heading (em graus) aplicado na rotação
+  lastRotationTime: 0            // Timestamp da última atualização de rotação (em ms)
 };
+
+
 
 // Variável global para o ID do watchPosition (armazenada na propriedade window.positionWatcher)
 window.positionWatcher = null;
@@ -1902,7 +1911,7 @@ function initContinuousLocationTracking() {
       const { latitude, longitude, accuracy } = position.coords;
       userLocation = { latitude, longitude, accuracy };
       // Atualiza o marcador do usuário; a rotação é atualizada separadamente via deviceOrientationHandler
-      updateUserMarker(latitude, longitude, heading, accuracy);
+      updateUserMarker(latitude, longitude, heading);
       console.log("initContinuousLocationTracking: Localização atualizada:", userLocation);
     },
     (error) => {
@@ -1995,40 +2004,60 @@ function setFirstPersonView(position) {
 }
 
 /**
- * 4. setMapRotation
- * @description Rotaciona o container do mapa (ex.: "map-container") de acordo com o heading fornecido,
- * levando em conta várias flags e modos presentes em 'navigationState'.
- * @param {number} heading - O ângulo (graus) representando a direção do usuário (0 = norte).
+ * updateAllMapPanesRotation
+ * Atualiza a transformação CSS (rotação e tilt) em todas as panes do Leaflet
+ * para que os overlays (markers, rotas, etc.) sejam rotacionados junto com os tiles.
+ *
+ * @param {number} heading - O ângulo de rotação em graus.
+ * @param {number} tilt - O valor de tilt (opcional), em graus.
+ */
+function updateAllMapPanesRotation(heading, tilt) {
+  // Lista de seletores das panes que devem ser rotacionadas
+  const paneSelectors = [
+    ".leaflet-tile-pane",
+    ".leaflet-shadow-pane",
+    ".leaflet-marker-pane",
+    ".leaflet-overlay-pane"
+  ];
+  
+  const transformValue = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
+  
+  paneSelectors.forEach(selector => {
+    const pane = document.querySelector(selector);
+    if (pane) {
+      pane.style.transform = transformValue;
+      pane.style.transformOrigin = "center center";
+      pane.style.transition = "transform 0.3s ease-out";
+    }
+  });
+}
+
+
+/**
+ * setMapRotation(heading)
+ * Calcula e aplica a rotação ao mapa utilizando a camada de tiles.
+ * A função utiliza um buffer para suavizar as atualizações e respeita as configurações em navigationState.
  */
 function setMapRotation(heading) {
-  const mapContainer = document.getElementById("map-container");
-  if (!mapContainer) {
-    console.warn("[setMapRotation] #map-container não encontrado.");
-    return;
-  }
-
-  // 1) Checa se a navegação e a rotação estão ativas
+  // Verifica se a navegação e rotação estão ativas
   if (!navigationState.isActive || !navigationState.isRotationEnabled) {
-    // Se a rotação estiver desativada, podemos resetar a transform:
-    mapContainer.style.transform = "none";
+    // Se a rotação estiver desativada, reseta a transformação na camada de tiles
+    const tilePane = document.querySelector('.leaflet-tile-pane');
+    if (tilePane) {
+      tilePane.style.transform = "none";
+    }
     return;
   }
 
-  // 2) Modo quiet: não atualiza caso o usuário esteja praticamente parado
-  //    ou caso não tenha decorrido tempo suficiente desde a última rotação
   const now = Date.now();
+
+  // Modo quiet: se quietMode estiver ativo e a velocidade for baixa, não atualizar
   if (navigationState.quietMode) {
-    // Exemplo: se a velocidade < 0.5 m/s e quietMode, não rotaciona
-    if (navigationState.speed < 0.5) {
-      return;
-    }
-    // Checa se o tempo decorrido é menor que 'rotationInterval'
-    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) {
-      return;
-    }
+    if (navigationState.speed < 0.5) return;
+    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) return;
   }
 
-  // 3) Se existe override manual, aplica ângulo e tilt do "manualAngle" e sai
+  // Se houver override manual, aplica o ângulo manual e o tilt
   if (navigationState.manualOverride) {
     applyRotationTransform(navigationState.manualAngle, navigationState.tilt);
     navigationState.lastRotationTime = now;
@@ -2036,57 +2065,107 @@ function setMapRotation(heading) {
     return;
   }
 
-  // 4) Se heading for inválido ou NaN, sai
+  // Valida o heading recebido
   if (heading == null || isNaN(heading)) {
     console.warn("[setMapRotation] heading inválido => rotação não efetuada.");
     return;
   }
 
-  // 5) rotationMode => "north-up" (sem rotacionar) ou "compass" (seguir heading)
+  // Determina o heading desejado com base no modo de rotação
   let desiredHeading = heading;
   if (navigationState.rotationMode === "north-up") {
-    desiredHeading = 0; // Fica sempre apontando para o norte
+    desiredHeading = 0;
   } else {
-    // Garantir que heading fique entre 0 e 360 (opcional)
-    if (desiredHeading < 0) {
-      desiredHeading = (desiredHeading % 360) + 360;
-    }
-    desiredHeading = desiredHeading % 360;
+    desiredHeading = ((desiredHeading % 360) + 360) % 360; // Normaliza entre 0 e 360
   }
 
-  // 6) Suavização com um buffer de leituras
+  // Adiciona o desiredHeading ao buffer para suavização
   navigationState.headingBuffer.push(desiredHeading);
   if (navigationState.headingBuffer.length > 5) {
     navigationState.headingBuffer.shift();
   }
-  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) 
-                     / navigationState.headingBuffer.length;
+  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) / navigationState.headingBuffer.length;
 
-  // 7) Checa delta mínimo: se a mudança no heading for menor que um limiar, não rotaciona
+  // Se a variação for menor que minRotationDelta, não atualiza
   const delta = Math.abs(avgHeading - navigationState.currentHeading);
-  if (delta < navigationState.minRotationDelta) {
-    // console.log("[setMapRotation] Mudança de heading muito pequena, ignorada.");
-    return;
-  }
+  if (delta < navigationState.minRotationDelta) return;
 
-  // 8) Interpola (exponencial ou linear) para suavizar a rotação
-  const alpha = navigationState.alpha; // 0.0 ~ 1.0
-  const smoothedHeading = navigationState.currentHeading
-    + alpha * (avgHeading - navigationState.currentHeading);
-
-  // Atualiza heading "interno"
+  // Suavização com fator alpha
+  const smoothedHeading = navigationState.currentHeading + navigationState.alpha * (avgHeading - navigationState.currentHeading);
   navigationState.currentHeading = smoothedHeading;
 
-  // 9) Aplica tilt (perspectiva 3D)
-  const tilt = navigationState.tilt;
-  applyRotationTransform(smoothedHeading, tilt);
+  // Aplica a transformação de rotação e tilt à camada de tiles
+  applyRotationTransform(smoothedHeading, navigationState.tilt);
 
-  // Atualiza timestamp
   navigationState.lastRotationTime = now;
-  console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${tilt}`);
+  console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${navigationState.tilt}`);
 }
 
+
+
 /**
+ * Função: applyRotationTransform
+/**
+ * applyRotationTransform(heading, tilt)
+ * Aplica a transformação de rotação e tilt à camada de tiles do Leaflet.
+ * Essa transformação não afeta os markers ou a posição real do mapa.
+ */
+function applyRotationTransform(heading, tilt) {
+  // Seleciona a camada de tiles (geralmente com classe .leaflet-tile-pane)
+  const tilePane = document.querySelector('.leaflet-tile-pane');
+  if (!tilePane) {
+    console.warn("[applyRotationTransform] .leaflet-tile-pane não encontrado.");
+    return;
+  }
+  // Define a origem da transformação e uma transição suave
+  tilePane.style.transition = "transform 0.3s ease-out";
+  tilePane.style.transformOrigin = "center center";
+  // Aplica a rotação e o tilt via CSS (ajuste a perspectiva conforme necessário)
+  tilePane.style.transform = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
+}
+
+
+
+
+
+/**
+ * Função: centerMapForNavigation
+ *
+ * Centraliza o mapa de forma que:
+ * - O marcador do usuário (localização atual) seja exibido na parte inferior da tela.
+ * - O destino (ou outra referência) fique visível na parte superior.
+ *
+ * Como funciona:
+ * - Obtém o tamanho do mapa e calcula um offset vertical.
+ * - Converte a posição do usuário para coordenadas do mapa, subtrai o offset
+ *   (para "levantar" o centro), e projeta de volta para lat/lon.
+ *
+ * Parâmetros a alterar:
+ * - O percentual do offset (aqui 0.25 equivale a 25% da altura do mapa). Alterar esse valor
+ *   se quiser que o marcador do usuário fique mais para cima ou para baixo.
+ * - O nível de zoom pode ser ajustado através do parâmetro "zoom".
+ */
+function centerMapForNavigation(userLat, userLon, destLat, destLon, zoom = 18) {
+  // Obtenha o tamanho do mapa (em pixels)
+  const mapSize = map.getSize();
+  // Defina o offset vertical como 25% da altura do mapa. Você pode alterar 0.25 para outro valor.
+  const offsetY = mapSize.y * 0;
+  
+  // Projete a posição do usuário para o sistema de coordenadas do mapa no zoom especificado
+  const userPoint = map.project([userLat, userLon], zoom);
+  // Ajuste o ponto para "subir" (diminuir a coordenada Y) para que o usuário apareça na parte inferior
+  const adjustedPoint = L.point(userPoint.x, userPoint.y - offsetY);
+  // Converta o ponto ajustado de volta para coordenadas lat/lon
+  const adjustedLatLng = map.unproject(adjustedPoint, zoom);
+  
+  // Centralize o mapa no ponto ajustado, mantendo o zoom
+  map.setView(adjustedLatLng, zoom);
+  console.log("[centerMapForNavigation] Mapa centralizado com offset para navegação.");
+}
+
+
+
+/*
 
 ===========================================================================
 SEÇÃO 9 – INTERAÇÃO NO MAPA OSM
@@ -2514,31 +2593,20 @@ function detectMotion() {
 /**
  * 1. updateUserMarker
  /**
- * updateUserMarker
- * Atualiza ou cria o marcador do usuário no mapa.
- * - Ignora leituras com baixa precisão (acima de 15m).
- * - Atualiza somente se o movimento for significativo (mais que 1m).
- * - Se existir um destino definido (window.routeDestination), recalcula o heading.
- * - Aplica animação de transição (através de animateMarker).
- * - Atualiza a rotação do marcador via CSS.
- * - Atualiza ou cria o círculo que indica a precisão do GPS.
- *
- * @param {number} lat - Latitude do usuário.
- * @param {number} lon - Longitude do usuário.
- * @param {number} [heading=0] - Ângulo de rotação (heading) do usuário.
- * @param {number} [accuracy] - Precisão da leitura do GPS.
- * @param {Array} [iconSize=[60,60]] - Tamanho do ícone do marcador.
+ * updateUserMarker(lat, lon, heading, accuracy, iconSize)
+ * Atualiza ou cria o marker do usuário com animação e rotação.
+ * A função atualiza a rotação do ícone e chama setMapRotation para sincronizar a camada de tiles.
  */
 function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
   console.log(`[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`);
-  
-  // 1. Ignora leituras com precisão ruim (accuracy > 15m)
+
+  // Ignora leituras com baixa precisão (acima de 15m)
   if (accuracy !== undefined && accuracy > 15) {
     console.log("[updateUserMarker] Precisão GPS baixa. Atualização ignorada.");
     return;
   }
-  
-  // 2. Atualiza somente se o movimento for significativo (maior que 1m)
+
+  // Verifica se o movimento é significativo (maior que 1m)
   if (window.lastPosition) {
     const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, lat, lon);
     if (distance < 1) {
@@ -2547,24 +2615,25 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
     }
   }
   window.lastPosition = { lat, lon };
-  
-  // 3. Se houver destino definido, recalcula o heading automaticamente
-  if (window.routeDestination && window.routeDestination.lat && window.routeDestination.lon) {
+
+  // Se houver um destino definido, calcula o heading em direção a ele
+  if (window.routeDestination) {
     heading = computeBearing(lat, lon, window.routeDestination.lat, window.routeDestination.lon);
   } else if (heading === undefined) {
     heading = 0;
   }
-  
-  // 4. Define o ícone do marcador do usuário (seta via Font Awesome)
+
+  // Define o ícone do marker usando Font Awesome
   const iconHtml = '<i class="fas fa-location-arrow"></i>';
   const finalIconSize = iconSize || [60, 60];
-  const finalIconAnchor = [finalIconSize[0] / 2, finalIconSize[1]];
-  
-  // 5. Atualiza ou cria o marcador do usuário com animação
+  const finalIconAnchor = [ finalIconSize[0] / 2, finalIconSize[1] ];
+
+  // Atualiza ou cria o marker do usuário
   if (window.userMarker) {
     const currentPos = window.userMarker.getLatLng();
     animateMarker(window.userMarker, currentPos, [lat, lon], 300);
     if (window.userMarker._icon) {
+      // Atualiza a rotação do ícone sem afetar as coordenadas
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   } else {
@@ -2580,8 +2649,8 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   }
-  
-  // 6. Atualiza ou cria o círculo de precisão
+
+  // Atualiza ou cria o círculo de precisão para indicar a margem de erro
   if (accuracy !== undefined) {
     if (window.userAccuracyCircle) {
       window.userAccuracyCircle.setLatLng([lat, lon]);
@@ -2589,62 +2658,17 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
     } else {
       window.userAccuracyCircle = L.circle([lat, lon], {
         radius: accuracy,
-        className: 'gps-accuracy-circle',
+        className: 'gps-accuracy-circle'
       }).addTo(map);
     }
   }
-  
-  // 7. Atualiza a rotação do mapa (se disponível)
+
+  // Atualiza a rotação da camada de tiles conforme o heading
   if (typeof setMapRotation === 'function') {
     setMapRotation(heading);
   }
-  
-  // 8. Force o zoom máximo
-  map.setZoom(map.getMaxZoom());
-  
-  // 9. Se houver destino definido, ajuste o mapa para mostrar ambos:
-  //    - Usuário no canto inferior (80% da altura) e destino no canto superior (20% da altura).
-  if (selectedDestination && selectedDestination.lat && selectedDestination.lon) {
-    const containerSize = map.getSize();
-    // Cria uma bounds com os dois pontos
-    const bounds = L.latLngBounds([lat, lon], [selectedDestination.lat, selectedDestination.lon]);
-    // Define padding: 20% da altura para o topo e 20% para a parte inferior
-    map.fitBounds(bounds, {
-      paddingTopLeft: L.point(0, containerSize.y * 0.2),
-      paddingBottomRight: L.point(0, containerSize.y * 0.2),
-      animate: true
-    });
-  } else {
-    // Se não há destino, apenas centraliza o usuário no "canto inferior"
-    const containerSize = map.getSize();
-    const markerPoint = map.latLngToContainerPoint([lat, lon]);
-    const desiredPoint = L.point(containerSize.x / 2, containerSize.y * 0.8);
-    const offset = desiredPoint.subtract(markerPoint);
-    map.panBy(offset, { animate: true });
-  }
 }
 
-
-
-function animateMarker(marker, fromLatLng, toLatLng, duration) {
-  // Verifica se o plugin Leaflet.Marker.SlideTo está disponível
-  if (typeof marker.slideTo === 'function') {
-    // O plugin espera a duração em segundos, então convertemos de milissegundos para segundos
-    const durationInSeconds = duration / 1000;
-    
-    // Inicia a animação do marcador para a nova posição
-    marker.slideTo(toLatLng, {
-      duration: durationInSeconds,
-      keepAtCenter: false // Caso queira manter o marcador centralizado, defina como true
-    });
-    
-    console.log(`Animação iniciada: do ponto ${fromLatLng} para ${toLatLng} em ${durationInSeconds}s.`);
-  } else {
-    // Se o plugin não estiver disponível, faz o movimento sem animação (fallback)
-    marker.setLatLng(toLatLng);
-    console.warn("Plugin 'Leaflet.Marker.SlideTo' não encontrado. Movendo marcador instantaneamente.");
-  }
-}
 
 
 /*
@@ -3030,149 +3054,131 @@ SEÇÃO 12 – NAVEGAÇÃO
 /**
  * 1. startNavigation
 /**
- * startNavigation
  * Inicia a navegação para o destino selecionado.
- * O fluxo realiza a validação do destino e da localização do usuário,
- * reinicializa o estado de navegação, obtém opções de rota (e permite que o usuário as escolha),
- * enriquece as instruções com dados extras, anima a transição no mapa, plota a rota,
- * adiciona marcadores de origem e destino, atualiza a interface e inicia o monitoramento em tempo real.
+ * Essa função:
+ *  - Exibe o indicador de carregamento e valida o destino;
+ *  - Inicializa o estado de navegação;
+ *  - Obtém opções de rota e permite que o usuário escolha uma delas;
+ *  - Enriquecer as instruções com dados adicionais (ex.: OSM);
+ *  - Anima o mapa e plota a rota com os marcadores de origem e destino;
+ *  - Inicia o monitoramento contínuo da posição do usuário, atualizando a interface
+ *    sem que a rotação dos tiles interfira nas coordenadas dos markers.
  */
 async function startNavigation() {
-    // --- ETAPA 1: Preparação e Validação ---
-    // Exibe um indicador de carregamento enquanto o sistema processa a rota.
-    showRouteLoadingIndicator();
-    
-    // Valida se o destino selecionado possui coordenadas válidas.
-    if (!validateDestination(selectedDestination)) {
-        hideRouteLoadingIndicator();
-        return;
-    }
-    
-    // Verifica se a localização do usuário já está disponível.
-    if (!userLocation) {
-        showNotification("Localização não disponível. Permita o acesso à localização primeiro.", "error");
-        hideRouteLoadingIndicator();
-        return;
-    }
-    
-    // Inicializa o estado global da navegação (limpa buffers, reseta índices, etc.).
-    initNavigationState();
-    navigationState.isActive = true;
-    navigationState.isPaused = false;
-    navigationState.currentStepIndex = 0;
-    
-    // --- ETAPA 2: Escolha e Criação da Rota ---
-    // Obtém múltiplas opções de rota para o trajeto (ex.: foot, bike, carro).
-    let routeOptions = await fetchMultipleRouteOptions(
-        userLocation.latitude,
-        userLocation.longitude,
-        selectedDestination.lat,
-        selectedDestination.lon
-    );
-    if (!routeOptions || routeOptions.length === 0) {
-        showNotification(getGeneralText("noInstructions", selectedLanguage), "error");
-        hideRouteLoadingIndicator();
-        return;
-    }
-    
-    // Permite que o usuário escolha uma das rotas disponíveis (via interface visual ou modal).
-    let selectedRoute = await promptUserToChooseRoute(routeOptions);
-    if (!selectedRoute) {
-        hideRouteLoadingIndicator();
-        return;
-    }
-    
-    // Busca as instruções turn-by-turn para a rota escolhida e enriquece com dados do OSM.
-    let routeInstructions = await enrichInstructionsWithOSM(selectedRoute.routeData, selectedLanguage);
-    navigationState.instructions = routeInstructions;
-    
-    // --- ETAPA 3: Exibição e Preparação Visual ---
-    // Opcional: Exibir uma pré-visualização da rota (poderíamos chamar visualizeRouteOnPreview() aqui)
-    // visualizeRouteOnPreview(selectedRoute.routeData);
-  
-    
-    // Plota a rota escolhida no mapa usando os dados obtidos.
-    const routeData = await plotRouteOnMap(
-        userLocation.latitude,
-        userLocation.longitude,
-        selectedDestination.lat,
-        selectedDestination.lon
-    );
-    
-    // Adiciona marcadores de origem e destino para dar feedback visual claro.
-    finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
-    
-    // Atualiza a interface:
-    // - Remove qualquer resumo visual antigo.
-    // - Atualiza o banner de instruções com o primeiro passo.
-    // - Atualiza o rodapé com informações de tempo e distância.
-    hideRouteSummary();
-    updateInstructionBanner(routeInstructions[0], selectedLanguage);
-    updateRouteFooter(routeData, selectedLanguage);
-    
-    // Remove o indicador de carregamento.
+  // 1. Exibe o indicador de carregamento da rota
+  showRouteLoadingIndicator();
+
+  // 2. Valida o destino selecionado
+  if (!validateDestination(selectedDestination)) {
     hideRouteLoadingIndicator();
-    
-    // Fornece feedback auditivo indicando que a navegação foi iniciada.
-    giveVoiceFeedback(getGeneralText("navigationStarted", selectedLanguage));
-    
-    // --- ETAPA 4: Monitoramento em Tempo Real ---
-    // Inicia o watchPosition para atualizar a posição do usuário continuamente.
-    window.positionWatcher = navigator.geolocation.watchPosition(
-        (pos) => {
-            // Se a navegação estiver pausada, ignora a atualização.
-            if (navigationState.isPaused) return;
-            
-            // Extrai as coordenadas, heading, velocidade e precisão da posição atual.
-            const { latitude, longitude, heading, speed, accuracy } = pos.coords;
-            // Atualiza a variável global de localização do usuário.
-            userLocation = { latitude, longitude, accuracy, heading };
-            
-            // Atualiza o marcador do usuário (incluindo animação e rotação).
-            updateUserMarker(latitude, longitude, heading, accuracy);
-            
-            
-            // 
+    return;
+  }
 
+  // 3. Verifica se a localização do usuário está disponível
+  if (!userLocation) {
+    showNotification("Localização não disponível. Permita o acesso à localização primeiro.", "error");
+    hideRouteLoadingIndicator();
+    return;
+  }
 
-            // Se o heading for válido, atualiza a rotação do mapa.
-            if (typeof heading === "number" && !isNaN(heading)) {
-                setMapRotation(180);
-            }
-            
-            // Atualiza a interface em tempo real: banner de instruções e, opcionalmente, a centralização do mapa.
-            updateRealTimeNavigation(
-                latitude,
-                longitude,
-                navigationState.instructions,
-                selectedDestination.lat,
-                selectedDestination.lon,
-                selectedLanguage,
-                heading
-            );
-            
-            // Verifica se o usuário se desviou do trajeto (comparando a posição com o passo atual).
-            if (shouldRecalculateRoute(latitude, longitude, navigationState.instructions)) {
-                // Notifica o desvio e dispara o recálculo da rota.
-                notifyDeviation();
-            }
-        },
-        (error) => {
-            console.error("Erro no watchPosition:", error);
-            showNotification(getGeneralText("trackingError", selectedLanguage), "error");
-        },
-        { enableHighAccuracy: true }
-    );
-    
-    // --- ETAPA 5: Funções Auxiliares e Extras (Opcional) ---
-    // Aqui podemos, por exemplo, exibir alternativas visuais de rota, dados customizados ou até popups promocionais:
-    // showRouteAlternatives(alternativeRouteDataArray);
-    // displayCustomBeaches(); // Exibe dados de praias próximos ao destino.
-    // addArrowToMap({ lat: X, lon: Y }); // Destaca um waypoint importante.
-    // showMarketingPopup("Confira ofertas exclusivas para sua viagem!");
-    
-    console.log("startNavigation: Navegação iniciada com sucesso.");
+  // 4. Inicializa o estado da navegação
+  initNavigationState();
+  navigationState.isActive = true;
+  navigationState.isPaused = false;
+  navigationState.currentStepIndex = 0;
+
+  // 5. Obtém múltiplas opções de rota com base na posição do usuário e destino
+  let routeOptions = await fetchMultipleRouteOptions(
+    userLocation.latitude,
+    userLocation.longitude,
+    selectedDestination.lat,
+    selectedDestination.lon
+  );
+  if (!routeOptions || routeOptions.length === 0) {
+    showNotification(getGeneralText("noInstructions", selectedLanguage), "error");
+    hideRouteLoadingIndicator();
+    return;
+  }
+
+  // 6. Permite que o usuário escolha a rota desejada
+  let selectedRoute = await promptUserToChooseRoute(routeOptions);
+  if (!selectedRoute) {
+    hideRouteLoadingIndicator();
+    return;
+  }
+
+  // 7. Enriquecer as instruções com dados adicionais do OSM (caso aplicável)
+  let routeInstructions = await enrichInstructionsWithOSM(selectedRoute.routeData, selectedLanguage);
+  navigationState.instructions = routeInstructions;
+
+  // 8. Animação suave até a localização do usuário
+  animateMapToLocalizationUser(userLocation.latitude, userLocation.longitude);
+
+  // 9. Plota a rota escolhida no mapa e adiciona os markers de origem/destino
+  const routeData = await plotRouteOnMap(
+    userLocation.latitude,
+    userLocation.longitude,
+    selectedDestination.lat,
+    selectedDestination.lon
+  );
+  finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
+
+  // 10. Ajusta a interface (oculta o resumo anterior, atualiza instruções e rodapé)
+  hideRouteSummary();
+  updateInstructionBanner(routeInstructions[0], selectedLanguage);
+  updateRouteFooter(routeData, selectedLanguage);
+  hideRouteLoadingIndicator();
+  giveVoiceFeedback(getGeneralText("navigationStarted", selectedLanguage));
+
+  // 11. Inicia o monitoramento da posição do usuário com watchPosition
+  window.positionWatcher = navigator.geolocation.watchPosition(
+    (pos) => {
+      if (navigationState.isPaused) return;
+
+      // Atualiza a variável global userLocation com a posição atualizada
+      const { latitude, longitude, heading, speed } = pos.coords;
+      userLocation = { latitude, longitude, accuracy: pos.coords.accuracy, heading: heading };
+
+      // Atualiza o marker do usuário (incluindo a rotação do ícone)
+      updateUserMarker(latitude, longitude, heading);
+
+      // Ajusta o zoom dinamicamente com base na velocidade (opcional)
+      adjustMapZoomBasedOnSpeed(speed);
+
+      // Reposiciona o mapa de forma suave (utilizando panTo para manter o zoom)
+      map.panTo([latitude, longitude], { animate: true, duration: 0.5 });
+
+      // Se houver um heading válido, atualiza a rotação da camada de tiles
+      if (heading !== null) {
+        setMapRotation(heading);
+      }
+
+      // Atualiza a interface com instruções em tempo real
+      updateRealTimeNavigation(
+        latitude,
+        longitude,
+        navigationState.instructions,
+        selectedDestination.lat,
+        selectedDestination.lon,
+        selectedLanguage
+      );
+
+      // Verifica se é necessário recalcular a rota (caso o usuário se desvie)
+      if (shouldRecalculateRoute(latitude, longitude, navigationState.instructions)) {
+        notifyDeviation();
+      }
+    },
+    (error) => {
+      console.error("Erro no watchPosition:", error);
+      showNotification(getGeneralText("trackingError", selectedLanguage), "error");
+    },
+    { enableHighAccuracy: true }
+  );
+
+  console.log("startNavigation: Navegação iniciada com sucesso.");
 }
+
+
 
 
 /**
@@ -3279,32 +3285,28 @@ function toggleNavigationPause() {
 /**
  * 5. updateRealTimeNavigation
  /**
- * updateRealTimeNavigation
- * Atualiza a navegação em tempo real conforme o usuário se move.
- * - Atualiza o marcador do usuário.
- * - Atualiza o banner de instruções.
- * - Opcionalmente centraliza o mapa mantendo o zoom atual.
- *
- * @param {number} lat - Nova latitude do usuário.
- * @param {number} lon - Nova longitude do usuário.
- * @param {Array} instructions - Array de instruções da rota.
- * @param {number} destLat - Latitude do destino.
- * @param {number} destLon - Longitude do destino.
- * @param {string} lang - Código do idioma.
- * @param {number} [heading] - (Opcional) Heading atual do usuário.
+ * updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang, heading)
+ * Atualiza a navegação em tempo real:
+ * - Atualiza o marker do usuário com updateUserMarker.
+ * - Reposiciona o mapa suavemente com panTo.
+ * - Atualiza a interface (ex.: banner de instruções) com a instrução atual.
  */
 function updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang, heading) {
-  // Atualiza o marcador do usuário (incluindo heading, se fornecido)
+  // Atualiza ou cria o marker do usuário
   updateUserMarker(lat, lon, heading);
-  
-  // Atualiza o banner de instruções com o passo atual
+
+  // Atualiza a interface com a instrução atual (caso haja)
   if (instructions && instructions.length > 0) {
-    const currentStep = instructions[navigationState.currentStepIndex];
-    if (currentStep) {
-      updateInstructionBanner(currentStep, lang);
+    const currentStepIndex = navigationState.currentStepIndex;
+    const currentInstruction = instructions[currentStepIndex];
+    if (currentInstruction) {
+      updateInstructionBanner(currentInstruction, lang);
     }
   }
 
+  // Reposiciona o mapa de forma suave sem alterar o zoom atual
+  // Usamos panTo para centralizar o mapa na posição atual do usuário
+  map.panTo([lat, lon], { animate: true, duration: 0.5 });
 }
 
 
@@ -3947,13 +3949,7 @@ function updateNavigationProgress(progress) {
  * do usuário, se suportado. Usa DeviceOrientationEvent, solicitando permissão em iOS.
 */
 // Declare globalmente
-function onDeviceOrientationChange(event) {
-    const alpha = event.alpha;
-    if (typeof alpha === "number" && !isNaN(alpha)) {
-      setMapRotation(alpha);
-    }
-}
-
+// Função para anexar o listener de deviceorientation e iniciar a rotação automática
 function startRotationAuto() {
   if (DeviceOrientationEvent.requestPermission && typeof DeviceOrientationEvent.requestPermission === "function") {
     DeviceOrientationEvent.requestPermission()
@@ -3971,16 +3967,13 @@ function startRotationAuto() {
     attachOrientationListener();
   }
 
-  function attachOrientationListener() {
+   function attachOrientationListener() {
     window.removeEventListener("deviceorientation", onDeviceOrientationChange, true);
     window.addEventListener("deviceorientation", onDeviceOrientationChange, true);
   }
 }
 
-/**
- * onDeviceOrientationChange
- * Função auxiliar para tratar o evento de orientação do dispositivo.
- */
+// Função de callback para o evento deviceorientation
 function onDeviceOrientationChange(event) {
   const alpha = event.alpha;
   if (typeof alpha === "number" && !isNaN(alpha)) {
@@ -3999,13 +3992,13 @@ function stopRotationAuto() {
     navigationState.isRotationEnabled = false;
   }
   window.removeEventListener("deviceorientation", onDeviceOrientationChange, true);
-  const mapContainer = document.getElementById("map-container");
-  if (mapContainer) {
-    mapContainer.style.transform = "rotate(0deg)";
-    mapContainer.style.transition = "transform 0.3s ease-out";
-  }
+  
+  // Em vez de alterar o container principal, remova a transformação da camada de tiles
+  removeRotationFromTileLayer();
+  
   console.log("stopRotationAuto: Rotação automática desativada.");
 }
+
 
 
 /**
@@ -4120,36 +4113,35 @@ function mapORSInstruction(rawInstruction) {
 
 /**
 
- * 4. animateMapToDestination
+ * 4. animateMapToLocalizationUser
  /**
- * animateMapToDestination
- * Realiza uma animação suave movendo o mapa da posição inicial até o destino.
- *
- * @param {number} startLat - Latitude inicial.
- * @param {number} startLon - Longitude inicial.
- * @param {number} destLat - Latitude do destino.
- * @param {number} destLon - Longitude do destino.
+/**
+ * animateMapToLocalizationUser(targetLat, targetLon)
+ * Realiza uma animação suave para centralizar o mapa na localização do usuário.
+ * A animação interpola entre o centro atual e a posição (targetLat, targetLon) durante 1 segundo.
  */
-function animateMapToDestination(startLat, startLon, destLat, destLon) {
-  const animationDuration = 2000; // Duração da animação em milissegundos
+function animateMapToLocalizationUser(targetLat, targetLon) {
+  const animationDuration = 1000; // duração da animação em milissegundos
+  const startCenter = map.getCenter();
+  const startLat = startCenter.lat;
+  const startLon = startCenter.lng;
   const startTime = performance.now();
 
   function animateFrame(currentTime) {
-    const elapsedTime = currentTime - startTime;
-    const progress = Math.min(elapsedTime / animationDuration, 1);
-    // Interpola as coordenadas
-    const lat = startLat + (destLat - startLat) * progress;
-    const lon = startLon + (destLon - startLon) * progress;
-
-    map.setView([lat, lon], map.getZoom());
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / animationDuration, 1);
+    // Interpolação linear das coordenadas
+    const interpolatedLat = startLat + (targetLat - startLat) * progress;
+    const interpolatedLon = startLon + (targetLon - startLon) * progress;
+    // Atualiza a vista do mapa sem animação nativa (pois estamos interpolando manualmente)
+    map.setView([interpolatedLat, interpolatedLon], map.getZoom(), { animate: false });
     if (progress < 1) {
       requestAnimationFrame(animateFrame);
     }
   }
-
   requestAnimationFrame(animateFrame);
-  console.log("animateMapToDestination: Animação iniciada do ponto inicial ao destino.");
 }
+
 
 
 /**
