@@ -2004,60 +2004,40 @@ function setFirstPersonView(position) {
 }
 
 /**
- * updateAllMapPanesRotation
- * Atualiza a transformação CSS (rotação e tilt) em todas as panes do Leaflet
- * para que os overlays (markers, rotas, etc.) sejam rotacionados junto com os tiles.
- *
- * @param {number} heading - O ângulo de rotação em graus.
- * @param {number} tilt - O valor de tilt (opcional), em graus.
- */
-function updateAllMapPanesRotation(heading, tilt) {
-  // Lista de seletores das panes que devem ser rotacionadas
-  const paneSelectors = [
-    ".leaflet-tile-pane",
-    ".leaflet-shadow-pane",
-    ".leaflet-marker-pane",
-    ".leaflet-overlay-pane"
-  ];
-  
-  const transformValue = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
-  
-  paneSelectors.forEach(selector => {
-    const pane = document.querySelector(selector);
-    if (pane) {
-      pane.style.transform = transformValue;
-      pane.style.transformOrigin = "center center";
-      pane.style.transition = "transform 0.3s ease-out";
-    }
-  });
-}
-
-
-/**
- * setMapRotation(heading)
- * Calcula e aplica a rotação ao mapa utilizando a camada de tiles.
- * A função utiliza um buffer para suavizar as atualizações e respeita as configurações em navigationState.
+ * 4. setMapRotation
+ * @description Rotaciona o container do mapa (ex.: "map-container") de acordo com o heading fornecido,
+ * levando em conta várias flags e modos presentes em 'navigationState'.
+ * @param {number} heading - O ângulo (graus) representando a direção do usuário (0 = norte).
  */
 function setMapRotation(heading) {
-  // Verifica se a navegação e rotação estão ativas
-  if (!navigationState.isActive || !navigationState.isRotationEnabled) {
-    // Se a rotação estiver desativada, reseta a transformação na camada de tiles
-    const tilePane = document.querySelector('.leaflet-tile-pane');
-    if (tilePane) {
-      tilePane.style.transform = "none";
-    }
+  const mapContainer = document.getElementById("map-container");
+  if (!mapContainer) {
+    console.warn("[setMapRotation] #map-container não encontrado.");
     return;
   }
 
-  const now = Date.now();
-
-  // Modo quiet: se quietMode estiver ativo e a velocidade for baixa, não atualizar
-  if (navigationState.quietMode) {
-    if (navigationState.speed < 0.5) return;
-    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) return;
+  // 1) Checa se a navegação e a rotação estão ativas
+  if (!navigationState.isActive || !navigationState.isRotationEnabled) {
+    // Se a rotação estiver desativada, podemos resetar a transform:
+    mapContainer.style.transform = "none";
+    return;
   }
 
-  // Se houver override manual, aplica o ângulo manual e o tilt
+  // 2) Modo quiet: não atualiza caso o usuário esteja praticamente parado
+  //    ou caso não tenha decorrido tempo suficiente desde a última rotação
+  const now = Date.now();
+  if (navigationState.quietMode) {
+    // Exemplo: se a velocidade < 0.5 m/s e quietMode, não rotaciona
+    if (navigationState.speed < 0.5) {
+      return;
+    }
+    // Checa se o tempo decorrido é menor que 'rotationInterval'
+    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) {
+      return;
+    }
+  }
+
+  // 3) Se existe override manual, aplica ângulo e tilt do "manualAngle" e sai
   if (navigationState.manualOverride) {
     applyRotationTransform(navigationState.manualAngle, navigationState.tilt);
     navigationState.lastRotationTime = now;
@@ -2065,107 +2045,57 @@ function setMapRotation(heading) {
     return;
   }
 
-  // Valida o heading recebido
+  // 4) Se heading for inválido ou NaN, sai
   if (heading == null || isNaN(heading)) {
     console.warn("[setMapRotation] heading inválido => rotação não efetuada.");
     return;
   }
 
-  // Determina o heading desejado com base no modo de rotação
+  // 5) rotationMode => "north-up" (sem rotacionar) ou "compass" (seguir heading)
   let desiredHeading = heading;
   if (navigationState.rotationMode === "north-up") {
-    desiredHeading = 0;
+    desiredHeading = 0; // Fica sempre apontando para o norte
   } else {
-    desiredHeading = ((desiredHeading % 360) + 360) % 360; // Normaliza entre 0 e 360
+    // Garantir que heading fique entre 0 e 360 (opcional)
+    if (desiredHeading < 0) {
+      desiredHeading = (desiredHeading % 360) + 360;
+    }
+    desiredHeading = desiredHeading % 360;
   }
 
-  // Adiciona o desiredHeading ao buffer para suavização
+  // 6) Suavização com um buffer de leituras
   navigationState.headingBuffer.push(desiredHeading);
   if (navigationState.headingBuffer.length > 5) {
     navigationState.headingBuffer.shift();
   }
-  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) / navigationState.headingBuffer.length;
+  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) 
+                     / navigationState.headingBuffer.length;
 
-  // Se a variação for menor que minRotationDelta, não atualiza
+  // 7) Checa delta mínimo: se a mudança no heading for menor que um limiar, não rotaciona
   const delta = Math.abs(avgHeading - navigationState.currentHeading);
-  if (delta < navigationState.minRotationDelta) return;
-
-  // Suavização com fator alpha
-  const smoothedHeading = navigationState.currentHeading + navigationState.alpha * (avgHeading - navigationState.currentHeading);
-  navigationState.currentHeading = smoothedHeading;
-
-  // Aplica a transformação de rotação e tilt à camada de tiles
-  applyRotationTransform(smoothedHeading, navigationState.tilt);
-
-  navigationState.lastRotationTime = now;
-  console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${navigationState.tilt}`);
-}
-
-
-
-/**
- * Função: applyRotationTransform
-/**
- * applyRotationTransform(heading, tilt)
- * Aplica a transformação de rotação e tilt à camada de tiles do Leaflet.
- * Essa transformação não afeta os markers ou a posição real do mapa.
- */
-function applyRotationTransform(heading, tilt) {
-  // Seleciona a camada de tiles (geralmente com classe .leaflet-tile-pane)
-  const tilePane = document.querySelector('.leaflet-tile-pane');
-  if (!tilePane) {
-    console.warn("[applyRotationTransform] .leaflet-tile-pane não encontrado.");
+  if (delta < navigationState.minRotationDelta) {
+    // console.log("[setMapRotation] Mudança de heading muito pequena, ignorada.");
     return;
   }
-  // Define a origem da transformação e uma transição suave
-  tilePane.style.transition = "transform 0.3s ease-out";
-  tilePane.style.transformOrigin = "center center";
-  // Aplica a rotação e o tilt via CSS (ajuste a perspectiva conforme necessário)
-  tilePane.style.transform = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
+
+  // 8) Interpola (exponencial ou linear) para suavizar a rotação
+  const alpha = navigationState.alpha; // 0.0 ~ 1.0
+  const smoothedHeading = navigationState.currentHeading
+    + alpha * (avgHeading - navigationState.currentHeading);
+
+  // Atualiza heading "interno"
+  navigationState.currentHeading = smoothedHeading;
+
+  // 9) Aplica tilt (perspectiva 3D)
+  const tilt = navigationState.tilt;
+  applyRotationTransform(smoothedHeading, tilt);
+
+  // Atualiza timestamp
+  navigationState.lastRotationTime = now;
+  console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${tilt}`);
 }
-
-
-
-
 
 /**
- * Função: centerMapForNavigation
- *
- * Centraliza o mapa de forma que:
- * - O marcador do usuário (localização atual) seja exibido na parte inferior da tela.
- * - O destino (ou outra referência) fique visível na parte superior.
- *
- * Como funciona:
- * - Obtém o tamanho do mapa e calcula um offset vertical.
- * - Converte a posição do usuário para coordenadas do mapa, subtrai o offset
- *   (para "levantar" o centro), e projeta de volta para lat/lon.
- *
- * Parâmetros a alterar:
- * - O percentual do offset (aqui 0.25 equivale a 25% da altura do mapa). Alterar esse valor
- *   se quiser que o marcador do usuário fique mais para cima ou para baixo.
- * - O nível de zoom pode ser ajustado através do parâmetro "zoom".
- */
-function centerMapForNavigation(userLat, userLon, destLat, destLon, zoom = 18) {
-  // Obtenha o tamanho do mapa (em pixels)
-  const mapSize = map.getSize();
-  // Defina o offset vertical como 25% da altura do mapa. Você pode alterar 0.25 para outro valor.
-  const offsetY = mapSize.y * 0;
-  
-  // Projete a posição do usuário para o sistema de coordenadas do mapa no zoom especificado
-  const userPoint = map.project([userLat, userLon], zoom);
-  // Ajuste o ponto para "subir" (diminuir a coordenada Y) para que o usuário apareça na parte inferior
-  const adjustedPoint = L.point(userPoint.x, userPoint.y - offsetY);
-  // Converta o ponto ajustado de volta para coordenadas lat/lon
-  const adjustedLatLng = map.unproject(adjustedPoint, zoom);
-  
-  // Centralize o mapa no ponto ajustado, mantendo o zoom
-  map.setView(adjustedLatLng, zoom);
-  console.log("[centerMapForNavigation] Mapa centralizado com offset para navegação.");
-}
-
-
-
-/*
 
 ===========================================================================
 SEÇÃO 9 – INTERAÇÃO NO MAPA OSM
@@ -2671,6 +2601,8 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
 
 
 
+
+
 /*
 
  * 3. updateUserPositionOnRoute
@@ -3142,16 +3074,8 @@ async function startNavigation() {
       // Atualiza o marker do usuário (incluindo a rotação do ícone)
       updateUserMarker(latitude, longitude, heading);
 
-      // Ajusta o zoom dinamicamente com base na velocidade (opcional)
-      adjustMapZoomBasedOnSpeed(speed);
-
       // Reposiciona o mapa de forma suave (utilizando panTo para manter o zoom)
       map.panTo([latitude, longitude], { animate: true, duration: 0.5 });
-
-      // Se houver um heading válido, atualiza a rotação da camada de tiles
-      if (heading !== null) {
-        setMapRotation(heading);
-      }
 
       // Atualiza a interface com instruções em tempo real
       updateRealTimeNavigation(
