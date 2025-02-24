@@ -460,10 +460,18 @@ body, html {
   border-top: 5px solid #3498db;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  position: fixed;
+  z-index: 1000;
+  left: 35%;
+  top: 40%;
 }
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.spinner.hidden {
+    display: none;
 }
 
 /* Cancel Button */
@@ -697,7 +705,7 @@ body, html {
   stroke: blue !important;         /* Cor da borda */
   stroke-width: 5px !important;     /* Largura da borda */
   fill: blue !important;            /* Cor de preenchimento */
-  fill-opacity: 1 !important;      /* Opacidade do preenchimento para um visual mais leve */
+  fill-opacity: 10 !important;      /* Opacidade do preenchimento para um visual mais leve */
   z-index: 2;
   weight: 5;
   radius: accuracy;
@@ -1350,33 +1358,6 @@ body, html {
     background-color: #2196f3;
 }
 
-.spinner {
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.spinner.hidden {
-    display: none;
-}
-
-/* Animação para fechar o modal */
-@keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
-}
-
-.animate-close-to-education {
-    animation: closeToEducation 1s forwards;
-}
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
