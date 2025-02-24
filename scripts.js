@@ -2005,39 +2005,34 @@ function setFirstPersonView(position) {
 
 /**
  * 4. setMapRotation
- * @description Rotaciona o container do mapa (ex.: "map-container") de acordo com o heading fornecido,
- * levando em conta várias flags e modos presentes em 'navigationState'.
- * @param {number} heading - O ângulo (graus) representando a direção do usuário (0 = norte).
+ /**
+ * Rotaciona a camada de tiles do mapa de acordo com o heading.
+ * Utiliza suavização e verifica se a rotação está habilitada.
+ *
+ * @param {number} heading - Ângulo atual em graus fornecido pelo dispositivo.
  */
 function setMapRotation(heading) {
-  const mapContainer = document.getElementById("map-container");
-  if (!mapContainer) {
-    console.warn("[setMapRotation] #map-container não encontrado.");
+  // Seleciona somente a camada de tiles, não o container inteiro
+  const tileLayerElement = document.querySelector(".leaflet-tile-pane");
+  if (!tileLayerElement) {
+    console.warn("[setMapRotation] Camada de tiles não encontrada.");
     return;
   }
 
-  // 1) Checa se a navegação e a rotação estão ativas
+  // Se a navegação ou a rotação não estiverem ativas, reseta a transformação
   if (!navigationState.isActive || !navigationState.isRotationEnabled) {
-    // Se a rotação estiver desativada, podemos resetar a transform:
-    mapContainer.style.transform = "none";
+    tileLayerElement.style.transform = "none";
     return;
   }
 
-  // 2) Modo quiet: não atualiza caso o usuário esteja praticamente parado
-  //    ou caso não tenha decorrido tempo suficiente desde a última rotação
   const now = Date.now();
+  // Modo quiet: não atualiza se o usuário estiver praticamente parado
   if (navigationState.quietMode) {
-    // Exemplo: se a velocidade < 0.5 m/s e quietMode, não rotaciona
-    if (navigationState.speed < 0.5) {
-      return;
-    }
-    // Checa se o tempo decorrido é menor que 'rotationInterval'
-    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) {
-      return;
-    }
+    if (navigationState.speed < 0.5) return;
+    if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) return;
   }
 
-  // 3) Se existe override manual, aplica ângulo e tilt do "manualAngle" e sai
+  // Se houver um override manual, utiliza o ângulo e tilt manual
   if (navigationState.manualOverride) {
     applyRotationTransform(navigationState.manualAngle, navigationState.tilt);
     navigationState.lastRotationTime = now;
@@ -2045,54 +2040,64 @@ function setMapRotation(heading) {
     return;
   }
 
-  // 4) Se heading for inválido ou NaN, sai
+  // Verifica se o heading é válido
   if (heading == null || isNaN(heading)) {
     console.warn("[setMapRotation] heading inválido => rotação não efetuada.");
     return;
   }
 
-  // 5) rotationMode => "north-up" (sem rotacionar) ou "compass" (seguir heading)
+  // Define o desiredHeading com base no modo de rotação
   let desiredHeading = heading;
   if (navigationState.rotationMode === "north-up") {
-    desiredHeading = 0; // Fica sempre apontando para o norte
+    desiredHeading = 0;
   } else {
-    // Garantir que heading fique entre 0 e 360 (opcional)
-    if (desiredHeading < 0) {
-      desiredHeading = (desiredHeading % 360) + 360;
-    }
-    desiredHeading = desiredHeading % 360;
+    // Normaliza para um valor entre 0 e 360
+    desiredHeading = (desiredHeading < 0) ? ((desiredHeading % 360) + 360) : (desiredHeading % 360);
   }
 
-  // 6) Suavização com um buffer de leituras
+  // Buffer de suavização: armazena as últimas leituras
   navigationState.headingBuffer.push(desiredHeading);
   if (navigationState.headingBuffer.length > 5) {
     navigationState.headingBuffer.shift();
   }
-  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) 
-                     / navigationState.headingBuffer.length;
+  const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) / navigationState.headingBuffer.length;
 
-  // 7) Checa delta mínimo: se a mudança no heading for menor que um limiar, não rotaciona
+  // Verifica se a mudança é significativa
   const delta = Math.abs(avgHeading - navigationState.currentHeading);
   if (delta < navigationState.minRotationDelta) {
-    // console.log("[setMapRotation] Mudança de heading muito pequena, ignorada.");
     return;
   }
 
-  // 8) Interpola (exponencial ou linear) para suavizar a rotação
-  const alpha = navigationState.alpha; // 0.0 ~ 1.0
-  const smoothedHeading = navigationState.currentHeading
-    + alpha * (avgHeading - navigationState.currentHeading);
-
-  // Atualiza heading "interno"
+  // Suaviza a rotação
+  const smoothedHeading = navigationState.currentHeading + navigationState.alpha * (avgHeading - navigationState.currentHeading);
   navigationState.currentHeading = smoothedHeading;
+  const tilt = navigationState.tilt; // Tilt pode ser 0 se não desejado
 
-  // 9) Aplica tilt (perspectiva 3D)
-  const tilt = navigationState.tilt;
+  // Aplica a transformação somente na camada de tiles
   applyRotationTransform(smoothedHeading, tilt);
 
-  // Atualiza timestamp
   navigationState.lastRotationTime = now;
   console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${tilt}`);
+}
+
+
+/**
+ * applyRotationTransform(heading, tilt)
+ * Aplica a transformação de rotação e tilt à camada de tiles do Leaflet.
+ * Essa transformação não afeta os markers ou a posição real do mapa.
+ */
+function applyRotationTransform(heading, tilt) {
+  // Seleciona a camada de tiles (geralmente com classe .leaflet-tile-pane)
+  const tilePane = document.querySelector('.leaflet-tile-pane');
+  if (!tilePane) {
+    console.warn("[applyRotationTransform] .leaflet-tile-pane não encontrado.");
+    return;
+  }
+  // Define a origem da transformação e uma transição suave
+  tilePane.style.transition = "transform 0.3s ease-out";
+  tilePane.style.transformOrigin = "center center";
+  // Aplica a rotação e o tilt via CSS (ajuste a perspectiva conforme necessário)
+  tilePane.style.transform = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
 }
 
 /**
@@ -2595,7 +2600,7 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
 
   // Atualiza a rotação da camada de tiles conforme o heading
   if (typeof setMapRotation === 'function') {
-    setMapRotation(heading);
+    startRotationAuto();
   }
 }
 
@@ -3074,8 +3079,13 @@ async function startNavigation() {
       // Atualiza o marker do usuário (incluindo a rotação do ícone)
       updateUserMarker(latitude, longitude, heading);
 
-      // Reposiciona o mapa de forma suave (utilizando panTo para manter o zoom)
-      map.panTo([latitude, longitude], { animate: true, duration: 0.5 });
+      // Ajusta o zoom do mapa de forma dinâmica com base na velocidade
+      adjustMapZoomBasedOnSpeed(speed);
+
+      // Atualiza a rotação da camada de tiles (via setMapRotation, que atua somente na camada interna)
+      if (heading !== null) setMapRotation(heading);
+
+
 
       // Atualiza a interface com instruções em tempo real
       updateRealTimeNavigation(
@@ -3084,7 +3094,8 @@ async function startNavigation() {
         navigationState.instructions,
         selectedDestination.lat,
         selectedDestination.lon,
-        selectedLanguage
+        selectedLanguage,
+        heading
       );
 
       // Verifica se é necessário recalcular a rota (caso o usuário se desvie)
@@ -3102,8 +3113,94 @@ async function startNavigation() {
   console.log("startNavigation: Navegação iniciada com sucesso.");
 }
 
+/**
+ * autoRotationAuto
+ * 
+ * Atualiza a visualização do mapa para centralizar na localização atual do usuário e 
+ * inicia o processo de rotação automática da camada de tiles.
+ *
+ * Fluxo:
+ * 1. Verifica se a variável global userLocation está definida.
+ * 2. Chama updateMapWithUserLocation para reposicionar o mapa com base nas coordenadas reais.
+ * 3. Se a propriedade heading estiver disponível em userLocation, aplica a rotação inicial
+ *    usando setMapRotation. Isso garante que, logo no início, o mapa seja rotacionado
+ *    de acordo com o heading atual do usuário.
+ * 4. Chama startRotationAuto para ativar os eventos de deviceorientation, permitindo
+ *    que o mapa atualize continuamente a rotação com base nas leituras do dispositivo.
+ */
+function startRotationAuto() {
+  console.log("[startRotationAuto] Tentando ativar rotação automática do mapa...");
 
+  // Habilita a flag no navigationState (caso usemos em setMapRotation)
+  if (navigationState) {
+    navigationState.isRotationEnabled = true;
+  }
 
+  // Verifica se o dispositivo/navegador suportam DeviceOrientationEvent
+  if (typeof DeviceOrientationEvent === "undefined") {
+    console.warn("[startRotationAuto] 'DeviceOrientationEvent' não suportado.");
+    showNotification("Rotação automática não suportada neste dispositivo.", "warning");
+    return;
+  }
+
+  // iOS >= 13 precisa de permissão
+  if (DeviceOrientationEvent.requestPermission && typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission()
+      .then((response) => {
+        if (response === "granted") {
+          console.log("[startRotationAuto] Permissão concedida para heading.");
+          attachOrientationListener();
+        } else {
+          console.warn("[startRotationAuto] Permissão negada para heading.");
+          showNotification("Rotação automática não autorizada.", "warning");
+        }
+      })
+      .catch((err) => {
+        console.error("[startRotationAuto] Erro ao solicitar permissão:", err);
+        showNotification("Não foi possível ativar rotação automática.", "error");
+      });
+  } else {
+    // Se não exigir permissão, adiciona o listener diretamente
+    attachOrientationListener();
+  }
+
+function attachOrientationListener() {
+    // Evita adicionar múltiplos listeners
+    window.removeEventListener("deviceorientation", onDeviceOrientationChange, true);
+    window.addEventListener("deviceorientation", onDeviceOrientationChange, true);
+    console.log("[startRotationAuto] Evento 'deviceorientation' registrado com sucesso.");
+  }
+
+  function onDeviceOrientationChange(event) {
+    const alpha = event.alpha; // tipicamente 0-360
+    if (typeof alpha === "number" && !isNaN(alpha)) {
+      // Ajusta rotação do mapa
+      setMapRotation(alpha); 
+    }
+  }
+}
+/**
+
+ * 2. stopRotationAuto
+ * Desativa a rotação automática, remove listener e reseta a rotação do container se quiser.
+*/
+function stopRotationAuto() {
+  // Marca no state
+  if (navigationState) {
+    navigationState.isRotationEnabled = false;
+  }
+
+  window.removeEventListener("deviceorientation", onDeviceOrientationChange, true);
+
+  // Pode querer redefinir transform do map-container
+  const mapContainer = document.getElementById("map-container");
+  if (mapContainer) {
+    mapContainer.style.transform = "rotate(0deg)";
+    mapContainer.style.transition = "transform 0.3s ease-out";
+  }
+
+  console.log("[stopRotationAuto] Rotação automática desativada.");
+}
 
 /**
  * 2. endNavigation
