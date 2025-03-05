@@ -160,6 +160,10 @@ body, html {
   /* ou: border: 2px solid #ff7700; border-radius:50%; ... */
 }
 
+.user-marker {
+  transition: transform 0.3s ease-out;
+}
+
 /* Ícone do step atual (marker pulsante) */
 .next-step-marker .pulsing-icon {
   width: 24px;
