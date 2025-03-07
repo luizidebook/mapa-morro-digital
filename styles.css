@@ -456,7 +456,7 @@ body, html {
 }
 
 /* Loader e spinner para rota */
-.loader {
+.route-loader {
   position: fixed;
   top: 40%;
   left: 50%;

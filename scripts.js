@@ -1010,31 +1010,20 @@ function loadDestinationsFromCache(callback) {
  * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
  */
 function getLocalStorageItem(key) {
-  const item = localStorage.getItem(key); // Recupera o valor do localStorage
+  const item = localStorage.getItem(key);
   try {
-    return JSON.parse(item); // Tenta analisar como JSON
+    return JSON.parse(item); // Tenta converter o valor para JSON
   } catch (error) {
     console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
     return item; // Retorna o valor bruto se não for JSON válido
   }
 }
 
-
-// Exemplo de uso:
-localStorage.setItem("preferredLanguage", JSON.stringify("pt")); // Salvando o dado corretamente
-const language = getLocalStorageItem("preferredLanguage"); // Recuperando o dado
-console.log("Idioma preferido:", language);
-
-
 /**
  * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 function setLocalStorageItem(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Erro ao salvar item no localStorage (${key}):`, error);
-  }
+  localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
 }
 
 /**
@@ -3008,6 +2997,7 @@ async function startNavigation() {
   initNavigationState();
   navigationState.isActive = true;
   navigationState.isPaused = false;
+  navigationState.watchId = true;
   navigationState.currentStepIndex = 0;
 
   // 5. Obtém múltiplas opções de rota com base na posição do usuário e no destino.
