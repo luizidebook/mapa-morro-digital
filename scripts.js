@@ -541,14 +541,47 @@ document.addEventListener('DOMContentLoaded', () => {
     loadResources();
     showWelcomeMessage();
     setupEventListeners();
-    initializeTutorialListeners();
-    setupSubmenuClickListeners();
-
   } catch (error) {
     console.error('Erro durante a inicialização:', error);
   }
 });
 
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch(error => console.error('Erro ao registrar o Service Worker:', error));
+  } else {
+    console.warn("Service Workers não são suportados neste navegador.");
+  }
+}
+
+// Certifique-se de rodar em um servidor local (ex.: http://localhost)
+registerServiceWorker();
+
+function fetchDirections(start, end, apiKey) {
+  const url = `https://api.openrouteservice.org/v2/directions/foot-walking?start=${start}&end=${end}&key=${apiKey}&instructions=true`;
+  
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status} (${response.statusText})`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Dados recebidos da API:", data);
+      // Processa os dados como necessário
+    })
+    .catch(error => {
+      console.error("Erro ao obter direções:", error);
+    });
+}
+
+// Exemplo de uso:
+const start = "-38.917155,latitude_origem";
+const end = "long_destino,latitude_destino";
+fetchDirections(start, end, apiKey);
    
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
@@ -838,25 +871,11 @@ if (startCreateRouteBtn) {
     });
 }
 
-    if (noBtn) {
-        noBtn.addEventListener('click', () => {
-            hideControlButtons();
-        });
-    }
 
     if (carouselModalClose) {
         carouselModalClose.addEventListener('click', closeCarouselModal);
     }
 
-
-    if (tutorialBtn) {
-        tutorialBtn.addEventListener('click', () => {
-            if (tutorialIsActive) {
-                endTutorial();
-            } else {
-                showTutorialStep('start-tutorial');
-            }
-        });
 
 
     const tutorialYesBtn = document.getElementById('tutorial-yes-btn');
@@ -867,38 +886,7 @@ if (startCreateRouteBtn) {
     const generateNewItineraryBtn = document.getElementById('generate-new-itinerary-btn');
     const changePreferencesBtn = document.getElementById('change-preferences-btn');
     const accessSiteBtn = document.getElementById('access-site-btn');
-
-        } if (tutorialSendBtn) {
-        tutorialSendBtn.addEventListener('click', () => {
-            nextTutorialStep();
-        });
-    }
-
-
-    if (tutorialYesBtn) tutorialYesBtn.addEventListener('click', startTutorial);
-    if (tutorialSiteYesBtn) tutorialYesBtn.addEventListener('click', startTutorial2);
-    if (tutorialNoBtn) tutorialNoBtn.addEventListener('click', () => {
-        stopSpeaking();
-        endTutorial();
-    });
-    if (tutorialNextBtn) tutorialNextBtn.addEventListener('click', nextTutorialStep);
-    if (tutorialPrevBtn) tutorialPrevBtn.addEventListener('click', previousTutorialStep);
-    if (tutorialEndBtn) tutorialEndBtn.addEventListener('click', endTutorial);
-
-    if (createItineraryBtn) {
-        createItineraryBtn.addEventListener('click', () => {
-            endTutorial();
-            closeSideMenu();
-            collectInterestData();
-            destroyCarousel();
-        });
-    }
-
-
-
-    document.querySelector('.menu-btn[data-feature="dicas"]').addEventListener('click', showTips);
-    document.querySelector('.menu-btn[data-feature="ensino"]').addEventListener('click', showEducation);
-}
+  }
 
 /**
  * 3. handleUserIdleState - Detecta inatividade e oferece ação.
@@ -1021,15 +1009,22 @@ function loadDestinationsFromCache(callback) {
 /**
  * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
  */
-function getLocalStorageItem(key, defaultValue = null) {
+function getLocalStorageItem(key) {
+  const item = localStorage.getItem(key); // Recupera o valor do localStorage
   try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    return JSON.parse(item); // Tenta analisar como JSON
   } catch (error) {
-    console.error(`Erro ao obter item do localStorage (${key}):`, error);
-    return defaultValue;
+    console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
+    return item; // Retorna o valor bruto se não for JSON válido
   }
 }
+
+
+// Exemplo de uso:
+localStorage.setItem("preferredLanguage", JSON.stringify("pt")); // Salvando o dado corretamente
+const language = getLocalStorageItem("preferredLanguage"); // Recuperando o dado
+console.log("Idioma preferido:", language);
+
 
 /**
  * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
@@ -1163,22 +1158,13 @@ function initializeMap() {
   // Adiciona o controle de camadas
   L.control.layers(tileLayers).addTo(map);
 
-  // (Opcional) Se houver plugin de rotação, adicione-o
-  if (L.control.rotate) {
-    const rotateControl = L.control.rotate({
-      position: 'topright',
-      angle: 0,
-      // Outras opções do plugin, se necessário
-    });
-    rotateControl.addTo(map);
-    console.log("Controle de rotação adicionado.");
-  } else {
-    console.warn("Plugin de rotação não encontrado. A rotação será atualizada via CSS na camada de tiles.");
-  }
-
-  console.log("Mapa inicializado.");
+if (typeof RotationPlugin !== "undefined") {
+  RotationPlugin.initialize();
+} else {
+  console.warn("Plugin de rotação não encontrado. Usando CSS para rotação.");
+  // Código alternativo para rotação via CSS
 }
-
+}
 /**
  * 2. getTileLayer
  *    Retorna uma camada de tiles (fallback).
@@ -1915,7 +1901,7 @@ function initContinuousLocationTracking() {
       const { latitude, longitude, accuracy } = position.coords;
       userLocation = { latitude, longitude, accuracy };
       // Atualiza o marcador do usuário; a rotação é atualizada separadamente via deviceOrientationHandler
-      updateUserMarker(latitude, longitude, heading);
+      updateUserMarker(latitude, longitude, accuracy);
       console.log("initContinuousLocationTracking: Localização atualizada:", userLocation);
     },
     (error) => {
@@ -2527,56 +2513,42 @@ function detectMotion() {
  */
 function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
   console.log(`[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`);
-
-  // Atualiza os valores filtrados de posição
-  if (filteredPosition === null) {
-    filteredPosition = { lat: lat, lon: lon };
-  } else {
-    filteredPosition.lat = applyExponentialFilter(lat, filteredPosition.lat, ALPHA_POSITION);
-    filteredPosition.lon = applyExponentialFilter(lon, filteredPosition.lon, ALPHA_POSITION);
+  // Se a precisão for baixa (acima de 15m), ignora a atualização
+  if (accuracy !== undefined && accuracy > 15) {
+    console.log("[updateUserMarker] Precisão GPS baixa. Atualização ignorada.");
+    return;
   }
-  // Atualiza o heading filtrado
-  if (filteredHeading === null) {
-    filteredHeading = heading;
-  } else {
-    filteredHeading = applyExponentialFilter(heading, filteredHeading, ALPHA_HEADING);
-  }
-  
-  const displayLat = filteredPosition.lat;
-  const displayLon = filteredPosition.lon;
-  const displayHeading = filteredHeading;
-
-  // Verifica se o movimento é significativo
+  // Se houver uma posição anterior, calcula a distância para evitar atualizações insignificantes
   if (window.lastPosition) {
-    const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, displayLat, displayLon);
+    const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, lat, lon);
     if (distance < 1) {
       console.log("[updateUserMarker] Movimento insignificante. Atualização ignorada.");
       return;
     }
   }
-  window.lastPosition = { lat: displayLat, lon: displayLon };
+  window.lastPosition = { lat, lon };
 
-  // Se houver um destino, recalcula o heading para apontar para ele
+  // Se existir um destino (routeDestination), recalcula o heading (rumo) para o destino
   if (window.routeDestination) {
-    heading = computeBearing(displayLat, displayLon, window.routeDestination.lat, window.routeDestination.lon);
-  } else if (displayHeading === undefined) {
+    heading = computeBearing(lat, lon, window.routeDestination.lat, window.routeDestination.lon);
+  } else if (heading === undefined) {
     heading = 0;
   }
 
-  // Define o ícone do marcador (usando Font Awesome, por exemplo)
+  // Define o HTML para o ícone do marcador (usando Font Awesome)
   const iconHtml = '<i class="fas fa-location-arrow"></i>';
   const finalIconSize = iconSize || [60, 60];
   const finalIconAnchor = [ finalIconSize[0] / 2, finalIconSize[1] ];
 
-  // Se já existir o marcador, anima a transição
+  // Se já existir um marcador, anima sua transição; caso contrário, cria-o
   if (window.userMarker) {
     const currentPos = window.userMarker.getLatLng();
-    updateMarkerAnimation(window.userMarker, currentPos, [displayLat, displayLon], 300);
+    animateMarker(window.userMarker, currentPos, [lat, lon], 300);
     if (window.userMarker._icon) {
-      window.userMarker._icon.style.transform = `rotate(${displayHeading}deg)`;
+      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   } else {
-    window.userMarker = L.marker([displayLat, displayLon], {
+    window.userMarker = L.marker([lat, lon], {
       icon: L.divIcon({
         className: 'user-marker',
         html: iconHtml,
@@ -2585,150 +2557,31 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
       })
     }).addTo(map);
     if (window.userMarker._icon) {
-      window.userMarker._icon.style.transform = `rotate(${displayHeading}deg)`;
+      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   }
-
-  // Atualiza ou cria o círculo de precisão
+  // Atualiza ou cria um círculo que indica a margem de erro do GPS
   if (accuracy !== undefined) {
     if (window.userAccuracyCircle) {
-      window.userAccuracyCircle.setLatLng([displayLat, displayLon]);
+      window.userAccuracyCircle.setLatLng([lat, lon]);
       window.userAccuracyCircle.setRadius(accuracy);
     } else {
-      window.userAccuracyCircle = L.circle([displayLat, displayLon], {
+      window.userAccuracyCircle = L.circle([lat, lon], {
         radius: accuracy,
         className: 'gps-accuracy-circle'
       }).addTo(map);
     }
   }
-
-  // Inicia a rotação automática, se aplicável
+  // Se houver função de rotação, inicia a rotação automática
   if (typeof setMapRotation === 'function') {
     startRotationAuto();
   }
 }
 
 
-/**
- * Calcula dinamicamente o fator de suavização (alpha) para o heading.
- * Se a diferença for alta, utiliza um valor menor para suavizar mais (reduzir jitter);
- * se a diferença for baixa, utiliza um valor maior para uma resposta mais rápida.
- *
- * @param {number} newHeading - Novo valor de heading obtido.
- * @param {number} currentFiltered - Valor atual filtrado do heading.
- * @returns {number} - O valor ajustado de alpha.
- */
-function updateDynamicAlpha(newHeading, currentFiltered) {
-  const diff = Math.abs(newHeading - currentFiltered);
-  // Se a diferença for muito alta, diminua alpha para suavizar melhor.
-  if (diff > 20) {
-    return 0.1;
-  }
-  // Se a diferença for muito baixa, aumente alpha para resposta mais rápida.
-  if (diff < 5) {
-    return 0.5;
-  }
-  // Interpolação linear entre 0.5 e 0.1 para diferenças entre 5 e 20 graus.
-  return 0.5 - ((diff - 5) * (0.5 - 0.1)) / (20 - 5);
-}
 
 
-/**
- * Atualiza o heading utilizando os dados do deviceorientation.
- * Aplica o filtro exponencial e atualiza o marcador do usuário e a rotação do mapa.
- *
- * @param {number} newHeading - Novo valor de heading obtido do sensor.
- */
-/**
- * Atualiza o heading utilizando os dados do deviceorientation.
- * Aplica um filtro exponencial com fator dinâmico e atualiza o marcador e a rotação do mapa.
- *
- * @param {number} newHeading - Novo valor de heading obtido do sensor.
- */
-function updateHeadingFromOrientation(newHeading) {
-  // Se ainda não houver um valor filtrado, inicialize-o
-  if (filteredHeading === null) {
-    filteredHeading = newHeading;
-    console.log(`updateHeadingFromOrientation: Heading inicial = ${filteredHeading}`);
-  } else {
-    // Calcula o fator dinâmico alpha baseado na diferença entre o novo valor e o filtrado
-    const dynamicAlpha = updateDynamicAlpha(newHeading, filteredHeading);
-    // Aplica o filtro exponencial utilizando o dynamicAlpha
-    filteredHeading = applyExponentialFilter(newHeading, filteredHeading, dynamicAlpha);
-    console.log(`updateHeadingFromOrientation: Novo heading filtrado = ${filteredHeading.toFixed(2)} (alpha=${dynamicAlpha.toFixed(2)})`);
-  }
-  
-  // Atualiza a rotação do ícone do marcador, se existir
-  if (window.userMarker && window.userMarker._icon) {
-    window.userMarker._icon.style.transform = `rotate(${filteredHeading}deg)`;
-  }
-  
-  // Opcional: Atualiza também a rotação da camada de tiles para consistência visual
-  setMapRotation(filteredHeading);
-}
 
-// Variável para armazenar o timestamp da última atualização de heading
-let lastHeadingUpdateTime = null;
-
-/**
- * Atualiza o heading filtrado e registra o timestamp.
- */
-function updateHeadingFromOrientationWithTimestamp(newHeading) {
-  const currentTime = Date.now();
-  // Verifica se a última atualização foi recente (por exemplo, nos últimos 500ms)
-  if (lastHeadingUpdateTime && (currentTime - lastHeadingUpdateTime) < 500) {
-    // Se as atualizações estiverem muito próximas, pode-se optar por descartar ou combinar as leituras
-    // Neste exemplo, vamos combinar as leituras normalmente
-  }
-  
-  updateHeadingFromOrientation(newHeading);
-  lastHeadingUpdateTime = currentTime;
-}
-
-window.addEventListener("deviceorientation", (event) => {
-  let newHeading;
-  if (event.webkitCompassHeading !== undefined) {
-    newHeading = event.webkitCompassHeading;
-  } else if (event.alpha !== null) {
-    newHeading = 360 - event.alpha;
-  } else {
-    console.warn("Device orientation data not available.");
-    return;
-  }
-  
-  // Atualiza o heading com verificação de timestamp
-  updateHeadingFromOrientationWithTimestamp(newHeading);
-}, true);
-
-/**
- * Anima a transição do marcador de uma posição para outra.
- *
- * @param {L.Marker} marker - O marcador do Leaflet a ser animado.
- * @param {L.LatLng} fromLatLng - Posição atual (objeto LatLng).
- * @param {Array} toLatLng - Nova posição no formato [lat, lon].
- * @param {number} duration - Duração da animação em milissegundos.
- */
-function updateMarkerAnimation(marker, fromLatLng, toLatLng, duration = 300) {
-  const startTime = performance.now();
-  const targetLat = toLatLng[0];
-  const targetLon = toLatLng[1];
-
-  function animate(currentTime) {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1); // Progresso de 0 a 1
-
-    // Interpolação linear para calcular a nova posição
-    const currentLat = fromLatLng.lat + (targetLat - fromLatLng.lat) * progress;
-    const currentLon = fromLatLng.lng + (targetLon - fromLatLng.lng) * progress;
-    
-    marker.setLatLng([currentLat, currentLon]);
-    
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    }
-  }
-  requestAnimationFrame(animate);
-}
 
 /*
 
@@ -3215,78 +3068,51 @@ async function startNavigation() {
 
   // 11. Inicia o monitoramento contínuo da posição do usuário utilizando watchPosition.
   // A cada nova posição, atualiza o marcador, ajusta o zoom e verifica se há necessidade de recalcular a rota.
-window.positionWatcher = navigator.geolocation.watchPosition(
-  (pos) => {
-    // Se a navegação estiver pausada, não atualiza.
-    if (navigationState.isPaused) return;
+  window.positionWatcher = navigator.geolocation.watchPosition(
+    (pos) => {
+      // Se a navegação estiver pausada, não atualiza.
+      if (navigationState.isPaused) return;
 
-    // Extrai dados relevantes da posição
-    const { latitude, longitude, heading, speed, accuracy } = pos.coords;
-    // Atualiza a variável global userLocation com os dados obtidos
-    userLocation = { latitude, longitude, accuracy, heading };
+      // Extrai dados relevantes da posição obtida.
+      const { latitude, longitude, heading, speed } = pos.coords;
+      // Atualiza a variável global de localização, incluindo precisão e heading.
+      userLocation = { latitude, longitude, accuracy: pos.coords.accuracy, heading: heading };
 
-    // Atualiza ou cria o marcador do usuário com os dados filtrados (a lógica de filtragem será adicionada na Etapa 2)
-    updateUserMarker(latitude, longitude, heading);
+      // Atualiza (ou cria) o marcador do usuário, incluindo rotação do ícone conforme o heading.
+      updateUserMarker(latitude, longitude, heading);
 
-    // Ajusta dinamicamente o zoom do mapa conforme a velocidade
-    adjustMapZoomBasedOnSpeed(speed);
+      // Ajusta dinamicamente o nível de zoom do mapa com base na velocidade do usuário.
+      adjustMapZoomBasedOnSpeed(speed);
 
-    // Atualiza a rotação da camada de tiles com base no heading, se disponível
-    if (heading !== null) setMapRotation(heading);
+      // Atualiza a rotação da camada de tiles (não dos markers) com base no heading.
+      if (heading !== null) setMapRotation(heading);
 
-    // Atualiza a interface com as instruções em tempo real
-    updateRealTimeNavigation(
-      latitude,
-      longitude,
-      navigationState.instructions,
-      selectedDestination.lat,
-      selectedDestination.lon,
-      selectedLanguage,
-      heading
-    );
 
-    // Verifica se é necessário recalcular a rota (ex.: se o usuário se afastou demais do passo atual)
-    if (shouldRecalculateRoute(latitude, longitude, navigationState.instructions)) {
-      notifyDeviation();
-    }
-  },
-  (error) => {
-    console.error("Erro no watchPosition:", error);
-    showNotification(getGeneralText("trackingError", selectedLanguage), "error");
-  },
-  {
-    enableHighAccuracy: true,  // Solicita alta precisão
-    maximumAge: 5000,          // Aceita leituras com até 5 segundos de idade
-    timeout: 15000             // Timeout de 15 segundos para obter a posição
-  }
-);
+      // Atualiza a interface com as instruções em tempo real, reposicionando o mapa suavemente.
+      updateRealTimeNavigation(
+        latitude,
+        longitude,
+        navigationState.instructions,
+        selectedDestination.lat,
+        selectedDestination.lon,
+        selectedLanguage,
+        heading
+      );
 
+      // Verifica se o usuário se desviou do passo atual, acionando recálculo se necessário.
+      if (shouldRecalculateRoute(latitude, longitude, navigationState.instructions)) {
+        notifyDeviation();
+      }
+    },
+    (error) => {
+      // Caso ocorra erro no watchPosition, exibe uma notificação e loga o erro.
+      console.error("Erro no watchPosition:", error);
+      showNotification(getGeneralText("trackingError", selectedLanguage), "error");
+    },
+    { enableHighAccuracy: true } // Solicita alta precisão para a posição.
+  );
 
   console.log("startNavigation: Navegação iniciada com sucesso.");
-}
-
-// Variáveis globais para armazenar os valores filtrados
-let filteredPosition = null; // Formato: { lat: number, lon: number }
-let filteredHeading = null;  // Valor numérico
-
-// Constantes de suavização – ajuste conforme necessário
-const ALPHA_POSITION = 0.2; // Fator de suavização para posição (0 < alpha <= 1)
-const ALPHA_HEADING = 0.3;  // Fator de suavização para heading
-
-/**
- * Aplica um filtro exponencial para suavizar um valor.
- * Se não houver valor anterior, retorna o novo valor.
- *
- * @param {number} newValue - O novo valor lido.
- * @param {number} prevValue - O valor filtrado previamente.
- * @param {number} alpha - Fator de suavização (quanto menor, mais suave).
- * @returns {number} - O valor filtrado.
- */
-function applyExponentialFilter(newValue, prevValue, alpha) {
-  if (prevValue === undefined || prevValue === null) {
-    return newValue;
-  }
-  return prevValue + alpha * (newValue - prevValue);
 }
 
 

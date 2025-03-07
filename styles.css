@@ -719,13 +719,19 @@ body, html {
 /* Estilização para o círculo de precisão do GPS */
 .gps-accuracy-circle {
   stroke: blue !important;         /* Cor da borda */
-  stroke-width: 5px !important;     /* Largura da borda */
+  stroke-width: 1px !important;     /* Largura da borda */
+  max-width: 5px;
   fill: blue !important;            /* Cor de preenchimento */
-  fill-opacity: 10 !important;      /* Opacidade do preenchimento para um visual mais leve */
-  z-index: 2;
-  weight: 5;
-  radius: accuracy;
+  fill-opacity: 0 !important;      /* Opacidade do preenchimento para um visual mais leve */
+  z-index: 50;
+  weight: 2px;
+  radius: 5px;
 
+}
+
+.tile {
+  transform: rotate(45deg); /* Rotação em graus */
+  transform-origin: center; /* Define o ponto de origem da rotação */
 }
 
 
