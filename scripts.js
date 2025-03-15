@@ -1453,7 +1453,7 @@ function resetMapView() {
  *    Centraliza o mapa na localização [lat, lon], adicionando um popup "Você está aqui!".
  */
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 19);
+    map.setView([lat, lon], 21);
     const marker = L.marker([lat, lon]).addTo(map)
         .bindPopup(translations[selectedLanguage].youAreHere || "Você está aqui!")
         .openPopup();
@@ -2082,10 +2082,10 @@ function deviceOrientationHandler(event) {
  * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
  */
 function setFirstPersonView(lat, lon, zoom, heading) {
-  const desiredZoom = zoom || 19;
+  const desiredZoom = zoom || 21;
   const mapSize = map.getSize();
   // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
-  const offsetY = mapSize.y * 0.2;
+  const offsetY = mapSize.y * 0.4;
   const userPoint = map.project([lat, lon], desiredZoom);
   const adjustedPoint = L.point(userPoint.x, userPoint.y - offsetY);
   const newCenter = map.unproject(adjustedPoint, desiredZoom);
