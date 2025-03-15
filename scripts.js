@@ -1453,7 +1453,7 @@ function resetMapView() {
  *    Centraliza o mapa na localização [lat, lon], adicionando um popup "Você está aqui!".
  */
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 18);
+    map.setView([lat, lon], 19);
     const marker = L.marker([lat, lon]).addTo(map)
         .bindPopup(translations[selectedLanguage].youAreHere || "Você está aqui!")
         .openPopup();
@@ -1645,7 +1645,7 @@ function visualizeRouteOnPreview(route) {
  * @param {number} lat - Latitude do usuário.
  * @param {number} lon - Longitude do usuário.
  * @param {number} [zoom=15] - Nível de zoom padrão. */
-function centerMapOnUser(lat, lon, zoom = 18) {
+function centerMapOnUser(lat, lon, zoom = 19) {
   if (!map) {
     console.warn("[centerMapOnUser] Mapa não inicializado.");
     return;
@@ -2082,7 +2082,7 @@ function deviceOrientationHandler(event) {
  * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
  */
 function setFirstPersonView(lat, lon, zoom, heading) {
-  const desiredZoom = zoom || 18;
+  const desiredZoom = zoom || 19;
   const mapSize = map.getSize();
   // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
   const offsetY = mapSize.y * 0.2;
@@ -2646,7 +2646,7 @@ function startUserTracking() {
  * 3. updateMapWithUserLocation
  *     Atualiza a visualização do mapa com a localização do usuário.
  */
-function updateMapWithUserLocation(zoomLevel = 18) {
+function updateMapWithUserLocation(zoomLevel = 19) {
   if (!userLocation || !map) {
     console.warn("Localização ou mapa indisponível.");
     return;
