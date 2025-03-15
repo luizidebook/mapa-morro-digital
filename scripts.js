@@ -3302,7 +3302,7 @@ async function startNavigation() {
 
   // 10. Define a visualização de primeira pessoa:
   // Centraliza o mapa com zoom 18, reposicionando-o para que o caminho fique à frente.
-  setFirstPersonView(userLocation.latitude, userLocation.longitude, 18, userLocation.heading || 0);
+  setFirstPersonView(userLocation.latitude, userLocation.longitude, 20, userLocation.heading || 0);
 
   // 11. Inicia o monitoramento contínuo da posição do usuário.
   window.positionWatcher = navigator.geolocation.watchPosition(
