@@ -41,6 +41,116 @@ SEÇÃO 5 – CACHE, PERSISTÊNCIA & HISTÓRICO
     8. loadOfflineInstructions   - Carrega instruções offline
     9. loadSearchHistory         - Carrega e exibe histórico de pesquisas
 
+    /**
+ * Abre (ou cria) o banco de dados IndexedDB para cache offline.
+ * @returns {Promise<IDBDatabase>} Promise que resolve com a instância do banco de dados.
+ */
+function openOfflineCacheDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("OfflineCacheDB", 1);
+    request.onerror = (event) => {
+      console.error("IndexedDB error:", event.target.errorCode);
+      reject(event.target.errorCode);
+    };
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains("routes")) {
+        db.createObjectStore("routes", { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("destinations")) {
+        db.createObjectStore("destinations", { keyPath: "id" });
+      }
+    };
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+  });
+}
+
+/**
+ * Cacheia os dados da rota no IndexedDB.
+ * @param {string} id - Identificador único para os dados (por exemplo, uma concatenação de coordenadas ou um hash).
+ * @param {Object} routeData - Dados da rota a serem armazenados.
+ * @returns {Promise<boolean>} Promise que resolve com true em caso de sucesso.
+ */
+async function cacheRouteDataOffline(id, routeData) {
+  const db = await openOfflineCacheDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["routes"], "readwrite");
+    const store = transaction.objectStore("routes");
+    const request = store.put({ id, data: routeData, timestamp: Date.now() });
+    request.onsuccess = () => {
+      console.log("Route data cached offline.");
+      resolve(true);
+    };
+    request.onerror = (event) => {
+      console.error("Error caching route data:", event);
+      reject(event);
+    };
+  });
+}
+
+/**
+ * Recupera os dados de rota cacheados do IndexedDB.
+ * @param {string} id - Identificador usado para armazenar os dados.
+ * @returns {Promise<Object>} Promise que resolve com os dados cacheados ou undefined.
+ */
+async function getRouteDataOffline(id) {
+  const db = await openOfflineCacheDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["routes"], "readonly");
+    const store = transaction.objectStore("routes");
+    const request = store.get(id);
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+    request.onerror = (event) => {
+      console.error("Error retrieving route data:", event);
+      reject(event);
+    };
+  });
+}
+
+/**
+ * Realiza uma requisição fetch para obter dados e, em caso de falha, tenta utilizar dados cacheados.
+ * @param {string} url - URL da requisição.
+ * @param {string} cacheId - Identificador para armazenar ou recuperar os dados do cache.
+ * @returns {Promise<Object>} Dados obtidos via rede ou do cache offline.
+ */
+async function fetchDataWithOfflineFallback(url, cacheId) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Network response was not ok");
+    const data = await response.json();
+    // Cacheia os dados para uso offline
+    await cacheRouteDataOffline(cacheId, data);
+    return data;
+  } catch (error) {
+    console.error("Fetch failed, trying offline cache:", error);
+    const cached = await getRouteDataOffline(cacheId);
+    if (cached && cached.data) {
+      console.log("Using cached data.");
+      return cached.data;
+    } else {
+      throw new Error("No offline data available");
+    }
+  }
+}
+
+/**
+ * Ajusta a frequência de atualizações da interface com base na velocidade do usuário.
+ * Se a velocidade for alta, retorna um intervalo maior para as atualizações.
+ * @param {number} speed - Velocidade em m/s.
+ * @returns {number} - Intervalo em milissegundos para a próxima atualização.
+ */
+function getUpdateIntervalBasedOnSpeed(speed) {
+  // Exemplo simples: se a velocidade for superior a 5 m/s, aumenta o intervalo para 1000ms, caso contrário 500ms.
+  return speed > 5 ? 1000 : 500;
+}
+
+
+/*
+
 ===================================================================================
 SEÇÃO 6 – INICIALIZAÇÃO
   --- 6.1. Configuração de Mapa ---
@@ -364,8 +474,7 @@ function setLanguage(lang) {
       lang = defaultLanguage;
     }
 
-// Salvar o valor de forma consistente como JSON
-localStorage.setItem('preferredLanguage', JSON.stringify("pt"));
+    localStorage.setItem("preferredLanguage", lang);
     selectedLanguage = lang;
 
     // Traduz tudo
@@ -424,7 +533,7 @@ function updateInterfaceLanguage(lang) {
 
 // Variáveis essenciais para a instância do mapa e configuração geral
 let map;                                  // Instância do mapa (ex.: Leaflet)
-let selectedLanguage = getLocalStorageItem('preferredLanguage', JSON.stringify('pt')); // Idioma selecionado (padrão 'pt')
+let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt'); // Idioma selecionado (padrão 'pt')
 
 // Variáveis de destino e localização do usuário
 let selectedDestination = {};             // Objeto com as propriedades do destino (lat, lon, name, etc.)
@@ -542,13 +651,48 @@ document.addEventListener('DOMContentLoaded', () => {
     loadResources();
     showWelcomeMessage();
     setupEventListeners();
-    setupSubmenuClickListeners();
-
+    autoAdjustTheme();
   } catch (error) {
     console.error('Erro durante a inicialização:', error);
   }
 });
 
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch(error => console.error('Erro ao registrar o Service Worker:', error));
+  } else {
+    console.warn("Service Workers não são suportados neste navegador.");
+  }
+}
+
+// Certifique-se de rodar em um servidor local (ex.: http://localhost)
+registerServiceWorker();
+
+function fetchDirections(start, end, apiKey) {
+  const url = `https://api.openrouteservice.org/v2/directions/foot-walking?start=${start}&end=${end}&key=${apiKey}&instructions=true`;
+  
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status} (${response.statusText})`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Dados recebidos da API:", data);
+      // Processa os dados como necessário
+    })
+    .catch(error => {
+      console.error("Erro ao obter direções:", error);
+    });
+}
+
+// Exemplo de uso:
+const start = "-38.917155,latitude_origem";
+const end = "long_destino,latitude_destino";
+fetchDirections(start, end, apiKey);
    
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
@@ -629,14 +773,15 @@ if (menuDetailsBtn) {
 const cancelRouteBtn = document.getElementById("cancel-route-btn");
 if (cancelRouteBtn) {
   cancelRouteBtn.addEventListener("click", () => {
-    console.log("✅ Botão 'cancel-route-btn' clicado!");
+        console.log("✅ Botão 'cancel-route-btn' clicado!");
+    // Finaliza a navegação, desfazendo todas as ações iniciadas pelo fluxo de startNavigation
     endNavigation();
-    
-    // Usar a variável correta que mantém o último recurso selecionado pelo usuário
-    restoreFeatureUI(lastSelectedFeature);
-  });
-}
+    // Em seguida, restaura a interface para a última feature selecionada
+    // (Utiliza a variável global 'lastSelectedFeature' que deve ter sido atualizada quando o usuário selecionou uma feature)
 
+      restoreFeatureUI(Feature);
+    });
+}
 
     const reserveChairsBtn = document.getElementById('reserve-chairs-btn');
     if (reserveChairsBtn) {
@@ -837,11 +982,22 @@ if (startCreateRouteBtn) {
     });
 }
 
+
     if (carouselModalClose) {
         carouselModalClose.addEventListener('click', closeCarouselModal);
     }
 
-}
+
+
+    const tutorialYesBtn = document.getElementById('tutorial-yes-btn');
+    const tutorialSiteYesBtn = document.getElementById('tutorial-site-yes-btn');
+    const tutorialNoBtn = document.getElementById('tutorial-no-btn');
+    const tutorialSendBtn = document.getElementById('tutorial-send-btn');
+    const showItineraryBtn = document.getElementById('show-itinerary-btn');
+    const generateNewItineraryBtn = document.getElementById('generate-new-itinerary-btn');
+    const changePreferencesBtn = document.getElementById('change-preferences-btn');
+    const accessSiteBtn = document.getElementById('access-site-btn');
+  }
 
 /**
  * 3. handleUserIdleState - Detecta inatividade e oferece ação.
@@ -865,31 +1021,29 @@ SEÇÃO 4 – PERMISSÕES
 /**
  * 1. requestLocationPermission - Solicita permissão de geolocalização.
  */
-
 async function requestLocationPermission(lang = 'pt') {
   console.log("[requestLocationPermission] Checando permissão de localização...");
-
+  
   if (!navigator.geolocation) {
-    console.error("Geolocalização não suportada pelo navegador.");
+    console.error("[requestLocationPermission] Geolocalização não suportada pelo navegador.");
     showNotification(getGeneralText("geolocationUnsupported", lang) || "Geolocation not supported.", "error");
     return false;
   }
 
+  // Tenta obter a posição rapidamente para ver se há bloqueio
   try {
     await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         () => resolve(true),
         (err) => reject(err),
-        { timeout: 5000 }  // Aumentei o timeout para maior tolerância
+        { timeout: 3000 }  // Tenta rápido só para ver se é permitido
       );
     });
-    console.log("Permissão de localização concedida.");
-    locationPermissionGranted = true;
+    console.log("[requestLocationPermission] Permissão de localização concedida.");
     return true;
   } catch (err) {
-    console.warn("Permissão negada ou tempo limite excedido.", err);
+    console.warn("[requestLocationPermission] Permissão negada ou tempo limite excedido.", err);
     showNotification(getGeneralText("noLocationPermission", lang) || "Location permission denied.", "warning");
-    locationPermissionGranted = false;
     return false;
   }
 } /*
@@ -966,27 +1120,21 @@ function loadDestinationsFromCache(callback) {
 /**
  * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
  */
-// Função corrigida para tratar erros de JSON.parse
 function getLocalStorageItem(key) {
-    const item = localStorage.getItem(key); // Recupera o valor do localStorage
-    try {
-        return JSON.parse(item); // Tenta interpretar como JSON
-    } catch (error) {
-        console.warn(`Erro ao interpretar '${key}':`, error);
-        return item; // Retorna o valor bruto se não for JSON válido
-    }
+  const item = localStorage.getItem(key);
+  try {
+    return JSON.parse(item); // Tenta converter o valor para JSON
+  } catch (error) {
+    console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
+    return item; // Retorna o valor bruto se não for JSON válido
+  }
 }
-
 
 /**
  * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 function setLocalStorageItem(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Erro ao salvar item no localStorage (${key}):`, error);
-  }
+  localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
 }
 
 /**
@@ -1110,22 +1258,13 @@ function initializeMap() {
   // Adiciona o controle de camadas
   L.control.layers(tileLayers).addTo(map);
 
-  // (Opcional) Se houver plugin de rotação, adicione-o
-  if (L.control.rotate) {
-    const rotateControl = L.control.rotate({
-      position: 'topright',
-      angle: 0,
-      // Outras opções do plugin, se necessário
-    });
-    rotateControl.addTo(map);
-    console.log("Controle de rotação adicionado.");
-  } else {
-    console.warn("Plugin de rotação não encontrado. A rotação será atualizada via CSS na camada de tiles.");
-  }
-
-  console.log("Mapa inicializado.");
+if (typeof RotationPlugin !== "undefined") {
+  RotationPlugin.initialize();
+} else {
+  console.warn("Plugin de rotação não encontrado. Usando CSS para rotação.");
+  // Código alternativo para rotação via CSS
 }
-
+}
 /**
  * 2. getTileLayer
  *    Retorna uma camada de tiles (fallback).
@@ -1145,18 +1284,21 @@ SEÇÃO 7 – STATE (Persistência do Estado e Navegação)
  * Reinicializa o objeto global de navegação, limpando estados anteriores. */
 function initNavigationState() {
   console.log("[initNavigationState] Reinicializando estado de navegação...");
+  // Reseta flags e variáveis do objeto global navigationState
   navigationState.isActive = false;
   navigationState.isPaused = false;
   navigationState.watchId = null;
   navigationState.currentStepIndex = 0;
   navigationState.instructions = [];
   navigationState.selectedDestination = null;
+  // Se já houver uma camada de rota ativa, remove-a do mapa
   if (navigationState.currentRouteLayer) {
     map.removeLayer(navigationState.currentRouteLayer);
     navigationState.currentRouteLayer = null;
   }
   console.log("[initNavigationState] Estado de navegação reinicializado.");
 }
+
 
 
 /**
@@ -1265,13 +1407,14 @@ document.getElementById("start-new-navigation-btn").addEventListener("click", ()
  * 7. updateNavigationState - Atualiza o objeto global navigationState (merge).
  */
 function updateNavigationState(newState) {
-    if (!newState || typeof newState !== "object") {
-        console.error("updateNavigationState: newState inválido:", newState);
-        return;
-    }
-    Object.assign(navigationState, newState);
-    console.log("updateNavigationState: Estado atualizado:", navigationState);
+  if (!newState || typeof newState !== "object") {
+    console.error("updateNavigationState: newState inválido:", newState);
+    return;
+  }
+  Object.assign(navigationState, newState);
+  console.log("updateNavigationState: Estado atualizado:", navigationState);
 }
+
 
 
 /**
@@ -1858,7 +2001,7 @@ function initContinuousLocationTracking() {
       const { latitude, longitude, accuracy } = position.coords;
       userLocation = { latitude, longitude, accuracy };
       // Atualiza o marcador do usuário; a rotação é atualizada separadamente via deviceOrientationHandler
-      updateUserMarker(latitude, longitude, heading, accuracy);
+      updateUserMarker(latitude, longitude, accuracy);
       console.log("initContinuousLocationTracking: Localização atualizada:", userLocation);
     },
     (error) => {
@@ -1874,9 +2017,9 @@ function initContinuousLocationTracking() {
       }
       showNotification(message, "error");
     },
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
   );
-startRotationAuto();
+
   // Adiciona o listener para orientação do dispositivo, se suportado
   if (window.DeviceOrientationEvent) {
     window.addEventListener("deviceorientation", deviceOrientationHandler, true);
@@ -1930,25 +2073,27 @@ function deviceOrientationHandler(event) {
  * Atualiza a visualização do mapa para modo first-person.
  * @param {Object} position - Objeto de posição retornado pelo watchPosition.
  */
-function setFirstPersonView(position) {
-  const { latitude, longitude, heading } = position.coords;
-  
-  // Centraliza o mapa na posição atual com zoom adequado
-  map.setView([latitude, longitude], 18);
-
-  // Se o plugin (ou função customizada) para rotação estiver disponível
-  if (typeof map.setBearing === "function" && typeof heading === "number") {
-    // Plugin real que implementa rotação do mapa
-    map.setBearing(heading);
-  } else {
-    // Caso não exista um método nativo ou plugin, podemos aplicar uma rotação CSS como fallback
-    const mapContainer = map.getContainer();
-    // Nota: Esta abordagem rotaciona todo o conteúdo do mapa, o que pode afetar interações
-    mapContainer.style.transform = `rotate(${heading}deg)`;
-    mapContainer.style.transformOrigin = "center center";
-    console.warn("Função nativa de rotação não disponível. Aplicando rotação via CSS como fallback.");
-  }
+/**
+ * Ajusta a visualização do mapa para uma perspectiva de primeira pessoa.
+ * Centraliza o mapa com zoom 18, posicionando o usuário na parte inferior para que o caminho apareça à frente.
+ * @param {number} lat - Latitude do usuário.
+ * @param {number} lon - Longitude do usuário.
+ * @param {number} zoom - Nível de zoom desejado (fixo em 18).
+ * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
+ */
+function setFirstPersonView(lat, lon, zoom, heading) {
+  const desiredZoom = zoom || 18;
+  const mapSize = map.getSize();
+  // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
+  const offsetY = mapSize.y * 0.2;
+  const userPoint = map.project([lat, lon], desiredZoom);
+  const adjustedPoint = L.point(userPoint.x, userPoint.y - offsetY);
+  const newCenter = map.unproject(adjustedPoint, desiredZoom);
+  map.setView(newCenter, desiredZoom, { animate: true, pan: { duration: 0.5 } });
+  // Alinha a rotação do mapa com o heading do usuário
+  setMapRotation(heading);
 }
+
 
 /**
  * 4. setMapRotation
@@ -1958,74 +2103,68 @@ function setFirstPersonView(position) {
  *
  * @param {number} heading - Ângulo atual em graus fornecido pelo dispositivo.
  */
+/**
+ * Rotaciona a camada de tiles do mapa de acordo com o heading.
+ * Aplica suavização e utiliza transform-origin centralizado para garantir a rotação a partir do centro.
+ * @param {number} heading - Ângulo atual em graus.
+ */
 function setMapRotation(heading) {
-  // Seleciona somente a camada de tiles, não o container inteiro
+  // Seleciona a camada de tiles do Leaflet
   const tileLayerElement = document.querySelector(".leaflet-tile-pane");
   if (!tileLayerElement) {
     console.warn("[setMapRotation] Camada de tiles não encontrada.");
     return;
   }
-
-  // Se a navegação ou a rotação não estiverem ativas, reseta a transformação
+  // Se a navegação não estiver ativa ou a rotação estiver desabilitada, remove a rotação
   if (!navigationState.isActive || !navigationState.isRotationEnabled) {
     tileLayerElement.style.transform = "none";
     return;
   }
-
   const now = Date.now();
-  // Modo quiet: não atualiza se o usuário estiver praticamente parado
+  // Se em modo quiet e a velocidade for baixa ou o intervalo não tiver passado, não atualiza
   if (navigationState.quietMode) {
     if (navigationState.speed < 0.5) return;
     if ((now - navigationState.lastRotationTime) < navigationState.rotationInterval) return;
   }
-
-  // Se houver um override manual, utiliza o ângulo e tilt manual
+  // Se override manual estiver ativo, aplica o ângulo manual
   if (navigationState.manualOverride) {
     applyRotationTransform(navigationState.manualAngle, navigationState.tilt);
     navigationState.lastRotationTime = now;
     console.log("[setMapRotation] Rotação manual aplicada:", navigationState.manualAngle, "º");
     return;
   }
-
-  // Verifica se o heading é válido
   if (heading == null || isNaN(heading)) {
-    console.warn("[setMapRotation] heading inválido => rotação não efetuada.");
+    console.warn("[setMapRotation] Heading inválido => rotação não efetuada.");
     return;
   }
-
-  // Define o desiredHeading com base no modo de rotação
+  // Ajusta o heading conforme o modo de rotação
   let desiredHeading = heading;
   if (navigationState.rotationMode === "north-up") {
     desiredHeading = 0;
   } else {
-    // Normaliza para um valor entre 0 e 360
     desiredHeading = (desiredHeading < 0) ? ((desiredHeading % 360) + 360) : (desiredHeading % 360);
   }
-
-  // Buffer de suavização: armazena as últimas leituras
+  // Usa um buffer para suavizar as atualizações
   navigationState.headingBuffer.push(desiredHeading);
   if (navigationState.headingBuffer.length > 5) {
     navigationState.headingBuffer.shift();
   }
   const avgHeading = navigationState.headingBuffer.reduce((a, b) => a + b, 0) / navigationState.headingBuffer.length;
-
-  // Verifica se a mudança é significativa
   const delta = Math.abs(avgHeading - navigationState.currentHeading);
   if (delta < navigationState.minRotationDelta) {
     return;
   }
-
   // Suaviza a rotação
   const smoothedHeading = navigationState.currentHeading + navigationState.alpha * (avgHeading - navigationState.currentHeading);
   navigationState.currentHeading = smoothedHeading;
-  const tilt = navigationState.tilt; // Tilt pode ser 0 se não desejado
-
-  // Aplica a transformação somente na camada de tiles
-  applyRotationTransform(smoothedHeading, tilt);
-
+  // Aplica o transform com origin centralizado
+  tileLayerElement.style.transformOrigin = "50% 50%";
+  applyRotationTransform(smoothedHeading, navigationState.tilt);
   navigationState.lastRotationTime = now;
-  console.log(`[setMapRotation] heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${tilt}`);
+  console.log(`[setMapRotation] Heading final = ${smoothedHeading.toFixed(1)}°, tilt = ${navigationState.tilt}`);
 }
+
+
 
 
 /**
@@ -2034,18 +2173,14 @@ function setMapRotation(heading) {
  * Essa transformação não afeta os markers ou a posição real do mapa.
  */
 function applyRotationTransform(heading, tilt) {
-  // Seleciona a camada de tiles (geralmente com classe .leaflet-tile-pane)
-  const tilePane = document.querySelector('.leaflet-tile-pane');
-  if (!tilePane) {
-    console.warn("[applyRotationTransform] .leaflet-tile-pane não encontrado.");
-    return;
+  const tileLayerElement = document.querySelector(".leaflet-tile-pane");
+  if (tileLayerElement) {
+    // Exemplo simples: rotação sem tilt (para adicionar tilt, seria necessário uma abordagem 3D)
+    tileLayerElement.style.transform = `rotate(${heading}deg)`;
   }
-  // Define a origem da transformação e uma transição suave
-  tilePane.style.transition = "transform 0.3s ease-out";
-  tilePane.style.transformOrigin = "center center";
-  // Aplica a rotação e o tilt via CSS (ajuste a perspectiva conforme necessário)
-  tilePane.style.transform = `rotate(${heading}deg) perspective(1000px) rotateX(${tilt}deg)`;
 }
+
+
 
 /**
 
@@ -2053,6 +2188,91 @@ function applyRotationTransform(heading, tilt) {
 SEÇÃO 9 – INTERAÇÃO NO MAPA OSM
 ===========================================================================
   --- 9.1. Exibição e Controle de Instruções ---
+/**
+ * 1. showInstructionsWithTooltip - Exibe instruções no mapa via tooltips permanentes.
+ */
+function showInstructionsWithTooltip(instructions, mapInstance) {
+  if (!instructions || instructions.length === 0) {
+    console.warn("showInstructionsWithTooltip: Nenhuma instrução para exibir.");
+    return;
+  }
+  instructions.forEach(step => {
+    const marker = L.marker([step.lat, step.lon]).addTo(mapInstance);
+    marker.bindTooltip(`${step.text}`, {
+      permanent: true,
+      direction: "top",
+      className: "my-custom-tooltip"
+    }).openTooltip();
+  });
+  console.log("showInstructionsWithTooltip: Instruções exibidas no mapa.");
+}
+
+/**
+ * 2. showInstructionsOnMap - Exibe instruções no mapa (popups/tooltips).
+ */
+function showInstructionsOnMap(instructions, mapInstance) {
+  if (!instructions || instructions.length === 0) {
+    console.warn("showInstructionsOnMap: Nenhuma instrução para exibir.");
+    return;
+  }
+  instructions.forEach((step, index) => {
+    const icon = L.divIcon({
+      className: "instruction-marker-icon",
+      html: "⚠️",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    const marker = L.marker([step.lat, step.lon], { icon: icon }).addTo(mapInstance);
+    marker.bindPopup(`
+      <strong>Passo ${index + 1}</strong><br>
+      ${step.text}<br>
+      (${step.distance}m)
+    `);
+  });
+  console.log("showInstructionsOnMap: Instruções exibidas com popups.");
+}
+
+/**
+ * 3. goToInstructionStep - Define um passo específico como atual.
+ */
+function goToInstructionStep(stepIndex) {
+  if (!navigationState.instructions || navigationState.instructions.length === 0) {
+    console.warn("goToInstructionStep: Nenhuma instrução definida.");
+    return;
+  }
+  stepIndex = Math.max(0, Math.min(stepIndex, navigationState.instructions.length - 1));
+  navigationState.currentStepIndex = stepIndex;
+  const step = navigationState.instructions[stepIndex];
+  if (step) {
+    updateInstructionModal(navigationState.instructions, stepIndex, navigationState.lang);
+    speakInstruction(step.text, navigationState.lang === "pt" ? "pt-BR" : "en-US");
+    highlightNextStepInMap(step);
+    console.log(`goToInstructionStep: Passo atualizado para ${stepIndex}.`);
+  }
+}
+
+/**
+ * 4. nextInstructionStep - Avança para a próxima instrução.
+ */
+function nextInstructionStep() {
+  if (navigationState.currentStepIndex < navigationState.instructions.length - 1) {
+    goToInstructionStep(navigationState.currentStepIndex + 1);
+  } else {
+    console.log("nextInstructionStep: Última instrução alcançada.");
+    showNotification("Você chegou ao destino final!", "success");
+  }
+}
+
+/**
+ * 5. prevInstructionStep - Retrocede para a instrução anterior.
+ */
+function prevInstructionStep() {
+  if (navigationState.currentStepIndex > 0) {
+    goToInstructionStep(navigationState.currentStepIndex - 1);
+  } else {
+    console.log("prevInstructionStep: Você já está na primeira instrução.");
+  }
+}
 
 /**
   --- 9.2. Rotas Alternativas e Ajustes ---
@@ -2231,6 +2451,43 @@ function displayOSMData(data, subMenuId, feature) {
     });
 }
 
+/**
+ * Alterna o tema da interface entre claro e escuro.
+ * Se o corpo do documento tiver a classe "dark-theme", remove-a; caso contrário, adiciona-a.
+ */
+function toggleTheme() {
+  const body = document.body;
+  if (body.classList.contains("dark-theme")) {
+    body.classList.remove("dark-theme");
+    showNotification("Tema claro ativado.", "info");
+  } else {
+    body.classList.add("dark-theme");
+    showNotification("Tema escuro ativado.", "info");
+  }
+}
+
+/**
+ * Ajusta automaticamente o tema com base na hora do dia.
+ * Se a hora atual estiver entre 18h e 6h, ativa o tema escuro.
+ */
+function autoAdjustTheme() {
+  const hour = new Date().getHours();
+  const body = document.body;
+  if (hour >= 18 || hour < 6) {
+    // Ativa tema escuro
+    if (!body.classList.contains("dark-theme")) {
+      body.classList.add("dark-theme");
+      showNotification("Tema escuro ativado automaticamente.", "info");
+    }
+  } else {
+    // Ativa tema claro
+    if (body.classList.contains("dark-theme")) {
+      body.classList.remove("dark-theme");
+      showNotification("Tema claro ativado automaticamente.", "info");
+    }
+  }
+}
+
 
 /*
 
@@ -2247,49 +2504,74 @@ SEÇÃO 10 – LOCALIZAÇÃO & RASTREAMENTO
  * @param {Object} [options] - Opções para getCurrentPosition.
  * @returns {Object|null} - Objeto com latitude, longitude e precisão ou null em caso de erro.
  */
-async function getCurrentLocation() {
-  return new Promise((resolve, reject) => {
-      // Timeout de 10 segundos
-      const timeoutId = setTimeout(() => {
-          reject(new Error('Timeout ao obter localização'));
-      }, 10000);
+async function getCurrentLocation(options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }) {
+  console.log("[getCurrentLocation] Solicitando posição atual...");
 
-      // Cache da última localização conhecida
-      if (cachedLocation) {
-          clearTimeout(timeoutId);
-          resolve(cachedLocation);
-      }
+  // Verifica se a API de geolocalização está disponível
+  if (!("geolocation" in navigator)) {
+    showNotification(getGeneralText("geolocationUnsupported", selectedLanguage) || "Geolocalização não suportada.", "error");
+    return null;
+  }
 
-      navigator.geolocation.getCurrentPosition(
-          (position) => {
-              clearTimeout(timeoutId);
-              cachedLocation = {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  accuracy: position.coords.accuracy
-              };
-              resolve(cachedLocation);
-          },
-          (error) => {
-              clearTimeout(timeoutId);
-              // Fallback para IP geolocation se disponível
-              if (cachedLocation) {
-                  resolve(cachedLocation);
-              } else {
-                  reject(error);
-              }
-          },
-          {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 0
-          }
-      );
-  });
+  try {
+    // Solicita a posição atual
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+    const { latitude, longitude, accuracy } = position.coords;
+    userLocation = { latitude, longitude, accuracy };
+    console.log("[getCurrentLocation] Localização obtida:", userLocation);
+
+    // Inicia o tracking contínuo após obter a posição inicial
+    initContinuousLocationTracking();
+
+    return userLocation;
+  } catch (error) {
+    console.error("[getCurrentLocation] Erro:", error);
+    // Define mensagem de erro específica com base no código do erro
+    let message = getGeneralText("trackingError", selectedLanguage);
+    if (error.code === error.PERMISSION_DENIED) {
+      message = getGeneralText("noLocationPermission", selectedLanguage) || "Permissão de localização negada.";
+    } else if (error.code === error.TIMEOUT) {
+      message = getGeneralText("locationTimeout", selectedLanguage) || "Tempo limite para obtenção de localização excedido.";
+    } else if (error.code === error.POSITION_UNAVAILABLE) {
+      message = getGeneralText("positionUnavailable", selectedLanguage) || "Posição indisponível.";
+    }
+    showNotification(message, "error");
+    return null;
+  }
 }
 
+/**
+ * Atualiza o indicador visual de qualidade do sinal GPS.
+ * Baseia-se no valor de "accuracy" (em metros) fornecido pelo GPS.
+ * Espera que exista no HTML um elemento com id "gps-signal-indicator".
+ * @param {number} accuracy - Valor da acurácia da posição, em metros.
+ */
+function updateGPSQualityIndicator(accuracy) {
+  const indicator = document.getElementById("gps-signal-indicator");
+  if (!indicator) return;
 
+  let qualityText = "";
+  let qualityClass = "";
 
+  if (accuracy < 10) {
+    qualityText = "Excelente";
+    qualityClass = "excellent";
+  } else if (accuracy < 30) {
+    qualityText = "Boa";
+    qualityClass = "good";
+  } else if (accuracy < 100) {
+    qualityText = "Média";
+    qualityClass = "medium";
+  } else {
+    qualityText = "Ruim";
+    qualityClass = "poor";
+  }
+
+  indicator.textContent = qualityText;
+  indicator.className = qualityClass;
+}
 
 
 /**
@@ -2399,60 +2681,56 @@ function detectMotion() {
  * Atualiza ou cria o marker do usuário com animação e rotação.
  * A função atualiza a rotação do ícone e chama setMapRotation para sincronizar a camada de tiles.
  */
-function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
-  console.log(`[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`);
-
-  // Ignora leituras com baixa precisão (acima de 15m)
-  if (accuracy !== undefined && accuracy > 15) {
-    console.log("[updateUserMarker] Precisão GPS baixa. Atualização ignorada.");
-    return;
+/**
+ * Atualiza ou cria o marcador do usuário com animação e rotação.
+ * Se o plugin Leaflet Rotated Marker estiver disponível, utiliza-o para definir a rotação.
+ * Caso contrário, aplica a rotação via CSS com transform-origin centralizado.
+ * @param {number} lat - Latitude atual.
+ * @param {number} lon - Longitude atual.
+ * @param {number} heading - Ângulo (em graus) de orientação.
+ * @param {number} [accuracy] - Precisão da leitura do GPS (opcional).
+ * @param {Array} [iconSize] - Tamanho do ícone do marcador (opcional).
+ */
+/**
+ * Atualiza ou cria o marcador do usuário no mapa com rotação para que a seta aponte para o caminho.
+ * Se o plugin Leaflet Rotated Marker estiver disponível, ele é usado; caso contrário, a rotação é aplicada via CSS.
+ * @param {number} lat - Latitude atual do usuário.
+ * @param {number} lon - Longitude atual do usuário.
+ * @param {number} heading - Ângulo (em graus) de orientação (direção do movimento).
+ * @param {number} [accuracy] - Precisão do GPS (opcional).
+ */
+function updateUserMarker(lat, lon, heading, accuracy) {
+  console.log(`[updateUserMarker] Atualizando posição para (${lat}, ${lon}) com heading: ${heading}°`);
+  
+  // Se a acurácia estiver definida e for baixa (valor alto), podemos ajustar ou optar por uma atualização menos agressiva
+  if (accuracy !== undefined && accuracy > 20) {
+    console.log("[updateUserMarker] Precisão baixa (" + accuracy + "m), atualização pode ser menos agressiva.");
   }
-
-  // Verifica se o movimento é significativo (maior que 1m)
-  if (window.lastPosition) {
-    const distance = calculateDistance(window.lastPosition.lat, window.lastPosition.lon, lat, lon);
-    if (distance < 1) {
-      console.log("[updateUserMarker] Movimento insignificante. Atualização ignorada.");
-      return;
-    }
-  }
-  window.lastPosition = { lat, lon };
-
-  // Se houver um destino definido, calcula o heading em direção a ele
-  if (window.routeDestination) {
-    heading = computeBearing(lat, lon, window.routeDestination.lat, window.routeDestination.lon);
-  } else if (heading === undefined) {
-    heading = 0;
-  }
-
-  // Define o ícone do marker usando Font Awesome
-  const iconHtml = '<i class="fas fa-location-arrow"></i>';
-  const finalIconSize = iconSize || [60, 60];
-  const finalIconAnchor = [ finalIconSize[0] / 2, finalIconSize[1] ];
-
-  // Atualiza ou cria o marker do usuário
+  
+  // Atualiza a posição e rotação se o marcador já existir
   if (window.userMarker) {
-    const currentPos = window.userMarker.getLatLng();
-    animateMarker(window.userMarker, currentPos, [lat, lon], 300);
-    if (window.userMarker._icon) {
-      // Atualiza a rotação do ícone sem afetar as coordenadas
+    window.userMarker.setLatLng([lat, lon]);
+    if (typeof window.userMarker.setRotationAngle === "function") {
+      window.userMarker.setRotationAngle(heading);
+    } else if (window.userMarker._icon) {
+      window.userMarker._icon.style.transformOrigin = "50% 50%";
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   } else {
+    // Cria o marcador com um ícone customizado (exemplo com Font Awesome)
+    const iconHtml = '<i class="fas fa-location-arrow"></i>';
     window.userMarker = L.marker([lat, lon], {
       icon: L.divIcon({
         className: 'user-marker',
         html: iconHtml,
-        iconSize: finalIconSize,
-        iconAnchor: finalIconAnchor
-      })
+        iconSize: [50, 50],
+        iconAnchor: [25, 25]
+      }),
+      rotationAngle: heading
     }).addTo(map);
-    if (window.userMarker._icon) {
-      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
-    }
   }
-
-  // Atualiza ou cria o círculo de precisão para indicar a margem de erro
+  
+  // Atualiza (ou cria) o círculo de precisão, se accuracy estiver disponível
   if (accuracy !== undefined) {
     if (window.userAccuracyCircle) {
       window.userAccuracyCircle.setLatLng([lat, lon]);
@@ -2464,108 +2742,38 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
       }).addTo(map);
     }
   }
-updateUserPositionOnRoute();
-  // Atualiza a rotação da camada de tiles conforme o heading
-  if (typeof setMapRotation === 'function') {
-    startRotationAuto();
-  }
 }
 
 
 
-// ========= Serviço de GPS Otimizado =========
+// Variável global para armazenar a última posição suavizada
+let smoothedPosition = null;
+// Fator de suavização: ajuste entre 0 e 1 (valor menor = mais suavização)
+const SMOOTHING_ALPHA = 0.2;
 
-let gpsWatchId = null;
-let lastUpdateTime = performance.now();
-let userSpeed = 0;
-
-// Instâncias dos filtros de Kalman para latitude, longitude e heading
-class KalmanFilter {
-  constructor(processNoise = 1e-3, measurementNoise = 1e-1, estimatedError = 1.0) {
-    this.processNoise = processNoise;
-    this.measurementNoise = measurementNoise;
-    this.estimatedError = estimatedError;
-    this.kalmanGain = 0;
-    this.currentEstimate = 0;
+/**
+ * Aplica suavização às coordenadas de geolocalização utilizando média móvel exponencial.
+ * @param {Object} newCoord - Objeto contendo as coordenadas brutas { latitude, longitude, ... }.
+ * @returns {Object} - Objeto com as coordenadas suavizadas.
+ */
+function applyCoordinateSmoothing(newCoord) {
+  if (!newCoord || typeof newCoord.latitude !== 'number' || typeof newCoord.longitude !== 'number') {
+    // Se as coordenadas não forem válidas, retorna a última posição conhecida
+    return smoothedPosition;
   }
-  update(measurement) {
-    this.estimatedError += this.processNoise;
-    this.kalmanGain = this.estimatedError / (this.estimatedError + this.measurementNoise);
-    this.currentEstimate += this.kalmanGain * (measurement - this.currentEstimate);
-    this.estimatedError *= (1 - this.kalmanGain);
-    return this.currentEstimate;
+  
+  if (smoothedPosition === null) {
+    // Inicializa com a primeira leitura
+    smoothedPosition = { ...newCoord };
+  } else {
+    // Atualiza a posição suavizada usando média móvel exponencial
+    smoothedPosition.latitude = SMOOTHING_ALPHA * newCoord.latitude + (1 - SMOOTHING_ALPHA) * smoothedPosition.latitude;
+    smoothedPosition.longitude = SMOOTHING_ALPHA * newCoord.longitude + (1 - SMOOTHING_ALPHA) * smoothedPosition.longitude;
   }
-}
-const kalmanLat = new KalmanFilter();
-const kalmanLon = new KalmanFilter();
-const kalmanHeading = new KalmanFilter();
-
-// Filtro Exponencial simples para suavização
-function applyExponentialFilter(newValue, prevValue, alpha = 0.2) {
-  if (prevValue === null || prevValue === undefined) {
-    return newValue;
-  }
-  return prevValue + alpha * (newValue - prevValue);
-}
-let filteredLat = null;
-let filteredLon = null;
-let filteredHeading = null;
-
-// Função que inicia o GPS com alta precisão
-function startHighAccuracyGPS() {
-  if (!navigator.geolocation) {
-    console.error("Geolocalização não suportada.");
-    showNotification("Seu dispositivo não suporta GPS.", "error");
-    return;
-  }
-  if (gpsWatchId !== null) {
-    navigator.geolocation.clearWatch(gpsWatchId);
-  }
-  gpsWatchId = navigator.geolocation.watchPosition(
-    (pos) => {
-      const { latitude, longitude, accuracy, heading, speed } = pos.coords;
-      userSpeed = speed || 0;
-      // Atualiza a posição global (você pode armazenar em uma variável global "userLocation")
-      userLocation = { latitude, longitude, accuracy, heading };
-      // Chama a atualização do marcador (que inclui filtros e animação)
-      updateUserMarker(latitude, longitude, heading, accuracy, speed);
-    },
-    (error) => {
-      console.error("Erro no GPS:", error);
-      handleGPSError(error);
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 5000,
-      timeout: 15000
-    }
-  );
+  return smoothedPosition;
 }
 
-function handleGPSError(error) {
-  switch (error.code) {
-    case error.PERMISSION_DENIED:
-      showNotification("Permissão de localização negada.", "warning");
-      break;
-    case error.POSITION_UNAVAILABLE:
-      showNotification("Sinal de GPS não disponível.", "error");
-      break;
-    case error.TIMEOUT:
-      showNotification("Tempo limite para obter localização excedido.", "warning");
-      break;
-    default:
-      showNotification("Erro desconhecido no GPS.", "error");
-  }
-}
 
-// Função para parar o GPS
-function stopHighAccuracyGPS() {
-  if (gpsWatchId !== null) {
-    navigator.geolocation.clearWatch(gpsWatchId);
-    gpsWatchId = null;
-    console.log("Rastreamento GPS interrompido.");
-  }
-}
 
 
 /*
@@ -2717,13 +2925,16 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile = "f
       return null;
     }
     const data = await response.json();
+    // Extrai as coordenadas da rota e converte para formato [lat, lon]
     const coords = data.features[0].geometry.coordinates;
     const latLngs = coords.map(([lon, lat]) => [lat, lon]);
-    // Remove a rota anterior, se existir
+    // Se já houver uma rota traçada, remove-a
     if (window.currentRoute) {
       map.removeLayer(window.currentRoute);
     }
+    // Cria e adiciona a polyline ao mapa
     window.currentRoute = L.polyline(latLngs, { color: "blue", weight: 5, dashArray: "10,5" }).addTo(map);
+    // Ajusta o mapa para mostrar toda a rota
     map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
     console.log("[plotRouteOnMap] Rota plotada com sucesso.");
     return data;
@@ -2732,6 +2943,7 @@ async function plotRouteOnMap(startLat, startLon, destLat, destLon, profile = "f
     return null;
   }
 }
+
 
 
 /**
@@ -2757,40 +2969,77 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 /**
  * 5. distanceToPolyline
- *    Calcula a menor distância entre um ponto e uma polyline. */
-function distanceToPolyline(userLat, userLon, polylineCoords) {
-  let minDist = Infinity;
-  for (let i = 0; i < polylineCoords.length - 1; i++) {
-    const p1 = polylineCoords[i];
-    const p2 = polylineCoords[i + 1];
-    const dist = pointToSegmentDistance(userLat, userLon, p1[0], p1[1], p2[0], p2[1]);
-    if (dist < minDist) minDist = dist;
+/**
+ * Calcula a distância mínima entre um ponto e uma linha (polyline) definida por um array de pontos.
+ * Cada ponto no array deve ter as propriedades {lat, lon}.
+ * @param {Object} currentPos - Objeto com {lat, lon} representando a posição atual.
+ * @param {Array} routePoints - Array de pontos representando a rota.
+ * @returns {number} - Distância mínima em metros entre o ponto e a rota.
+ */
+function distanceToPolyline(currentPos, routePoints) {
+  if (!routePoints || routePoints.length === 0) return Infinity;
+  
+  let minDistance = Infinity;
+  for (let i = 0; i < routePoints.length - 1; i++) {
+    const A = routePoints[i];
+    const B = routePoints[i + 1];
+    const dist = pointToSegmentDistance(currentPos, A, B);
+    if (dist < minDistance) {
+      minDistance = dist;
+    }
   }
-  return minDist;
+  return minDistance;
 }
+
 
 /**
  * 6. pointToSegmentDistance
  *    Calcula a distância de um ponto a um segmento. */
-function pointToSegmentDistance(latA, lonA, lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const rad = Math.PI / 180;
-  const Ax = R * lonA * rad * Math.cos(latA * rad);
-  const Ay = R * latA * rad;
-  const x1 = R * lon1 * rad * Math.cos(lat1 * rad);
-  const y1 = R * lat1 * rad;
-  const x2 = R * lon2 * rad * Math.cos(lat2 * rad);
-  const y2 = R * lat2 * rad;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const segLen2 = dx * dx + dy * dy;
-  if (segLen2 === 0) return Math.sqrt((Ax - x1) ** 2 + (Ay - y1) ** 2);
-  let t = ((Ax - x1) * dx + (Ay - y1) * dy) / segLen2;
-  t = Math.max(0, Math.min(1, t));
-  const projx = x1 + t * dx;
-  const projy = y1 + t * dy;
-  return Math.sqrt((Ax - projx) ** 2 + (Ay - projy) ** 2);
+/**
+ * Calcula a distância de um ponto P à reta definida pelos pontos A e B.
+ * @param {Object} P - Objeto com {lat, lon} representando o ponto.
+ * @param {Object} A - Objeto com {lat, lon} representando o início do segmento.
+ * @param {Object} B - Objeto com {lat, lon} representando o fim do segmento.
+ * @returns {number} - Distância mínima em metros.
+ */
+function pointToSegmentDistance(P, A, B) {
+  // Conversão de graus para radianos
+  const toRad = (deg) => deg * Math.PI / 180;
+  
+  // Converter os pontos para uma aproximação local (equirectangular)
+  const latA = toRad(A.lat), lonA = toRad(A.lon);
+  const latB = toRad(B.lat), lonB = toRad(B.lon);
+  const latP = toRad(P.lat), lonP = toRad(P.lon);
+  
+  // Aproximar coordenadas para uma projeção plana
+  const xA = lonA * Math.cos(latA), yA = latA;
+  const xB = lonB * Math.cos(latB), yB = latB;
+  const xP = lonP * Math.cos(latP), yP = latP;
+  
+  const AtoP_x = xP - xA;
+  const AtoP_y = yP - yA;
+  const AtoB_x = xB - xA;
+  const AtoB_y = yB - yA;
+  
+  const segmentLengthSq = AtoB_x * AtoB_x + AtoB_y * AtoB_y;
+  let t = 0;
+  if (segmentLengthSq !== 0) {
+    t = (AtoP_x * AtoB_x + AtoP_y * AtoB_y) / segmentLengthSq;
+    t = Math.max(0, Math.min(1, t));
+  }
+  
+  const projX = xA + t * AtoB_x;
+  const projY = yA + t * AtoB_y;
+  
+  const deltaX = xP - projX;
+  const deltaY = yP - projY;
+  const distanceRad = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  
+  // Converter a distância radiana para metros
+  const R = 6371000; // Raio da Terra em metros
+  return distanceRad * R;
 }
+
 
 /**
  * 7. clearCurrentRoute /**
@@ -2881,19 +3130,50 @@ function computeBearing(lat1, lon1, lat2, lon2) {
 * 10. showRouteLoadingIndicator
  * Adiciona um indicador de carregamento antes da rota ser traçada
  */
-function showRouteLoadingIndicator() {
-    const loader = document.getElementById("route-loader");
-    loader.style.display = "flex"; // Mostra o loader
+function showRouteLoadingIndicator(timeout = 15000) {
+  const loader = document.getElementById("route-loader");
+  if (!loader) {
+    console.error("Elemento do loader não encontrado no DOM.");
+    return;
+  }
+
+  loader.style.display = "block";
+  console.log("[showRouteLoadingIndicator] Indicador de carregamento ativado.");
+
+  // Define um timeout para evitar carregamento infinito
+  navigationState.loadingTimeout = setTimeout(() => {
+    hideRouteLoadingIndicator();
+
+    // Notifica o usuário do erro
+    showNotification(getGeneralText("routeLoadTimeout", selectedLanguage) || 
+      "Tempo esgotado para carregar a rota. Por favor, tente novamente.", "error");
+
+    console.error("[showRouteLoadingIndicator] Timeout: Falha ao carregar rota.");
+
+    // Oferece ação ao usuário: tentar novamente
+    displayRetryRouteLoadOption();
+    
+  }, 15000); // timeout após 15 segundos
 }
+
 
 /**
 * 11. hideRouteLoadingIndicator
  * Remove o indicador de carregamento antes da rota ser traçada
  */
 function hideRouteLoadingIndicator() {
-    const loader = document.getElementById("route-loader");
-    loader.style.display = "none"; // Esconde o loader
+  // Cancela timeout se existir
+  if (navigationState.loadingTimeout) {
+    clearTimeout(navigationState.loadingTimeout);
+    navigationState.loadingTimeout = null;
+  }
+
+  const loader = document.getElementById("route-loader");
+  if (loader) loader.style.display = "none";
+
+  console.log("Indicador de carregamento desativado.");
 }
+
 
 /**
 * 12. fetchMultipleRouteOptions
@@ -2912,14 +3192,14 @@ function hideRouteLoadingIndicator() {
 async function fetchMultipleRouteOptions(startLat, startLon, destLat, destLon) {
   const options = ["foot-walking", "cycling-regular", "driving-car"];
   let routes = [];
-
+  // Para cada perfil (modo de transporte), obtém as instruções de rota
   for (const profile of options) {
     const routeData = await fetchRouteInstructions(startLat, startLon, destLat, destLon, selectedLanguage, 10000, true, profile);
     routes.push({ profile, routeData });
   }
-
   return routes;
 }
+ 
 
 /**
 * 13. applyRouteStyling
@@ -2946,64 +3226,147 @@ function applyRouteStyling(routeLayer) {
 SEÇÃO 12 – NAVEGAÇÃO
 ===========================================================================
   --- 12.1. Controle de Navegação ---
-
-/**  1. startNavigation
- * Inicia a navegação para o destino selecionado.
- * Essa função:
- *  - Exibe o indicador de carregamento e valida o destino;
- *  - Inicializa o estado de navegação;
- *  - Obtém opções de rota e permite que o usuário escolha uma delas;
- *  - Enriquecer as instruções com dados adicionais (ex.: OSM);
- *  - Anima o mapa e plota a rota com os marcadores de origem e destino;
- *  - Inicia o monitoramento contínuo da posição do usuário, atualizando a interface
- *    sem que a rotação dos tiles interfira nas coordenadas dos markers.
+/**
+ * 1. startNavigation.
+/**
+ * Inicia a navegação para o destino selecionado, configurando o fluxo completo:
+ *  - Validação do destino e disponibilidade de localização;
+ *  - Obtenção de múltiplas opções de rota e escolha pelo usuário;
+ *  - Enriquecimento das instruções de rota (por exemplo, com dados do OSM);
+ *  - Animação e plotagem da rota no mapa;
+ *  - Configuração do monitoramento contínuo da posição do usuário.
  */
-// Recomenda-se verificar explicitamente a permissão antes de chamar startNavigation
-async function startNavigation(destination) {
-  if (!await requestLocationPermission()) {
-    console.warn("Navegação interrompida: Sem permissão de localização.");
+async function startNavigation() {
+  // 1. Exibe o indicador de carregamento da rota.
+  showRouteLoadingIndicator();
+
+  // 2. Valida o destino selecionado.
+  if (!validateDestination(selectedDestination)) {
+    hideRouteLoadingIndicator();
     return;
   }
 
-  if (!destination || !validateDestination(destination)) {
-    showNotification("Destino inválido ou ausente.", "error");
+  // 3. Verifica se a localização do usuário está disponível.
+  if (!userLocation) {
+    showNotification("Localização não disponível. Permita o acesso à localização primeiro.", "error");
+    hideRouteLoadingIndicator();
     return;
   }
 
+  // 4. Inicializa o estado da navegação.
   initNavigationState();
   navigationState.isActive = true;
-  navigationState.selectedDestination = destination;
+  navigationState.isPaused = false;
+  navigationState.watchId = true;
+  navigationState.currentStepIndex = 0;
 
-  startPositionTracking(); // Inicia o rastreamento da posição
-  fetchRouteInstructions(userLocation, destination)
-    .then(instructions => {
-      if (!validateRouteData(instructions)) {
-        throw new Error("Dados da rota inválidos.");
+  // 5. Obtém múltiplas opções de rota com base na posição do usuário e destino.
+  let routeOptions = await fetchMultipleRouteOptions(
+    userLocation.latitude,
+    userLocation.longitude,
+    selectedDestination.lat,
+    selectedDestination.lon
+  );
+  if (!routeOptions || routeOptions.length === 0) {
+    showNotification(getGeneralText("noInstructions", selectedLanguage), "error");
+    hideRouteLoadingIndicator();
+    return;
+  }
+
+  // 6. Permite que o usuário escolha a rota desejada dentre as opções.
+  let selectedRoute = await promptUserToChooseRoute(routeOptions);
+  if (!selectedRoute) {
+    hideRouteLoadingIndicator();
+    return;
+  }
+
+  // 7. Enriquece as instruções da rota com dados adicionais (ex.: POIs via OSM).
+  let routeInstructions = await enrichInstructionsWithOSM(selectedRoute.routeData, selectedLanguage);
+  navigationState.instructions = routeInstructions;
+
+  // 8. Plota a rota escolhida no mapa e adiciona os marcadores de origem e destino.
+  const routeData = await plotRouteOnMap(
+    userLocation.latitude,
+    userLocation.longitude,
+    selectedDestination.lat,
+    selectedDestination.lon
+  );
+  finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
+
+  // 9. Atualiza a interface: oculta resumo anterior, atualiza banner e rodapé, e fornece feedback de voz.
+  hideRouteSummary();
+  updateInstructionBanner(routeInstructions[0], selectedLanguage);
+  updateRouteFooter(routeData, selectedLanguage);
+  hideRouteLoadingIndicator();
+  giveVoiceFeedback(getGeneralText("navigationStarted", selectedLanguage));
+
+  // 10. Define a visualização de primeira pessoa:
+  // Centraliza o mapa com zoom 18, reposicionando-o para que o caminho fique à frente.
+  setFirstPersonView(userLocation.latitude, userLocation.longitude, 18, userLocation.heading || 0);
+
+  // 11. Inicia o monitoramento contínuo da posição do usuário.
+  window.positionWatcher = navigator.geolocation.watchPosition(
+    (pos) => {
+      if (navigationState.isPaused) return;
+
+      // Extração das coordenadas brutas.
+      const rawPosition = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        speed: pos.coords.speed,
+        heading: pos.coords.heading,
+        timestamp: pos.timestamp
+      };
+
+      // Atualiza o indicador de qualidade do sinal GPS.
+      updateGPSQualityIndicator(pos.coords.accuracy);
+
+      // Aplica filtro de suavização (assumindo que applyCoordinateSmoothing esteja implementada).
+      const smoothedCoord = applyCoordinateSmoothing(rawPosition);
+
+      // Atualiza o marcador do usuário com a rotação correta.
+      updateUserMarker(smoothedCoord.latitude, smoothedCoord.longitude, pos.coords.heading, pos.coords.accuracy);
+
+      // Atualiza a visualização de primeira pessoa para manter o caminho à frente.
+      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 18, pos.coords.heading);
+
+      // Atualiza a navegação em tempo real.
+      updateRealTimeNavigation(
+        smoothedCoord.latitude,
+        smoothedCoord.longitude,
+        navigationState.instructions,
+        selectedDestination.lat,
+        selectedDestination.lon,
+        selectedLanguage,
+        pos.coords.heading
+      );
+
+      // Verifica se é necessário recalcular a rota (assumindo que routeData.points contenha os pontos da rota).
+      if (routeData && routeData.points && shouldRecalculateRoute(smoothedCoord.latitude, smoothedCoord.longitude, routeData.points)) {
+        notifyDeviation();
+        recalculateRoute(
+          smoothedCoord.latitude,
+          smoothedCoord.longitude,
+          selectedDestination.lat,
+          selectedDestination.lon
+        );
       }
-      displayStepByStepInstructions(instructions);
-      currentRouteSteps = instructions;
-    })
-    .catch(error => {
-      console.error("Erro ao iniciar navegação:", error);
-      showNotification("Erro ao iniciar navegação. Tente novamente.", "error");
-    });
-
-  navigationState.isActive = true;
-  navigationState.selectedDestination = destination;
-  updateNavigationState({ isActive: true, selectedDestination: destination });
-
-  startPositionTracking();
-  autoRotationAuto();
-
-  animateMapToDestination(destination);
-
-  console.log("Navegação iniciada com sucesso.");
+    },
+    (error) => {
+      console.error("Erro no watchPosition:", error);
+      showNotification(getGeneralText("trackingError", selectedLanguage), "error");
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 5000
+    }
+  );
 }
 
-// Sugestão adicional:
-// Certifique-se de inicializar "lastSelectedFeature" sempre que um usuário selecionar uma nova feature.
 
-console.log("✅ Correções críticas aplicadas com sucesso.");
+
 
 /**
  * autoRotationAuto
@@ -3205,10 +3568,9 @@ function toggleNavigationPause() {
  * - Atualiza a interface (ex.: banner de instruções) com a instrução atual.
  */
 function updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang, heading) {
-  // Atualiza ou cria o marker do usuário
+  // Atualiza ou cria o marcador do usuário com a nova posição e heading
   updateUserMarker(lat, lon, heading);
-
-  // Atualiza a interface com a instrução atual (caso haja)
+  // Se houver instruções disponíveis, atualiza o banner com a instrução atual
   if (instructions && instructions.length > 0) {
     const currentStepIndex = navigationState.currentStepIndex;
     const currentInstruction = instructions[currentStepIndex];
@@ -3216,11 +3578,10 @@ function updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang
       updateInstructionBanner(currentInstruction, lang);
     }
   }
-
-  // Reposiciona o mapa de forma suave sem alterar o zoom atual
-  // Usamos panTo para centralizar o mapa na posição atual do usuário
+  // Centraliza o mapa na nova posição com uma animação suave (panTo)
   map.panTo([lat, lon], { animate: true, duration: 0.5 });
 }
+
 
 
 
@@ -3302,57 +3663,48 @@ function clearUserMarker() {
 /**
  * 1. recalculateRoute
  *     Recalcula a rota em caso de desvio. */
-async function recalculateRoute(userLat, userLon, destLat, destLon, options = {}) {
-  const { lang = "pt", bigDeviation = false, profile = "foot-walking" } = options;
-  console.log("Recalculando rota...");
-  try {
-    if (window.positionWatcher) {
-      navigator.geolocation.clearWatch(window.positionWatcher);
-      window.positionWatcher = null;
-    }
-    if (bigDeviation) {
-      showNotification(getGeneralText("routeDeviated", lang), "warning");
-      speakInstruction(getGeneralText("offRoute", lang), lang === "pt" ? "pt-BR" : "en-US");
-    }
-    const newInstructions = await fetchRouteInstructions(userLat, userLon, destLat, destLon, lang, profile);
-    if (!newInstructions || newInstructions.length === 0) {
-      showNotification(getGeneralText("noInstructions", lang), "error");
-      return;
-    }
-    clearCurrentRoute();
-    const routeData = await plotRouteOnMap(userLat, userLon, destLat, destLon, profile);
-    updateNavigationState({
-      instructions: newInstructions,
-      currentStepIndex: 0,
-      isActive: true,
-      isPaused: false,
-    });
-    showNotification(getGeneralText("routeRecalculatedOk", lang), "success");
-    highlightNextStepInMap(newInstructions[0]);
-    window.positionWatcher = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (navigationState.isPaused) return;
-        const { latitude, longitude } = pos.coords;
-        updateRealTimeNavigation(
-          latitude,
-          longitude,
-          newInstructions,
-          destLat,
-          destLon,
-          lang
-        );
-      },
-      (err) => {
-        console.error("Erro no watchPosition durante recalc:", err);
-        fallbackToSensorNavigation();
-      },
-      { enableHighAccuracy: true }
-    );
-  } catch (error) {
-    console.error("Erro em recalculateRoute:", error);
-    showNotification(getGeneralText("routeError", lang), "error");
+/**
+ * Recalcula a rota com base na posição atual do usuário.
+ * Atualiza as instruções, a rota no mapa e fornece feedback ao usuário.
+ * @param {number} currentLat - Latitude atual do usuário.
+ * @param {number} currentLon - Longitude atual do usuário.
+ * @param {number} destLat - Latitude do destino.
+ * @param {number} destLon - Longitude do destino.
+ */
+async function recalculateRoute(currentLat, currentLon, destLat, destLon) {
+  lastRecalculationTime = Date.now();
+  showRouteLoadingIndicator();
+  
+  // Busca novas opções de rota com base na posição atual e destino
+  let newRouteOptions = await fetchMultipleRouteOptions(currentLat, currentLon, destLat, destLon);
+  if (!newRouteOptions || newRouteOptions.length === 0) {
+    showNotification(getGeneralText("noInstructions", selectedLanguage), "error");
+    hideRouteLoadingIndicator();
+    return;
   }
+  
+  // Permite que o usuário escolha a nova rota
+  let newSelectedRoute = await promptUserToChooseRoute(newRouteOptions);
+  if (!newSelectedRoute) {
+    hideRouteLoadingIndicator();
+    return;
+  }
+  
+  // Enriquece as instruções da nova rota e atualiza o estado global
+  let newRouteInstructions = await enrichInstructionsWithOSM(newSelectedRoute.routeData, selectedLanguage);
+  navigationState.instructions = newRouteInstructions;
+  
+  // Plota a nova rota e finaliza os marcadores
+  const newRouteData = await plotRouteOnMap(currentLat, currentLon, destLat, destLon);
+  finalizeRouteMarkers(currentLat, currentLon, selectedDestination);
+  
+  // Atualiza a interface com a nova rota
+  updateInstructionBanner(newRouteInstructions[0], selectedLanguage);
+  updateRouteFooter(newRouteData, selectedLanguage);
+  hideRouteLoadingIndicator();
+  giveVoiceFeedback(getGeneralText("routeRecalculated", selectedLanguage) || "Rota recalculada.");
 }
+
 
 /**
  * 2. notifyDeviation
@@ -3363,7 +3715,9 @@ async function recalculateRoute(userLat, userLon, destLat, destLon, options = {}
  */
 function notifyDeviation() {
   const lang = navigationState.lang || "pt";
+  // Exibe uma notificação informando que o usuário desviou da rota
   showNotification(getGeneralText("routeDeviated", lang), "warning");
+  // Se houver uma localização e destino válidos, chama recalculateRoute com a flag de desvio grande
   if (userLocation && selectedDestination) {
     recalculateRoute(
       userLocation.latitude,
@@ -3375,6 +3729,7 @@ function notifyDeviation() {
   }
   console.log("[notifyDeviation] Notificação de desvio enviada e recálculo iniciado.");
 }
+
 
 
 /**
@@ -3471,16 +3826,28 @@ function notifyNextInstruction(instruction) {
  * @param {Array} instructions - Array de instruções da rota.
  * @returns {boolean} - true se a distância até o passo atual for maior que 50 metros.
  */
-function shouldRecalculateRoute(userLat, userLon, instructions) {
-  const currentStep = instructions[navigationState.currentStepIndex];
-  if (!currentStep) return false;
-  const distance = calculateDistance(userLat, userLon, currentStep.lat, currentStep.lon);
-  if (distance > 50) { // Limiar de 50 metros
-    console.log("[shouldRecalculateRoute] Desvio detectado: distância =", distance);
-    return true;
+// Variável global para controlar o tempo do último recálculo
+// Defina o limiar de desvio (em metros) e o cooldown (em milissegundos)
+const RECALCULATION_THRESHOLD = 10; // Exemplo: 10 metros
+const RECALCULATION_COOLDOWN = 30000; // Exemplo: 30 segundos
+
+/**
+ * Verifica se é necessário recalcular a rota.
+ * @param {number} currentLat - Latitude atual do usuário.
+ * @param {number} currentLon - Longitude atual do usuário.
+ * @param {Array} routePoints - Array de pontos representando a rota atual.
+ * @returns {boolean} - Retorna true se o desvio for maior que o limiar e se passou o cooldown.
+ */
+function shouldRecalculateRoute(currentLat, currentLon, routePoints) {
+  const now = Date.now();
+  if (now - lastRecalculationTime < RECALCULATION_COOLDOWN) {
+    return false;
   }
-  return false;
+  const deviation = distanceToPolyline({ lat: currentLat, lon: currentLon }, routePoints);
+  return deviation > RECALCULATION_THRESHOLD;
 }
+
+
 
 
 /**
@@ -3562,8 +3929,10 @@ async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
   try {
     const enriched = await Promise.all(
       instructions.map(async (step) => {
+        // Chama a função que simula a busca de POIs próximos
         const pois = await fakeFetchPOIsNearby(step.lat, step.lon);
         if (pois && pois.length > 0) {
+          // Prepara a mensagem extra substituindo o {count} pela quantidade de POIs
           const extraMsg = getGeneralText("pois_nearby", lang)
             ? getGeneralText("pois_nearby", lang).replace("{count}", pois.length)
             : `Existem ${pois.length} POIs próximos.`;
@@ -3581,6 +3950,7 @@ async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
     return instructions;
   }
 }
+
 
 /**
  * fakeFetchPOIsNearby
@@ -3616,40 +3986,32 @@ async function fakeFetchPOIsNearby(lat, lon) {
  * @returns {Promise<Array>} - Array de instruções formatadas.
  */
 async function fetchRouteInstructions(
-  startLat,
-  startLon,
-  destLat,
-  destLon,
-  lang = "pt",
-  timeoutMs = 10000,
-  shouldEnrich = true,
-  profile = "foot-walking"
+  startLat, startLon, destLat, destLon,
+  lang = "pt", timeoutMs = 10000,
+  shouldEnrich = true, profile = "foot-walking"
 ) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
+    // Monta a URL para a API com os parâmetros necessários
     const url = `https://api.openrouteservice.org/v2/directions/${profile}?` +
       `start=${startLon},${startLat}&end=${destLon},${destLat}&language=${lang}` +
       `&api_key=${apiKey}&instructions=true`;
-
     const response = await fetch(url, { signal: controller.signal });
     clearTimeout(id);
-
     if (!response.ok) {
       showNotification(`Falha ao obter rota (status ${response.status})`, "error");
       return [];
     }
-
     const data = await response.json();
+    // Extrai os passos (steps) e as coordenadas da rota
     const steps = data.features?.[0]?.properties?.segments?.[0]?.steps;
     const coords = data.features?.[0]?.geometry?.coordinates;
-
     if (!steps || !coords) {
       showNotification(getGeneralText("noInstructions", lang), "error");
       return [];
     }
-
+    // Mapeia os passos para um formato mais simples, extraindo também dados via mapORSInstruction
     const finalSteps = steps.map((step, index) => {
       const coordIndex = step.way_points?.[0] ?? 0;
       const [lon, lat] = coords[coordIndex];
@@ -3665,7 +4027,6 @@ async function fetchRouteInstructions(
         streetName: placeName
       };
     });
-
     return finalSteps;
   } catch (err) {
     clearTimeout(id);
@@ -3674,6 +4035,7 @@ async function fetchRouteInstructions(
     return [];
   }
 }
+
 
 
 
@@ -3688,13 +4050,14 @@ async function fetchRouteInstructions(
  * @param {Object} destination - Objeto contendo lat, lon e (opcionalmente) o nome do destino.
  */
 function finalizeRouteMarkers(userLat, userLon, destination) {
-  // Adiciona marcador de destino com popup informativo.
+  // Adiciona um marcador no destino com um ícone de bandeira de chegada
   window.destRouteMarker = L.marker([destination.lat, destination.lon])
     .addTo(map)
     .bindPopup(`🏁${destination.name || "Destino"}`)
     .openPopup();
   console.log("[finalizeRouteMarkers] Marcadores de origem e destino adicionados.");
 }
+  
 
 /**
  * 7. recalcRouteOnDeviation
@@ -3736,10 +4099,12 @@ function updateRouteFooter(routeData, lang = selectedLanguage) {
     console.warn("[updateRouteFooter] Dados de rota inválidos para atualização.");
     return;
   }
+  // Extrai o resumo da rota com duração e distância
   const summary = routeData.features[0].properties.summary;
   const etaMinutes = Math.round(summary.duration / 60);
   const distanceKm = (summary.distance / 1000).toFixed(2);
   
+  // Atualiza os elementos do DOM com o tempo e distância
   const routeTimeElem = document.getElementById("route-time");
   const routeDistanceElem = document.getElementById("route-distance");
   if (routeTimeElem) {
@@ -3756,6 +4121,7 @@ function updateRouteFooter(routeData, lang = selectedLanguage) {
   }
   console.log("[updateRouteFooter] Rodapé atualizado: Tempo =", etaMinutes, "min; Distância =", distanceKm, "km.");
 }
+
 
 
 /**
@@ -3779,12 +4145,13 @@ function updateInstructionBanner(instruction, lang = selectedLanguage) {
   const mainEl = document.getElementById("instruction-main");
 
   let finalMessage = "";
+  // Se a instrução possui um texto bruto, constrói a mensagem formatada
   if (instruction.raw) {
     finalMessage = buildInstructionMessage(instruction.raw, lang);
   } else {
     finalMessage = instruction.text || getGeneralText("unknown", lang);
   }
-
+  // Extrai a manobra e o nome do local usando mapORSInstruction para obter o ícone
   const mapped = instruction.raw ? mapORSInstruction(instruction.raw) : { maneuverKey: "unknown" };
   const directionIcon = (typeof getDirectionIcon === "function")
     ? getDirectionIcon(mapped.maneuverKey)
@@ -3797,6 +4164,7 @@ function updateInstructionBanner(instruction, lang = selectedLanguage) {
   banner.style.display = "flex";
   console.log("updateInstructionBanner: Banner atualizado com:", finalMessage);
 }
+
 
 
 /**
@@ -3921,14 +4289,16 @@ function stopRotationAuto() {
  * Monta a mensagem final a partir da instrução bruta.
  */
 function buildInstructionMessage(rawInstruction, lang = 'pt') {
+  // Usa mapORSInstruction para extrair a chave da manobra e o nome do local
   const { maneuverKey, placeName } = mapORSInstruction(rawInstruction);
-  // Se há um local, utiliza a chave combinada com preposição
+  // Se houver um local, utiliza a chave com sufixo "_on"
   if (placeName) {
     return getGeneralText(`${maneuverKey}_on`, lang) + " " + placeName;
   } else {
     return getGeneralText(maneuverKey, lang);
   }
 }
+
 
 /**
  * 2. updateInstructionDisplay
@@ -3963,12 +4333,11 @@ function mapORSInstruction(rawInstruction) {
   let maneuverKey = "unknown";
   let placeName = "";
   let prepositionUsed = "";
-
   if (!rawInstruction) return { maneuverKey, placeName, prepositionUsed };
 
   const text = rawInstruction.toLowerCase();
 
-  // Captura direções com "head", permitindo também intercardeais com espaço (ex.: "south east")
+  // Tenta identificar padrões de instrução como "head north", "turn left", etc.
   const headRegex = /^head\s+(north(?:\s*east|west)?|south(?:\s*east|west)?|east(?:\s*north|south)?|west(?:\s*north|south)?|northeast|southeast|southwest|northwest)/;
   const headMatch = text.match(headRegex);
   if (headMatch) {
@@ -4004,14 +4373,12 @@ function mapORSInstruction(rawInstruction) {
     maneuverKey = "end_of_road";
   }
 
-  // Detecta a preposição: "on", "onto" ou "in"
+  // Detecta a preposição (on, onto, in) e, se encontrada, extrai o nome do local
   const prepositionRegex = /\b(on|onto|in)\b/;
   const prepositionMatch = text.match(prepositionRegex);
   if (prepositionMatch) {
     prepositionUsed = prepositionMatch[1];
   }
-
-  // Extrai o nome do local após a preposição detectada
   if (prepositionUsed) {
     const placeRegex = new RegExp(`\\b(?:${prepositionUsed})\\b\\s+(.+?)(?:[,\\.]|$)`, 'i');
     const placeMatch = rawInstruction.match(placeRegex);
@@ -4019,9 +4386,9 @@ function mapORSInstruction(rawInstruction) {
       placeName = placeMatch[1].trim();
     }
   }
-
   return { maneuverKey, placeName, prepositionUsed };
 }
+
 
 
 /**
@@ -4034,7 +4401,7 @@ function mapORSInstruction(rawInstruction) {
  * A animação interpola entre o centro atual e a posição (targetLat, targetLon) durante 1 segundo.
  */
 function animateMapToLocalizationUser(targetLat, targetLon) {
-  const animationDuration = 1000; // duração da animação em milissegundos
+  const animationDuration = 1000; // duração em milissegundos
   const startCenter = map.getCenter();
   const startLat = startCenter.lat;
   const startLon = startCenter.lng;
@@ -4042,11 +4409,11 @@ function animateMapToLocalizationUser(targetLat, targetLon) {
 
   function animateFrame(currentTime) {
     const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / animationDuration, 1);
-    // Interpolação linear das coordenadas
+    const progress = Math.min(elapsed / animationDuration, 1); // Progresso de 0 a 1
+    // Interpolação linear entre a posição atual e a posição alvo
     const interpolatedLat = startLat + (targetLat - startLat) * progress;
     const interpolatedLon = startLon + (targetLon - startLon) * progress;
-    // Atualiza a vista do mapa sem animação nativa (pois estamos interpolando manualmente)
+    // Atualiza a vista do mapa sem animação nativa
     map.setView([interpolatedLat, interpolatedLon], map.getZoom(), { animate: false });
     if (progress < 1) {
       requestAnimationFrame(animateFrame);
@@ -4054,6 +4421,7 @@ function animateMapToLocalizationUser(targetLat, targetLon) {
   }
   requestAnimationFrame(animateFrame);
 }
+
 
 
 
@@ -4067,7 +4435,7 @@ function animateMapToLocalizationUser(targetLat, targetLon) {
  */
 async function promptUserToChooseRoute(routeOptions) {
   return new Promise((resolve, reject) => {
-    // Cria o overlay do modal
+    // Cria o overlay do modal para seleção de rota
     const modalOverlay = document.createElement('div');
     modalOverlay.style.position = 'fixed';
     modalOverlay.style.top = '0';
@@ -4079,8 +4447,7 @@ async function promptUserToChooseRoute(routeOptions) {
     modalOverlay.style.justifyContent = 'center';
     modalOverlay.style.alignItems = 'center';
     modalOverlay.style.zIndex = '9999';
-
-    // Cria o container do modal
+    // Cria o container do modal com título e botões
     const modalContainer = document.createElement('div');
     modalContainer.style.backgroundColor = '#fff';
     modalContainer.style.padding = '20px';
@@ -4089,14 +4456,11 @@ async function promptUserToChooseRoute(routeOptions) {
     modalContainer.style.maxWidth = '400px';
     modalContainer.style.width = '80%';
     modalContainer.style.textAlign = 'center';
-
-    // Título do modal
     const title = document.createElement('h3');
     title.textContent = 'Escolha uma opção de rota:';
     title.style.marginBottom = '20px';
     modalContainer.appendChild(title);
-
-    // Cria botões para cada rota disponível
+    // Para cada rota disponível, cria um botão
     routeOptions.forEach((option, index) => {
       const btn = document.createElement('button');
       btn.textContent = `${index + 1}: ${option.profile}`;
@@ -4107,15 +4471,13 @@ async function promptUserToChooseRoute(routeOptions) {
       btn.style.backgroundColor = '#007BFF';
       btn.style.color = '#fff';
       btn.style.cursor = 'pointer';
-      // Ao clicar, remove o modal e retorna a opção escolhida
       btn.onclick = () => {
         document.body.removeChild(modalOverlay);
         resolve(option);
       };
       modalContainer.appendChild(btn);
     });
-
-    // Botão de cancelar
+    // Botão de cancelar a seleção
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancelar';
     cancelBtn.style.margin = '10px';
@@ -4130,21 +4492,9 @@ async function promptUserToChooseRoute(routeOptions) {
       resolve(null);
     };
     modalContainer.appendChild(cancelBtn);
-
     modalOverlay.appendChild(modalContainer);
     document.body.appendChild(modalOverlay);
   });
-}
-
-if (!window.requestAnimationFrame) {
-  window.requestAnimationFrame = function(callback) {
-    return setTimeout(callback, 1000 / 60);
-  };
-}
-if (!window.cancelAnimationFrame) {
-  window.cancelAnimationFrame = function(id) {
-    clearTimeout(id);
-  };
 }
 
 
@@ -5435,7 +5785,7 @@ function applyLanguage(lang) {
 function getGeneralText(key, lang = 'pt') {
   if (!translationsData[lang] || !translationsData[lang][key]) {
     console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);
-    return key;
+    return key; // Se não houver tradução, retorna a própria chave
   }
   return translationsData[lang][key];
 }
@@ -6281,28 +6631,68 @@ SEÇÃO 18 – VOZ & INTERAÇÃO
  * Define o idioma (selectedLanguage), inicia o SpeechRecognition e
  * chama interpretCommand ao receber resultado.
  */
+/**
+ * Inicia o reconhecimento de voz para capturar comandos do usuário.
+ * Se o navegador não suportar a API, exibe uma notificação de erro.
+ */
 function startVoiceRecognition() {
-  if (!("SpeechRecognition" in window) && !("webkitSpeechRecognition" in window)) {
-    console.warn("Reconhecimento de voz não suportado neste navegador.");
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showNotification("Reconhecimento de voz não é suportado neste navegador.", "error");
     return;
   }
-
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRec();
-  recognition.lang = selectedLanguage === "pt" ? "pt-BR" : selectedLanguage;
-  recognition.start();
-
-  recognition.onresult = event => {
-    const command = event.results[0][0].transcript;
-    console.log("Comando reconhecido:", command);
-    interpretCommand(command);
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  
+  // Define o idioma do reconhecimento com base no idioma selecionado
+  if (selectedLanguage === 'en') {
+    recognition.lang = 'en-US';
+  } else if (selectedLanguage === 'pt') {
+    recognition.lang = 'pt-BR';
+  } else {
+    recognition.lang = selectedLanguage;
+  }
+  
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  
+  recognition.onresult = function(event) {
+    const command = event.results[0][0].transcript.toLowerCase();
+    processVoiceCommand(command);
   };
-
-  recognition.onerror = event => {
+  
+  recognition.onerror = function(event) {
     console.error("Erro no reconhecimento de voz:", event.error);
-    showNotification("Erro ao processar comando de voz.", "error");
+    showNotification("Erro no reconhecimento de voz: " + event.error, "error");
   };
-  console.log("startVoiceRecognition: Reconhecimento de voz iniciado.");
+  
+  recognition.start();
+}
+
+/**
+ * Processa o comando de voz reconhecido e executa a ação apropriada.
+ * @param {string} command - Comando reconhecido do usuário.
+ */
+function processVoiceCommand(command) {
+  // Exemplos de comandos: "pausar navegação", "retomar navegação", "recalcular rota"
+  if (command.includes("pausar")) {
+    navigationState.isPaused = true;
+    giveVoiceFeedback("Navegação pausada.");
+    showNotification("Navegação pausada.", "info");
+  } else if (command.includes("retomar") || command.includes("continuar")) {
+    navigationState.isPaused = false;
+    giveVoiceFeedback("Navegação retomada.");
+    showNotification("Navegação retomada.", "info");
+  } else if (command.includes("recalcular")) {
+    if (userLocation) {
+      recalculateRoute(userLocation.latitude, userLocation.longitude, selectedDestination.lat, selectedDestination.lon);
+      giveVoiceFeedback("Recalculando a rota.");
+    } else {
+      giveVoiceFeedback("Localização indisponível para recalcular a rota.");
+    }
+  } else {
+    giveVoiceFeedback("Comando não reconhecido.");
+  }
 }
 
 /**
@@ -6436,16 +6826,41 @@ function cancelVoiceRecognition() {
  *
  * @param {string} message - Mensagem a ser falada.
  */
-function giveVoiceFeedback(message) {
-  if (!("speechSynthesis" in window)) {
-    console.warn("[giveVoiceFeedback] API speechSynthesis não suportada.");
-    return;
+/**
+ * Fornece feedback de voz ao usuário utilizando a API SpeechSynthesis.
+ * Ajusta dinamicamente os parâmetros (rate, pitch, volume) conforme o contexto.
+ * @param {string} text - Texto a ser falado.
+ */
+function giveVoiceFeedback(text) {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    // Define o idioma com base no idioma selecionado
+    if (selectedLanguage === 'en') {
+      utterance.lang = 'en-US';
+    } else if (selectedLanguage === 'pt') {
+      utterance.lang = 'pt-BR';
+    } else {
+      utterance.lang = selectedLanguage;
+    }
+    
+    // Ajusta dinamicamente os parâmetros com base no conteúdo do texto
+    // Exemplo: se a mensagem indicar urgência ou alerta, aumenta a velocidade e o pitch
+    if (text.toLowerCase().includes("desvio") || text.toLowerCase().includes("alerta")) {
+      utterance.rate = 1.2; 
+      utterance.pitch = 1.1;
+    } else {
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+    }
+    utterance.volume = 1.0; // Valor entre 0.0 e 1.0
+    
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.warn("SpeechSynthesis API não suportada neste navegador.");
   }
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = selectedLanguage === "pt" ? "pt-BR" : "en-US";
-  window.speechSynthesis.speak(utterance);
-  console.log("[giveVoiceFeedback] Mensagem falada:", message);
 }
+
+
 
 /**
  * 2. speakInstruction - Fala instrução via SpeechSynthesis.
@@ -7782,18 +8197,18 @@ function getDirectionIcon(maneuverKey) {
     arrive_destination: "✅"
   };
 
+  // Se a chave começar com "exit_roundabout_" adiciona número
   if (maneuverKey.startsWith("exit_roundabout_")) {
     const exitNum = maneuverKey.replace("exit_roundabout_", "");
     return `🔄${exitNum}`;
   }
-
   if (iconMap[maneuverKey]) {
     return iconMap[maneuverKey];
   }
-
   console.warn(`[getDirectionIcon] Manobra não reconhecida: "${maneuverKey}".`);
-  return "⬆️";
+  return "⬆️"; // Retorna ícone padrão
 }
+
 
 /**
  * 14. handleFeatureSelection
@@ -8036,49 +8451,67 @@ function updateProgressBar(selector, progress) {
  * showNotification
  * Exibe uma notificação para o usuário.
  *
+/**
+ * Exibe uma notificação acessível para o usuário.
  * @param {string} message - Mensagem a ser exibida.
- * @param {string} type - Tipo da notificação ("error", "warning", "success", "info").
- * @param {number} [duration=3000] - Duração em milissegundos para ocultar a notificação.
+ * @param {string} type - Tipo de notificação (ex.: "success", "error", "warning", "info").
  */
-function showNotification(message, type, duration = 3000) {
-  // Cria ou seleciona um container de notificações
-  let container = document.getElementById("notification-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "notification-container";
-    container.style.position = "fixed";
-    container.style.top = "20px";
-    container.style.right = "20px";
-    container.style.zIndex = "1000";
-    document.body.appendChild(container);
-  }
+/**
+ * Exibe uma notificação acessível para o usuário.
+ * @param {string} message - Mensagem a ser exibida.
+ * @param {string} type - Tipo de notificação (ex.: "success", "error", "warning", "info").
+ */
+function showNotification(message, type) {
+  // Seleciona o container de notificações (certifique-se de que exista no HTML)
+  const notificationContainer = document.getElementById("notification-container");
+  if (!notificationContainer) return;
 
-  // Cria a notificação
+  // Cria um novo elemento de notificação
   const notification = document.createElement("div");
   notification.className = `notification ${type}`;
+  notification.setAttribute("role", "alert");
+  notification.setAttribute("aria-live", "assertive");
   notification.textContent = message;
-  // Estilos simples – customize conforme necessário
-  notification.style.marginBottom = "10px";
-  notification.style.padding = "10px 20px";
-  notification.style.borderRadius = "4px";
-  notification.style.color = "#fff";
-  switch (type) {
-    case "error":
-      notification.style.backgroundColor = "#e74c3c";
-      break;
-    case "warning":
-      notification.style.backgroundColor = "#f39c12";
-      break;
-    case "success":
-      notification.style.backgroundColor = "#27ae60";
-      break;
-    default:
-      notification.style.backgroundColor = "#3498db";
-  }
-  container.appendChild(notification);
 
-  // Remove a notificação após o tempo definido
+  // Adiciona a notificação ao container
+  notificationContainer.appendChild(notification);
+
+  // Remove a notificação após 5 segundos (com transição suave)
   setTimeout(() => {
-    notification.remove();
-  }, duration);
+    notification.classList.add("fade-out");
+    setTimeout(() => {
+      if (notification.parentNode === notificationContainer) {
+        notificationContainer.removeChild(notification);
+      }
+    }, 500);
+  }, 5000);
 }
+
+
+// Função para abrir o modal e direcionar o foco para ele
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "block";
+    modal.focus(); // Garante que o foco vá para o modal
+  }
+}
+
+// Função para fechar o modal e retornar o foco para um elemento específico, se necessário
+function closeModal(modalId, returnFocusElementId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "none";
+    if (returnFocusElementId) {
+      document.getElementById(returnFocusElementId).focus();
+    }
+  }
+}
+
+// Exemplo de evento para fechar o modal com a tecla ESC
+document.addEventListener('keydown', function(event) {
+  const modal = document.querySelector('.modal[style*="display: block"]');
+  if (modal && event.key === 'Escape') {
+    modal.style.display = "none";
+  }
+});

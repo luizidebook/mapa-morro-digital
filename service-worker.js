@@ -1,103 +1,136 @@
 "use strict";
 
-/**
- * service-worker.js
- * 
- * Versão final consolidada a partir do seu código original que estava no HTML.
- * 
- * Mantém:
- *  - Mesmo nome de cache "my-site-cache-v3"
- *  - Mesmo array de urlsToCache que você usava (ajuste conforme seu projeto)
- *  - Offline fallback para /offline.html
- *  - Funções de install, activate e fetch
- *  - Eventos de mensagem para iniciar e parar rastreamento (se quiser).
- */
-
-const CACHE_NAME = 'my-site-cache-v3'; // Nome que você já usava
+const CACHE_NAME = 'my-site-cache-v3';
 const urlsToCache = [
   '/',
   '/styles.css',
   '/scripts.js',
-  '/images/logo.png',  // Ajuste conforme seus assets
+  '/images/logo.png',
   '/offline.html'
 ];
 
-// Variáveis que você usava no SW
-let userPosition = null; // Armazena a posição do usuário
-let trackingActive = false; // Indica se o rastreamento está ativo
+let userPosition = null;
+let trackingActive = false;
 
-/**
- * INSTALL
- * Abre o cache e adiciona os arquivos listados
- */
+// INSTALL: Cacheia os recursos e força a ativação imediata do novo SW.
 self.addEventListener('install', event => {
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(CACHE_NAME);
       try {
+        const cache = await caches.open(CACHE_NAME);
         await cache.addAll(urlsToCache);
         console.log('Recursos armazenados em cache com sucesso.');
       } catch (error) {
         console.error('Erro ao armazenar recursos em cache:', error);
       }
+      // Força a ativação imediata
+      await self.skipWaiting();
     })()
   );
 });
 
-/**
- * ACTIVATE
- * Limpa caches antigos que não sejam o CACHE_NAME atual
- */
+// ACTIVATE: Limpa caches antigos e assume o controle das páginas imediatamente.
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
-      const cacheNames = await caches.keys();
-      const cacheWhitelist = [CACHE_NAME];
-      await Promise.all(
-        cacheNames.map(cacheName => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-      console.log('Caches antigos limpos.');
+      try {
+        const cacheNames = await caches.keys();
+        const cacheWhitelist = [CACHE_NAME];
+        await Promise.all(
+          cacheNames.map(cacheName => {
+            if (!cacheWhitelist.includes(cacheName)) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+        console.log('Caches antigos limpos.');
+      } catch (error) {
+        console.error('Erro ao limpar caches antigos:', error);
+      }
+      // Faz com que o SW controle imediatamente as páginas
+      await self.clients.claim();
     })()
   );
 });
 
-/**
- * FETCH
- * Responde com recursos do cache se disponíveis;
- * caso contrário, tenta buscar da rede e, se falhar, volta para /offline.html.
- */
+// FETCH: Aplica estratégia Stale-While-Revalidate para requisições GET.
 self.addEventListener('fetch', event => {
+  // Se a requisição não for GET, não interferir com o cache.
+  if (event.request.method !== "GET") {
+    return;
+  }
+  
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Verifica se a requisição espera um conteúdo HTML
-        if (event.request.headers.get('accept').includes('text/html')) {
+    (async () => {
+      try {
+        // Tenta obter a resposta do cache.
+        const cachedResponse = await caches.match(event.request);
+        
+        // Tenta buscar da rede e atualiza o cache se obtiver sucesso.
+        const fetchPromise = fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse && networkResponse.ok) {
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, networkResponse.clone());
+              });
+            }
+            return networkResponse;
+          })
+          .catch(err => {
+            console.error('Erro ao buscar da rede:', err);
+            // Se a requisição espera HTML, retorna o offline.html.
+            if (event.request.headers.get('accept')?.includes('text/html')) {
+              return caches.match('/offline.html');
+            }
+          });
+        
+        // Retorna a resposta do cache imediatamente ou aguarda a rede.
+        return cachedResponse || await fetchPromise;
+      } catch (error) {
+        console.error('Erro no fetch handler:', error);
+        if (event.request.headers.get('accept')?.includes('text/html')) {
           return caches.match('/offline.html');
         }
-      });
-    })
+      }
+    })()
   );
 });
 
+// BACKGROUND SYNC: Sincroniza dados offline pendentes quando a conexão for restabelecida.
+self.addEventListener('sync', event => {
+  if (event.tag === 'syncOfflineData') {
+    event.waitUntil(syncOfflineData());
+  }
+});
 
 /**
- * MESSAGE
- * Exemplo de comunicação com a thread principal (scripts.js):
- * você pode usar essa parte se quiser iniciar/parar rastreamento (GPS) ou algo similar.
+ * Função de sincronização de dados offline.
+ * Aqui você pode implementar a lógica para enviar dados pendentes ao servidor.
  */
+async function syncOfflineData() {
+  try {
+    console.log('Sincronizando dados offline...');
+    // Implemente aqui a lógica de sincronização, por exemplo, lendo dados pendentes de IndexedDB.
+    // Exemplo: await sendPendingDataToServer();
+    console.log('Sincronização offline concluída.');
+  } catch (error) {
+    console.error('Erro durante a sincronização offline:', error);
+  }
+}
+
+// MESSAGE: Comunicação entre o SW e a thread principal (scripts.js).
 self.addEventListener('message', event => {
   const { action } = event.data;
-
   if (action === 'startTracking') {
-    console.log('Iniciando rastreamento...');
     trackingActive = true;
-    // (Geolocalização não funciona dentro do SW, então apenas marcamos essa flag se precisar)
   } else if (action === 'stopTracking') {
-    console.log('Parando rastreamento...');
     trackingActive = false;
+  } else if (action === 'saveUserPosition') {
+    userPosition = event.data.position;
+  } else if (action === 'getStoredPosition') {
+    event.source.postMessage({ 
+      action: 'storedPosition', 
+      position: userPosition 
+    });
   }
 });

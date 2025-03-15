@@ -46,6 +46,10 @@
 <script src="https://cdn.jsdelivr.net/gh/bbecquet/Leaflet.RotatedMarker/leaflet.rotatedMarker.js"></script>
 
 
+<script src="plugins/leaflet.rotatedMarker.js"></script>
+
+
+
   <!-- Leaflet Routing Machine (Roteamento) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js" defer></script>
@@ -204,7 +208,7 @@
     <!-- Botões para fluxo de tutorial ou navegação -->
     <button id="tutorial-send-btn" class="control-btn" style="display:none;" data-action="next" onclick="performControlAction('next')" data-i18n="send">Enviar</button>      
     <button id="access-site-btn" class="control-btn" style="display:none;" data-action="access-site" onclick="performControlAction('access-site')" data-i18n="accessSite">Acessar Site</button>
-    <button id="start-navigation-button" class="control-btn" style="display:none;" data-i18n="startNavigation">Iniciar Navegação</button>
+    <button id="start-navigation-button" class="control-btn" style="display:none;" data-i18n="startNavigation" tabindex="0" aria-label="Iniciar Navegação">Iniciar Navegação</button>
     <button id="navigation-end-btn" class="control-btn" style="display:none;" onclick="endNavigation()" data-i18n="cancel_navigation">Parar Navegação</button>
     <button class="control-btn" id="tutorial-menu-btn" style="display:none;" onclick="showTutorialStep('ask-interest')" data-i18n="access_menu">Acessar Menu</button>
     <button id="cancel-navigation-button" style="display:none;" data-i18n="cancel_navigation">Cancelar Navegação</button>
@@ -214,6 +218,14 @@
  <!-- Botão de Cancelar Navegação -->
   <button id="cancel-nav-btn" class="hidden">Cancelar Navegação</button>
 
+<!-- Exemplo de Modal Acessível -->
+<div id="modal-exemplo" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc" tabindex="-1" style="display: none;">
+  <div class="modal-content">
+    <h2 id="modalTitle">Título do Modal</h2>
+    <p id="modalDesc">Conteúdo ou descrição do modal.</p>
+    <button id="fechar-modal" aria-label="Fechar modal" onclick="closeModal('modal-exemplo', 'modal-trigger')">Fechar</button>
+  </div>
+</div>
 
 <!--
   #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).
