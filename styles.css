@@ -722,7 +722,7 @@ body, html {
   stroke-width: 1px !important;     /* Largura da borda */
   max-width: 5px;
   fill: blue !important;            /* Cor de preenchimento */
-  fill-opacity: 0 !important;      /* Opacidade do preenchimento para um visual mais leve */
+  fill-opacity: 4px !important;      /* Opacidade do preenchimento para um visual mais leve */
   z-index: 50;
   weight: 2px;
   radius: 5px;
