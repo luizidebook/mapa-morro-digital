@@ -670,63 +670,6 @@ function registerServiceWorker() {
 // Certifique-se de rodar em um servidor local (ex.: http://localhost)
 registerServiceWorker();
 
-function updateRouteProgress(userLat, userLon) {
-  const userPosition = L.latLng(userLat, userLon);
-  
-  let closestPointIndex = 0;
-  let closestDistance = Infinity;
-
-  routeRemaining.getLatLngs().forEach((point, index) => {
-    const distance = userPosition.distanceTo(point);
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestPointIndex = index;
-    }
-  });
-
-  // Atualiza as linhas (percurso feito e restante)
-  const allPoints = routeRemaining.getLatLngs();
-  
-  const traveledPoints = allPoints.slice(0, closestPointIndex + 1);
-  const remainingPoints = allPoints.slice(closestPointIndex);
-
-  routeTraveled.setLatLngs(traveledPoints);
-  routeRemaining.setLatLngs(remainingPoints);
-}
-
-function animateMarker(marker, fromLatLng, toLatLng, durationMs = 500) {
-  const framesPerSecond = 60;
-  const totalFrames = duration => duration / (1000 / 60);
-  let frame = 0;
-  const frames = 60 * (duration / 1000);
-  const duration = 1000; // duração da animação em ms
-
-  const latDelta = (toLat, fromLat) => (toLat - fromLat) / frames;
-  const lonDelta = (toLon, fromLon) => (toLon - fromLon) / frames;
-  
-  const animate = () => {
-    const progress = frame / frames;
-    const intermediateLat = fromLat + progress * (toLat - fromLat);
-    const intermediateLng = fromLon + lonDelta(toLon, fromLon) * frame;
-
-    const interpolatedPosition = L.latLng(
-      fromLat + latDelta(toLat, fromLat) * frame,
-      fromLon + lonDelta(toLon, fromLon) * frame
-    );
-
-    marker.setLatLng(interpolatedPosition);
-
-    if (frame < frames) {
-      requestAnimationFrame(animate);
-      frame++;
-    }
-  };
-
-  animate();
-}
-
-
-
 function fetchDirections(start, end, apiKey) {
   const url = `https://api.openrouteservice.org/v2/directions/foot-walking?start=${start}&end=${end}&key=${apiKey}&instructions=true`;
   
@@ -1093,7 +1036,7 @@ async function requestLocationPermission(lang = 'pt') {
       navigator.geolocation.getCurrentPosition(
         () => resolve(true),
         (err) => reject(err),
-        { timeout: 5000 }  // Tenta rápido só para ver se é permitido
+        { timeout: 3000 }  // Tenta rápido só para ver se é permitido
       );
     });
     console.log("[requestLocationPermission] Permissão de localização concedida.");
@@ -1510,7 +1453,7 @@ function resetMapView() {
  *    Centraliza o mapa na localização [lat, lon], adicionando um popup "Você está aqui!".
  */
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 18);
+    map.setView([lat, lon], 21);
     const marker = L.marker([lat, lon]).addTo(map)
         .bindPopup(translations[selectedLanguage].youAreHere || "Você está aqui!")
         .openPopup();
@@ -1702,7 +1645,7 @@ function visualizeRouteOnPreview(route) {
  * @param {number} lat - Latitude do usuário.
  * @param {number} lon - Longitude do usuário.
  * @param {number} [zoom=15] - Nível de zoom padrão. */
-function centerMapOnUser(lat, lon, zoom = 18) {
+function centerMapOnUser(lat, lon, zoom = 19) {
   if (!map) {
     console.warn("[centerMapOnUser] Mapa não inicializado.");
     return;
@@ -2139,7 +2082,7 @@ function deviceOrientationHandler(event) {
  * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
  */
 function setFirstPersonView(lat, lon, zoom, heading) {
-  const desiredZoom = zoom || 18;
+  const desiredZoom = zoom || 21;
   const mapSize = map.getSize();
   // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
   const offsetY = mapSize.y * 0.2;
@@ -2148,7 +2091,7 @@ function setFirstPersonView(lat, lon, zoom, heading) {
   const newCenter = map.unproject(adjustedPoint, desiredZoom);
   map.setView(newCenter, desiredZoom, { animate: true, pan: { duration: 0.5 } });
   // Alinha a rotação do mapa com o heading do usuário
-  setMapRotation(heading);
+  setMapRotation(180);
 }
 
 
@@ -2703,7 +2646,7 @@ function startUserTracking() {
  * 3. updateMapWithUserLocation
  *     Atualiza a visualização do mapa com a localização do usuário.
  */
-function updateMapWithUserLocation(zoomLevel = 18) {
+function updateMapWithUserLocation(zoomLevel = 19) {
   if (!userLocation || !map) {
     console.warn("Localização ou mapa indisponível.");
     return;
@@ -3284,64 +3227,58 @@ SEÇÃO 12 – NAVEGAÇÃO
 ===========================================================================
   --- 12.1. Controle de Navegação ---
 /**
- * 1. startNavigation.
+ * Implementação detalhada da função startNavigation com lógica aprimorada
+ * (remove segmentos percorridos e finaliza a navegação ao chegar no destino).
+ */
 /**
- * Inicia a navegação para o destino selecionado, configurando o fluxo completo:
- *  - Validação do destino e disponibilidade de localização;
- *  - Obtenção de múltiplas opções de rota e escolha pelo usuário;
- *  - Enriquecimento das instruções de rota (por exemplo, com dados do OSM);
- *  - Animação e plotagem da rota no mapa;
- *  - Configuração do monitoramento contínuo da posição do usuário.
+ * Implementação detalhada da função startNavigation com lógica aprimorada
+ * (remove segmentos percorridos e finaliza a navegação ao chegar no destino).
+ */
+/**
+ * Implementação detalhada da função startNavigation com lógica aprimorada
+ * (remove segmentos percorridos e finaliza a navegação ao chegar no destino).
  */
 async function startNavigation() {
-  // 1. Exibe o indicador de carregamento da rota.
   showRouteLoadingIndicator();
 
-  // 2. Valida o destino selecionado.
   if (!validateDestination(selectedDestination)) {
     hideRouteLoadingIndicator();
     return;
   }
 
-  // 3. Verifica se a localização do usuário está disponível.
   if (!userLocation) {
     showNotification("Localização não disponível. Permita o acesso à localização primeiro.", "error");
     hideRouteLoadingIndicator();
     return;
   }
 
-  // 4. Inicializa o estado da navegação.
-  initNavigationState();
+  initNavigationState(); // Reinicializa navigationState, se necessário
   navigationState.isActive = true;
-  navigationState.isPaused = false;
-  navigationState.watchId = true;
-  navigationState.currentStepIndex = 0;
 
-  // 5. Obtém múltiplas opções de rota com base na posição do usuário e destino.
   let routeOptions = await fetchMultipleRouteOptions(
     userLocation.latitude,
     userLocation.longitude,
     selectedDestination.lat,
     selectedDestination.lon
   );
+
   if (!routeOptions || routeOptions.length === 0) {
-    showNotification(getGeneralText("noInstructions", selectedLanguage), "error");
+    showNotification("Nenhuma rota encontrada.", "error");
     hideRouteLoadingIndicator();
     return;
   }
 
-  // 6. Permite que o usuário escolha a rota desejada dentre as opções.
   let selectedRoute = await promptUserToChooseRoute(routeOptions);
   if (!selectedRoute) {
     hideRouteLoadingIndicator();
     return;
   }
 
-  // 7. Enriquece as instruções da rota com dados adicionais (ex.: POIs via OSM).
+  // Enriquecendo instruções
   let routeInstructions = await enrichInstructionsWithOSM(selectedRoute.routeData, selectedLanguage);
   navigationState.instructions = routeInstructions;
 
-  // 8. Plota a rota escolhida no mapa e adiciona os marcadores de origem e destino.
+  // Plot da rota
   const routeData = await plotRouteOnMap(
     userLocation.latitude,
     userLocation.longitude,
@@ -3350,46 +3287,59 @@ async function startNavigation() {
   );
   finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
 
-  // 9. Atualiza a interface: oculta resumo anterior, atualiza banner e rodapé, e fornece feedback de voz.
+  // Ajustes de UI
   hideRouteSummary();
   updateInstructionBanner(routeInstructions[0], selectedLanguage);
   updateRouteFooter(routeData, selectedLanguage);
   hideRouteLoadingIndicator();
-  giveVoiceFeedback(getGeneralText("navigationStarted", selectedLanguage));
+  giveVoiceFeedback("Navegação iniciada");
 
-  // 10. Define a visualização de primeira pessoa:
-  // Centraliza o mapa com zoom 18, reposicionando-o para que o caminho fique à frente.
+  // Configura visão em primeira pessoa
   setFirstPersonView(userLocation.latitude, userLocation.longitude, 18, userLocation.heading || 0);
 
-  // 11. Inicia o monitoramento contínuo da posição do usuário.
+  // Exemplo de polylines para controle de progresso
+  // routeData.polyline deve ser um array de { lat, lon } ou L.LatLng.
+  let currentPolyline = routeData.polyline;
+
+  // Monitoramento em tempo real da posição
   window.positionWatcher = navigator.geolocation.watchPosition(
     (pos) => {
       if (navigationState.isPaused) return;
 
-      // Extração das coordenadas brutas.
       const rawPosition = {
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
         accuracy: pos.coords.accuracy,
         speed: pos.coords.speed,
         heading: pos.coords.heading,
-        timestamp: pos.timestamp
+        timestamp: pos.timestamp,
       };
 
-      // Atualiza o indicador de qualidade do sinal GPS.
+      // Atualiza a qualidade do GPS
       updateGPSQualityIndicator(pos.coords.accuracy);
 
-      // Aplica filtro de suavização (assumindo que applyCoordinateSmoothing esteja implementada).
+      // Suavização da posição
       const smoothedCoord = applyCoordinateSmoothing(rawPosition);
+
+      // Atualiza marcador do usuário
+      updateUserMarker(
+        smoothedCoord.latitude,
+        smoothedCoord.longitude,
+        pos.coords.heading,
+        pos.coords.accuracy
+      );
+
+      // Identifica ponto mais próximo para remover parte já percorrida
+      const closestIndex = getClosestPointIndex(currentPolyline, smoothedCoord);
+      currentPolyline = removeRouteSegmentUpToPosition(currentPolyline, closestIndex);
+
+      // Desenha o novo caminho restante
+      drawPath(currentPolyline);
+
+      // Atualiza visão em primeira pessoa
       setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 20, pos.coords.heading);
 
-      updateUserMarker(smoothedCoord.latitude, smoothedCoord.longitude, pos.coords.heading, pos.coords.accuracy);
-
-      // Atualiza a visualização de primeira pessoa para manter o caminho à frente.
-
-      updateRouteProgress(smoothedCoord.latitude, smoothedCoord.longitude);
-
-      // Atualiza a navegação em tempo real.
+      // Atualiza instruções em tempo real
       updateRealTimeNavigation(
         smoothedCoord.latitude,
         smoothedCoord.longitude,
@@ -3400,8 +3350,8 @@ async function startNavigation() {
         pos.coords.heading
       );
 
-      // Verifica se é necessário recalcular a rota (assumindo que routeData.points contenha os pontos da rota).
-      if (routeData && routeData.points && shouldRecalculateRoute(smoothedCoord.latitude, smoothedCoord.longitude, routeData.points)) {
+      // Checa necessidade de recalcular rota
+      if (shouldRecalculateRoute(smoothedCoord.latitude, smoothedCoord.longitude, currentPolyline)) {
         notifyDeviation();
         recalculateRoute(
           smoothedCoord.latitude,
@@ -3410,70 +3360,83 @@ async function startNavigation() {
           selectedDestination.lon
         );
       }
+
+      // Atualiza progresso de rota (exibindo segmento percorrido x restante)
+      updateRouteProgress(smoothedCoord.latitude, smoothedCoord.longitude);
+
+      // Verifica se chegou perto do destino
+      const distanceToDestination = calculateDistance(
+        smoothedCoord.latitude,
+        smoothedCoord.longitude,
+        selectedDestination.lat,
+        selectedDestination.lon
+      );
+
+      if (distanceToDestination <= 50) {
+        endNavigation();
+        showNotification("Você chegou ao seu destino!", "success");
+      }
     },
     (error) => {
       console.error("Erro no watchPosition:", error);
-      showNotification(getGeneralText("trackingError", selectedLanguage), "error");
+      showNotification("Erro ao obter localização.", "error");
     },
     {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 5000
+      timeout: 10000,
     }
   );
+
+  hideRouteLoadingIndicator();
 }
-// Inicialização:
-let routeRemaining = L.polyline(routeData.points, { color: 'blue' });
-let routeTraveled = L.polyline([], { color: 'grey', opacity: 0.5 });
 
-/**
- * Anima o marcador do usuário de forma suave entre posições, com controle ajustável de duração.
- * Inclui monitoramento básico de performance.
- * Usa Leaflet Rotated Marker para rotação.
- * 
- * @param {L.Marker} marker - O marcador Leaflet representando o usuário.
- * @param {Object} toLatLng - Objeto com lat e lng da nova posição.
- * @param {number} toHeading - Nova direção (heading) para rotação suave.
- * @param {number} durationMs - Duração da animação em milissegundos.
- */
-function animateUserMarker(marker, toLatLng, toHeading, durationMs = 750) {
-  const startLatLng = marker.getLatLng();
-  const startHeading = marker.options.rotationAngle || 0;
 
-  const frames = durationMs / (1000 / 60);
-  let frame = 0;
-  const performanceStart = performance.now();
+// Funções auxiliares
+function getClosestPointIndex(polyline, position) {
+  let closestIndex = 0;
+  let minDistance = Infinity;
 
-  function animate() {
-    frame++;
-    const progress = frame / frames;
-
-    if (progress <= 1) {
-      // Interpolação linear para posição
-      const currentLat = startLatLng.lat + (toLatLng.lat - startLatLng.lat) * progress;
-      const currentLng = startLatLng.lng + (toLatLng.lng - startLatLng.lng) * progress;
-      marker.setLatLng([currentLat, currentLng]);
-
-      // Interpolação angular mais curta (evita giros bruscos)
-      const angleDiff = ((toHeading - startHeading + 540) % 360) - 180;
-      const currentHeading = startHeading + angleDiff * progress;
-      marker.setRotationAngle(currentHeading);
-
-      requestAnimationFrame(animate);
-    } else {
-      // Finaliza garantindo posição e rotação corretas
-      marker.setLatLng(toLatLng);
-      marker.setRotationAngle(toHeading);
-
-      // Monitoramento básico de performance
-      const durationReal = performance.now() - performanceStart;
-      console.log(`Animação concluída em ${Math.round(durationReal)}ms.`);
+  polyline.forEach((point, index) => {
+    const dist = calculateDistance(position.latitude, position.longitude, point.lat, point.lon);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestIndex = index;
     }
-  }
+  });
 
-  animate();
+  return closestIndex;
 }
 
+function removeRouteSegmentUpToPosition(polyline, index) {
+  if (!polyline.length || index < 0 || index >= polyline.length) return polyline;
+  return polyline.slice(index);
+}
+
+
+function updateRouteProgress(userLat, userLon) {
+  const userPosition = L.latLng(userLat, userLon);
+  
+  let closestPointIndex = 0;
+  let closestDistance = Infinity;
+
+  routeRemaining.getLatLngs().forEach((point, index) => {
+    const distance = userPosition.distanceTo(point);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestPointIndex = index;
+    }
+  });
+
+  // Atualiza as linhas (percurso feito e restante)
+  const allPoints = routeRemaining.getLatLngs();
+  
+  const traveledPoints = allPoints.slice(0, closestPointIndex + 1);
+  const remainingPoints = allPoints.slice(closestPointIndex);
+
+  routeTraveled.setLatLngs(traveledPoints);
+  routeRemaining.setLatLngs(remainingPoints);
+}
 
 
 
@@ -3567,43 +3530,57 @@ function stopRotationAuto() {
 }
 
 /**
- * 2. endNavigation
- /**
- * endNavigation
+ * endNavigation()
  * Finaliza a navegação, limpando estados e parando o monitoramento.
+ * Inclui melhorias para garantir que todos os recursos iniciais sejam desativados adequadamente.
  */
 function endNavigation() {
-    // 1) Finaliza e limpa tudo relativo à navegação
-    isNavigationActive = false;
-    isNavigationPaused = false;
-    trackingActive = false; // Se houver uma flag global de rastreamento
+  // 1) Finaliza e limpa tudo relativo à navegação
+  navigationState.isActive = false;
+  navigationState.isPaused = false;
+  navigationState.watchId = null;
 
+  // Se tiver sido usado watchPosition em startNavigation
+  if (window.positionWatcher) {
+    navigator.geolocation.clearWatch(window.positionWatcher);
+    window.positionWatcher = null;
+  }
 
-    if (navigationWatchId !== null) {
-        navigator.geolocation.clearWatch(navigationWatchId);
-        navigationWatchId = null;
-    }
-    clearCurrentRoute();
-    clearRouteMarkers();  // Remove marcadores de origem/destino e demais marcadores relacionados
-    clearUserMarker();
-    hideInstructionBanner();
-    hideRouteFooter();
-    hideRouteSummary();
+  // Remove rota, marcadores, etc.
+  clearCurrentRoute();      // Ex: Remove a polyline ou rota exibida
+  clearRouteMarkers();      // Remove marcadores de origem/destino
+  clearUserMarker();        // Remove marcador do usuário, se existir
 
-    // 2) Agora restaura a interface com base na feature que o usuário estava usando
-    if (lastSelectedFeature) {
-        restoreFeatureUI(lastSelectedFeature);
-    } else {
-        // Se não tinha nada selecionado, volte para um estado genérico
-        showMainCategories(); 
-    }
+  // Oculta elementos de UI ligados à navegação
+  hideInstructionBanner();
+  hideRouteFooter();
+  hideRouteSummary();
 
-      // 3) Exibe notificação de que a navegação foi encerrada
-      showNotification(getGeneralText("navEnded", selectedLanguage), "info");
+  // Restaura a interface com base na última feature selecionada
+  // (caso o usuário estivesse usando algo específico antes da navegação)
+  if (lastSelectedFeature) {
+    restoreFeatureUI(lastSelectedFeature);
+  } else {
+    // Se não tinha nada selecionado, mostra o menu principal
+    showMainCategories();
+  }
 
+  // Exibe notificação de que a navegação foi encerrada
+  const msg = getGeneralText("navEnded", selectedLanguage) || "Navegação encerrada.";
+  showNotification(msg, "info");
 
+  // (Opcional) Retorno de voz, caso use speech
+  if (typeof giveVoiceFeedback === 'function') {
+    giveVoiceFeedback(msg);
+  }
 
+  // (Opcional) Se quiser salvar estado
+ saveNavigationState(navigationState);
+  initNavigationState();
+
+  console.log("Navegação encerrada.");
 }
+
 
 function showMainCategories() {
     hideAllControlButtons('start-navigation-button'); // garante que não haja botões duplicados

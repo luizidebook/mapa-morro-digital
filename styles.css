@@ -757,8 +757,8 @@ body, html {
   fill: blue !important;            /* Cor de preenchimento */
   fill-opacity: 0 !important;      /* Opacidade do preenchimento para um visual mais leve */
   z-index: 50;
-  height: 2px;
-  radius: 10px;
+  weight: 2px;
+  radius: 5px;
 
 }
 
