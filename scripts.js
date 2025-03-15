@@ -3252,7 +3252,7 @@ async function startNavigation() {
     return;
   }
 
-  initNavigationState(); // Reinicializa navigationState, se necessário
+  initNavigationState();
   navigationState.isActive = true;
 
   let routeOptions = await fetchMultipleRouteOptions(
@@ -3261,7 +3261,6 @@ async function startNavigation() {
     selectedDestination.lat,
     selectedDestination.lon
   );
-
   if (!routeOptions || routeOptions.length === 0) {
     showNotification("Nenhuma rota encontrada.", "error");
     hideRouteLoadingIndicator();
@@ -3274,11 +3273,9 @@ async function startNavigation() {
     return;
   }
 
-  // Enriquecendo instruções
   let routeInstructions = await enrichInstructionsWithOSM(selectedRoute.routeData, selectedLanguage);
   navigationState.instructions = routeInstructions;
 
-  // Plot da rota
   const routeData = await plotRouteOnMap(
     userLocation.latitude,
     userLocation.longitude,
@@ -3287,21 +3284,16 @@ async function startNavigation() {
   );
   finalizeRouteMarkers(userLocation.latitude, userLocation.longitude, selectedDestination);
 
-  // Ajustes de UI
   hideRouteSummary();
   updateInstructionBanner(routeInstructions[0], selectedLanguage);
   updateRouteFooter(routeData, selectedLanguage);
   hideRouteLoadingIndicator();
   giveVoiceFeedback("Navegação iniciada");
 
-  // Configura visão em primeira pessoa
-  setFirstPersonView(userLocation.latitude, userLocation.longitude, 18, userLocation.heading || 0);
+  setFirstPersonView(userLocation.latitude, userLocation.longitude, 21, userLocation.heading || 0);
 
-  // Exemplo de polylines para controle de progresso
-  // routeData.polyline deve ser um array de { lat, lon } ou L.LatLng.
   let currentPolyline = routeData.polyline;
 
-  // Monitoramento em tempo real da posição
   window.positionWatcher = navigator.geolocation.watchPosition(
     (pos) => {
       if (navigationState.isPaused) return;
@@ -3312,34 +3304,20 @@ async function startNavigation() {
         accuracy: pos.coords.accuracy,
         speed: pos.coords.speed,
         heading: pos.coords.heading,
-        timestamp: pos.timestamp,
+        timestamp: pos.timestamp
       };
 
-      // Atualiza a qualidade do GPS
       updateGPSQualityIndicator(pos.coords.accuracy);
-
-      // Suavização da posição
       const smoothedCoord = applyCoordinateSmoothing(rawPosition);
 
-      // Atualiza marcador do usuário
-      updateUserMarker(
-        smoothedCoord.latitude,
-        smoothedCoord.longitude,
-        pos.coords.heading,
-        pos.coords.accuracy
-      );
+      updateUserMarker(smoothedCoord.latitude, smoothedCoord.longitude, pos.coords.heading, pos.coords.accuracy);
 
-      // Identifica ponto mais próximo para remover parte já percorrida
       const closestIndex = getClosestPointIndex(currentPolyline, smoothedCoord);
       currentPolyline = removeRouteSegmentUpToPosition(currentPolyline, closestIndex);
-
-      // Desenha o novo caminho restante
       drawPath(currentPolyline);
 
-      // Atualiza visão em primeira pessoa
-      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 20, pos.coords.heading);
+      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 21, pos.coords.heading);
 
-      // Atualiza instruções em tempo real
       updateRealTimeNavigation(
         smoothedCoord.latitude,
         smoothedCoord.longitude,
@@ -3350,7 +3328,6 @@ async function startNavigation() {
         pos.coords.heading
       );
 
-      // Checa necessidade de recalcular rota
       if (shouldRecalculateRoute(smoothedCoord.latitude, smoothedCoord.longitude, currentPolyline)) {
         notifyDeviation();
         recalculateRoute(
@@ -3361,10 +3338,6 @@ async function startNavigation() {
         );
       }
 
-      // Atualiza progresso de rota (exibindo segmento percorrido x restante)
-      updateRouteProgress(smoothedCoord.latitude, smoothedCoord.longitude);
-
-      // Verifica se chegou perto do destino
       const distanceToDestination = calculateDistance(
         smoothedCoord.latitude,
         smoothedCoord.longitude,
@@ -3384,13 +3357,12 @@ async function startNavigation() {
     {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 10000,
+      timeout: 10000
     }
   );
 
   hideRouteLoadingIndicator();
 }
-
 
 // Funções auxiliares
 function getClosestPointIndex(polyline, position) {
@@ -3655,7 +3627,7 @@ function toggleNavigationPause() {
  */
 function updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang, heading) {
   // Atualiza ou cria o marcador do usuário com a nova posição e heading
-  updateUserMarker(lat, lon, heading);
+  updateUserMarker(lat, lon, heading, accuracy);
   // Se houver instruções disponíveis, atualiza o banner com a instrução atual
   if (instructions && instructions.length > 0) {
     const currentStepIndex = navigationState.currentStepIndex;
