@@ -2082,10 +2082,10 @@ function deviceOrientationHandler(event) {
  * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
  */
 function setFirstPersonView(lat, lon, zoom, heading) {
-  const desiredZoom = zoom || 21;
+  const desiredZoom = zoom || 20;
   const mapSize = map.getSize();
   // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
-  const offsetY = mapSize.y * 0.4;
+  const offsetY = mapSize.y * 0.2;
   const userPoint = map.project([lat, lon], desiredZoom);
   const adjustedPoint = L.point(userPoint.x, userPoint.y - offsetY);
   const newCenter = map.unproject(adjustedPoint, desiredZoom);
@@ -3329,7 +3329,7 @@ async function startNavigation() {
       updateUserMarker(smoothedCoord.latitude, smoothedCoord.longitude, pos.coords.heading, pos.coords.accuracy);
 
       // Atualiza a visualização de primeira pessoa para manter o caminho à frente.
-      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 18, pos.coords.heading);
+      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 20, pos.coords.heading);
 
       // Atualiza a navegação em tempo real.
       updateRealTimeNavigation(
@@ -3593,7 +3593,7 @@ function adjustMapZoomBasedOnSpeed(speed) {
     let zoomLevel;
 
     if (speed < 5) {
-        zoomLevel = 18; // Caminhando
+        zoomLevel = 20; // Caminhando
     } else if (speed < 15) {
         zoomLevel = 16; // Bicicleta
     } else if (speed < 50) {
