@@ -670,6 +670,63 @@ function registerServiceWorker() {
 // Certifique-se de rodar em um servidor local (ex.: http://localhost)
 registerServiceWorker();
 
+function updateRouteProgress(userLat, userLon) {
+  const userPosition = L.latLng(userLat, userLon);
+  
+  let closestPointIndex = 0;
+  let closestDistance = Infinity;
+
+  routeRemaining.getLatLngs().forEach((point, index) => {
+    const distance = userPosition.distanceTo(point);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestPointIndex = index;
+    }
+  });
+
+  // Atualiza as linhas (percurso feito e restante)
+  const allPoints = routeRemaining.getLatLngs();
+  
+  const traveledPoints = allPoints.slice(0, closestPointIndex + 1);
+  const remainingPoints = allPoints.slice(closestPointIndex);
+
+  routeTraveled.setLatLngs(traveledPoints);
+  routeRemaining.setLatLngs(remainingPoints);
+}
+
+function animateMarker(marker, fromLatLng, toLatLng, durationMs = 500) {
+  const framesPerSecond = 60;
+  const totalFrames = duration => duration / (1000 / 60);
+  let frame = 0;
+  const frames = 60 * (duration / 1000);
+  const duration = 1000; // duração da animação em ms
+
+  const latDelta = (toLat, fromLat) => (toLat - fromLat) / frames;
+  const lonDelta = (toLon, fromLon) => (toLon - fromLon) / frames;
+  
+  const animate = () => {
+    const progress = frame / frames;
+    const intermediateLat = fromLat + progress * (toLat - fromLat);
+    const intermediateLng = fromLon + lonDelta(toLon, fromLon) * frame;
+
+    const interpolatedPosition = L.latLng(
+      fromLat + latDelta(toLat, fromLat) * frame,
+      fromLon + lonDelta(toLon, fromLon) * frame
+    );
+
+    marker.setLatLng(interpolatedPosition);
+
+    if (frame < frames) {
+      requestAnimationFrame(animate);
+      frame++;
+    }
+  };
+
+  animate();
+}
+
+
+
 function fetchDirections(start, end, apiKey) {
   const url = `https://api.openrouteservice.org/v2/directions/foot-walking?start=${start}&end=${end}&key=${apiKey}&instructions=true`;
   
@@ -1036,7 +1093,7 @@ async function requestLocationPermission(lang = 'pt') {
       navigator.geolocation.getCurrentPosition(
         () => resolve(true),
         (err) => reject(err),
-        { timeout: 3000 }  // Tenta rápido só para ver se é permitido
+        { timeout: 5000 }  // Tenta rápido só para ver se é permitido
       );
     });
     console.log("[requestLocationPermission] Permissão de localização concedida.");
@@ -1453,7 +1510,7 @@ function resetMapView() {
  *    Centraliza o mapa na localização [lat, lon], adicionando um popup "Você está aqui!".
  */
 function adjustMapWithLocationUser(lat, lon) {
-    map.setView([lat, lon], 21);
+    map.setView([lat, lon], 18);
     const marker = L.marker([lat, lon]).addTo(map)
         .bindPopup(translations[selectedLanguage].youAreHere || "Você está aqui!")
         .openPopup();
@@ -1645,7 +1702,7 @@ function visualizeRouteOnPreview(route) {
  * @param {number} lat - Latitude do usuário.
  * @param {number} lon - Longitude do usuário.
  * @param {number} [zoom=15] - Nível de zoom padrão. */
-function centerMapOnUser(lat, lon, zoom = 19) {
+function centerMapOnUser(lat, lon, zoom = 18) {
   if (!map) {
     console.warn("[centerMapOnUser] Mapa não inicializado.");
     return;
@@ -2082,7 +2139,7 @@ function deviceOrientationHandler(event) {
  * @param {number} heading - Ângulo (em graus) para alinhar o mapa.
  */
 function setFirstPersonView(lat, lon, zoom, heading) {
-  const desiredZoom = zoom || 20;
+  const desiredZoom = zoom || 18;
   const mapSize = map.getSize();
   // Calcula o deslocamento: o usuário ficará aproximadamente 20% abaixo do centro (80% da tela para cima)
   const offsetY = mapSize.y * 0.2;
@@ -2646,7 +2703,7 @@ function startUserTracking() {
  * 3. updateMapWithUserLocation
  *     Atualiza a visualização do mapa com a localização do usuário.
  */
-function updateMapWithUserLocation(zoomLevel = 19) {
+function updateMapWithUserLocation(zoomLevel = 18) {
   if (!userLocation || !map) {
     console.warn("Localização ou mapa indisponível.");
     return;
@@ -3302,7 +3359,7 @@ async function startNavigation() {
 
   // 10. Define a visualização de primeira pessoa:
   // Centraliza o mapa com zoom 18, reposicionando-o para que o caminho fique à frente.
-  setFirstPersonView(userLocation.latitude, userLocation.longitude, 20, userLocation.heading || 0);
+  setFirstPersonView(userLocation.latitude, userLocation.longitude, 18, userLocation.heading || 0);
 
   // 11. Inicia o monitoramento contínuo da posição do usuário.
   window.positionWatcher = navigator.geolocation.watchPosition(
@@ -3324,12 +3381,13 @@ async function startNavigation() {
 
       // Aplica filtro de suavização (assumindo que applyCoordinateSmoothing esteja implementada).
       const smoothedCoord = applyCoordinateSmoothing(rawPosition);
+      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 20, pos.coords.heading);
 
-      // Atualiza o marcador do usuário com a rotação correta.
       updateUserMarker(smoothedCoord.latitude, smoothedCoord.longitude, pos.coords.heading, pos.coords.accuracy);
 
       // Atualiza a visualização de primeira pessoa para manter o caminho à frente.
-      setFirstPersonView(smoothedCoord.latitude, smoothedCoord.longitude, 20, pos.coords.heading);
+
+      updateRouteProgress(smoothedCoord.latitude, smoothedCoord.longitude);
 
       // Atualiza a navegação em tempo real.
       updateRealTimeNavigation(
@@ -3363,6 +3421,57 @@ async function startNavigation() {
       timeout: 5000
     }
   );
+}
+// Inicialização:
+let routeRemaining = L.polyline(routeData.points, { color: 'blue' });
+let routeTraveled = L.polyline([], { color: 'grey', opacity: 0.5 });
+
+/**
+ * Anima o marcador do usuário de forma suave entre posições, com controle ajustável de duração.
+ * Inclui monitoramento básico de performance.
+ * Usa Leaflet Rotated Marker para rotação.
+ * 
+ * @param {L.Marker} marker - O marcador Leaflet representando o usuário.
+ * @param {Object} toLatLng - Objeto com lat e lng da nova posição.
+ * @param {number} toHeading - Nova direção (heading) para rotação suave.
+ * @param {number} durationMs - Duração da animação em milissegundos.
+ */
+function animateUserMarker(marker, toLatLng, toHeading, durationMs = 750) {
+  const startLatLng = marker.getLatLng();
+  const startHeading = marker.options.rotationAngle || 0;
+
+  const frames = durationMs / (1000 / 60);
+  let frame = 0;
+  const performanceStart = performance.now();
+
+  function animate() {
+    frame++;
+    const progress = frame / frames;
+
+    if (progress <= 1) {
+      // Interpolação linear para posição
+      const currentLat = startLatLng.lat + (toLatLng.lat - startLatLng.lat) * progress;
+      const currentLng = startLatLng.lng + (toLatLng.lng - startLatLng.lng) * progress;
+      marker.setLatLng([currentLat, currentLng]);
+
+      // Interpolação angular mais curta (evita giros bruscos)
+      const angleDiff = ((toHeading - startHeading + 540) % 360) - 180;
+      const currentHeading = startHeading + angleDiff * progress;
+      marker.setRotationAngle(currentHeading);
+
+      requestAnimationFrame(animate);
+    } else {
+      // Finaliza garantindo posição e rotação corretas
+      marker.setLatLng(toLatLng);
+      marker.setRotationAngle(toHeading);
+
+      // Monitoramento básico de performance
+      const durationReal = performance.now() - performanceStart;
+      console.log(`Animação concluída em ${Math.round(durationReal)}ms.`);
+    }
+  }
+
+  animate();
 }
 
 
@@ -3593,7 +3702,7 @@ function adjustMapZoomBasedOnSpeed(speed) {
     let zoomLevel;
 
     if (speed < 5) {
-        zoomLevel = 20; // Caminhando
+        zoomLevel = 18; // Caminhando
     } else if (speed < 15) {
         zoomLevel = 16; // Bicicleta
     } else if (speed < 50) {
