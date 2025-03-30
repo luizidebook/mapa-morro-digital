@@ -55,7 +55,7 @@ export function loadRouteFromCache() {
 
   --- 5.2. Destinos, LocalStorage e Histórico ---
  /**
- * 1. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker). */
+ * 1. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker).
 export function loadDestinationsFromCache(callback) {
   if (navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({

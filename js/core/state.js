@@ -58,7 +58,7 @@ export function restoreNavigationState() {
 
 /**
  * 5. autoRestoreState - Solicita ao Service Worker que restaure estado automaticamente.
- */
+
 export function autoRestoreState() {
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({
@@ -72,6 +72,7 @@ export function autoRestoreState() {
     );
   }
 }
+ */
 
 /**
  * 6. restoreState - Restaura estado completo do sistema (geral).

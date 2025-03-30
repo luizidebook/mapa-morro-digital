@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+// function registerServiceWorker() {
+/*  if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/service-worker.js')
       .then(() => console.log('Service Worker registrado com sucesso!'))
@@ -23,3 +23,4 @@ function registerServiceWorker() {
     console.warn('Service Workers não são suportados neste navegador.');
   }
 }
+ */
