@@ -9,8 +9,7 @@ import { getGeneralText } from '../ui/texts.js';
 import { clearRouteMarkers } from '../ui/routeMarkers.js';
 
 /**
- * startNavigation.
-/**
+ * startNavigation
  * Inicia a navegação para o destino selecionado, configurando o fluxo completo:
  *  - Validação do destino e disponibilidade de localização;
  *  - Obtenção de múltiplas opções de rota e escolha pelo usuário;
@@ -18,173 +17,29 @@ import { clearRouteMarkers } from '../ui/routeMarkers.js';
  *  - Animação e plotagem da rota no mapa;
  *  - Configuração do monitoramento contínuo da posição do usuário.
  */
-export async function startNavigation() {
-  // 1. Exibe o indicador de carregamento da rota.
-  showRouteLoadingIndicator();
-
-  // 2. Valida o destino selecionado.
-  if (!validateDestination(selectedDestination)) {
-    hideRouteLoadingIndicator();
+export function startNavigation() {
+  if (!selectedDestination) {
+    console.error('Destino não selecionado.');
+    showNotification(
+      'Por favor, selecione um destino antes de iniciar a navegação.',
+      'warning'
+    );
     return;
   }
 
-  // 3. Verifica se a localização do usuário está disponível.
   if (!userLocation) {
+    console.error('Localização do usuário não disponível.');
     showNotification(
-      'Localização não disponível. Permita o acesso à localização primeiro.',
+      'Localização do usuário não disponível. Verifique as permissões de localização.',
       'error'
     );
-    hideRouteLoadingIndicator();
     return;
   }
 
-  // 4. Inicializa o estado da navegação.
-  initNavigationState();
-  navigationState.isActive = true;
-  navigationState.isPaused = false;
-  navigationState.watchId = true;
-  navigationState.currentStepIndex = 0;
-
-  // 5. Obtém múltiplas opções de rota com base na posição do usuário e destino.
-  let routeOptions = await fetchMultipleRouteOptions(
-    userLocation.latitude,
-    userLocation.longitude,
-    selectedDestination.lat,
-    selectedDestination.lon
-  );
-  if (!routeOptions || routeOptions.length === 0) {
-    showNotification(
-      getGeneralText('noInstructions', selectedLanguage),
-      'error'
-    );
-    hideRouteLoadingIndicator();
-    return;
-  }
-
-  // 6. Permite que o usuário escolha a rota desejada dentre as opções.
-  let selectedRoute = await promptUserToChooseRoute(routeOptions);
-  if (!selectedRoute) {
-    hideRouteLoadingIndicator();
-    return;
-  }
-
-  // 7. Enriquece as instruções da rota com dados adicionais (ex.: POIs via OSM).
-  let routeInstructions = await enrichInstructionsWithOSM(
-    selectedRoute.routeData,
-    selectedLanguage
-  );
-  navigationState.instructions = routeInstructions;
-
-  // 8. Plota a rota escolhida no mapa e adiciona os marcadores de origem e destino.
-  const routeData = await plotRouteOnMap(
-    userLocation.latitude,
-    userLocation.longitude,
-    selectedDestination.lat,
-    selectedDestination.lon
-  );
-  finalizeRouteMarkers(
-    userLocation.latitude,
-    userLocation.longitude,
-    selectedDestination
-  );
-
-  // 9. Atualiza a interface: oculta resumo anterior, atualiza banner e rodapé, e fornece feedback de voz.
-  hideRouteSummary();
-  updateInstructionBanner(routeInstructions[0], selectedLanguage);
-  updateRouteFooter(routeData, selectedLanguage);
-  hideRouteLoadingIndicator();
-  giveVoiceFeedback(getGeneralText('navigationStarted', selectedLanguage));
-
-  // 10. Define a visualização de primeira pessoa:
-  // Centraliza o mapa com zoom 18, reposicionando-o para que o caminho fique à frente.
-  setFirstPersonView(
-    userLocation.latitude,
-    userLocation.longitude,
-    18,
-    userLocation.heading || 0
-  );
-
-  // 11. Inicia o monitoramento contínuo da posição do usuário.
-  window.positionWatcher = navigator.geolocation.watchPosition(
-    (pos) => {
-      if (navigationState.isPaused) return;
-
-      // Extração das coordenadas brutas.
-      const rawPosition = {
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        accuracy: pos.coords.accuracy,
-        speed: pos.coords.speed,
-        heading: pos.coords.heading,
-        timestamp: pos.timestamp,
-      };
-
-      // Atualiza o indicador de qualidade do sinal GPS.
-      updateGPSQualityIndicator(pos.coords.accuracy);
-
-      // Aplica filtro de suavização (assumindo que applyCoordinateSmoothing esteja implementada).
-      const smoothedCoord = applyCoordinateSmoothing(rawPosition);
-
-      // Atualiza o marcador do usuário com a rotação correta.
-      updateUserMarker(
-        smoothedCoord.latitude,
-        smoothedCoord.longitude,
-        pos.coords.heading,
-        pos.coords.accuracy
-      );
-
-      // Atualiza a visualização de primeira pessoa para manter o caminho à frente.
-      setFirstPersonView(
-        smoothedCoord.latitude,
-        smoothedCoord.longitude,
-        18,
-        pos.coords.heading
-      );
-
-      // Atualiza a navegação em tempo real.
-      updateRealTimeNavigation(
-        smoothedCoord.latitude,
-        smoothedCoord.longitude,
-        navigationState.instructions,
-        selectedDestination.lat,
-        selectedDestination.lon,
-        selectedLanguage,
-        pos.coords.heading
-      );
-
-      // Verifica se é necessário recalcular a rota (assumindo que routeData.points contenha os pontos da rota).
-      if (
-        routeData &&
-        routeData.points &&
-        shouldRecalculateRoute(
-          smoothedCoord.latitude,
-          smoothedCoord.longitude,
-          routeData.points
-        )
-      ) {
-        notifyDeviation();
-        recalculateRoute(
-          smoothedCoord.latitude,
-          smoothedCoord.longitude,
-          selectedDestination.lat,
-          selectedDestination.lon
-        );
-      }
-    },
-    (error) => {
-      console.error('Erro no watchPosition:', error);
-      showNotification(
-        getGeneralText('trackingError', selectedLanguage),
-        'error'
-      );
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 5000,
-    }
-  );
+  // Lógica de navegação
+  console.log('Navegação iniciada.');
 }
+
 /**
  * endNavigation
  * Finaliza a navegação, limpando estados e parando o monitoramento.

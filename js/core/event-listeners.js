@@ -31,13 +31,33 @@ import { setLanguage, updateInterfaceLanguage } from '../ui/language.js';
 export function onDOMContentLoaded() {
   try {
     initializeMap();
-    loadResources();
-    setupEventListeners();
-    autoAdjustTheme();
-    console.log('DOM completamente carregado e inicializado.');
   } catch (error) {
-    console.error('Erro durante a inicialização do DOM:', error);
+    console.error('Erro ao inicializar o mapa:', error);
+    showNotification('Erro ao carregar o mapa. Tente novamente.', 'error');
   }
+
+  try {
+    loadResources();
+  } catch (error) {
+    console.error('Erro ao carregar recursos:', error);
+    showNotification('Erro ao carregar recursos. Tente novamente.', 'error');
+  }
+
+  try {
+    setupEventListeners();
+  } catch (error) {
+    console.error('Erro ao configurar eventos:', error);
+    showNotification('Erro ao configurar eventos. Tente novamente.', 'error');
+  }
+
+  try {
+    autoAdjustTheme();
+  } catch (error) {
+    console.error('Erro ao ajustar tema:', error);
+    showNotification('Erro ao ajustar tema. Tente novamente.', 'error');
+  }
+
+  console.log('DOM completamente carregado e inicializado.');
 }
 
 /**

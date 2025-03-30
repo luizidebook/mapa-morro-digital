@@ -66,19 +66,21 @@ export function previousTutorialStep(currentStepId) {
 export function showTutorialStep(step) {
   const stepConfig = tutorialSteps.find((s) => s.step === step);
   if (!stepConfig) {
-    console.error(`Passo ${step} não encontrado.`);
+    console.error(`Passo do tutorial '${step}' não encontrado.`);
+    showNotification(`Erro ao carregar o passo do tutorial: ${step}`, 'error');
     return;
   }
 
   const { message, action } = stepConfig;
+  const tutorialMessageElement = document.getElementById('tutorial-message');
+  if (!tutorialMessageElement) {
+    console.error('Elemento #tutorial-message não encontrado.');
+    return;
+  }
 
-  // Atualiza o modal do assistente com a mensagem no idioma certo
-  updateAssistantModalContent(step, message[selectedLanguage]);
-  hideAllControlButtons(); // para evitar poluição da tela
-  hideRouteSummary();
-  hideRoutePreview();
-
-  if (action) action(); // executa a ação atrelada a este passo
+  tutorialMessageElement.textContent =
+    message[selectedLanguage] || message['pt'];
+  if (action) action();
 }
 
 /**
@@ -229,4 +231,38 @@ export function removeExistingHighlights() {
   document.querySelectorAll('.arrow-highlight').forEach((e) => e.remove());
   document.querySelectorAll('.circle-highlight').forEach((e) => e.remove());
   console.log('removeExistingHighlights: Destaques visuais removidos.');
+}
+
+/**
+ * searchLocation - Realiza uma pesquisa de localização usando a API Nominatim.
+ */
+export function searchLocation(query) {
+  const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+  fetch(nominatimUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Erro na resposta da API Nominatim.');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (!data || data.length === 0) {
+        showNotification(
+          'Nenhum resultado encontrado para a pesquisa.',
+          'warning'
+        );
+        return;
+      }
+
+      // Processa os resultados da pesquisa
+      console.log('Resultados da pesquisa:', data);
+    })
+    .catch((error) => {
+      console.error('Erro ao realizar a pesquisa:', error);
+      showNotification(
+        'Erro ao realizar a pesquisa. Tente novamente.',
+        'error'
+      );
+    });
 }

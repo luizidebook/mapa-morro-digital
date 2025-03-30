@@ -34,51 +34,20 @@ const markers = []; // Array para armazenar marcadores
  * Inicializa o mapa Leaflet e configura as camadas.
  */
 export function initializeMap() {
-  // Verificar se o objeto L (Leaflet) está disponível
-  if (typeof L === 'undefined') {
-    console.error(
-      'Erro: Leaflet não está carregado. Certifique-se de incluir Leaflet no seu HTML.'
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) {
+    console.error('Elemento #map não encontrado no DOM.');
+    showNotification(
+      'Erro ao carregar o mapa. Elemento não encontrado.',
+      'error'
     );
     return;
   }
 
-  if (map) {
-    console.warn('Mapa já inicializado.');
-    return;
-  }
-  console.log('Inicializando mapa...');
-
-  // Define as camadas de tiles
-  const tileLayers = {
-    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }),
-    satellite: L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: '© Esri',
-        maxZoom: 19,
-      }
-    ),
-  };
-
-  try {
-    // Cria o mapa com uma visão inicial de Morro de São Paulo
-    map = L.map('map', {
-      layers: [tileLayers.streets],
-      zoomControl: false,
-      maxZoom: 19,
-      minZoom: 3,
-    }).setView([-13.378, -38.918], 14);
-
-    // Adiciona o controle de camadas
-    L.control.layers(tileLayers).addTo(map);
-
-    console.log('Mapa inicializado com sucesso!');
-  } catch (error) {
-    console.error('Erro ao inicializar o mapa:', error);
-  }
+  // Inicialização do mapa Leaflet
+  map = L.map(mapContainer).setView([-13.3766787, -38.9172057], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  console.log('Mapa inicializado com sucesso.');
 }
 
 /**
