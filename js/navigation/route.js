@@ -1,8 +1,8 @@
 import { map } from '../map/map-core.js';
 import { selectedDestination, navigationState } from '../core/state.js';
-import { apiKey } from '../core/config.js';
 import { showNotification } from '../ui/notifications.js';
 import { getCurrentLocation } from '../geolocation/tracking.js';
+import { ORS_API_KEY } from '../core/constants.js';
 
 /**
  * startRouteCreation - Inicia a criação de uma nova rota.
@@ -100,7 +100,7 @@ export async function plotRouteOnMap(
   profile = 'foot-walking'
 ) {
   const url =
-    `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}` +
+    `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${ORS_API_KEY}` +
     `&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=false`;
   try {
     const response = await fetch(url);
@@ -109,20 +109,16 @@ export async function plotRouteOnMap(
       return null;
     }
     const data = await response.json();
-    // Extrai as coordenadas da rota e converte para formato [lat, lon]
     const coords = data.features[0].geometry.coordinates;
     const latLngs = coords.map(([lon, lat]) => [lat, lon]);
-    // Se já houver uma rota traçada, remove-a
     if (window.currentRoute) {
       map.removeLayer(window.currentRoute);
     }
-    // Cria e adiciona a polyline ao mapa
     window.currentRoute = L.polyline(latLngs, {
       color: 'blue',
       weight: 5,
       dashArray: '10,5',
     }).addTo(map);
-    // Ajusta o mapa para mostrar toda a rota
     map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
     console.log('[plotRouteOnMap] Rota plotada com sucesso.');
     return data;
