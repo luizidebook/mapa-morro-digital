@@ -1,17 +1,18 @@
-let mapInstance = null;
+import { map, markers } from './map.js';
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  * @param {string} containerId - ID do elemento HTML que conterá o mapa.
  * @returns {Object} Instância do mapa Leaflet.
  */
-export function initializeMap(containerId = 'map') {
-  if (mapInstance) {
+export function initializeMap() {
+  if (map) {
     console.warn('Mapa já inicializado.');
-    return mapInstance;
+    return;
   }
   console.log('Inicializando mapa...');
 
+  // Define as camadas de tiles
   const tileLayers = {
     streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -26,17 +27,23 @@ export function initializeMap(containerId = 'map') {
     ),
   };
 
-  mapInstance = L.map(containerId, {
+  // Cria o mapa com uma visão inicial (esta posição será atualizada quando a localização do usuário for obtida)
+  map = L.map('map', {
     layers: [tileLayers.streets],
     zoomControl: false,
     maxZoom: 19,
     minZoom: 3,
   }).setView([-13.378, -38.918], 14);
 
-  L.control.layers(tileLayers).addTo(mapInstance);
+  // Adiciona o controle de camadas
+  L.control.layers(tileLayers).addTo(map);
 
-  console.log('Mapa inicializado.');
-  return mapInstance;
+  if (typeof RotationPlugin !== 'undefined') {
+    RotationPlugin.initialize();
+  } else {
+    console.warn('Plugin de rotação não encontrado. Usando CSS para rotação.');
+    // Código alternativo para rotação via CSS
+  }
 }
 
 /**

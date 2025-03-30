@@ -1,4 +1,4 @@
-import { map } from '../map/map-core.js';
+import { map } from '../core/constants.js';
 import { selectedDestination, navigationState } from '../core/state.js';
 import { userLocation } from '../geolocation/tracking.js';
 

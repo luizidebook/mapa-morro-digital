@@ -1,4 +1,4 @@
-// Objeto global para armazenar o estado da navegação
+// Estado global da navegação
 export const navigationState = {
   isActive: false,
   isPaused: false,
@@ -7,8 +7,59 @@ export const navigationState = {
   instructions: [],
   selectedDestination: null,
   lang: 'pt',
-  currentRouteLayer: null,
+  isRotationEnabled: true,
+  quietMode: true,
+  rotationInterval: 1000,
+  speed: 0,
+  manualOverride: false,
+  manualAngle: 0,
+  tilt: 10,
+  rotationMode: 'compass',
+  headingBuffer: [],
+  minRotationDelta: 2,
+  alpha: 0.2,
+  currentHeading: 0,
+  lastRotationTime: 0,
 };
+
+// Variáveis auxiliares
+export let selectedLanguage = 'pt';
+export let selectedDestination = {};
+export let userLocation = null;
+export let markers = [];
+export let currentRoute = null;
+export let userMarker = null;
+export let destinationMarker = null;
+export let currentSubMenu = null;
+export let currentLocation = null;
+export let currentStep = null;
+export let tutorialIsActive = false;
+export let searchHistory = [];
+export let achievements = [];
+export let favorites = [];
+export let routingControl = null;
+export let speechSynthesisUtterance = null;
+export let voices = [];
+export let currentMarker = null;
+export let swiperInstance = null;
+export let selectedProfile = 'foot-walking';
+export let userLocationMarker = null;
+export let userCurrentLocation = null;
+export let currentRouteData = null;
+export let isNavigationActive = false;
+export let isnavigationPaused = false;
+export let currentRouteSteps = [];
+export let navigationWatchId = null;
+export let cachedLocation = null;
+export let locationPermissionGranted = false;
+export let instructions = [];
+export let lastRecalculationTime = 0;
+export let lastDeviationTime = 0;
+export let currentStepIndex = 0;
+export let debounceTimer = null;
+export let trackingActive = false;
+export let watchId = null;
+export let userPosition = null;
 
 /* 1. initNavigationState
  * Reinicializa o objeto global de navegação, limpando estados anteriores. */
