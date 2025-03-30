@@ -129,11 +129,88 @@ export function clearMapLayers() {
 }
 
 /**
- * Restaura a interface para a última feature selecionada.
- * @param {string} feature - Nome da feature.
+ * restoreFeatureUI
+ * Restaura interface para a última feature selecionada, focando no destino atual.
  */
 export function restoreFeatureUI(feature) {
-  console.log(`Interface restaurada para a feature: ${feature}`);
+  console.log('Restaurando interface para a feature:', feature);
+
+  hideAllControlButtons();
+  closeCarouselModal();
+
+  if (
+    !selectedDestination ||
+    !selectedDestination.lat ||
+    !selectedDestination.lon
+  ) {
+    console.warn(
+      'Nenhum destino previamente selecionado. Abortando restoreFeatureUI.'
+    );
+    return;
+  }
+
+  adjustMapWithLocation(
+    selectedDestination.lat,
+    selectedDestination.lon,
+    selectedDestination.name,
+    selectedDestination.description,
+    15,
+    -10
+  );
+
+  showNotification(
+    `Último destino: ${selectedDestination.name || ''} restaurado no mapa.`,
+    'info'
+  );
+
+  switch (feature) {
+    case 'pontos-turisticos':
+      showControlButtonsTouristSpots();
+      displayCustomTouristSpots();
+      break;
+    case 'passeios':
+      showControlButtonsTour();
+      displayCustomTours();
+      break;
+    case 'praias':
+      showControlButtonsBeaches();
+      displayCustomBeaches();
+      break;
+    case 'festas':
+      showControlButtonsNightlife();
+      displayCustomNightlife();
+      break;
+    case 'restaurantes':
+      showControlButtonsRestaurants();
+      displayCustomRestaurants();
+      break;
+    case 'pousadas':
+      showControlButtonsInns();
+      displayCustomInns();
+      break;
+    case 'lojas':
+      showControlButtonsShops();
+      displayCustomShops();
+      break;
+    case 'emergencias':
+      showControlButtonsEmergencies();
+      displayCustomEmergencies();
+      break;
+    case 'ensino':
+      showControlButtonsEducation();
+      displayCustomEducation();
+      break;
+    default:
+      // sem ação
+      break;
+  }
+
+  // ADICIONE AQUI: Reexibição do botão "menu"
+  const menuElement = document.getElementById('menu');
+  if (menuElement) {
+    menuElement.style.display = 'block';
+    console.log("restoreFeatureUI: Botão 'menu' reexibido.");
+  }
 }
 
 /**

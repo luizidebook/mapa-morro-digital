@@ -1,11 +1,5 @@
 import { initializeMap } from '../map/map-core.js';
-import {
-  loadResources,
-  setLanguage,
-  updateInterfaceLanguage,
-} from './config.js';
 import { autoAdjustTheme } from '../ui/theme.js';
-import { startTutorial } from '../tutorial/tutorial.js';
 import {
   startNavigation,
   endNavigation,
@@ -18,7 +12,6 @@ import {
   tutorialSteps,
   currentStep,
   selectedDestination,
-  Feature,
 } from './state.js';
 import { handleFeatureSelection } from '../ui/submenus.js';
 import { openDestinationWebsite } from '../ui/buttons.js';

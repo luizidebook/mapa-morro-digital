@@ -1,20 +1,9 @@
-// language.js
-//--- 1.1. Carregamento e Idioma ---
-//1. loadResources - Carrega recursos iniciais (imagens, textos, etc.) */
-export async function loadResources(callback) {
-  const loader = document.getElementById('loader');
-  if (loader) loader.style.display = 'block';
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    if (loader) loader.style.display = 'none';
-    console.log('Recursos carregados com sucesso!');
-    if (typeof callback === 'function') callback();
-  } catch (error) {
-    if (loader) loader.style.display = 'none';
-    console.error('Falha ao carregar recursos:', error);
-  }
-} /*
-2. setLanguage - Define e salva o idioma selecionado */
+// Language.js
+import { showNotification } from '../utils/notifications.js';
+import { getGeneralText } from './translations.js';
+import { selectedLanguage } from './state.js';
+
+/* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
   try {
     const availableLanguages = ['pt', 'en', 'es', 'he'];
@@ -43,9 +32,9 @@ export function setLanguage(lang) {
     console.error(getGeneralText('routeError', selectedLanguage), error);
     showNotification(getGeneralText('routeError', selectedLanguage), 'error');
   }
-} /*
-3. updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
+}
 
+/*updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
 export function updateInterfaceLanguage(lang) {
   const elementsToTranslate = document.querySelectorAll('[data-i18n]');
   let missingTranslations = 0;
@@ -76,9 +65,7 @@ export function updateInterfaceLanguage(lang) {
   }
 }
 
-/**
- * 1. translateInstruction - Traduz uma instrução usando um dicionário.
- */
+/* translateInstruction - Traduz uma instrução usando um dicionário. */
 export function translateInstruction(instruction, lang = 'pt') {
   const dictionary = {
     pt: {
@@ -96,9 +83,7 @@ export function translateInstruction(instruction, lang = 'pt') {
   return dictionary[lang][instruction] || instruction;
 }
 
-/**
- * 2. translatePageContent - Atualiza todos os textos da interface conforme o idioma.
- */
+/* translatePageContent - Atualiza todos os textos da interface conforme o idioma. */
 export function translatePageContent(lang) {
   const elements = document.querySelectorAll('[data-i18n]');
   let missingCount = 0;
@@ -126,9 +111,7 @@ export function translatePageContent(lang) {
   }
 }
 
-/**
- * 3. validateTranslations - Verifica se todas as chaves de tradução estão definidas.
- */
+/* validateTranslations - Verifica se todas as chaves de tradução estão definidas. */
 export function validateTranslations(lang) {
   const elements = document.querySelectorAll('[data-i18n]');
   const missingKeys = [];
@@ -152,7 +135,7 @@ export function validateTranslations(lang) {
 }
 
 /**
- * 4. applyLanguage - Aplica o idioma na interface e valida as traduções.
+ * applyLanguage - Aplica o idioma na interface e valida as traduções.
  */
 export function applyLanguage(lang) {
   validateTranslations(lang);
@@ -160,9 +143,7 @@ export function applyLanguage(lang) {
   console.log(`applyLanguage: Idioma aplicado: ${lang}`);
 }
 
-/**
- * 5. getGeneralText - Retorna o texto traduzido para uma chave e idioma.
- */
+/* getGeneralText - Retorna o texto traduzido para uma chave e idioma.*/
 export function getGeneralText(key, lang = 'pt') {
   if (!translationsData[lang] || !translationsData[lang][key]) {
     console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);

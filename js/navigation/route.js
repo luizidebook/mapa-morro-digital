@@ -1,11 +1,13 @@
 import { map } from '../map/map-core.js';
 import { selectedDestination, navigationState } from '../core/state.js';
 import { apiKey } from '../core/config.js';
+import { showNotification } from '../ui/notifications.js';
+import { getCurrentLocation } from '../geolocation/tracking.js';
 
 /**
- * 1. startRouteCreation - Inicia a criação de uma nova rota.
+ * startRouteCreation - Inicia a criação de uma nova rota.
  */
-async function startRouteCreation() {
+export async function startRouteCreation() {
   try {
     validateDestination(); // Verifica destino válido
 
@@ -32,7 +34,7 @@ async function startRouteCreation() {
 /**
  * 2. createRoute
  *    Exemplo de função async para criar rota a partir de userLocation até selectedDestination. */
-async function createRoute(userLocation) {
+export async function createRoute(userLocation) {
   try {
     validateDestination(); // ou validateSelectedDestination()
     const routeData = await plotRouteOnMap(
@@ -64,7 +66,7 @@ async function createRoute(userLocation) {
 }
 
 // validateSelectedDestination - Valida destino selecionado
-function validateSelectedDestination() {
+export function validateSelectedDestination() {
   if (
     !selectedDestination ||
     !selectedDestination.lat ||
@@ -78,21 +80,19 @@ function validateSelectedDestination() {
 }
 
 /**
-* 3. plotRouteOnMap
-/**
-* plotRouteOnMap
-* Consulta a API OpenRouteService, obtém as coordenadas e plota a rota no mapa.
-* - Remove a rota anterior, se existir.
-* - Cria uma polyline e ajusta os limites do mapa.
-*
-* @param {number} startLat - Latitude de partida.
-* @param {number} startLon - Longitude de partida.
-* @param {number} destLat - Latitude do destino.
-* @param {number} destLon - Longitude do destino.
-* @param {string} [profile="foot-walking"] - Perfil de navegação.
-* @returns {Promise<Object|null>} - Dados da rota ou null em caso de erro.
-*/
-async function plotRouteOnMap(
+ * plotRouteOnMap
+ * Consulta a API OpenRouteService, obtém as coordenadas e plota a rota no mapa.
+ * - Remove a rota anterior, se existir.
+ * - Cria uma polyline e ajusta os limites do mapa.
+ *
+ * @param {number} startLat - Latitude de partida.
+ * @param {number} startLon - Longitude de partida.
+ * @param {number} destLat - Latitude do destino.
+ * @param {number} destLon - Longitude do destino.
+ * @param {string} [profile="foot-walking"] - Perfil de navegação.
+ * @returns {Promise<Object|null>} - Dados da rota ou null em caso de erro.
+ */
+export async function plotRouteOnMap(
   startLat,
   startLon,
   destLat,
@@ -133,7 +133,7 @@ async function plotRouteOnMap(
 }
 
 /**
- * 4. calculateDistance
+ * calculateDistance
  * Calcula a distância (em metros) entre dois pontos usando a fórmula de Haversine.
  * @param {number} lat1
  * @param {number} lon1
@@ -141,7 +141,7 @@ async function plotRouteOnMap(
  * @param {number} lon2
  * @returns {number} Distância em metros.
  */
-function calculateDistance(lat1, lon1, lat2, lon2) {
+export function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000; // Raio da Terra em metros
   const toRad = Math.PI / 180;
   const dLat = (lat2 - lat1) * toRad;
@@ -154,7 +154,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 /**
-* 5. distanceToPolyline
+* distanceToPolyline
 /**
 * Calcula a distância mínima entre um ponto e uma linha (polyline) definida por um array de pontos.
 * Cada ponto no array deve ter as propriedades {lat, lon}.
@@ -162,7 +162,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 * @param {Array} routePoints - Array de pontos representando a rota.
 * @returns {number} - Distância mínima em metros entre o ponto e a rota.
 */
-function distanceToPolyline(currentPos, routePoints) {
+export function distanceToPolyline(currentPos, routePoints) {
   if (!routePoints || routePoints.length === 0) return Infinity;
 
   let minDistance = Infinity;
@@ -178,8 +178,8 @@ function distanceToPolyline(currentPos, routePoints) {
 }
 
 /**
- * 6. pointToSegmentDistance
- *    Calcula a distância de um ponto a um segmento. */
+ * pointToSegmentDistance
+ * Calcula a distância de um ponto a um segmento. */
 /**
  * Calcula a distância de um ponto P à reta definida pelos pontos A e B.
  * @param {Object} P - Objeto com {lat, lon} representando o ponto.
@@ -187,7 +187,7 @@ function distanceToPolyline(currentPos, routePoints) {
  * @param {Object} B - Objeto com {lat, lon} representando o fim do segmento.
  * @returns {number} - Distância mínima em metros.
  */
-function pointToSegmentDistance(P, A, B) {
+export function pointToSegmentDistance(P, A, B) {
   // Conversão de graus para radianos
   const toRad = (deg) => (deg * Math.PI) / 180;
 
@@ -232,7 +232,7 @@ function pointToSegmentDistance(P, A, B) {
 }
 
 /**
-* 7. clearCurrentRoute /**
+* clearCurrentRoute /**
 /**
 * clearCurrentRoute
 * Remove a rota atual (polyline) do mapa, se existir.
@@ -248,7 +248,7 @@ function clearCurrentRoute() {
 }
 
 /**
- * 8. getClosestPointOnRoute
+ * getClosestPointOnRoute
  * Para cada segmento da rota (definida por um array de {lat, lon}),
  * calcula a projeção do ponto do usuário sobre o segmento e retorna o
  * ponto de projeção, o índice do segmento e o fator de projeção (t).
@@ -257,7 +257,7 @@ function clearCurrentRoute() {
  * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
  * @returns {Object} { closestPoint: {lat, lon}, segmentIndex, t }
  */
-function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
+export function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
   let minDistance = Infinity;
   let bestProjection = null;
   let bestIndex = -1;
@@ -296,7 +296,7 @@ function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
 }
 
 /**
- * 9. computeBearing
+ * computeBearing
  * Calcula o rumo (bearing) entre dois pontos geográficos.
  * @param {number} lat1 - Latitude do ponto de partida.
  * @param {number} lon1 - Longitude do ponto de partida.
@@ -304,7 +304,7 @@ function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
  * @param {number} lon2 - Longitude do ponto de destino.
  * @returns {number} Rumo em graus (0-360).
  */
-function computeBearing(lat1, lon1, lat2, lon2) {
+export function computeBearing(lat1, lon1, lat2, lon2) {
   const toRad = Math.PI / 180;
   const toDeg = 180 / Math.PI;
   const dLon = (lon2 - lon1) * toRad;
@@ -317,10 +317,10 @@ function computeBearing(lat1, lon1, lat2, lon2) {
 }
 
 /**
- * 10. showRouteLoadingIndicator
+ * showRouteLoadingIndicator
  * Adiciona um indicador de carregamento antes da rota ser traçada
  */
-function showRouteLoadingIndicator(timeout = 15000) {
+export function showRouteLoadingIndicator(timeout = 15000) {
   const loader = document.getElementById('route-loader');
   if (!loader) {
     console.error('Elemento do loader não encontrado no DOM.');
@@ -351,10 +351,10 @@ function showRouteLoadingIndicator(timeout = 15000) {
 }
 
 /**
- * 11. hideRouteLoadingIndicator
+ * hideRouteLoadingIndicator
  * Remove o indicador de carregamento antes da rota ser traçada
  */
-function hideRouteLoadingIndicator() {
+export function hideRouteLoadingIndicator() {
   // Cancela timeout se existir
   if (navigationState.loadingTimeout) {
     clearTimeout(navigationState.loadingTimeout);
@@ -368,7 +368,7 @@ function hideRouteLoadingIndicator() {
 }
 
 /**
-* 12. fetchMultipleRouteOptions
+* fetchMultipleRouteOptions
 /**
 * fetchMultipleRouteOptions
 * Obtém diferentes opções de rota para o trajeto, usando perfis variados.
@@ -381,7 +381,12 @@ function hideRouteLoadingIndicator() {
 * @param {number} destLon - Longitude do destino.
 * @returns {Promise<Array>} - Array de objetos contendo o perfil e as instruções da rota.
 */
-async function fetchMultipleRouteOptions(startLat, startLon, destLat, destLon) {
+export async function fetchMultipleRouteOptions(
+  startLat,
+  startLon,
+  destLat,
+  destLon
+) {
   const options = ['foot-walking', 'cycling-regular', 'driving-car'];
   let routes = [];
   // Para cada perfil (modo de transporte), obtém as instruções de rota
@@ -402,10 +407,10 @@ async function fetchMultipleRouteOptions(startLat, startLon, destLat, destLon) {
 }
 
 /**
- * 13. applyRouteStyling
+ * applyRouteStyling
  * Cria gradientes de cor e adicionar ícones personalizados
  */
-function applyRouteStyling(routeLayer) {
+export function applyRouteStyling(routeLayer) {
   routeLayer.setStyle({
     color: 'blue',
     weight: 5,
