@@ -1,29 +1,84 @@
-export let map; // Variável global para armazenar a instância do mapa
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { selectedDestination } from '../core/state.js';
+import { showNotification } from '../ui/notifications.js';
+import {
+  showControlButtonsTouristSpots,
+  showControlButtonsTour,
+  showControlButtonsBeaches,
+  showControlButtonsNightlife,
+  showControlButtonsRestaurants,
+  showControlButtonsInns,
+  showControlButtonsShops,
+  showControlButtonsEmergencies,
+  showControlButtonsEducation,
+  hideAllControlButtons,
+} from '../ui/control-buttons.js';
+import {
+  displayCustomTouristSpots,
+  displayCustomTours,
+  displayCustomBeaches,
+  displayCustomNightlife,
+  displayCustomRestaurants,
+  displayCustomInns,
+  displayCustomShops,
+  displayCustomEmergencies,
+  displayCustomEducation,
+} from '../ui/custom-displays.js';
+import { closeCarouselModal } from '../ui/carousel.js';
+
+let map; // Instância do mapa
+const markers = []; // Array para armazenar marcadores
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
- * @param {string} containerId - ID do elemento HTML que conterá o mapa.
- * @returns {Object} Instância do mapa Leaflet.
  */
 export function initializeMap() {
+  // Verificar se o objeto L (Leaflet) está disponível
+  if (typeof L === 'undefined') {
+    console.error(
+      'Erro: Leaflet não está carregado. Certifique-se de incluir Leaflet no seu HTML.'
+    );
+    return;
+  }
+
   if (map) {
     console.warn('Mapa já inicializado.');
     return;
   }
+  console.log('Inicializando mapa...');
 
-  const mapElement = document.getElementById('map');
-  if (!mapElement) {
-    console.error('Elemento com ID "map" não encontrado no DOM.');
-    return;
+  // Define as camadas de tiles
+  const tileLayers = {
+    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }),
+    satellite: L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: '© Esri',
+        maxZoom: 19,
+      }
+    ),
+  };
+
+  try {
+    // Cria o mapa com uma visão inicial de Morro de São Paulo
+    map = L.map('map', {
+      layers: [tileLayers.streets],
+      zoomControl: false,
+      maxZoom: 19,
+      minZoom: 3,
+    }).setView([-13.378, -38.918], 14);
+
+    // Adiciona o controle de camadas
+    L.control.layers(tileLayers).addTo(map);
+
+    console.log('Mapa inicializado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao inicializar o mapa:', error);
   }
-
-  map = L.map('map').setView([-13.3766787, -38.9172057], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
-
-  console.log('Mapa inicializado com sucesso.');
 }
 
 /**
@@ -123,8 +178,7 @@ export function clearMapLayers() {
 }
 
 /**
- * restoreFeatureUI
- * Restaura interface para a última feature selecionada, focando no destino atual.
+ * Restaura a interface para a última feature selecionada.
  */
 export function restoreFeatureUI(feature) {
   console.log('Restaurando interface para a feature:', feature);
@@ -195,11 +249,10 @@ export function restoreFeatureUI(feature) {
       displayCustomEducation();
       break;
     default:
-      // sem ação
+      console.warn('Feature não reconhecida:', feature);
       break;
   }
 
-  // ADICIONE AQUI: Reexibição do botão "menu"
   const menuElement = document.getElementById('menu');
   if (menuElement) {
     menuElement.style.display = 'block';
@@ -237,28 +290,4 @@ export function centerMapOnUser(lat, lon, zoom = 15) {
     map.setView([lat, lon], zoom);
     console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
   }
-}
-
-/**
- * Adiciona um marcador rotacionado no mapa.
- * @param {number} lat - Latitude.
- * @param {number} lon - Longitude.
- * @param {number} angle - Ângulo de rotação.
- * @returns {Object} Marcador adicionado.
- */
-export function addRotatedMarker(lat, lon, angle) {
-  if (!map) {
-    console.error('Mapa não inicializado.');
-    return;
-  }
-
-  const marker = L.marker([lat, lon], {
-    rotationAngle: angle, // Define o ângulo de rotação
-    rotationOrigin: 'center bottom', // Origem da rotação
-  }).addTo(map);
-
-  console.log(
-    `Marcador rotacionado adicionado em [${lat}, ${lon}] com ângulo ${angle}°.`
-  );
-  return marker;
 }

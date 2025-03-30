@@ -1,10 +1,9 @@
-import { initializeMap } from '../map/map-core.js';
+import { initializeMap, restoreFeatureUI } from '../map/map-core.js';
 import { autoAdjustTheme } from '../ui/theme.js';
 import {
   startNavigation,
   endNavigation,
 } from '../navigation/navigation-control.js';
-import { restoreFeatureUI } from '../map/map-core.js';
 import { showNotification } from '../ui/notifications.js';
 import { calculateDistance } from '../navigation/route.js';
 import {
@@ -14,15 +13,19 @@ import {
   selectedDestination,
 } from './state.js';
 import { handleFeatureSelection } from '../ui/submenus.js';
-import { openDestinationWebsite } from '../ui/buttons.js';
+import { openDestinationWebsite, closeSideMenu } from '../ui/buttons.js';
 import { startCarousel } from '../ui/carousel.js';
 import { closeCarouselModal } from '../ui/modals.js';
 import { searchLocation } from '../ui/search.js';
-import { closeSideMenu } from '../ui/buttons.js';
 import { hideInstructionBanner } from '../ui/navigation.js';
-import { nextTutorialStep, showTutorialStep } from '../tutorial/tutorial.js';
+import {
+  nextTutorialStep,
+  showTutorialStep,
+  startTutorial,
+} from '../tutorial/tutorial.js';
 import { clearRouteMarkers } from '../ui/routeMarkers.js';
 import { startRouteCreation } from '../navigation/route.js';
+import { setLanguage, updateInterfaceLanguage } from '../ui/language.js';
 
 // Função: Executada quando o DOM é carregado
 export function onDOMContentLoaded() {

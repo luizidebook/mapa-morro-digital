@@ -1,3 +1,7 @@
+// Importações necessárias
+import { showNotification } from './notifications.js';
+import { getGeneralText } from '../ui/texts.js';
+
 // Função: Alterna a visibilidade de modais
 export function toggleModals(modalId) {
   const modal = document.getElementById(modalId);

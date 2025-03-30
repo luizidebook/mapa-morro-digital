@@ -1,3 +1,10 @@
+// Importações necessárias
+import { showNotification } from '../ui/notifications.js';
+import { adjustMapWithLocation } from '../map/map-core.js';
+import { displayStepByStepInstructions } from '../ui/instructions.js';
+import { updateUserPositionOnMap } from '../geolocation/tracking.js';
+import { clearNavigationState } from '../navigation/navigation-control.js';
+
 // Estado global da navegação
 export const navigationState = {
   isActive: false,
@@ -66,14 +73,12 @@ export let userPosition = null;
  * Reinicializa o objeto global de navegação, limpando estados anteriores. */
 export function initNavigationState() {
   console.log('[initNavigationState] Reinicializando estado de navegação...');
-  // Reseta flags e variáveis do objeto global navigationState
   navigationState.isActive = false;
   navigationState.isPaused = false;
   navigationState.watchId = null;
   navigationState.currentStepIndex = 0;
   navigationState.instructions = [];
   navigationState.selectedDestination = null;
-  // Se já houver uma camada de rota ativa, remove-a do mapa
   if (navigationState.currentRouteLayer) {
     map.removeLayer(navigationState.currentRouteLayer);
     navigationState.currentRouteLayer = null;
@@ -82,7 +87,7 @@ export function initNavigationState() {
 }
 
 /**
- * 2. saveNavigationState - Salva o estado de navegação no sessionStorage (exemplo).
+ * 2. saveNavigationState - Salva o estado de navegação no sessionStorage.
  */
 export function saveNavigationState(state) {
   if (!state) {

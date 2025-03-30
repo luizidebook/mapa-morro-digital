@@ -1,4 +1,7 @@
-import { navigationState } from '../core/state.js';
+// Importações necessárias
+import { navigationState, searchHistory } from '../core/state.js';
+import { showNotification } from '../ui/notifications.js';
+import { getGeneralText } from '../ui/texts.js';
 
 /**
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
@@ -26,8 +29,9 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
   }
 }
 
-/*
- * 2. loadRouteFromCache - Carrega rota salva do cache (localStorage). */
+/**
+ * 2. loadRouteFromCache - Carrega rota salva do cache (localStorage).
+ */
 export function loadRouteFromCache() {
   if (typeof localStorage === 'undefined') {
     console.warn('LocalStorage não está disponível.');
@@ -51,48 +55,30 @@ export function loadRouteFromCache() {
     );
     return null;
   }
-} /*
-
-  --- 5.2. Destinos, LocalStorage e Histórico ---
- /**
- * 1. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker).
-export function loadDestinationsFromCache(callback) {
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      command: 'loadDestinations',
-    });
-    navigator.serviceWorker.onmessage = (event) => {
-      if (event.data.command === 'destinationsLoaded') {
-        callback(event.data.data);
-      }
-    };
-  } else {
-    console.error('Service worker não está ativo.');
-  }
-} /*
+}
 
 /**
- * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
+ * 3. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
  */
-export function getLocalStorageItem(key) {
+export function getLocalStorageItem(key, defaultValue = null) {
   const item = localStorage.getItem(key);
   try {
-    return JSON.parse(item); // Tenta converter o valor para JSON
+    return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
     console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
-    return item; // Retorna o valor bruto se não for JSON válido
+    return defaultValue;
   }
 }
 
 /**
- * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
+ * 4. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 export function setLocalStorageItem(key, value) {
-  localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
 /**
- * 4. removeLocalStorageItem - Remove item do localStorage por chave.
+ * 5. removeLocalStorageItem - Remove item do localStorage por chave.
  */
 export function removeLocalStorageItem(key) {
   try {
@@ -103,30 +89,23 @@ export function removeLocalStorageItem(key) {
 }
 
 /**
- * 5. saveDestinationToCache - Salva destino selecionado no cache local.
+ * 6. loadSearchHistory - Carrega o histórico de buscas do localStorage e exibe na interface.
  */
-export function saveDestinationToCache(destination) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.log('Saving Destination to Cache:', destination);
-      localStorage.setItem('selectedDestination', JSON.stringify(destination));
-      resolve();
-    } catch (error) {
-      console.error('Erro ao salvar destino no cache:', error);
-      reject(new Error('Erro ao salvar destino no cache.'));
-    }
-  });
-}
+export function loadSearchHistory() {
+  const history = getLocalStorageItem('searchHistory', []);
+  searchHistory.length = 0; // Limpa o array global
+  searchHistory.push(...history); // Atualiza a variável global
 
-/**
- * 6. saveRouteToHistory - Salva rota no histórico (localStorage).
- */
-export function saveRouteToHistory(route) {
-  const historyStr = localStorage.getItem('routeHistory') || '[]';
-  const history = JSON.parse(historyStr);
-  history.push(route);
-  localStorage.setItem('routeHistory', JSON.stringify(history));
-  console.log('Rota salva no histórico (routeHistory).');
+  const historyContainer = document.getElementById('search-history-container');
+  if (historyContainer) {
+    historyContainer.innerHTML = '';
+    history.forEach((query) => {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+      historyItem.textContent = query;
+      historyContainer.appendChild(historyItem);
+    });
+  }
 }
 
 /**

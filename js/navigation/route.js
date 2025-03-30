@@ -1,8 +1,13 @@
-import { map } from '../map/map-core.js';
-import { selectedDestination, navigationState } from '../core/state.js';
+// Importações necessárias
+import { map, selectedDestination, navigationState } from '../core/state.js';
 import { showNotification } from '../ui/notifications.js';
-import { getCurrentLocation } from '../geolocation/tracking.js';
-import { ORS_API_KEY } from '../core/constants.js';
+import { getGeneralText } from '../ui/texts.js';
+import {
+  fetchMultipleRouteOptions,
+  plotRouteOnMap,
+  validateDestination,
+} from '../navigation/route.js';
+import { updateRouteFooter } from '../ui/navigation.js';
 
 /**
  * startRouteCreation - Inicia a criação de uma nova rota.

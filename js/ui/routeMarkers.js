@@ -25,3 +25,28 @@ export function clearCurrentRoute() {
     console.log('[clearCurrentRoute] Nenhuma rota ativa para remover.');
   }
 }
+
+/**
+ * clearMarkers
+/**
+ * clearMarkers
+ * Remove todos os marcadores do mapa.
+ * Se uma função de filtro for fornecida, remove apenas os que satisfazem a condição.
+ *
+ * @param {Function} [filterFn] - Função para filtrar quais marcadores remover.
+ */
+export function clearMarkers(filterFn) {
+  if (typeof filterFn === 'function') {
+    markers = markers.filter((marker) => {
+      if (filterFn(marker)) {
+        map.removeLayer(marker);
+        return false;
+      }
+      return true;
+    });
+  } else {
+    markers.forEach((marker) => map.removeLayer(marker));
+    markers = [];
+  }
+  console.log('clearMarkers: Marcadores removidos (com ou sem filtro).');
+}

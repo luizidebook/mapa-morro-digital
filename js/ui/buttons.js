@@ -1,8 +1,8 @@
 import { hideAllControlButtons } from './buttons.js'; // Verifique o local correto
-import { closeAssistantModal } from './modals.js'; // Verifique o local correto
+import { closeAssistantModal } from './modals.js'; // Certifique-se de que está exportado corretamente
 
 // Função: Oculta todos os botões de controle
-export function hideAllButtons() {
+export function hideAllControlButtons() {
   const buttons = document.querySelectorAll('.control-btn');
   buttons.forEach((button) => {
     button.style.display = 'none';

@@ -1,3 +1,17 @@
+// Importações necessárias
+import { tutorialIsActive, currentStep, tutorialSteps } from '../core/state.js';
+import { hideAllControlButtons } from '../ui/control-buttons.js';
+import {
+  hideAssistantModal,
+  updateAssistantModalContent,
+} from '../ui/assistant.js';
+import { hideRouteSummary, hideRoutePreview } from '../ui/route.js';
+import {
+  highlightElement,
+  showMenuButtons,
+  setupSubmenuListeners,
+} from '../ui/highlights.js';
+
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */
@@ -20,7 +34,7 @@ export function endTutorial() {
 }
 
 /**
- * 3. nextTutorialStep - Avança para o próximo passo do tutorial.
+ * nextTutorialStep - Avança para o próximo passo do tutorial.
  */
 export function nextTutorialStep() {
   if (currentStep < tutorialSteps.length - 1) {
@@ -35,7 +49,7 @@ export function nextTutorialStep() {
 }
 
 /**
- * 4. previousTutorialStep - Retorna ao passo anterior do tutorial.
+ * previousTutorialStep - Retorna ao passo anterior do tutorial.
  */
 export function previousTutorialStep(currentStepId) {
   const idx = tutorialSteps.findIndex((s) => s.step === currentStepId);
@@ -47,7 +61,7 @@ export function previousTutorialStep(currentStepId) {
 }
 
 /**
- * 5. showTutorialStep - Exibe conteúdo de um passo específico do tutorial.
+ * showTutorialStep - Exibe conteúdo de um passo específico do tutorial.
  */
 export function showTutorialStep(step) {
   const stepConfig = tutorialSteps.find((s) => s.step === step);
@@ -67,61 +81,9 @@ export function showTutorialStep(step) {
   if (action) action(); // executa a ação atrelada a este passo
 }
 
-// Passos do tutorial
-const tutorialSteps = [
-  {
-    step: 'start-tutorial',
-    message: {
-      pt: 'Sua aventura inesquecível em Morro de São Paulo começa aqui!',
-      es: '¡Tu aventura inolvidable en Morro de São Paulo comienza aquí!',
-      en: 'Your unforgettable adventure in Morro de São Paulo starts here!',
-      he: 'ההרפתקה הבלתי נשכחת שלך במורו דה סאו פאולו מתחילה כאן!',
-    },
-    action: () => {
-      showButtons(['tutorial-iniciar-btn']);
-    },
-  },
-  {
-    step: 'ask-interest',
-    message: {
-      pt: 'O que você está procurando em Morro de São Paulo? Escolha uma das opções abaixo.',
-      es: '¿Qué estás buscando en Morro de São Paulo? Elige una de las opciones a continuación.',
-      en: 'What are you looking for in Morro de São Paulo? Choose one of the options below.',
-      he: 'מה אתה מחפש במורו דה סאו פאולו? בחר אחת מהאפשרויות הבאות.',
-    },
-    action: () => {
-      showButtons([
-        'pontos-turisticos-btn',
-        'passeios-btn',
-        'praias-btn',
-        'festas-btn',
-        'restaurantes-btn',
-        'pousadas-btn',
-        'lojas-btn',
-        'emergencias-btn',
-      ]);
-      clearAllMarkers();
-      closeSideMenu();
-    },
-  },
-  ...generateInterestSteps(),
-  {
-    step: 'end-tutorial',
-    message: {
-      pt: 'Parabéns! Você concluiu o tutorial! Aproveite para explorar todas as funcionalidades disponíveis.',
-      es: '¡Felicidades! Has completado el tutorial. Disfruta explorando todas las funciones disponibles.',
-      en: 'Congratulations! You have completed the tutorial! Enjoy exploring all the available features.',
-      he: 'מזל טוב! סיימת את המדריך! תהנה מחקר כל התכונות הזמינות.',
-    },
-    action: () => {
-      showButtons(['tutorial-end-btn']);
-    },
-  },
-];
-
 /**
-  --- Armazenamento de Respostas e Interesses ---
- * 6. storeAndProceed - Armazena a resposta do usuário e chama showTutorialStep para o próximo passo. */
+ * storeAndProceed - Armazena a resposta do usuário e chama showTutorialStep para o próximo passo.
+ */
 export function storeAndProceed(interest) {
   localStorage.setItem('ask-interest', interest);
   const specificStep = tutorialSteps.find((s) => s.step === interest);
@@ -134,7 +96,8 @@ export function storeAndProceed(interest) {
 }
 
 /**
- * 7. generateInterestSteps - Gera passos personalizados de interesse (tutorial). */
+ * generateInterestSteps - Gera passos personalizados de interesse (tutorial).
+ */
 export function generateInterestSteps() {
   const interests = [
     {
@@ -260,7 +223,7 @@ export function generateInterestSteps() {
 }
 
 /**
- * 8. removeExistingHighlights - Remove destaques visuais (ex.: setas, círculos).
+ * removeExistingHighlights - Remove destaques visuais (ex.: setas, círculos).
  */
 export function removeExistingHighlights() {
   document.querySelectorAll('.arrow-highlight').forEach((e) => e.remove());

@@ -14,16 +14,35 @@ export function showWelcomeMessage() {
   console.log('Mensagem de boas-vindas exibida.');
 }
 
-// Função: Define e salva o idioma selecionado
-/*
-setLanguage - Define e salva o idioma selecionado */
+/* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
-  selectedLanguage.value = lang;
-  showNotification(`Idioma alterado para: ${lang}`, 'success');
+  try {
+    const availableLanguages = ['pt', 'en', 'es', 'he'];
+    const defaultLanguage = 'pt';
+
+    if (!availableLanguages.includes(lang)) {
+      console.warn(
+        `${getGeneralText('languageChanged', defaultLanguage)} => ${defaultLanguage}`
+      );
+      lang = defaultLanguage;
+    }
+
+    localStorage.setItem('preferredLanguage', lang);
+    selectedLanguage = lang;
+
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (welcomeModal) {
+      welcomeModal.style.display = 'none';
+    }
+
+    console.log(`Idioma definido para: ${lang}`);
+  } catch (error) {
+    console.error(getGeneralText('routeError', selectedLanguage), error);
+    showNotification(getGeneralText('routeError', selectedLanguage), 'error');
+  }
 }
 
-/*
-updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
+/* updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
 export function updateInterfaceLanguage(lang) {
   const elementsToTranslate = document.querySelectorAll('[data-i18n]');
   let missingTranslations = 0;
@@ -52,4 +71,36 @@ export function updateInterfaceLanguage(lang) {
   } else {
     console.log(`Traduções aplicadas com sucesso para o idioma: ${lang}`);
   }
+}
+
+/**
+ * ValidateTranslations - Verifica se todas as chaves de tradução estão definidas.
+ */
+export function validateTranslations(lang) {
+  const elements = document.querySelectorAll('[data-i18n]');
+  const missingKeys = [];
+  elements.forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const translation = getGeneralText(key, lang);
+    if (translation.startsWith('⚠️')) {
+      missingKeys.push(key);
+    }
+  });
+  if (missingKeys.length > 0) {
+    console.warn(
+      `validateTranslations: Faltam traduções para ${lang}:`,
+      missingKeys
+    );
+  } else {
+    console.log(
+      `validateTranslations: Todas as traduções definidas para ${lang}.`
+    );
+  }
+}
+
+/* applyLanguage - Aplica o idioma na interface e valida as traduções */
+export function applyLanguage(lang) {
+  validateTranslations(lang);
+  updateInterfaceLanguage(lang);
+  console.log(`applyLanguage: Idioma aplicado: ${lang}`);
 }

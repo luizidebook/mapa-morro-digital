@@ -5,7 +5,7 @@ import {
   displayCustomRestaurants,
   displayCustomShops,
 } from '../map/map-markers.js';
-import { showNotification } from './notifications.js';
+import { giveVoiceFeedback } from '../ui/voice-control.js';
 
 /**
  * 1. handleSubmenuButtonClick - Lida com cliques em botões de submenu.
@@ -267,6 +267,57 @@ export function setupSubmenuClickListeners() {
       handleFeatureSelection(feature);
       closeCarouselModal();
       event.stopPropagation();
+    });
+  });
+}
+
+/**
+ * displayOSMData
+ * Exibe dados vindos do Overpass-API no submenu correspondente e cria marcadores no mapa.
+ */
+export function displayOSMData(data, subMenuId, feature) {
+  // Limpa o conteúdo do submenu
+  const subMenu = document.getElementById(subMenuId);
+  subMenu.innerHTML = '';
+
+  // Cria botões dinamicamente
+  data.elements.forEach((element) => {
+    if (element.type === 'node' && element.tags.name) {
+      const btn = document.createElement('button');
+      btn.className = 'submenu-item submenu-button';
+      btn.textContent = element.tags.name;
+      btn.setAttribute('data-destination', element.tags.name);
+
+      const description =
+        element.tags.description || 'Descrição não disponível';
+
+      btn.onclick = () => {
+        handleSubmenuButtons(
+          element.lat,
+          element.lon,
+          element.tags.name,
+          description,
+          element.tags.images || [],
+          feature
+        );
+      };
+
+      subMenu.appendChild(btn);
+
+      // Adiciona marcador
+      const marker = L.marker([element.lat, element.lon])
+        .addTo(map)
+        .bindPopup(`<b>${element.tags.name}</b><br>${description}`);
+      markers.push(marker);
+    }
+  });
+
+  // Configura evento de clique
+  document.querySelectorAll('.submenu-button').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const destination = this.getAttribute('data-destination');
+      console.log(`Destination selected: ${destination}`);
+      showDestinationContent(destination);
     });
   });
 }

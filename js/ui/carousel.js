@@ -1,3 +1,10 @@
+// Importações necessárias
+import { showModal } from './modals.js';
+import { getImagesForLocation } from '../data/images.js';
+
+// Variável global para gerenciar o carrossel
+let swiperInstance = null;
+
 /**
  * startCarousel - Inicia o carrossel de imagens para um local.
  */

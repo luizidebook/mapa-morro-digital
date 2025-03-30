@@ -1,6 +1,9 @@
 import { handleSubmenuButtons } from '../ui/submenus.js';
 import { fetchOSMData, displayOSMData, map, markers } from './map-core.js';
 import { queries } from '../core/config.js';
+import { hideAllButtons } from '../ui/buttons.js';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 /**
  * 1. displayCustomAbout - Exibe informações personalizadas sobre "Sobre".
@@ -70,7 +73,13 @@ export function displayCustomAbout() {
       description: 'Conheça o impacto do nosso projeto em Morro de São Paulo.',
     },
   ];
+
   const subMenu = document.getElementById('about-submenu');
+  if (!subMenu) {
+    console.error('Submenu "about-submenu" não encontrado.');
+    return;
+  }
+
   subMenu.innerHTML = '';
   about.forEach((item) => {
     const btn = document.createElement('button');
@@ -93,11 +102,13 @@ export function displayCustomAbout() {
       );
     };
     subMenu.appendChild(btn);
+
     const marker = L.marker([item.lat, item.lon])
       .addTo(map)
       .bindPopup(`<b>${item.name}</b><br>${item.description}`);
     markers.push(marker);
   });
+
   console.log("Informações 'Sobre' exibidas no submenu.");
 }
 
@@ -148,11 +159,13 @@ export function displayCustomEducation() {
       description: 'Ajuste as configurações do site.',
     },
   ];
+
   const subMenu = document.getElementById('education-submenu');
   if (!subMenu) {
-    console.error('Submenu education-submenu não encontrado.');
+    console.error('Submenu "education-submenu" não encontrado.');
     return;
   }
+
   subMenu.innerHTML = '';
   educationItems.forEach((item) => {
     const btn = document.createElement('button');
@@ -175,11 +188,13 @@ export function displayCustomEducation() {
       );
     };
     subMenu.appendChild(btn);
+
     const marker = L.marker([item.lat, item.lon])
       .addTo(map)
       .bindPopup(`<b>${item.name}</b><br>${item.description}`);
     markers.push(marker);
   });
+
   console.log('Dados educacionais customizados exibidos.');
 }
 

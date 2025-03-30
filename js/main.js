@@ -1,31 +1,51 @@
+// -------------------------
+// main.js – Ponto de entrada principal da aplicação
+// -------------------------
+
+/**
+ * Este arquivo contém as funções principais para inicialização da aplicação:
+ *
+ * initializeMap - Responsável por criar e configurar a instância do mapa Leaflet
+ * initializeAssistant - Inicializa o assistente virtual da aplicação
+ * loadResources - Carrega recursos necessários como textos, imagens e configurações
+ * autoAdjustTheme - Ajusta o tema da interface (claro/escuro) com base nas preferências do usuário
+ * showWelcomeMessage - Exibe a mensagem de boas-vindas e seleção de idioma inicial
+ */
+
 // Importações do módulo core/config.js
 import { initializeMap } from './map/map-core.js';
 import { showWelcomeMessage } from './core/config.js';
 import { setupEventListeners } from './core/event-listeners.js';
 import { autoAdjustTheme } from './ui/theme.js';
-// 1. onDOMContentLoaded       - Executado quando o DOM carrega (busca parâmetros iniciais)*/
+/**
+ * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
+ * Este é o ponto de entrada principal da aplicação, onde iniciamos todos os
+ * componentes essenciais na ordem correta.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    console.log('Iniciando a aplicação...');
+    console.log('Iniciando aplicação...');
 
-    console.log('Inicializando o mapa...');
-    initializeMap(); // Inicializa o mapa
-    console.log('Mapa inicializado com sucesso.');
+    // Inicializa o mapa Leaflet com as configurações padrão
+    initializeMap();
+    // Exibe a tela de boas-vindas com seleção de idioma
+    showWelcomeMessage();
+    // Configura todos os event listeners para interação do usuário (única função importada)
+    setupEventListeners();
+    // Ajusta o tema da interface (claro/escuro) com base nas preferências
+    autoAdjustTheme();
 
-    console.log('Exibindo a mensagem de boas-vindas...');
-    showWelcomeMessage(); // Exibe a mensagem de boas-vindas
-    console.log('Mensagem de boas-vindas exibida.');
-
-    console.log('Configurando os event listeners...');
-    setupEventListeners(); // Configura os event listeners
-    console.log('Event listeners configurados.');
-
-    console.log('Ajustando o tema...');
-    autoAdjustTheme(); // Ajusta o tema automaticamente
-    console.log('Tema ajustado com sucesso.');
-
-    console.log('DOM completamente carregado e analisado.');
+    console.log('Aplicação inicializada com sucesso!');
   } catch (error) {
-    console.error('Erro ao inicializar a aplicação:', error);
+    // Captura e registra qualquer erro durante a inicialização
+    console.error('Erro durante a inicialização:', error);
+
+    // Exibe mensagem de erro ao usuário
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.textContent =
+      'Ocorreu um erro ao iniciar o aplicativo. Por favor, recarregue a página.';
+    document.body.appendChild(errorMessage);
   }
 });
