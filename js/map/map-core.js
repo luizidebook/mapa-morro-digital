@@ -1,6 +1,6 @@
 import L from 'leaflet';
 
-let map; // Variável global para armazenar a instância do mapa
+export let map; // Variável global para armazenar a instância do mapa
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
@@ -12,40 +12,20 @@ export function initializeMap() {
     console.warn('Mapa já inicializado.');
     return;
   }
-  console.log('Inicializando mapa...');
 
-  // Define as camadas de tiles
-  const tileLayers = {
-    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }),
-    satellite: L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: '© Esri',
-        maxZoom: 19,
-      }
-    ),
-  };
-
-  // Cria o mapa com uma visão inicial (esta posição será atualizada quando a localização do usuário for obtida)
-  map = L.map('map', {
-    layers: [tileLayers.streets],
-    zoomControl: false,
-    maxZoom: 19,
-    minZoom: 3,
-  }).setView([-13.378, -38.918], 14);
-
-  // Adiciona o controle de camadas
-  L.control.layers(tileLayers).addTo(map);
-
-  if (typeof RotationPlugin !== 'undefined') {
-    RotationPlugin.initialize();
-  } else {
-    console.warn('Plugin de rotação não encontrado. Usando CSS para rotação.');
-    // Código alternativo para rotação via CSS
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    console.error('Elemento com ID "map" não encontrado no DOM.');
+    return;
   }
+
+  map = L.map('map').setView([-13.3766787, -38.9172057], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  console.log('Mapa inicializado com sucesso.');
 }
 
 /**
@@ -259,14 +239,6 @@ export function centerMapOnUser(lat, lon, zoom = 15) {
     map.setView([lat, lon], zoom);
     console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
   }
-}
-
-/**
- * Adiciona um ícone de seta no mapa.
- * @param {Object} coordinate - Coordenadas para adicionar a seta.
- */
-export function addArrowToMap(coordinate) {
-  console.log('Seta adicionada no mapa em:', coordinate);
 }
 
 /**
