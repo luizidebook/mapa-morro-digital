@@ -1,611 +1,239 @@
-<!doctype html>
+<!-- Morro Digital - index.html -->
+
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <!--
-  =====================================
-   Morro Digital - index.html
-   Documentação Interna
-  =====================================
+
+<head> <!-- Inicio do <head> -->
+
+<!-- Metatags básicas de SEO e viewport -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- SEO e Metatags -->
+  <title data-i18n="title">Morro de São Paulo Digital</title>
+  <meta name="description" content="Descrição do site Morro Digital." />
+  <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos" />
+  <meta name="author" content="Morro Digital" />
+  <meta property="og:title" content="Morro Digital" />
+  <meta property="og:description" content="Descrição do site Morro Digital." />
+  <meta property="og:image" content="link_da_imagem" />
+  <meta property="og:url" content="URL do site" />
+
+<!-- CSS Principal -->
+  <link rel="stylesheet" href="./css/styles.css" />
+
+<!-- Leaflet (Mapa Interativo) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+
+<!-- Leaflet Routing Machine (Roteamento) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   
-  1) Metatags básicas de SEO e viewport:
-     - meta name="description": Descrição do site
-     - meta name="keywords": Palavras-chave
-     - meta name="author": Nome do autor do site
-     - property="og:title"/"og:description": Para compartilhamento em redes sociais
-  2) Carregamento de CSS principal (styles.css) e bibliotecas essenciais (Leaflet, Routing Machine, etc.)
-     - Leaflet: Mapa
-     - Leaflet Routing Machine: Roteamento
-     - Awesomplete: Autocomplete
-     - Swiper: Carrossel
-     - Font Awesome: Ícones
-     - Fuse.js: Busca inteligente
-  3) Scripts (no final do <head> ou no <body> com defer):
-     - scripts.js: Lógica principal (navegação, tutorial, rota, i18n, voice assistant etc.)
-     - Versões "defer" para não bloquear carregamento do DOM
-  -->
+<!-- Awesomplete (Autocomplete) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Swiper (Carrossel de Imagens) -->
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
 
-    <!-- SEO e Metatags -->
-    <title data-i18n="title">Morro de São Paulo Digital</title>
-    <meta name="description" content="Descrição do site Morro Digital." />
-    <meta
-      name="keywords"
-      content="turismo, morro, digital, viagens, pontos turísticos"
-    />
-    <meta name="author" content="Morro Digital" />
-    <meta property="og:title" content="Morro Digital" />
-    <meta
-      property="og:description"
-      content="Descrição do site Morro Digital."
-    />
-    <meta property="og:image" content="link_da_imagem" />
-    <meta property="og:url" content="URL do site" />
+<!-- Font Awesome (Ícones) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- CSS Principal -->
-    <link rel="stylesheet" href="./css/styles.css" />
+<!-- Fuse.js (Busca Inteligente) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
 
-    <!-- CSS do Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+</head> <!-- Fim do <head> -->
 
-    <!-- Script do Leaflet -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<body> <!-- Início do <body> -->
+  
+<!-- Contêiner principal do Mapa -->
+<div id="map-container">
+    <div id="map"></div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/gh/bbecquet/Leaflet.RotatedMarker/leaflet.rotatedMarker.js"></script>
+<!-- #progress-bar: Barra de progresso opcional para exibir quando recursos estão carregando.
+  - .hidden: classe que oculta até ser exibida dinamicamente. -->
+<div id="progress-bar" class="progress-bar hidden" style="display:none;">0% completo</div>
 
-    <!-- Leaflet Routing Machine (Roteamento) -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
-    />
-    <script
-      src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"
-      defer
-    ></script>
+<!-- Loader visual -->
+<div id="route-loader" class="loader hidden">
+    <div class="spinner"></div>
+    <p>Carregando rota...</p>
+</div>
 
-    <!-- Awesomplete (Autocomplete) -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css"
-    />
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"
-      defer
-    ></script>
+<!-- #notification-container: Contêiner de notificações (ex.: alerts, toasts). 
+  - Manipulado por showNotification() em scripts.js. -->
+<div id="notification-container" class="notification-container"></div>
 
-    <!-- Font Awesome (Ícones) -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-    />
 
-    <!-- Fuse.js (Busca Inteligente) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"
-      defer
-    ></script>
-  </head>
-  <body>
-    <!--
-  =====================================
-    1) Contêiner principal do Mapa
-  =====================================
-  - #map-container: envolve todo o espaço do mapa
-  - #map: elemento Leaflet, manipulado em scripts.js
--->
-    <div id="map-container">
-      <div id="map"></div>
+<!-- MODAIS / OVERLAYS -->
+
+<!-- #assistant-modal: Modal do Assistente Virtual (ex.: chat ou voz).
+  - Botão X (#close-assistant-btn) fecha via closeAssistantModal() em scripts.js. -->
+  <div id="assistant-modal" class="modal">
+    <div class="modal-content assistant-modal-content">
+      <span id="close-assistant-btn" class="close-btn">&times;</span>
+      <div id="assistant-message" class="assistant-message"></div>
     </div>
+  </div>
 
-    <!--
-  #progress-bar: Barra de progresso opcional para exibir quando recursos estão carregando.
-  - .hidden: classe que oculta até ser exibida dinamicamente.
--->
-    <div id="progress-bar" class="progress-bar hidden" style="display: none">
-      0% completo
-    </div>
-
-    <!-- Loader visual -->
-    <div id="route-loader" class="loader hidden">
-      <div class="spinner"></div>
-      <p>Carregando rota...</p>
-    </div>
-
-    <!--
-  #notification-container: Contêiner de notificações (ex.: alerts, toasts). 
-  Manipulado por showNotification() em scripts.js.
--->
-    <div id="notification-container" class="notification-container"></div>
-
-    <!--
-  =====================================
-    2) Modais / Overlays
-  =====================================
--->
-
-    <!--
-  #assistant-modal: Modal do Assistente Virtual (ex.: chat ou voz).
-  - Botão X (#close-assistant-modal) fecha via closeAssistantModal() em scripts.js.
--->
-    <div id="assistant-modal" class="modal">
-      <button
-        id="close-assistant-modal"
-        class="close-btn"
-        onclick="closeAssistantModal()"
-        data-i18n="close_modal"
-      >
-        X
-      </button>
-      <div class="modal-content" id="assistant-modal-text"></div>
-    </div>
-
-    <!--
-  #welcome-modal: Modal de Boas-Vindas e seleção de idioma.
-  - #language-selection: botões com data-lang para trocar idioma (setLanguage() em scripts.js).
--->
-    <div id="welcome-modal" class="welcome-modal">
-      <div class="modal-content">
+<!-- #welcome-modal: Modal de Boas-Vindas e seleção de idioma.
+  - #language-selection: botões com data-lang para trocar idioma (setLanguage() em scripts.js).-->
+  <div id="welcome-modal" class="welcome-modal">
+    <div class="modal-content">
         <p id="welcome-message" data-i18n="welcome">Bem-vindo ao nosso site!</p>
         <h1 data-i18n="welcomeTitle">BEM-VINDO!</h1>
         <p data-i18n="chooseLanguage">Escolha seu idioma:</p>
         <div id="language-selection">
-          <!-- Botões de idioma (Brasil, Espanha, Estados Unidos, Israel) -->
-          <button class="lang-btn" data-lang="pt" title="Português - Brasil">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg"
-              alt="Bandeira do Brasil"
-              style="width: 30px; height: 20px"
-            />
-          </button>
-          <button class="lang-btn" data-lang="es" title="Español">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg"
-              alt="Bandeira da Espanha"
-              style="width: 30px; height: 20px"
-            />
-          </button>
-          <button class="lang-btn" data-lang="en" title="English">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg"
-              alt="Bandeira dos Estados Unidos"
-              style="width: 30px; height: 20px"
-            />
-          </button>
-          <button class="lang-btn" data-lang="he" title="Hebrew">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg"
-              alt="Bandeira de Israel"
-              style="width: 30px; height: 20px"
-            />
-          </button>
+            <!-- Botões de idioma (Brasil, Espanha, Estados Unidos, Israel) -->
+            <button class="lang-btn" data-lang="pt" title="Português - Brasil">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Bandeira do Brasil" style="width:30px;height:20px;">
+            </button>
+            <button class="lang-btn" data-lang="es" title="Español">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Bandeira da Espanha" style="width:30px;height:20px;">
+            </button>
+            <button class="lang-btn" data-lang="en" title="English">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg" alt="Bandeira dos Estados Unidos" style="width:30px;height:20px;">
+            </button>
+            <button class="lang-btn" data-lang="he" title="Hebrew">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Bandeira de Israel" style="width:30px;height:20px;">
+            </button>
         </div>
-      </div>
     </div>
+</div>
 
-    <!--
-  #floating-menu: Menu lateral flutuante contendo botões como zoom-in, zoom-out, pesquisar, etc.
-  .hidden => só é exibido quando ativado em scripts.js.
--->
-    <div id="floating-menu" class="floating-menu hidden">
-      <button class="menu-btn" data-feature="dicas" aria-label="Dicas">
-        <i class="fas fa-lightbulb"></i>
-      </button>
-      <button class="menu-btn zoom-in" aria-label="Aumentar Zoom">
-        <i class="fas fa-plus"></i>
-      </button>
-      <button class="menu-btn zoom-out" aria-label="Diminuir Zoom">
-        <i class="fas fa-minus"></i>
-      </button>
-      <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar">
-        <i class="fas fa-search"></i>
-      </button>
-      <button class="menu-btn" data-feature="sobre" aria-label="Sobre">
-        <i class="fas fa-info-circle"></i>
-      </button>
+<!-- MENUS -->
+<!-- Menu Toggle -->
+<button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Abrir menu">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- #floating-menu: Menu lateral flutuante contendo botões como zoom-in, zoom-out, pesquisar, etc.
+  .hidden => só é exibido quando ativado em scripts.js. -->
+<div id="floating-menu" class="floating-menu hidden">
+    <button class="menu-btn zoom-in"  aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
+    <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
+    <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+</div>
+
+<!-- #menu: Menu lateral expansível que exibe submenus:
+- #touristSpots-submenu, #tours-submenu, #beaches-submenu, etc. -->
+<div id="menu" class="menu">
+  <!-- Botão para fechar o menu lateral -->
+  <button id="close-menu-btn" class="close-side-menu-btn" onclick="closeSideMenu()" data-i18n="close_menu">X</button>        
+    <div id="touristSpots-submenu" class="submenu" data-feature="touristSpots"></div>
+    <div id="tours-submenu" class="submenu" data-feature="tours"></div>
+    <div id="beaches-submenu" class="submenu" data-feature="beaches"></div>
+    <div id="nightlife-submenu" class="submenu" data-feature="nightlife"></div>
+    <div id="restaurants-submenu" class="submenu" data-feature="restaurants"></div>
+    <div id="inns-submenu" class="submenu" data-feature="inns"></div>
+    <div id="shops-submenu" class="submenu" data-feature="shops"></div>
+    <div id="emergencies-submenu" class="submenu" data-feature="emergencies"></div>
+    <div id="tips-submenu" class="submenu" data-feature="tips"></div>
+    <div id="about-submenu" class="submenu" data-feature="about"></div>
+    <div id="education-submenu" class="submenu" data-feature="education"></div>
+</div>
+
+<!--.control-buttons: Seção principal de botões que podem ser exibidos ou não (display:none) conforme a ação do usuário (scripts.js).
+Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
+<div class="control-buttons">
+
+<!-- Botões tutorial -->
+<button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" data-action="next" data-i18n="tutorialStart">Sim</button>
+<button id="tutorial-finalizar-btn" class="control-btn" style="display:none;" data-action="end" data-i18n="tutorialEnd">Não</button>
+
+<!-- Botões interesses -->
+  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" onclick="performControlAction('pontos-turisticos')" data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
+  <button id="passeios-btn" class="control-btn" style="display:none" onclick="performControlAction('passeios')" data-feature="passeios" data-i18n="tours">Passeios</button>
+  <button id="praias-btn" class="control-btn" style="display:none" data-action="praias" onclick="performControlAction('praias')" data-feature="praias" data-i18n="beaches">Praias</button>
+  <button id="festas-btn" class="control-btn" style="display:none" onclick="performControlAction('festas')" data-feature="festas" data-i18n="parties">Festas</button>
+  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" onclick="performControlAction('restaurantes')" data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
+  <button id="pousadas-btn" class="control-btn" style="display:none" onclick="performControlAction('pousadas')" data-feature="pousadas" data-i18n="inns">Pousadas</button>
+  <button id="lojas-btn" class="control-btn" style="display:none" onclick="performControlAction('lojas')" data-feature="lojas" data-i18n="shops">Lojas</button>
+  <button id="emergencias-btn" class="control-btn" style="display:none" onclick="performControlAction('emergencias')" data-feature="emergencias" data-i18n="emergencies">Emergências</button>
+  
+<!-- Botões adicionais que aparecem ao clicar em lugar específico do mapa, etc. -->
+  <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
+  <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" data-i18n="createRoute">Como Chegar</button>
+  <button class="control-btn" id="reserve-restaurants-btn" style="display: none;" data-i18n="reserveTable">Reservar Mesa</button>
+  <button class="control-btn" id="call-btn" style="display: none;" data-i18n="call">Ligar</button>
+  <button class="control-btn" id="reserve-inns-btn" style="display: none;" data-i18n="reserveRoom">Reservar Quarto</button>
+  <button class="control-btn" id="reserve-chairs-btn" style="display: none;" data-i18n="reserveChairs">Reservar Cadeiras</button>
+  <button class="control-btn" id="buy-ticket-btn" style="display: none;" data-i18n="buyTicket">Comprar Ingresso</button>
+  <button class="control-btn" id="tour-btn" style="display: none;" data-i18n="reserveTour">Reservar Passeio</button>
+  
+</div>
+
+    <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
+    <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" data-i18n="createRoute">Como Chegar</button>
+    <button class="control-btn" id="reserve-restaurants-btn" style="display: none;" data-i18n="reserveTable">Reservar Mesa</button>
+    <button class="control-btn" id="call-btn" style="display: none;" data-i18n="call">Ligar</button>
+    <button class="control-btn" id="reserve-inns-btn" style="display: none;" data-i18n="reserveRoom">Reservar Quarto</button>
+    <button class="control-btn" id="reserve-chairs-btn" style="display: none;" data-i18n="reserveChairs">Reservar Cadeiras</button>
+    <button class="control-btn" id="buy-ticket-btn" style="display: none;" data-i18n="buyTicket">Comprar Ingresso</button>
+    <button class="control-btn" id="tour-btn" style="display: none;" data-i18n="reserveTour">Reservar Passeio</button>
+    
+<!-- Botões para fluxo de navegação -->
+    <button id="start-navigation-button" class="control-btn" style="display:none;" data-i18n="startNavigation" tabindex="0" aria-label="Iniciar Navegação">Iniciar Navegação</button>
+    <button id="pause-navigation-button" class="control-btn" style="display:none;" data-i18n="pause">Pausar</button>
+
+</div>
+
+<!-- #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).-->
+<div id="carousel-modal" class="carousel-modal">
+  <div class="modal-content">
+    <span id="carousel-modal-close" class="modal-close" data-i18n="close_modal_carousel">X</span>
+    <!-- Swiper container -->
+    <div class="swiper-container">
+      <div class="swiper-wrapper"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
     </div>
+  </div>
+</div>
 
-    <!--
-  #menu: Menu lateral expansível que exibe submenus:
-    - #touristSpots-submenu, #tours-submenu, #beaches-submenu, etc.
--->
-    <div id="menu" class="menu">
-      <!-- Botão para fechar o menu lateral -->
-      <button
-        id="close-menu-btn"
-        class="close-side-menu-btn"
-        onclick="closeSideMenu()"
-        data-i18n="close_menu"
-      >
-        X
-      </button>
+<!-- #route-preview: Pré-visualização da rota (ex.: resumo rápido sem iniciar a navegação).-->
+<div id="route-preview" class="route-preview hidden"></div>
 
-      <!-- Submenus específicos (carregados dinamicamente em scripts.js) -->
-      <div
-        id="touristSpots-submenu"
-        class="submenu"
-        data-feature="touristSpots"
-      ></div>
-      <div id="tours-submenu" class="submenu" data-feature="tours"></div>
-      <div id="beaches-submenu" class="submenu" data-feature="beaches"></div>
-      <div
-        id="nightlife-submenu"
-        class="submenu"
-        data-feature="nightlife"
-      ></div>
-      <div
-        id="restaurants-submenu"
-        class="submenu"
-        data-feature="restaurants"
-      ></div>
-      <div id="inns-submenu" class="submenu" data-feature="inns"></div>
-      <div id="shops-submenu" class="submenu" data-feature="shops"></div>
-      <div
-        id="emergencies-submenu"
-        class="submenu"
-        data-feature="emergencies"
-      ></div>
-      <div id="tips-submenu" class="submenu" data-feature="tips"></div>
-      <div id="about-submenu" class="submenu" data-feature="about"></div>
+<!-- #route-summary: Mostra título "Resumo da Rota", distância e tempo estimado.-->
+<div id="route-summary" class="hidden">
+    <h3 data-i18n="route_summary_title">Resumo da Rota</h3>
+    <p id="route-distance" data-i18n="route_distance">Distância: </p>
+    <p id="route-eta" data-i18n="route_eta">Tempo Estimado: </p>
+</div>
 
-      <!-- Exemplo de botão para iniciar tutorial manual -->
-      <button
-        id="tutorial-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="initializeTutorial()"
-        data-i18n="start_tutorial"
-      >
-        Iniciar Tutorial
-      </button>
-    </div>
+<!-- Select para rotas alternativas (exemplo) -->
+  <select id="route-options" class="hidden"></select>
 
-    <!--
-  .control-buttons: Seção principal de botões que podem ser exibidos ou não (display:none) conforme a ação do usuário (scripts.js).
-  Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.
--->
-    <div class="control-buttons">
-      <!-- Ex.: Botões exibidos dinamicamente -->
-      <button
-        id="tutorial-iniciar-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="next"
-        onclick="nextTutorialStep()"
-        data-i18n="tutorialStart"
-      >
-        Iniciar
-      </button>
-      <button
-        id="pontos-turisticos-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="pontos-turisticos"
-        onclick="performControlAction('pontos-turisticos')"
-        data-feature="pontos-turisticos"
-        data-i18n="tourist_spots"
-      >
-        Pontos Turísticos
-      </button>
-      <button
-        id="passeios-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('passeios')"
-        data-feature="passeios"
-        data-i18n="tours"
-      >
-        Passeios
-      </button>
-      <button
-        id="praias-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="praias"
-        onclick="performControlAction('praias')"
-        data-feature="praias"
-        data-i18n="beaches"
-      >
-        Praias
-      </button>
-      <button
-        id="festas-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('festas')"
-        data-feature="festas"
-        data-i18n="parties"
-      >
-        Festas
-      </button>
-      <button
-        id="restaurantes-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="restaurantes"
-        onclick="performControlAction('restaurantes')"
-        data-feature="restaurantes"
-        data-i18n="restaurants"
-      >
-        Restaurantes
-      </button>
-      <button
-        id="pousadas-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('pousadas')"
-        data-feature="pousadas"
-        data-i18n="inns"
-      >
-        Pousadas
-      </button>
-      <button
-        id="lojas-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('lojas')"
-        data-feature="lojas"
-        data-i18n="shops"
-      >
-        Lojas
-      </button>
-      <button
-        id="emergencias-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('emergencias')"
-        data-feature="emergencias"
-        data-i18n="emergencies"
-      >
-        Emergências
-      </button>
-      <button
-        id="criar-roteiro-personalizado-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="performControlAction('roteiro')"
-        data-feature="roteiro"
-        data-i18n="Roteiro Personalizado"
-      >
-        Roteiro Personalizado
-      </button>
+<!-- #instruction-banner: Banner fixo no topo, exibindo a próxima manobra e detalhes.-->
+<div id="instruction-banner" class="instruction-banner hidden">
+  <div class="instruction-icon">
+    <span id="instruction-arrow">⬅️</span>
+  </div>
+  <div class="instruction-text">
+    <h2 id="instruction-main">Turn left</h2>
+    <p id="instruction-details">200m - Rua Caminho do Farol</p>
+  </div>
+</div>
 
-      <!-- Botões adicionais que aparecem ao clicar em lugar específico do mapa, etc. -->
-      <button
-        class="control-btn"
-        id="about-more-btn"
-        style="display: none"
-        data-i18n="aboutMore"
-      >
-        Fotos
-      </button>
-      <button
-        class="control-btn"
-        id="create-route-btn"
-        style="display: none"
-        data-action="create-route"
-        data-i18n="createRoute"
-      >
-        Como Chegar
-      </button>
-      <button
-        class="control-btn"
-        id="reserve-restaurants-btn"
-        style="display: none"
-        data-i18n="reserveTable"
-      >
-        Reservar Mesa
-      </button>
-      <button
-        class="control-btn"
-        id="call-btn"
-        style="display: none"
-        data-i18n="call"
-      >
-        Ligar
-      </button>
-      <button
-        class="control-btn"
-        id="reserve-inns-btn"
-        style="display: none"
-        data-i18n="reserveRoom"
-      >
-        Reservar Quarto
-      </button>
-      <button
-        class="control-btn"
-        id="reserve-chairs-btn"
-        style="display: none"
-        data-i18n="reserveChairs"
-      >
-        Reservar Cadeiras
-      </button>
-      <button
-        class="control-btn"
-        id="buy-ticket-btn"
-        style="display: none"
-        data-i18n="buyTicket"
-      >
-        Comprar Ingresso
-      </button>
-      <button
-        class="control-btn"
-        id="tour-btn"
-        style="display: none"
-        data-i18n="reserveTour"
-      >
-        Reservar Passeio
-      </button>
+<!-- #route-footer: Rodapé com botões de ação ("Iniciar Navegação", "Acessar menu", "Voltar").-->
+<div id="route-footer" class="route-footer hidden">
+  <div class="route-actions">
+    <button id="start-navigation-rodape-btn" class="route-btn start-btn">Iniciar Navegação</button>
+    <button id="menu-details-btn" class="route-btn details-btn">Acessar menu</button>
+    <button id="cancel-route-btn" class="route-btn cancel-btn">Voltar</button>
+  </div>
+</div>
 
-      <!-- Botões para fluxo de tutorial ou navegação -->
-      <button
-        id="tutorial-send-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="next"
-        onclick="performControlAction('next')"
-        data-i18n="send"
-      >
-        Enviar
-      </button>
-      <button
-        id="access-site-btn"
-        class="control-btn"
-        style="display: none"
-        data-action="access-site"
-        onclick="performControlAction('access-site')"
-        data-i18n="accessSite"
-      >
-        Acessar Site
-      </button>
-      <button
-        id="start-navigation-button"
-        class="control-btn"
-        style="display: none"
-        data-i18n="startNavigation"
-        tabindex="0"
-        aria-label="Iniciar Navegação"
-      >
-        Iniciar Navegação
-      </button>
-      <button
-        id="navigation-end-btn"
-        class="control-btn"
-        style="display: none"
-        onclick="endNavigation()"
-        data-i18n="cancel_navigation"
-      >
-        Parar Navegação
-      </button>
-      <button
-        class="control-btn"
-        id="tutorial-menu-btn"
-        style="display: none"
-        onclick="showTutorialStep('ask-interest')"
-        data-i18n="access_menu"
-      >
-        Acessar Menu
-      </button>
-      <button
-        id="cancel-navigation-button"
-        style="display: none"
-        data-i18n="cancel_navigation"
-      >
-        Cancelar Navegação
-      </button>
-      <button
-        id="pause-navigation-button"
-        class="control-btn"
-        style="display: none"
-        data-i18n="pause"
-      >
-        Pausar
-      </button>
-    </div>
+<!-- Script Principal -->
+<script type="module" src="./js/main.js"></script>
 
-    <!-- Botão de Cancelar Navegação -->
-    <button id="cancel-nav-btn" class="hidden">Cancelar Navegação</button>
+</body>
+<!-- Fim do <body> -------------->
 
-    <!-- Exemplo de Modal Acessível -->
-    <div
-      id="modal-exemplo"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalTitle"
-      aria-describedby="modalDesc"
-      tabindex="-1"
-      style="display: none"
-    >
-      <div class="modal-content">
-        <h2 id="modalTitle">Título do Modal</h2>
-        <p id="modalDesc">Conteúdo ou descrição do modal.</p>
-        <button
-          id="fechar-modal"
-          aria-label="Fechar modal"
-          onclick="closeModal('modal-exemplo', 'modal-trigger')"
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
-
-    <!--
-  #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).
--->
-    <div id="carousel-modal" class="carousel-modal">
-      <div class="modal-content">
-        <span
-          id="carousel-modal-close"
-          onclick="hideModal('carousel-modal')"
-          class="modal-close"
-          data-i18n="close_modal_carousel"
-          >X</span
-        >
-        <!-- Swiper container -->
-        <div class="swiper-container">
-          <div class="swiper-wrapper"></div>
-          <div class="swiper-button-next"></div>
-          <div class="swiper-button-prev"></div>
-          <div class="swiper-pagination"></div>
-        </div>
-      </div>
-    </div>
-
-    <!--
-  #route-preview: Pré-visualização da rota (ex.: resumo rápido sem iniciar a navegação).
--->
-    <div id="route-preview" class="route-preview hidden"></div>
-
-    <!--
-  #route-summary: Mostra título "Resumo da Rota", distância e tempo estimado.
--->
-    <div id="route-summary" class="hidden">
-      <h3 data-i18n="route_summary_title">Resumo da Rota</h3>
-      <p id="route-distance" data-i18n="route_distance">Distância:</p>
-      <p id="route-eta" data-i18n="route_eta">Tempo Estimado:</p>
-    </div>
-
-    <!-- Select para rotas alternativas (exemplo) -->
-    <select
-      id="route-options"
-      class="hidden"
-      aria-label="Opções de rota"
-    ></select>
-
-    <!--
-  #instruction-banner: Banner fixo no topo, exibindo a próxima manobra e detalhes.
--->
-    <div id="instruction-banner" class="instruction-banner hidden">
-      <div class="instruction-icon">
-        <span id="instruction-arrow">⬅️</span>
-      </div>
-      <div class="instruction-text">
-        <h2 id="instruction-main">Turn left</h2>
-        <p id="instruction-details">200m - Rua Caminho do Farol</p>
-      </div>
-    </div>
-
-    <!--
-  #route-footer: Rodapé com botões de ação ("Iniciar Navegação", "Acessar menu", "Voltar").
--->
-    <div id="route-footer" class="route-footer hidden">
-      <div class="route-actions">
-        <button id="start-navigation-rodape-btn" class="route-btn start-btn">
-          Iniciar Navegação
-        </button>
-        <button id="menu-details-btn" class="route-btn details-btn">
-          Acessar menu
-        </button>
-        <button id="cancel-route-btn" class="route-btn cancel-btn">
-          Voltar
-        </button>
-      </div>
-    </div>
-
-    <script type="module" src="./js/scripts.js"></script>
-  </body>
 </html>
+<!-- Fim do arquivo index.html -->
