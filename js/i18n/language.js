@@ -2,6 +2,8 @@
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 
+let selectedLanguage = 'pt'; // Idioma padrão
+
 /* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
   try {
