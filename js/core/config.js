@@ -1,4 +1,6 @@
 import { showNotification } from '../ui/notifications.js';
+import { getGeneralText } from '../ui/texts.js';
+import { selectedLanguage } from './state.js';
 
 //showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
 // Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
@@ -68,6 +70,21 @@ export function updateInterfaceLanguage(lang) {
     console.warn(`Total de traduções ausentes: ${missingTranslations}`);
   } else {
     console.log(`Traduções aplicadas com sucesso para o idioma: ${lang}`);
+  }
+}
+
+// 1. loadResources - Carrega recursos iniciais (imagens, textos, etc.) */
+export async function loadResources(callback) {
+  const loader = document.getElementById('loader');
+  if (loader) loader.style.display = 'block';
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (loader) loader.style.display = 'none';
+    console.log('Recursos carregados com sucesso!');
+    if (typeof callback === 'function') callback();
+  } catch (error) {
+    if (loader) loader.style.display = 'none';
+    console.error('Falha ao carregar recursos:', error);
   }
 }
 

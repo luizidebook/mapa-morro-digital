@@ -1,29 +1,4 @@
-import {
-  showControlButtonsTouristSpots,
-  showControlButtonsTour,
-  showControlButtonsBeaches,
-  showControlButtonsNightlife,
-  showControlButtonsRestaurants,
-  showControlButtonsInns,
-  showControlButtonsShops,
-  showControlButtonsEmergencies,
-  showControlButtonsEducation,
-  hideAllControlButtons,
-} from '../ui/control-buttons.js';
-import {
-  displayCustomTouristSpots,
-  displayCustomTours,
-  displayCustomBeaches,
-  displayCustomNightlife,
-  displayCustomRestaurants,
-  displayCustomInns,
-  displayCustomShops,
-  displayCustomEmergencies,
-  displayCustomEducation,
-} from '../';
-
 export let map; // Instância do mapa
-const markers = []; // Array para armazenar marcadores
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.

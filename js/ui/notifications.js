@@ -1,5 +1,4 @@
 // Importações necessárias
-import { showNotification } from './notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 import { navigationState, selectedLanguage } from '../core/state.js';
 

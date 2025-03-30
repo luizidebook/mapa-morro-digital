@@ -1,15 +1,11 @@
-import {
-  tutorialIsActive,
-  tutorialSteps,
-  currentStep,
-  selectedDestination,
-} from './state.js';
-import {
-  nextTutorialStep,
-  showTutorialStep,
-  startTutorial,
-} from '../tutorial/tutorial.js';
+import { initializeMap } from '../map/map-core.js';
 import { setLanguage, updateInterfaceLanguage } from '../core/config.js';
+import { closeCarouselModal } from '../ui/modals.js';
+import { startTutorial } from '../tutorial/tutorial.js';
+import { showNotification } from '../ui/notifications.js';
+import { startCarousel } from '../ui/carousel.js';
+import { loadResources } from '../core/config.js';
+import { autoAdjustTheme } from '../ui/theme.js';
 
 // Função: Executada quando o DOM é carregado
 export function onDOMContentLoaded() {

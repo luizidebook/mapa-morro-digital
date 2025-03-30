@@ -6,6 +6,27 @@ import {
   displayCustomShops,
 } from '../map/map-markers.js';
 import { giveVoiceFeedback } from '../ui/voice-control.js';
+import {
+  showControlButtonsTouristSpots,
+  showControlButtonsTour,
+  showControlButtonsBeaches,
+  showControlButtonsRestaurants,
+  showControlButtonsShops,
+  showControlButtonsEmergencies,
+  showControlButtonsEducation,
+  showControlButtonsInns,
+  showControlButtonsTips,
+  showControlButtonsNightlife,
+  showControlButtons,
+} from '../ui/control-buttons.js';
+import { clearMarkers } from '../map/map-markers.js';
+import { saveDestinationToCache } from '../core/cache.js';
+import { sendDestinationToServiceWorker } from '../core/service-worker.js';
+import { clearCurrentRoute } from '../map/map-route.js';
+import { getUrlsForLocation } from '../ui/carousel.js';
+import { showDestinationContent } from '../ui/carousel.js';
+import { closeCarouselModal } from '../ui/modals.js';
+import { lastSelectedFeature } from '../core/state.js';
 
 /**
  * 1. handleSubmenuButtonClick - Lida com cliques em botões de submenu.
