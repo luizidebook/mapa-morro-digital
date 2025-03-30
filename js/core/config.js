@@ -1,18 +1,3 @@
-// Função: Carrega recursos iniciais (imagens, textos, etc.)
-export function loadResources(callback) {
-  const loader = document.getElementById('loader');
-  if (loader) loader.style.display = 'block';
-  try {
-    new Promise((resolve) => setTimeout(resolve, 1500));
-    if (loader) loader.style.display = 'none';
-    console.log('Recursos carregados com sucesso!');
-    if (typeof callback === 'function') callback();
-  } catch (error) {
-    if (loader) loader.style.display = 'none';
-    console.error('Falha ao carregar recursos:', error);
-  }
-}
-
 //showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
 // Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
 export function showWelcomeMessage() {

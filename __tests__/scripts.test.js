@@ -1,19 +1,23 @@
-import * as mapCore from '../js/map/map-core.js';
-import * as theme from '../js/ui/theme.js';
-import * as eventListeners from '../js/core/event-listeners.js';
+import { initializeMap, showWelcomeMessage } from '../map/map-core.js';
+import { autoAdjustTheme } from '../ui/theme.js';
+import { setupEventListeners } from '../core/event-listeners.js';
+import { loadResources } from '../core/config.js';
 
-jest.mock('../js/map/map-core.js', () => ({
+jest.mock('../map/map-core.js', () => ({
   initializeMap: jest.fn(),
-  loadResources: jest.fn(),
   showWelcomeMessage: jest.fn(),
 }));
 
-jest.mock('../js/ui/theme.js', () => ({
+jest.mock('../ui/theme.js', () => ({
   autoAdjustTheme: jest.fn(),
 }));
 
-jest.mock('../js/core/event-listeners.js', () => ({
+jest.mock('../core/event-listeners.js', () => ({
   setupEventListeners: jest.fn(),
+}));
+
+jest.mock('../core/config.js', () => ({
+  loadResources: jest.fn(),
 }));
 
 describe('scripts.js', () => {
@@ -21,39 +25,32 @@ describe('scripts.js', () => {
     jest.clearAllMocks();
   });
 
-  test('Deve chamar todas as funções de inicialização corretamente', () => {
-    // Simula o evento DOMContentLoaded
+  test('Deve executar o fluxo de inicialização corretamente', () => {
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
-    // Verifica se as funções foram chamadas
-    expect(mapCore.initializeMap).toHaveBeenCalled();
-    expect(mapCore.loadResources).toHaveBeenCalled();
-    expect(mapCore.showWelcomeMessage).toHaveBeenCalled();
-    expect(eventListeners.setupEventListeners).toHaveBeenCalled();
-    expect(theme.autoAdjustTheme).toHaveBeenCalled();
+    expect(initializeMap).toHaveBeenCalled();
+    expect(loadResources).toHaveBeenCalled();
+    expect(showWelcomeMessage).toHaveBeenCalled();
+    expect(setupEventListeners).toHaveBeenCalled();
+    expect(autoAdjustTheme).toHaveBeenCalled();
   });
 
   test('Deve capturar e exibir erros durante a inicialização', () => {
-    // Simula um erro em uma das funções
-    mapCore.initializeMap.mockImplementation(() => {
+    initializeMap.mockImplementation(() => {
       throw new Error('Erro simulado');
     });
 
-    // Espiona o console.error
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
-    // Simula o evento DOMContentLoaded
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
-    // Verifica se o erro foi capturado e exibido
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Erro durante a inicialização:',
       expect.any(Error)
     );
 
-    // Restaura o console.error
     consoleErrorSpy.mockRestore();
   });
 });

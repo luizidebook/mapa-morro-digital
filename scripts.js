@@ -1,9 +1,5 @@
 // Importações do módulo core/config.js
-import {
-  initializeMap,
-  loadResources,
-  showWelcomeMessage,
-} from './map/map-core.js';
+import { initializeMap, showWelcomeMessage } from './map/map-core.js';
 import { autoAdjustTheme } from './ui/theme.js';
 import { setupEventListeners } from './core/event-listeners.js';
 
@@ -11,11 +7,9 @@ import { setupEventListeners } from './core/event-listeners.js';
 document.addEventListener('DOMContentLoaded', () => {
   try {
     initializeMap();
-    loadResources();
     showWelcomeMessage();
     setupEventListeners();
     autoAdjustTheme();
-    debugger; // A execução pausará aqui
     console.log('DOM completamente carregado e analisado.');
   } catch (error) {
     console.error('Erro durante a inicialização:', error);

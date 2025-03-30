@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1743335793351" clover="3.2.0">
-  <project timestamp="1743335793352" name="All files">
-    <metrics statements="987" coveredstatements="79" conditionals="348" coveredconditionals="16" methods="184" coveredmethods="7" elements="1519" coveredelements="102" complexity="0" loc="987" ncloc="987" packages="7" files="15" classes="15"/>
+<coverage generated="1743336778651" clover="3.2.0">
+  <project timestamp="1743336778652" name="All files">
+    <metrics statements="987" coveredstatements="81" conditionals="348" coveredconditionals="17" methods="184" coveredmethods="7" elements="1519" coveredelements="105" complexity="0" loc="987" ncloc="987" packages="7" files="15" classes="15"/>
     <package name="core">
-      <metrics statements="130" coveredstatements="79" conditionals="42" coveredconditionals="16" methods="14" coveredmethods="7"/>
+      <metrics statements="130" coveredstatements="81" conditionals="42" coveredconditionals="17" methods="14" coveredmethods="7"/>
       <file name="config.js" path="C:\Users\Luiz Idebook\mapa-morro-digital\mapa-morro-digital-test\js\core\config.js">
-        <metrics statements="41" coveredstatements="35" conditionals="24" coveredconditionals="16" methods="7" coveredmethods="7"/>
+        <metrics statements="41" coveredstatements="37" conditionals="24" coveredconditionals="17" methods="7" coveredmethods="7"/>
         <line num="3" count="1" type="stmt"/>
         <line num="4" count="1" type="cond" truecount="1" falsecount="1"/>
         <line num="5" count="1" type="stmt"/>
@@ -21,14 +21,14 @@
         <line num="22" count="1" type="stmt"/>
         <line num="23" count="2" type="stmt"/>
         <line num="25" count="1" type="stmt"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="31" count="1" type="stmt"/>
-        <line num="32" count="1" type="stmt"/>
-        <line num="34" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="35" count="0" type="stmt"/>
-        <line num="38" count="0" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="42" count="1" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="34" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
         <line num="50" count="2" type="stmt"/>
         <line num="51" count="2" type="stmt"/>
