@@ -27,37 +27,6 @@ export function onDOMContentLoaded() {
   }
 }
 
-// Função: Configura os ouvintes de eventos globais
-export function setupEventListeners() {
-  // Evento para o botão "cancel-route-btn"
-  const cancelRouteBtn = document.getElementById('cancel-route-btn');
-  if (cancelRouteBtn) {
-    cancelRouteBtn.addEventListener('click', () => {
-      console.log("Botão 'cancel-route-btn' clicado!");
-      endNavigation();
-      restoreFeatureUI('lastSelectedFeature');
-    });
-  }
-
-  // Evento para botões de idioma
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const lang = button.dataset.lang;
-      setLanguage(lang);
-      updateInterfaceLanguage(lang);
-      startTutorial();
-      console.log(`Idioma alterado para: ${lang}`);
-    });
-  });
-
-  // Evento para detectar inatividade do usuário
-  document.addEventListener('mousemove', () => {
-    console.log('Usuário ativo.');
-  });
-
-  console.log('Ouvintes de eventos configurados.');
-}
-
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
  */

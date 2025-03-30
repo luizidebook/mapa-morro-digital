@@ -1,5 +1,5 @@
 import { showNotification } from '../ui/notifications.js';
-import { updateUserMarker, clearMarkers } from '../map/map-core.js';
+import { clearMarkers } from '../map/map-core.js';
 import { calculateDistance } from '../navigation/route.js';
 
 // Função: Obtém a localização atual do usuário
