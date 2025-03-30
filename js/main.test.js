@@ -46,9 +46,11 @@ describe('Teste de inicialização do main.js', () => {
     // Executa a função
     expect(() => onDOMContentLoaded()).not.toThrow();
 
-    // Verifica se o erro foi tratado
+    // Verifica se o erro foi tratado e as outras funções foram chamadas
     expect(initializeMap).toHaveBeenCalled();
     expect(showWelcomeMessage).toHaveBeenCalled(); // Deve continuar chamando as outras funções
+    expect(setupEventListeners).toHaveBeenCalled();
+    expect(autoAdjustTheme).toHaveBeenCalled();
   });
 
   test('Deve capturar erros na exibição da mensagem de boas-vindas', () => {
@@ -60,9 +62,10 @@ describe('Teste de inicialização do main.js', () => {
     // Executa a função
     expect(() => onDOMContentLoaded()).not.toThrow();
 
-    // Verifica se o erro foi tratado
+    // Verifica se o erro foi tratado e as outras funções foram chamadas
     expect(initializeMap).toHaveBeenCalled();
     expect(showWelcomeMessage).toHaveBeenCalled();
     expect(setupEventListeners).toHaveBeenCalled(); // Deve continuar chamando as outras funções
+    expect(autoAdjustTheme).toHaveBeenCalled();
   });
 });

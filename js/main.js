@@ -17,13 +17,16 @@ import { initializeMap } from './map/map-core.js';
 import { showWelcomeMessage } from './core/config.js';
 import { setupEventListeners } from './core/event-listeners.js';
 import { autoAdjustTheme } from './ui/theme.js';
+
 /**
  * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
  * Este é o ponto de entrada principal da aplicação, onde iniciamos todos os
  * componentes essenciais na ordem correta.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+
+export function onDOMContentLoaded() {
   try {
     console.log('Iniciando aplicação...');
 
@@ -31,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMap();
     // Exibe a tela de boas-vindas com seleção de idioma
     showWelcomeMessage();
-    // Configura todos os event listeners para interação do usuário (única função importada)
+    // Configura todos os event listeners para interação do usuário
     setupEventListeners();
     // Ajusta o tema da interface (claro/escuro) com base nas preferências
     autoAdjustTheme();
@@ -48,4 +51,4 @@ document.addEventListener('DOMContentLoaded', () => {
       'Ocorreu um erro ao iniciar o aplicativo. Por favor, recarregue a página.';
     document.body.appendChild(errorMessage);
   }
-});
+}
