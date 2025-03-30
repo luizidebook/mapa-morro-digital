@@ -10,24 +10,16 @@ export function initializeMap() {
     console.warn('Mapa já inicializado.');
     return;
   }
-  console.log('Inicializando mapa...');
 
-  // Define as camadas de tiles
+  console.log('Inicializando mapa...');
   const tileLayers = {
     streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }),
-    satellite: L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: '© Esri',
-        maxZoom: 19,
-      }
-    ),
   };
 
-  // Cria o mapa com uma visão inicial (esta posição será atualizada quando a localização do usuário for obtida)
+  // Inicializa o mapa e atualiza a variável global `map`
   map = L.map('map', {
     layers: [tileLayers.streets],
     zoomControl: false,
@@ -35,15 +27,7 @@ export function initializeMap() {
     minZoom: 3,
   }).setView([-13.378, -38.918], 14);
 
-  // Adiciona o controle de camadas
   L.control.layers(tileLayers).addTo(map);
-
-  if (typeof RotationPlugin !== 'undefined') {
-    RotationPlugin.initialize();
-  } else {
-    console.warn('Plugin de rotação não encontrado. Usando CSS para rotação.');
-    // Código alternativo para rotação via CSS
-  }
 }
 
 /**
@@ -190,4 +174,28 @@ export function centerMapOnUser(lat, lon, zoom = 15) {
  */
 export function addArrowToMap(coordinate) {
   console.log('Seta adicionada no mapa em:', coordinate);
+}
+
+/**
+ * Adiciona um marcador rotacionado no mapa.
+ * @param {number} lat - Latitude.
+ * @param {number} lon - Longitude.
+ * @param {number} angle - Ângulo de rotação.
+ * @returns {Object} Marcador adicionado.
+ */
+export function addRotatedMarker(lat, lon, angle) {
+  if (!map) {
+    console.error('Mapa não inicializado.');
+    return;
+  }
+
+  const marker = L.marker([lat, lon], {
+    rotationAngle: angle, // Define o ângulo de rotação
+    rotationOrigin: 'center bottom', // Origem da rotação
+  }).addTo(map);
+
+  console.log(
+    `Marcador rotacionado adicionado em [${lat}, ${lon}] com ângulo ${angle}°.`
+  );
+  return marker;
 }

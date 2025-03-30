@@ -23,10 +23,11 @@ export const navigationState = {
 };
 
 // Variáveis auxiliares
+export let map = null; // Variável global para a instância do mapa
+export const markers = []; // Array para armazenar marcadores
 export let selectedLanguage = 'pt';
 export let selectedDestination = {};
 export let userLocation = null;
-export let markers = [];
 export let currentRoute = null;
 export let userMarker = null;
 export let destinationMarker = null;
