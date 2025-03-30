@@ -5,12 +5,19 @@
   "scripts": {
     "test": "jest",
     "format": "prettier --write .",
-    "check-format": "prettier --check ."
+    "check-format": "prettier --check .",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.0.0",
+    "@eslint/js": "^9.23.0",
     "babel-jest": "^29.0.0",
+    "eslint": "^9.23.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.0.0"
+    "jest-environment-jsdom": "^29.0.0",
+    "typescript-eslint": "^8.28.0"
   }
 }
