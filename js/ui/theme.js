@@ -1,3 +1,6 @@
+import { showNotification } from '../ui/notifications.js';
+import { map } from '../map/map-core.js';
+
 /**
  * Ajusta automaticamente o tema com base na hora do dia.
  * Se a hora atual estiver entre 18h e 6h, ativa o tema escuro.
@@ -18,4 +21,14 @@ export function autoAdjustTheme() {
       showNotification('Tema claro ativado automaticamente.', 'info');
     }
   }
+}
+
+/**
+ * toggleDarkMode - Alterna o modo escuro.
+ */
+export function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  map.getContainer().classList.toggle('dark-map');
+  showNotification('Modo escuro alternado.', 'info');
+  console.log('toggleDarkMode: Alternância de modo escuro executada.');
 }

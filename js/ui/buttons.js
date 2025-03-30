@@ -197,3 +197,11 @@ export function showButtons(buttonIds) {
     }
   });
 }
+
+/**
+ * openDestinationWebsite
+ *    Abre a URL de um destino em nova aba.
+ */
+export function openDestinationWebsite(url) {
+  window.open(url, '_blank');
+}

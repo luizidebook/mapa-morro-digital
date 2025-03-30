@@ -13,6 +13,23 @@ import {
 import { restoreFeatureUI } from '../map/map-core.js';
 import { showNotification } from '../ui/notifications.js';
 import { calculateDistance } from '../navigation/route.js';
+import {
+  tutorialIsActive,
+  tutorialSteps,
+  currentStep,
+  selectedDestination,
+  Feature,
+} from './state.js';
+import { handleFeatureSelection } from '../ui/submenus.js';
+import { openDestinationWebsite } from '../ui/buttons.js';
+import { startCarousel } from '../ui/carousel.js';
+import { closeCarouselModal } from '../ui/modals.js';
+import { searchLocation } from '../ui/search.js';
+import { closeSideMenu } from '../ui/buttons.js';
+import { hideInstructionBanner } from '../ui/navigation.js';
+import { nextTutorialStep, showTutorialStep } from '../tutorial/tutorial.js';
+import { clearRouteMarkers } from '../ui/routeMarkers.js';
+import { startRouteCreation } from '../navigation/route.js';
 
 // Função: Executada quando o DOM é carregado
 export function onDOMContentLoaded() {

@@ -1,9 +1,15 @@
 import { map } from '../core/constants.js';
 import { selectedDestination, navigationState } from '../core/state.js';
 import { userLocation } from '../geolocation/tracking.js';
+import {
+  showRouteLoadingIndicator,
+  hideRouteLoadingIndicator,
+} from '../ui/loading.js';
+import { showNotification } from '../ui/notifications.js';
+import { getGeneralText } from '../ui/texts.js';
 
 /**
- * 1. startNavigation.
+ * startNavigation.
 /**
  * Inicia a navegação para o destino selecionado, configurando o fluxo completo:
  *  - Validação do destino e disponibilidade de localização;
@@ -195,7 +201,7 @@ export async function startNavigation() {
  * 4. Chama startRotationAuto para ativar os eventos de deviceorientation, permitindo
  *    que o mapa atualize continuamente a rotação com base nas leituras do dispositivo.
  */
-function startRotationAuto() {
+export function startRotationAuto() {
   console.log(
     '[startRotationAuto] Tentando ativar rotação automática do mapa...'
   );
@@ -269,10 +275,10 @@ function startRotationAuto() {
 }
 /**
 
- * 2. stopRotationAuto
+ * stopRotationAuto
  * Desativa a rotação automática, remove listener e reseta a rotação do container se quiser.
 */
-function stopRotationAuto() {
+export function stopRotationAuto() {
   // Marca no state
   if (navigationState) {
     navigationState.isRotationEnabled = false;
@@ -295,12 +301,10 @@ function stopRotationAuto() {
 }
 
 /**
- * 2. endNavigation
- /**
  * endNavigation
  * Finaliza a navegação, limpando estados e parando o monitoramento.
  */
-function endNavigation() {
+export function endNavigation() {
   // 1) Finaliza e limpa tudo relativo à navegação
   isNavigationActive = false;
   isNavigationPaused = false;
@@ -329,15 +333,15 @@ function endNavigation() {
   showNotification(getGeneralText('navEnded', selectedLanguage), 'info');
 }
 
-function showMainCategories() {
+export function showMainCategories() {
   hideAllControlButtons('start-navigation-button'); // garante que não haja botões duplicados
 }
 
 /**
- * 3. pauseNavigation
- *     Pausa a navegação.
+ * pauseNavigation
+ * Pausa a navegação.
  */
-function pauseNavigation() {
+export function pauseNavigation() {
   if (!navigationState.isActive) {
     console.warn('Navegação não está ativa para pausar.');
     return;
@@ -356,9 +360,9 @@ function pauseNavigation() {
 }
 
 /**
- * 4. toggleNavigationPause
- *     Alterna entre pausar e retomar a navegação. */
-function toggleNavigationPause() {
+ * toggleNavigationPause
+ * Alterna entre pausar e retomar a navegação. */
+export function toggleNavigationPause() {
   if (navigationState.isPaused) {
     navigationState.isPaused = false;
     showNotification(
@@ -395,7 +399,7 @@ function toggleNavigationPause() {
 }
 
 /**
- * 5. updateRealTimeNavigation
+ * updateRealTimeNavigation
  /**
  * updateRealTimeNavigation(lat, lon, instructions, destLat, destLon, lang, heading)
  * Atualiza a navegação em tempo real:
@@ -403,7 +407,7 @@ function toggleNavigationPause() {
  * - Reposiciona o mapa suavemente com panTo.
  * - Atualiza a interface (ex.: banner de instruções) com a instrução atual.
  */
-function updateRealTimeNavigation(
+export function updateRealTimeNavigation(
   lat,
   lon,
   instructions,
@@ -427,7 +431,7 @@ function updateRealTimeNavigation(
 }
 
 /**
- * 6. adjustMapZoomBasedOnSpeed
+ * adjustMapZoomBasedOnSpeed
  * Cria um sistema de zoom dinâmico que ajusta o zoom com base na velocidade.
  */
 export function adjustMapZoomBasedOnSpeed(speed) {
@@ -447,7 +451,7 @@ export function adjustMapZoomBasedOnSpeed(speed) {
 }
 
 /**
- * 7. getRouteBearingForUser
+ * getRouteBearingForUser
  * Calcula o rumo que o usuário deve seguir com base na rota.
  * Utiliza a projeção do ponto do usuário sobre a rota para identificar
  * o segmento e, a partir dele, determina o rumo em direção ao próximo ponto.
@@ -480,7 +484,7 @@ export function getRouteBearingForUser(userLat, userLon, routeCoordinates) {
 }
 
 /**
- * 8. clearUserMarker
+ * clearUserMarker
  * Remove o marcador do usuário e o círculo de precisão do mapa,
  * desfazendo todas as alterações realizadas por updateUserMarker.
  * - Remove window.userMarker (se existir) e o retira do mapa.
@@ -510,11 +514,11 @@ export function clearUserMarker() {
 
 /**
 
-  --- 12.2. Recalibração e Notificações ---
+  --- Recalibração e Notificações ---
 
 /**
- * 1. recalculateRoute
- *     Recalcula a rota em caso de desvio. */
+ * recalculateRoute
+ * Recalcula a rota em caso de desvio. */
 /**
  * Recalcula a rota com base na posição atual do usuário.
  * Atualiza as instruções, a rota no mapa e fornece feedback ao usuário.
@@ -531,7 +535,6 @@ export async function recalculateRoute(
 ) {
   lastRecalculationTime = Date.now();
   showRouteLoadingIndicator();
-
   // Busca novas opções de rota com base na posição atual e destino
   let newRouteOptions = await fetchMultipleRouteOptions(
     currentLat,
@@ -547,7 +550,6 @@ export async function recalculateRoute(
     hideRouteLoadingIndicator();
     return;
   }
-
   // Permite que o usuário escolha a nova rota
   let newSelectedRoute = await promptUserToChooseRoute(newRouteOptions);
   if (!newSelectedRoute) {
@@ -581,8 +583,6 @@ export async function recalculateRoute(
 }
 
 /**
- * 2. notifyDeviation
-/**
  * notifyDeviation
  * Notifica o usuário sobre um desvio do trajeto e dispara o recálculo da rota.
  * Chama recalculateRoute com a flag bigDeviation.
@@ -607,7 +607,7 @@ export function notifyDeviation() {
 }
 
 /**
- * 3. validateDestination
+ * validateDestination
  * Verifica se o destino fornecido (ou o global selectedDestination) possui coordenadas válidas.
  * Agora também verifica os limites geográficos.
  * @param {Object} [destination=selectedDestination] - Objeto com as propriedades lat e lon.
@@ -641,7 +641,6 @@ export function validateDestination(destination = selectedDestination) {
     );
     return false;
   }
-
   // Verifica limites: latitude entre -90 e 90; longitude entre -180 e 180
   if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     showNotification(
@@ -654,14 +653,13 @@ export function validateDestination(destination = selectedDestination) {
     );
     return false;
   }
-
   console.log('[validateDestination] Destino válido:', destination);
   return true;
 }
 
 /**
- * 4. handleRecalculation
- *     Lida com o recálculo automático da rota. */
+ * handleRecalculation
+ * Lida com o recálculo automático da rota. */
 export function handleRecalculation() {
   if (checkIfUserIdle()) {
     pauseNavigation();
@@ -677,42 +675,20 @@ export function handleRecalculation() {
 }
 
 /**
- * 5. highlightNextStepInMap
- *     Destaca visualmente o próximo passo da rota no mapa. */
-export function highlightNextStepInMap(step) {
-  if (!step || !step.lat || !step.lon) {
-    console.warn('Step inválido para destaque.');
-    return;
-  }
-  if (window.nextStepMarker) {
-    map.removeLayer(window.nextStepMarker);
-    window.nextStepMarker = null;
-  }
-  const highlightIcon = L.divIcon({ className: 'blinking-arrow' });
-  window.nextStepMarker = L.marker([step.lat, step.lon], {
-    icon: highlightIcon,
-  }).addTo(map);
-  window.nextStepMarker.bindPopup(`Próximo passo: ${step.text}`).openPopup();
-  console.log('Próximo passo destacado:', step.text);
-}
-
-/**
- * 6. notifyRouteDeviation
- *    Exibe notificação de que o usuário está fora da rota. */
+ * notifyRouteDeviation
+ * Exibe notificação de que o usuário está fora da rota. */
 export function notifyRouteDeviation() {
   showNotification('Você está fora da rota. Ajuste seu caminho.', 'warning');
 }
 
 /**
- * 7. notifyNextInstruction
- *    Exibe a próxima instrução de navegação. */
+ * notifyNextInstruction
+ * Exibe a próxima instrução de navegação. */
 export function notifyNextInstruction(instruction) {
   showNotification(`Próxima instrução: ${instruction}`, 'info');
   console.log('Instrução notificada:', instruction);
 }
 
-/**
- * 8. shouldRecalculateRoute
 /**
  * shouldRecalculateRoute
  * Verifica se o usuário se afastou do passo atual a ponto de necessitar um recálculo da rota.
@@ -747,20 +723,20 @@ export function shouldRecalculateRoute(currentLat, currentLon, routePoints) {
 }
 
 /**
- * 9. checkIfUserIdle
- *     Verifica se o usuário está inativo.
- *     (Stub: retorna false como exemplo.) */
+ * checkIfUserIdle
+ * Verifica se o usuário está inativo.
+ * (Stub: retorna false como exemplo.) */
 export function checkIfUserIdle(timeout = 300000) {
   // Exemplo: sempre retorna false
   return false;
 }
 
 /**
-  --- 12.3. Enriquecimento das Instruções ---
+  --- Enriquecimento das Instruções ---
 /**
- * 1. validateRouteData
- *    Valida os dados retornados pela API de rota. */
-function validateRouteData(routeData) {
+ * validateRouteData
+ * Valida os dados retornados pela API de rota. */
+export function validateRouteData(routeData) {
   if (!routeData || !routeData.features || routeData.features.length === 0) {
     showNotification('Erro ao carregar dados da rota.', 'error');
     return false;
@@ -775,9 +751,9 @@ function validateRouteData(routeData) {
 }
 
 /**
- * 2. startRoutePreview
- *     Exibe a pré-visualização da rota antes de iniciar a navegação. */
-function startRoutePreview() {
+ * startRoutePreview
+ * Exibe a pré-visualização da rota antes de iniciar a navegação. */
+export function startRoutePreview() {
   if (!currentRouteData) {
     showNotification('Nenhuma rota disponível para pré-visualização.', 'error');
     return;
@@ -788,9 +764,9 @@ function startRoutePreview() {
 }
 
 /**
- * 3. drawPath
- *     Desenha uma polyline representando a rota no mapa. */
-function drawPath(userLat, userLon, instructions, lang) {
+ * drawPath
+ * Desenha uma polyline representando a rota no mapa. */
+export function drawPath(userLat, userLon, instructions, lang) {
   try {
     if (window.navigationPath) {
       map.removeLayer(window.navigationPath);
@@ -812,7 +788,7 @@ function drawPath(userLat, userLon, instructions, lang) {
 }
 
 /**
- * 4. enrichInstructionsWithOSM
+ * enrichInstructionsWithOSM
 /**
  * enrichInstructionsWithOSM
  * Enriquece as instruções com dados adicionais do OSM (por exemplo, POIs próximos).
@@ -821,7 +797,7 @@ function drawPath(userLat, userLon, instructions, lang) {
  * @param {string} [lang='pt'] - Idioma para as mensagens.
  * @returns {Promise<Array>} - Array de instruções enriquecidas.
  */
-async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
+export async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
   try {
     const enriched = await Promise.all(
       instructions.map(async (step) => {
@@ -859,7 +835,7 @@ async function enrichInstructionsWithOSM(instructions, lang = 'pt') {
  * fakeFetchPOIsNearby
  * Simula uma requisição assíncrona que retorna pontos de interesse próximos.
  */
-async function fakeFetchPOIsNearby(lat, lon) {
+export async function fakeFetchPOIsNearby(lat, lon) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
@@ -871,8 +847,6 @@ async function fakeFetchPOIsNearby(lat, lon) {
 }
 
 /**
- * 5. fetchRouteInstructions
- /**
  * fetchRouteInstructions
  * Busca instruções de rota (turn-by-turn) via API OpenRouteService.
  * - Monta a URL com os parâmetros fornecidos.
@@ -888,7 +862,7 @@ async function fakeFetchPOIsNearby(lat, lon) {
  * @param {string} [profile="foot-walking"] - Perfil de rota.
  * @returns {Promise<Array>} - Array de instruções formatadas.
  */
-async function fetchRouteInstructions(
+export async function fetchRouteInstructions(
   startLat,
   startLon,
   destLat,
@@ -955,7 +929,7 @@ async function fetchRouteInstructions(
 }
 
 /**
- * 6. finalizeRouteMarkers
+ * finalizeRouteMarkers
 /**
  * finalizeRouteMarkers
  * Adiciona marcadores de origem e destino no mapa.
@@ -964,7 +938,7 @@ async function fetchRouteInstructions(
  * @param {number} userLon - Longitude do ponto de origem.
  * @param {Object} destination - Objeto contendo lat, lon e (opcionalmente) o nome do destino.
  */
-function finalizeRouteMarkers(userLat, userLon, destination) {
+export function finalizeRouteMarkers(userLat, userLon, destination) {
   // Adiciona um marcador no destino com um ícone de bandeira de chegada
   window.destRouteMarker = L.marker([destination.lat, destination.lon])
     .addTo(map)
@@ -976,9 +950,14 @@ function finalizeRouteMarkers(userLat, userLon, destination) {
 }
 
 /**
- * 7. recalcRouteOnDeviation
- *     Recalcula a rota ao detectar que o usuário se desviou. */
-async function recalcRouteOnDeviation(userLat, userLon, destLat, destLon) {
+ * recalcRouteOnDeviation
+ * Recalcula a rota ao detectar que o usuário se desviou. */
+export async function recalcRouteOnDeviation(
+  userLat,
+  userLon,
+  destLat,
+  destLon
+) {
   console.log('Recalculando rota devido ao desvio...');
   if (currentRoute) {
     map.removeLayer(currentRoute);
@@ -1008,7 +987,7 @@ async function recalcRouteOnDeviation(userLat, userLon, destLat, destLon) {
 }
 
 /**
- * 8. updateRouteFooter
+ * updateRouteFooter
 /**
  * updateRouteFooter
  * Atualiza o rodapé da rota com informações de tempo estimado e distância.
@@ -1016,7 +995,7 @@ async function recalcRouteOnDeviation(userLat, userLon, destLat, destLon) {
  * @param {Object} routeData - Dados da rota retornados pela API.
  * @param {string} [lang=selectedLanguage] - Código do idioma.
  */
-function updateRouteFooter(routeData, lang = selectedLanguage) {
+export function updateRouteFooter(routeData, lang = selectedLanguage) {
   if (!routeData || !routeData.features || routeData.features.length === 0) {
     console.warn(
       '[updateRouteFooter] Dados de rota inválidos para atualização.'
@@ -1056,7 +1035,7 @@ function updateRouteFooter(routeData, lang = selectedLanguage) {
 }
 
 /**
- * 9. updateInstructionBanner
+ * updateInstructionBanner
 /**
  * updateInstructionBanner
  * Atualiza o banner de instruções exibido na interface.
@@ -1066,7 +1045,7 @@ function updateRouteFooter(routeData, lang = selectedLanguage) {
  * @param {Object} instruction - Objeto contendo a instrução atual.
  * @param {string} [lang=selectedLanguage] - Código do idioma.
  */
-function updateInstructionBanner(instruction, lang = selectedLanguage) {
+export function updateInstructionBanner(instruction, lang = selectedLanguage) {
   const banner = document.getElementById('instruction-banner');
   if (!banner) {
     console.error(
@@ -1102,9 +1081,9 @@ function updateInstructionBanner(instruction, lang = selectedLanguage) {
 }
 
 /**
- * 10. updateNavigationInstructions
- *     Atualiza as instruções de navegação em tempo real conforme o usuário se move. */
-function updateNavigationInstructions(
+ * updateNavigationInstructions
+ * Atualiza as instruções de navegação em tempo real conforme o usuário se move. */
+export function updateNavigationInstructions(
   userLat,
   userLon,
   instructions,
@@ -1143,9 +1122,9 @@ function updateNavigationInstructions(
 }
 
 /**
- * 11. updateNavigationProgress
- *     Atualiza a barra de progresso da navegação. */
-function updateNavigationProgress(progress) {
+ * updateNavigationProgress
+ * Atualiza a barra de progresso da navegação. */
+export function updateNavigationProgress(progress) {
   const progressBar = document.getElementById('progress-bar');
   if (!progressBar) return;
   progressBar.style.width = `${progress}%`;
@@ -1154,9 +1133,9 @@ function updateNavigationProgress(progress) {
 }
 
 /**
- * 12. updateRoutePreview
- *     Atualiza container com pré-visualização de rota */
-function updateRoutePreview(contentHTML) {
+ * updateRoutePreview
+ * Atualiza container com pré-visualização de rota */
+export function updateRoutePreview(contentHTML) {
   const previewContainer = document.getElementById('route-preview');
   if (!previewContainer) {
     console.error('Container de pré-visualização não encontrado.');
@@ -1169,15 +1148,15 @@ function updateRoutePreview(contentHTML) {
 }
 /**
 
-  --- 12.4. Rotina de Navegação ---
+  --- Rotina de Navegação ---
 
- * 1. startRotationAuto
+ * startRotationAuto
  * @description Ativa a rotação automática do mapa, sincronizando com o heading (orientação)
  * do usuário, se suportado. Usa DeviceOrientationEvent, solicitando permissão em iOS.
 */
 // Declare globalmente
 // Função para anexar o listener de deviceorientation e iniciar a rotação automática
-function startRotationAuto() {
+export function startRotationAuto() {
   if (
     DeviceOrientationEvent.requestPermission &&
     typeof DeviceOrientationEvent.requestPermission === 'function'
@@ -1227,7 +1206,7 @@ function onDeviceOrientationChange(event) {
  * Desativa a rotação automática do mapa removendo o listener de deviceorientation.
  * Também reseta a transformação CSS do container do mapa.
  */
-function stopRotationAuto() {
+export function stopRotationAuto() {
   if (navigationState) {
     navigationState.isRotationEnabled = false;
   }
@@ -1244,12 +1223,12 @@ function stopRotationAuto() {
 }
 
 /**
-  --- 12.5. Formatação e Exibição de Instruções ---
+  --- Formatação e Exibição de Instruções ---
 
- * 1. buildInstructionMessage
+ * buildInstructionMessage
  * Monta a mensagem final a partir da instrução bruta.
  */
-function buildInstructionMessage(rawInstruction, lang = 'pt') {
+export function buildInstructionMessage(rawInstruction, lang = 'pt') {
   // Usa mapORSInstruction para extrair a chave da manobra e o nome do local
   const { maneuverKey, placeName } = mapORSInstruction(rawInstruction);
   // Se houver um local, utiliza a chave com sufixo "_on"
@@ -1261,12 +1240,12 @@ function buildInstructionMessage(rawInstruction, lang = 'pt') {
 }
 
 /**
- * 2. updateInstructionDisplay
+ * updateInstructionDisplay
  * Atualiza e exibe a lista de instruções na interface.
  * Recebe um array de instruções brutas e o idioma selecionado.
  * O elemento com id "instructions-container" deve existir na página.
  */
-function updateInstructionDisplay(rawInstructions, lang = 'pt') {
+export function updateInstructionDisplay(rawInstructions, lang = 'pt') {
   const container = document.getElementById('instruction-banner');
   if (!container) {
     console.error("Elemento 'instruction-banner' não encontrado.");
@@ -1285,10 +1264,10 @@ function updateInstructionDisplay(rawInstructions, lang = 'pt') {
 }
 
 /**
- * 3. mapORSInstruction
+ * mapORSInstruction
  * Extrai da instrução bruta a manobra, a direção e o nome do local.
  */
-function mapORSInstruction(rawInstruction) {
+export function mapORSInstruction(rawInstruction) {
   let maneuverKey = 'unknown';
   let placeName = '';
   let prepositionUsed = '';
@@ -1354,14 +1333,14 @@ function mapORSInstruction(rawInstruction) {
 
 /**
 
- * 4. animateMapToLocalizationUser
+ * animateMapToLocalizationUser
  /**
 /**
  * animateMapToLocalizationUser(targetLat, targetLon)
  * Realiza uma animação suave para centralizar o mapa na localização do usuário.
  * A animação interpola entre o centro atual e a posição (targetLat, targetLon) durante 1 segundo.
  */
-function animateMapToLocalizationUser(targetLat, targetLon) {
+export function animateMapToLocalizationUser(targetLat, targetLon) {
   const animationDuration = 1000; // duração em milissegundos
   const startCenter = map.getCenter();
   const startLat = startCenter.lat;
@@ -1455,37 +1434,4 @@ async function promptUserToChooseRoute(routeOptions) {
     modalOverlay.appendChild(modalContainer);
     document.body.appendChild(modalOverlay);
   });
-}
-
-/**
-
- * 5. hideRouteFooter
- * Esconde o rodapé do resumo da rota.
- * Elemento: id="route-footer"
- */
-function hideRouteFooter() {
-  const footer = document.getElementById('route-footer');
-  if (footer) {
-    footer.style.display = 'none';
-    footer.classList.add('hidden');
-    console.log('Rodapé de resumo da rota escondido.');
-  } else {
-    console.warn("Elemento 'route-footer' não encontrado.");
-  }
-}
-
-/**
- * 6. hideInstructionBanner
- * Esconde o banner de instruções.
- * Elemento: id="instruction-banner"
- */
-function hideInstructionBanner() {
-  const banner = document.getElementById('instruction-banner');
-  if (banner) {
-    banner.style.display = 'none';
-    banner.classList.add('hidden');
-    console.log('Banner de instruções escondido.');
-  } else {
-    console.warn("Elemento 'instruction-banner' não encontrado.");
-  }
 }
