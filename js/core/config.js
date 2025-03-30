@@ -18,30 +18,8 @@ export function showWelcomeMessage() {
 /*
 setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
-  try {
-    const availableLanguages = ['pt', 'en', 'es', 'he'];
-    const defaultLanguage = 'pt';
-
-    if (!availableLanguages.includes(lang)) {
-      console.warn(
-        `${getGeneralText('languageChanged', defaultLanguage)} => ${defaultLanguage}`
-      );
-      lang = defaultLanguage;
-    }
-
-    localStorage.setItem('preferredLanguage', lang);
-    selectedLanguage = lang;
-
-    const welcomeModal = document.getElementById('welcome-modal');
-    if (welcomeModal) {
-      welcomeModal.style.display = 'none';
-    }
-
-    console.log(`Idioma definido para: ${lang}`);
-  } catch (error) {
-    console.error(getGeneralText('routeError', selectedLanguage), error);
-    showNotification(getGeneralText('routeError', selectedLanguage), 'error');
-  }
+  selectedLanguage.value = lang;
+  showNotification(`Idioma alterado para: ${lang}`, 'success');
 }
 
 /*

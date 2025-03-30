@@ -1,6 +1,4 @@
-import { map, markers } from '../core/state.js';
-import { showNotification } from '../ui/notifications.js';
-
+import L from 'leaflet';
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  * @param {string} containerId - ID do elemento HTML que conterá o mapa.
