@@ -1,4 +1,4 @@
-import { map, markers } from './map.js';
+import { map, markers } from '../core/state.js';
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.

@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for ui/notifications.js</title>
+    <title>Code coverage report for ui/theme.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">ui</a> notifications.js</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">ui</a> theme.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -84,18 +84,8 @@
 <a name='L19'></a><a href='#L19'>19</a>
 <a name='L20'></a><a href='#L20'>20</a>
 <a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L22'></a><a href='#L22'>22</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -103,40 +93,38 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Função: Exibe uma notificação para o usuário
-export function <span class="fstat-no" title="function not covered" >showNotification(</span>message, type = <span class="branch-0 cbranch-no" title="branch not covered" >'info',</span> duration = <span class="branch-0 cbranch-no" title="branch not covered" >3000)</span> {
-  const notificationContainer = <span class="cstat-no" title="statement not covered" >document.getElementById(</span>
-    'notification-container'
-  );
-<span class="cstat-no" title="statement not covered" >  if (!notificationContainer) {</span>
-<span class="cstat-no" title="statement not covered" >    console.warn('Container de notificações não encontrado.');</span>
-<span class="cstat-no" title="statement not covered" >    return;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * Ajusta automaticamente o tema com base na hora do dia.
+ * Se a hora atual estiver entre 18h e 6h, ativa o tema escuro.
+ */
+export function <span class="fstat-no" title="function not covered" >autoAdjustTheme(</span>) {
+  const hour = <span class="cstat-no" title="statement not covered" >new Date().getHours();</span>
+  const body = <span class="cstat-no" title="statement not covered" >document.body;</span>
+<span class="cstat-no" title="statement not covered" >  if (hour &gt;= 18 || hour &lt; 6) {</span>
+    // Ativa tema escuro
+<span class="cstat-no" title="statement not covered" >    if (!body.classList.contains('dark-theme')) {</span>
+<span class="cstat-no" title="statement not covered" >      body.classList.add('dark-theme');</span>
+<span class="cstat-no" title="statement not covered" >      showNotification('Tema escuro ativado automaticamente.', 'info');</span>
+    }
+  } else {
+    // Ativa tema claro
+<span class="cstat-no" title="statement not covered" >    if (body.classList.contains('dark-theme')) {</span>
+<span class="cstat-no" title="statement not covered" >      body.classList.remove('dark-theme');</span>
+<span class="cstat-no" title="statement not covered" >      showNotification('Tema claro ativado automaticamente.', 'info');</span>
+    }
   }
-&nbsp;
-  // Cria o elemento da notificação
-  const notification = <span class="cstat-no" title="statement not covered" >document.createElement('div');</span>
-<span class="cstat-no" title="statement not covered" >  notification.className = `notification ${type}`;</span>
-<span class="cstat-no" title="statement not covered" >  notification.textContent = message;</span>
-&nbsp;
-  // Adiciona a notificação ao container
-<span class="cstat-no" title="statement not covered" >  notificationContainer.appendChild(notification);</span>
-&nbsp;
-  // Remove a notificação após o tempo especificado
-<span class="cstat-no" title="statement not covered" >  setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    notification.remove();</span>
-  }, duration);
-&nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log(`Notificação exibida: ${message} (${type})`);</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
