@@ -27,10 +27,8 @@ describe('Teste de inicialização do main.js', () => {
   });
 
   test('Deve executar todas as funções de inicialização corretamente', () => {
-    // Simula o evento DOMContentLoaded
     onDOMContentLoaded();
 
-    // Verifica se cada função foi chamada
     expect(initializeMap).toHaveBeenCalled();
     expect(showWelcomeMessage).toHaveBeenCalled();
     expect(setupEventListeners).toHaveBeenCalled();
@@ -38,34 +36,54 @@ describe('Teste de inicialização do main.js', () => {
   });
 
   test('Deve capturar erros na inicialização do mapa e continuar o fluxo', () => {
-    // Simula um erro na função initializeMap
     initializeMap.mockImplementation(() => {
       throw new Error('Erro ao inicializar o mapa');
     });
 
-    // Executa a função
     expect(() => onDOMContentLoaded()).not.toThrow();
 
-    // Verifica se o erro foi tratado e as outras funções foram chamadas
     expect(initializeMap).toHaveBeenCalled();
-    expect(showWelcomeMessage).toHaveBeenCalled(); // Deve continuar chamando as outras funções
+    expect(showWelcomeMessage).toHaveBeenCalled();
     expect(setupEventListeners).toHaveBeenCalled();
     expect(autoAdjustTheme).toHaveBeenCalled();
   });
 
   test('Deve capturar erros na exibição da mensagem de boas-vindas e continuar o fluxo', () => {
-    // Simula um erro na função showWelcomeMessage
     showWelcomeMessage.mockImplementation(() => {
       throw new Error('Erro ao exibir mensagem de boas-vindas');
     });
 
-    // Executa a função
     expect(() => onDOMContentLoaded()).not.toThrow();
 
-    // Verifica se o erro foi tratado e as outras funções foram chamadas
     expect(initializeMap).toHaveBeenCalled();
     expect(showWelcomeMessage).toHaveBeenCalled();
-    expect(setupEventListeners).toHaveBeenCalled(); // Deve continuar chamando as outras funções
+    expect(setupEventListeners).toHaveBeenCalled();
+    expect(autoAdjustTheme).toHaveBeenCalled();
+  });
+
+  test('Deve capturar erros na configuração de ouvintes de eventos e continuar o fluxo', () => {
+    setupEventListeners.mockImplementation(() => {
+      throw new Error('Erro ao configurar ouvintes de eventos');
+    });
+
+    expect(() => onDOMContentLoaded()).not.toThrow();
+
+    expect(initializeMap).toHaveBeenCalled();
+    expect(showWelcomeMessage).toHaveBeenCalled();
+    expect(setupEventListeners).toHaveBeenCalled();
+    expect(autoAdjustTheme).toHaveBeenCalled();
+  });
+
+  test('Deve capturar erros no ajuste do tema e continuar o fluxo', () => {
+    autoAdjustTheme.mockImplementation(() => {
+      throw new Error('Erro ao ajustar o tema');
+    });
+
+    expect(() => onDOMContentLoaded()).not.toThrow();
+
+    expect(initializeMap).toHaveBeenCalled();
+    expect(showWelcomeMessage).toHaveBeenCalled();
+    expect(setupEventListeners).toHaveBeenCalled();
     expect(autoAdjustTheme).toHaveBeenCalled();
   });
 });
