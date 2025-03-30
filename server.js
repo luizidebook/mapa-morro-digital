@@ -15,33 +15,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const client = new textToSpeech.TextToSpeechClient();
 
 app.post('/synthesize', async (req, res) => {
-    const { text, lang } = req.body;
-    
-    const request = {
-        input: { text: text },
-        voice: { 
-            languageCode: lang, 
-            ssmlGender: 'FEMALE' 
-        },
-        audioConfig: { 
-            audioEncoding: 'MP3' 
-        },
-    };
+  const { text, lang } = req.body;
 
-    try {
-        const [response] = await client.synthesizeSpeech(request);
-        const writeFile = util.promisify(fs.writeFile);
-        const fileName = `output-${Date.now()}.mp3`;
-        await writeFile(`./public/${fileName}`, response.audioContent, 'binary');
-        res.send({ fileName });
-    } catch (error) {
-        console.error('ERROR:', error);
-        res.status(500).send(error);
-    }
+  const request = {
+    input: { text: text },
+    voice: {
+      languageCode: lang,
+      ssmlGender: 'FEMALE',
+    },
+    audioConfig: {
+      audioEncoding: 'MP3',
+    },
+  };
+
+  try {
+    const [response] = await client.synthesizeSpeech(request);
+    const writeFile = util.promisify(fs.writeFile);
+    const fileName = `output-${Date.now()}.mp3`;
+    await writeFile(`./public/${fileName}`, response.audioContent, 'binary');
+    res.send({ fileName });
+  } catch (error) {
+    console.error('ERROR:', error);
+    res.status(500).send(error);
+  }
 });
 
 app.use(express.static('public'));
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });

@@ -8,7 +8,7 @@
   flex-direction: column;
   gap: 10px;
   max-width: 350px;
-  font-family: "Roboto", "Segoe UI", sans-serif;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
 }
 
 .notification {
@@ -23,7 +23,9 @@
   align-items: flex-start;
   max-width: 100%;
   transform: translateX(120%);
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   opacity: 0;
   overflow: hidden;
 }

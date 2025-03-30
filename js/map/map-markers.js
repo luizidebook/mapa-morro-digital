@@ -1,9 +1,9 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { getMap } from "./map-core.js";
-import { smoothCoordinate } from "../utils/helpers.js";
-import { calculateDistance } from "../utils/geo.js";
-import { translate } from "../i18n/language.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { getMap } from './map-core.js';
+import { smoothCoordinate } from '../utils/helpers.js';
+import { calculateDistance } from '../utils/geo.js';
+import { translate } from '../i18n/language.js';
 
 /**
  * Módulo de marcadores do mapa
@@ -26,10 +26,10 @@ export function createMarker(lat, lon, options = {}) {
 
   // Opções padrão
   const defaultOptions = {
-    title: "",
-    description: "",
-    icon: "default",
-    category: "",
+    title: '',
+    description: '',
+    icon: 'default',
+    category: '',
     draggable: false,
     clickable: true,
     autoPan: true,
@@ -89,9 +89,9 @@ export function createMarker(lat, lon, options = {}) {
   setupMarkerEvents(marker, markerOptions);
 
   // Adicionar ao estado
-  const currentMarkers = appState.get("map.markers") || [];
+  const currentMarkers = appState.get('map.markers') || [];
   currentMarkers.push(marker);
-  appState.set("map.markers", currentMarkers);
+  appState.set('map.markers', currentMarkers);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.MARKER_CREATED, {
@@ -122,7 +122,7 @@ export function createUserMarker(lat, lon, accuracy = null, heading = null) {
 
   // Criar ícone personalizado para o usuário
   const userIcon = L.divIcon({
-    className: "user-location-marker",
+    className: 'user-location-marker',
     html: `
       <div style="
         width: 22px;
@@ -132,7 +132,7 @@ export function createUserMarker(lat, lon, accuracy = null, heading = null) {
         border: 3px solid white;
         box-shadow: 0 0 5px rgba(0,0,0,0.3);
         position: relative;
-        transform: ${heading !== null ? `rotate(${heading}deg)` : ""};
+        transform: ${heading !== null ? `rotate(${heading}deg)` : ''};
       ">
         ${
           heading !== null
@@ -149,7 +149,7 @@ export function createUserMarker(lat, lon, accuracy = null, heading = null) {
             transform: rotate(0deg);
           "></div>
         `
-            : ""
+            : ''
         }
       </div>
     `,
@@ -169,14 +169,14 @@ export function createUserMarker(lat, lon, accuracy = null, heading = null) {
   if (accuracy && accuracy > 0) {
     accuracyCircle = L.circle([lat, lon], {
       radius: accuracy,
-      className: "user-location-accuracy-circle",
+      className: 'user-location-accuracy-circle',
       interactive: false,
     }).addTo(map);
   }
 
   // Armazenar no estado
-  appState.set("map.layers.userMarker", userMarker);
-  appState.set("map.layers.accuracyCircle", accuracyCircle);
+  appState.set('map.layers.userMarker', userMarker);
+  appState.set('map.layers.accuracyCircle', accuracyCircle);
 
   return { marker: userMarker, accuracyCircle };
 }
@@ -196,8 +196,8 @@ export function updateUserMarker(
   accuracy = null,
   smooth = true
 ) {
-  let userMarker = appState.get("map.layers.userMarker");
-  let accuracyCircle = appState.get("map.layers.accuracyCircle");
+  let userMarker = appState.get('map.layers.userMarker');
+  let accuracyCircle = appState.get('map.layers.accuracyCircle');
 
   // Se não existe, criar novo marcador
   if (!userMarker) {
@@ -235,7 +235,7 @@ export function updateUserMarker(
   if (heading !== null) {
     const iconElement = userMarker.getElement();
     if (iconElement) {
-      const innerDiv = iconElement.querySelector("div");
+      const innerDiv = iconElement.querySelector('div');
       if (innerDiv) {
         innerDiv.style.transform = `rotate(${heading}deg)`;
       }
@@ -250,11 +250,11 @@ export function updateUserMarker(
     // Criar novo círculo se não existir
     accuracyCircle = L.circle([targetPos.lat, targetPos.lon], {
       radius: accuracy,
-      className: "user-location-accuracy-circle",
+      className: 'user-location-accuracy-circle',
       interactive: false,
     }).addTo(getMap());
 
-    appState.set("map.layers.accuracyCircle", accuracyCircle);
+    appState.set('map.layers.accuracyCircle', accuracyCircle);
   }
 
   // Publicar evento apenas se a distância for significativa
@@ -276,17 +276,17 @@ export function removeUserMarker() {
   const map = getMap();
   if (!map) return;
 
-  const userMarker = appState.get("map.layers.userMarker");
-  const accuracyCircle = appState.get("map.layers.accuracyCircle");
+  const userMarker = appState.get('map.layers.userMarker');
+  const accuracyCircle = appState.get('map.layers.accuracyCircle');
 
   if (userMarker) {
     map.removeLayer(userMarker);
-    appState.set("map.layers.userMarker", null);
+    appState.set('map.layers.userMarker', null);
   }
 
   if (accuracyCircle) {
     map.removeLayer(accuracyCircle);
-    appState.set("map.layers.accuracyCircle", null);
+    appState.set('map.layers.accuracyCircle', null);
   }
 }
 
@@ -304,21 +304,21 @@ export function createDestinationMarker(lat, lon, title, options = {}) {
 
   // Opções padrão para destino
   const destinationOptions = {
-    icon: "destination",
-    category: "destination",
-    title: title || translate("destination"),
-    description: options.description || "",
+    icon: 'destination',
+    category: 'destination',
+    title: title || translate('destination'),
+    description: options.description || '',
     customData: options.customData || {},
     zIndexOffset: 500,
     showPopup: options.showPopup || false,
-    id: "destination-marker",
+    id: 'destination-marker',
   };
 
   // Criar marcador
   const marker = createMarker(lat, lon, destinationOptions);
 
   // Armazenar no estado
-  appState.set("map.layers.destinationMarker", marker);
+  appState.set('map.layers.destinationMarker', marker);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.DESTINATION_MARKER_CREATED, {
@@ -337,19 +337,19 @@ export function removeDestinationMarker() {
   const map = getMap();
   if (!map) return;
 
-  const destinationMarker = appState.get("map.layers.destinationMarker");
+  const destinationMarker = appState.get('map.layers.destinationMarker');
 
   if (destinationMarker) {
     map.removeLayer(destinationMarker);
-    appState.set("map.layers.destinationMarker", null);
+    appState.set('map.layers.destinationMarker', null);
 
     // Atualizar lista de marcadores
-    const markers = appState.get("map.markers") || [];
+    const markers = appState.get('map.markers') || [];
     const updatedMarkers = markers.filter(
-      (marker) => marker.options.id !== "destination-marker"
+      (marker) => marker.options.id !== 'destination-marker'
     );
 
-    appState.set("map.markers", updatedMarkers);
+    appState.set('map.markers', updatedMarkers);
 
     // Publicar evento
     eventBus.publish(EVENT_TYPES.DESTINATION_MARKER_REMOVED);
@@ -374,8 +374,8 @@ export function createPOIMarkers(pois, category, onClick = null) {
     const options = {
       icon: category,
       category: category,
-      title: poi.name || poi.title || poi.properties?.name || "",
-      description: poi.description || poi.properties?.description || "",
+      title: poi.name || poi.title || poi.properties?.name || '',
+      description: poi.description || poi.properties?.description || '',
       customData: poi,
       showPopup: false,
       id: `${category}-${poi.id || Date.now() + Math.random()}`,
@@ -395,9 +395,9 @@ export function createPOIMarkers(pois, category, onClick = null) {
   });
 
   // Configurar evento personalizado se fornecido
-  if (onClick && typeof onClick === "function") {
+  if (onClick && typeof onClick === 'function') {
     markers.forEach((marker) => {
-      marker.on("click", (e) => {
+      marker.on('click', (e) => {
         onClick(marker.options.customData, marker);
       });
     });
@@ -421,9 +421,9 @@ export function clearMarkers(exclude = []) {
   if (!map) return;
 
   // Adicionar categorias protegidas por padrão
-  const protectedCategories = ["user", "destination", ...exclude];
+  const protectedCategories = ['user', 'destination', ...exclude];
 
-  const markers = appState.get("map.markers") || [];
+  const markers = appState.get('map.markers') || [];
   const updatedMarkers = [];
 
   markers.forEach((marker) => {
@@ -441,7 +441,7 @@ export function clearMarkers(exclude = []) {
   });
 
   // Atualizar estado
-  appState.set("map.markers", updatedMarkers);
+  appState.set('map.markers', updatedMarkers);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.MARKERS_CLEARED, {
@@ -457,7 +457,7 @@ export function clearMarkersByCategory(category) {
   const map = getMap();
   if (!map || !category) return;
 
-  const markers = appState.get("map.markers") || [];
+  const markers = appState.get('map.markers') || [];
   const updatedMarkers = [];
 
   markers.forEach((marker) => {
@@ -476,7 +476,7 @@ export function clearMarkersByCategory(category) {
   });
 
   // Atualizar estado
-  appState.set("map.markers", updatedMarkers);
+  appState.set('map.markers', updatedMarkers);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.CATEGORY_MARKERS_CLEARED, { category });
@@ -488,7 +488,7 @@ export function clearMarkersByCategory(category) {
  * @param {string} [category=''] - Categoria do marcador
  * @returns {Object} Ícone Leaflet
  */
-function getMarkerIcon(iconType, category = "") {
+function getMarkerIcon(iconType, category = '') {
   // Verificar cache primeiro
   const cacheKey = `${iconType}-${category}`;
   if (iconCache.has(cacheKey)) {
@@ -497,7 +497,7 @@ function getMarkerIcon(iconType, category = "") {
 
   // Configurações padrão
   const defaultIcon = {
-    iconUrl: "img/markers/default-marker.png",
+    iconUrl: 'img/markers/default-marker.png',
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
@@ -507,37 +507,37 @@ function getMarkerIcon(iconType, category = "") {
   const iconConfig = {
     default: defaultIcon,
     destination: {
-      iconUrl: "img/markers/destination-marker.png",
+      iconUrl: 'img/markers/destination-marker.png',
       iconSize: [36, 36],
       iconAnchor: [18, 36],
       popupAnchor: [0, -36],
     },
-    "pontos-turisticos": {
-      iconUrl: "img/markers/tourist-marker.png",
+    'pontos-turisticos': {
+      iconUrl: 'img/markers/tourist-marker.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
     },
     praias: {
-      iconUrl: "img/markers/beach-marker.png",
+      iconUrl: 'img/markers/beach-marker.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
     },
     restaurantes: {
-      iconUrl: "img/markers/restaurant-marker.png",
+      iconUrl: 'img/markers/restaurant-marker.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
     },
     pousadas: {
-      iconUrl: "img/markers/hotel-marker.png",
+      iconUrl: 'img/markers/hotel-marker.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
     },
     emergencias: {
-      iconUrl: "img/markers/emergency-marker.png",
+      iconUrl: 'img/markers/emergency-marker.png',
       iconSize: [32, 32],
       iconAnchor: [16, 32],
       popupAnchor: [0, -32],
@@ -563,7 +563,7 @@ function getMarkerIcon(iconType, category = "") {
  */
 function setupMarkerEvents(marker, options) {
   // Evento de clique
-  marker.on("click", (e) => {
+  marker.on('click', (e) => {
     // Suprimir o evento se o marcador não for clicável
     if (!options.clickable) {
       return;
@@ -582,7 +582,7 @@ function setupMarkerEvents(marker, options) {
 
   // Evento de arrastar (se o marcador for arrastável)
   if (options.draggable) {
-    marker.on("dragend", (e) => {
+    marker.on('dragend', (e) => {
       const latlng = e.target.getLatLng();
 
       // Publicar evento
@@ -608,7 +608,7 @@ function createPopupContent(
   title,
   description,
   customData = {},
-  category = ""
+  category = ''
 ) {
   // Obter botões específicos da categoria
   const buttons = getPopupButtons(category, customData);
@@ -616,9 +616,9 @@ function createPopupContent(
   // Montando o HTML do conteúdo
   let html = `
     <div class="marker-popup ${category}-popup">
-      ${title ? `<h3 class="popup-title">${title}</h3>` : ""}
+      ${title ? `<h3 class="popup-title">${title}</h3>` : ''}
       ${
-        description ? `<div class="popup-description">${description}</div>` : ""
+        description ? `<div class="popup-description">${description}</div>` : ''
       }
   `;
 
@@ -634,7 +634,7 @@ function createPopupContent(
   if (customData.website) {
     html += `<div class="popup-website"><i class="fas fa-globe"></i> <a href="${
       customData.website
-    }" target="_blank">${translate("visit-website")}</a></div>`;
+    }" target="_blank">${translate('visit-website')}</a></div>`;
   }
 
   // Adicionar botões
@@ -646,10 +646,10 @@ function createPopupContent(
         <button 
           class="popup-btn popup-btn-${button.type}" 
           data-action="${button.action}"
-          data-id="${customData.id || ""}"
+          data-id="${customData.id || ''}"
           onclick="${button.onclick}"
         >
-          ${button.icon ? `<i class="${button.icon}"></i>` : ""}
+          ${button.icon ? `<i class="${button.icon}"></i>` : ''}
           ${button.label}
         </button>
       `;
@@ -673,13 +673,13 @@ function getPopupButtons(category, data) {
   // Botões padrão disponíveis para todas as categorias
   const defaultButtons = [
     {
-      label: translate("create-route"),
-      type: "primary",
-      action: "create-route",
-      icon: "fas fa-route",
-      onclick: `window.createRouteToMarker(${data.id || "0"}, ${
+      label: translate('create-route'),
+      type: 'primary',
+      action: 'create-route',
+      icon: 'fas fa-route',
+      onclick: `window.createRouteToMarker(${data.id || '0'}, ${
         data.lat || 0
-      }, ${data.lon || 0}, '${data.name?.replace(/'/g, "\\'") || ""}')`,
+      }, ${data.lon || 0}, '${data.name?.replace(/'/g, "\\'") || ''}')`,
     },
   ];
 
@@ -688,35 +688,35 @@ function getPopupButtons(category, data) {
     destination: [],
     pousadas: [
       {
-        label: translate("book-now"),
-        type: "secondary",
-        action: "book",
-        icon: "fas fa-bed",
+        label: translate('book-now'),
+        type: 'secondary',
+        action: 'book',
+        icon: 'fas fa-bed',
         onclick: data.bookingUrl
           ? `window.openDestinationWebsite('${data.bookingUrl}')`
-          : "",
+          : '',
       },
     ],
     restaurantes: [
       {
-        label: translate("see-menu"),
-        type: "secondary",
-        action: "menu",
-        icon: "fas fa-utensils",
+        label: translate('see-menu'),
+        type: 'secondary',
+        action: 'menu',
+        icon: 'fas fa-utensils',
         onclick: data.menuUrl
           ? `window.openDestinationWebsite('${data.menuUrl}')`
-          : "",
+          : '',
       },
     ],
     passeios: [
       {
-        label: translate("buy-ticket"),
-        type: "secondary",
-        action: "buy-ticket",
-        icon: "fas fa-ticket-alt",
+        label: translate('buy-ticket'),
+        type: 'secondary',
+        action: 'buy-ticket',
+        icon: 'fas fa-ticket-alt',
         onclick: data.ticketUrl
           ? `window.openDestinationWebsite('${data.ticketUrl}')`
-          : "",
+          : '',
       },
     ],
   };
@@ -731,7 +731,7 @@ function getPopupButtons(category, data) {
  * @param {number} [duration=2000] - Duração em ms
  */
 export function highlightMarker(markerId, duration = 2000) {
-  const markers = appState.get("map.markers") || [];
+  const markers = appState.get('map.markers') || [];
   const marker = markers.find((m) => m.options.id === markerId);
 
   if (!marker) return;
@@ -741,11 +741,11 @@ export function highlightMarker(markerId, duration = 2000) {
   if (!element) return;
 
   // Adicionar classe de destaque
-  element.classList.add("marker-highlight");
+  element.classList.add('marker-highlight');
 
   // Remover classe após a duração
   setTimeout(() => {
-    element.classList.remove("marker-highlight");
+    element.classList.remove('marker-highlight');
   }, duration);
 
   // Garantir que o marcador está visível
@@ -775,7 +775,7 @@ export function highlightNextStepInMap(step) {
 
   // Criar um marcador temporário para o passo
   const stepIcon = L.divIcon({
-    className: "step-highlight-marker",
+    className: 'step-highlight-marker',
     html: `
       <div style="
         width: 24px;
@@ -799,16 +799,16 @@ export function highlightNextStepInMap(step) {
   }).addTo(map);
 
   // Armazenar no estado
-  appState.set("map.layers.highlightedStep", stepMarker);
+  appState.set('map.layers.highlightedStep', stepMarker);
 
   // Destacar o segmento da rota se existir
-  const currentRoute = appState.get("map.layers.currentRoute");
+  const currentRoute = appState.get('map.layers.currentRoute');
   if (currentRoute && step.index !== undefined) {
     try {
       // Tentar obter o segmento da rota
       highlightRouteSegment(currentRoute, step.index);
     } catch (error) {
-      console.warn("Não foi possível destacar o segmento da rota:", error);
+      console.warn('Não foi possível destacar o segmento da rota:', error);
     }
   }
 
@@ -848,15 +848,15 @@ function highlightRouteSegment(routeLayer, index) {
 
   // Criar um polyline para destacar o segmento
   const highlightLine = L.polyline([start, end], {
-    color: "#FFC107",
+    color: '#FFC107',
     weight: 8,
     opacity: 0.8,
-    className: "route-highlight",
+    className: 'route-highlight',
     dashArray: null,
   }).addTo(map);
 
   // Armazenar no estado
-  appState.set("map.layers.highlightedSegment", highlightLine);
+  appState.set('map.layers.highlightedSegment', highlightLine);
 }
 
 /**
@@ -867,17 +867,17 @@ function clearRouteHighlights() {
   if (!map) return;
 
   // Remover marcador de passo destacado
-  const stepMarker = appState.get("map.layers.highlightedStep");
+  const stepMarker = appState.get('map.layers.highlightedStep');
   if (stepMarker) {
     map.removeLayer(stepMarker);
-    appState.set("map.layers.highlightedStep", null);
+    appState.set('map.layers.highlightedStep', null);
   }
 
   // Remover segmento destacado
-  const segmentLine = appState.get("map.layers.highlightedSegment");
+  const segmentLine = appState.get('map.layers.highlightedSegment');
   if (segmentLine) {
     map.removeLayer(segmentLine);
-    appState.set("map.layers.highlightedSegment", null);
+    appState.set('map.layers.highlightedSegment', null);
   }
 }
 

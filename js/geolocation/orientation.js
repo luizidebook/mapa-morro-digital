@@ -1,7 +1,7 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { LOCATION_CONFIG } from "../core/config.js";
-import { throttle, smoothValue } from "../utils/helpers.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { LOCATION_CONFIG } from '../core/config.js';
+import { throttle, smoothValue } from '../utils/helpers.js';
 
 /**
  * Módulo de orientação do dispositivo
@@ -24,7 +24,7 @@ export function startOrientationTracking(callback) {
 
   // Verificar suporte a DeviceOrientationEvent
   if (!window.DeviceOrientationEvent) {
-    console.warn("Orientação do dispositivo não suportada neste navegador.");
+    console.warn('Orientação do dispositivo não suportada neste navegador.');
     return false;
   }
 
@@ -34,24 +34,24 @@ export function startOrientationTracking(callback) {
   }, LOCATION_CONFIG.ROTATION.UPDATE_INTERVAL);
 
   // Verificar se o navegador requer permissão (iOS 13+)
-  if (typeof DeviceOrientationEvent.requestPermission === "function") {
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission()
       .then((permissionState) => {
-        if (permissionState === "granted") {
-          window.addEventListener("deviceorientation", handleOrientation);
+        if (permissionState === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
           orientationTrackingActive = true;
 
           // Publicar evento
           eventBus.publish(EVENT_TYPES.ORIENTATION_TRACKING_STARTED);
         } else {
-          console.warn("Permissão para orientação do dispositivo negada");
+          console.warn('Permissão para orientação do dispositivo negada');
           orientationTrackingActive = false;
         }
       })
       .catch(console.error);
   } else {
     // Navegadores sem necessidade de permissão explícita
-    window.addEventListener("deviceorientation", handleOrientation);
+    window.addEventListener('deviceorientation', handleOrientation);
     orientationTrackingActive = true;
 
     // Publicar evento
@@ -68,7 +68,7 @@ export function stopOrientationTracking() {
   if (!orientationTrackingActive) return;
 
   // Remover listener
-  window.removeEventListener("deviceorientation", processOrientationEvent);
+  window.removeEventListener('deviceorientation', processOrientationEvent);
   orientationTrackingActive = false;
 
   // Publicar evento
@@ -127,13 +127,13 @@ function processOrientationEvent(event, callback) {
   lastHeading = heading;
 
   // Atualizar o estado
-  appState.set("user.heading", heading);
+  appState.set('user.heading', heading);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.HEADING_UPDATED, { heading });
 
   // Chamar callback se fornecido
-  if (typeof callback === "function") {
+  if (typeof callback === 'function') {
     callback(heading);
   }
 }
@@ -151,7 +151,7 @@ export function rotateMap(map, heading) {
     const container = map.getContainer();
 
     // Verificar se o modo de primeira pessoa está ativo
-    const isFirstPerson = appState.get("map.rotation.isFirstPersonView");
+    const isFirstPerson = appState.get('map.rotation.isFirstPersonView');
 
     if (isFirstPerson) {
       // No modo de primeira pessoa, rotacionamos o mapa para alinhar com a direção
@@ -162,31 +162,31 @@ export function rotateMap(map, heading) {
 
       // Também precisamos rotacionar os textos de volta para serem legíveis
       const textElements = container.querySelectorAll(
-        ".leaflet-marker-icon, .leaflet-tooltip"
+        '.leaflet-marker-icon, .leaflet-tooltip'
       );
       textElements.forEach((el) => {
         el.style.transform = `rotate(${-angle}deg)`;
       });
 
       // Atualizar estado
-      appState.set("map.rotation.currentAngle", angle);
+      appState.set('map.rotation.currentAngle', angle);
     } else {
       // No modo normal, remover qualquer rotação
-      container.style.transform = "";
+      container.style.transform = '';
 
       // Restaurar rotação dos textos
       const textElements = container.querySelectorAll(
-        ".leaflet-marker-icon, .leaflet-tooltip"
+        '.leaflet-marker-icon, .leaflet-tooltip'
       );
       textElements.forEach((el) => {
-        el.style.transform = "";
+        el.style.transform = '';
       });
 
       // Atualizar estado
-      appState.set("map.rotation.currentAngle", 0);
+      appState.set('map.rotation.currentAngle', 0);
     }
   } catch (error) {
-    console.error("Erro ao rotacionar mapa:", error);
+    console.error('Erro ao rotacionar mapa:', error);
   }
 }
 
@@ -196,8 +196,8 @@ export function rotateMap(map, heading) {
  */
 export function setFirstPersonView(enable) {
   // Atualizar estado
-  appState.set("map.rotation.isFirstPersonView", enable);
-  appState.set("map.rotation.enabled", enable);
+  appState.set('map.rotation.isFirstPersonView', enable);
+  appState.set('map.rotation.enabled', enable);
 
   // Iniciar rastreamento de orientação se estiver ativando
   if (enable && !orientationTrackingActive) {
@@ -229,8 +229,8 @@ export function getLastHeading() {
 // Subscrever a eventos
 eventBus.subscribe(EVENT_TYPES.HEADING_UPDATED, ({ heading }) => {
   // Se o modo de primeira pessoa estiver ativo, rotacionar o mapa
-  if (appState.get("map.rotation.isFirstPersonView")) {
-    const map = appState.get("map.instance");
+  if (appState.get('map.rotation.isFirstPersonView')) {
+    const map = appState.get('map.instance');
     if (map) {
       rotateMap(map, heading);
     }

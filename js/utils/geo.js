@@ -232,13 +232,13 @@ export function getClosestPointOnPolyline(position, polyline) {
  * @param {string} language - Código do idioma
  * @returns {string} Distância formatada (ex: "500 m" ou "2,5 km")
  */
-export function formatDistance(meters, language = "pt") {
+export function formatDistance(meters, language = 'pt') {
   // Idiomas para formatação
   const formats = {
-    pt: { decimal: ",", thousand: ".", km: "km", m: "m" },
-    en: { decimal: ".", thousand: ",", km: "km", m: "m" },
-    es: { decimal: ",", thousand: ".", km: "km", m: "m" },
-    he: { decimal: ".", thousand: ",", km: 'ק"מ', m: "מ'" },
+    pt: { decimal: ',', thousand: '.', km: 'km', m: 'm' },
+    en: { decimal: '.', thousand: ',', km: 'km', m: 'm' },
+    es: { decimal: ',', thousand: '.', km: 'km', m: 'm' },
+    he: { decimal: '.', thousand: ',', km: 'ק"מ', m: "מ'" },
   };
 
   const format = formats[language] || formats.en;
@@ -248,7 +248,7 @@ export function formatDistance(meters, language = "pt") {
     return `${Math.round(meters)} ${format.m}`;
   } else {
     // Mais de 1 km: mostrar em quilômetros com 1 casa decimal
-    const km = (meters / 1000).toFixed(1).replace(".", format.decimal);
+    const km = (meters / 1000).toFixed(1).replace('.', format.decimal);
     return `${km} ${format.km}`;
   }
 }
@@ -259,13 +259,13 @@ export function formatDistance(meters, language = "pt") {
  * @param {string} language - Código do idioma
  * @returns {string} Tempo formatado (ex: "5 min" ou "2h 30min")
  */
-export function formatDuration(seconds, language = "pt") {
+export function formatDuration(seconds, language = 'pt') {
   // Textos por idioma
   const texts = {
-    pt: { hour: "h", hours: "h", minute: "min", minutes: "min" },
-    en: { hour: "hr", hours: "hrs", minute: "min", minutes: "mins" },
-    es: { hour: "h", hours: "h", minute: "min", minutes: "min" },
-    he: { hour: "שעה", hours: "שעות", minute: "דק'", minutes: "דק'" },
+    pt: { hour: 'h', hours: 'h', minute: 'min', minutes: 'min' },
+    en: { hour: 'hr', hours: 'hrs', minute: 'min', minutes: 'mins' },
+    es: { hour: 'h', hours: 'h', minute: 'min', minutes: 'min' },
+    he: { hour: 'שעה', hours: 'שעות', minute: "דק'", minutes: "דק'" },
   };
 
   const text = texts[language] || texts.en;

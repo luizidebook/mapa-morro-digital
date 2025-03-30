@@ -1,7 +1,10 @@
 module.exports = {
-  testEnvironment: "node",
-  roots: ["<rootDir>/js/tests"],
+  testEnvironment: 'jsdom', // Simula um ambiente de navegador
+  roots: ['<rootDir>/js'], // Diretório onde os testes estão localizados
+  moduleFileExtensions: ['js', 'json'],
   transform: {
-    "^.+\\.jsx?$": "babel-jest",
+    '^.+\\.js$': 'babel-jest', // Transforma arquivos JS usando Babel
   },
+  collectCoverage: true, // Gera relatório de cobertura de testes
+  collectCoverageFrom: ['js/**/*.js'], // Arquivos para verificar cobertura
 };

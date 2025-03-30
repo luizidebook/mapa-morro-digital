@@ -1,8 +1,8 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { MAP_CONFIG, UI_CONFIG } from "../core/config.js";
-import { showError } from "../ui/notifications.js";
-import { isMobile, debounce } from "../utils/helpers.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { MAP_CONFIG, UI_CONFIG } from '../core/config.js';
+import { showError } from '../ui/notifications.js';
+import { isMobile, debounce } from '../utils/helpers.js';
 
 /**
  * Módulo core do mapa
@@ -15,7 +15,7 @@ import { isMobile, debounce } from "../utils/helpers.js";
  * @param {Object} options - Opções de inicialização do mapa
  * @returns {Object} Instância do mapa Leaflet
  */
-export function initializeMap(containerId = "map", options = {}) {
+export function initializeMap(containerId = 'map', options = {}) {
   try {
     // Verificar se o container existe
     const mapContainer = document.getElementById(containerId);
@@ -46,12 +46,12 @@ export function initializeMap(containerId = "map", options = {}) {
     tileLayer.addTo(map);
 
     // Armazenar referências no estado da aplicação
-    appState.set("map.instance", map);
-    appState.set("map.center", {
+    appState.set('map.instance', map);
+    appState.set('map.center', {
       lat: mapOptions.center[0],
       lon: mapOptions.center[1],
     });
-    appState.set("map.zoom", mapOptions.zoom);
+    appState.set('map.zoom', mapOptions.zoom);
 
     // Configurar handlers de eventos do mapa
     setupMapEventHandlers(map);
@@ -61,8 +61,8 @@ export function initializeMap(containerId = "map", options = {}) {
 
     return map;
   } catch (error) {
-    console.error("Erro ao inicializar o mapa:", error);
-    showError("Erro ao inicializar o mapa. Por favor, recarregue a página.");
+    console.error('Erro ao inicializar o mapa:', error);
+    showError('Erro ao inicializar o mapa. Por favor, recarregue a página.');
     return null;
   }
 }
@@ -72,10 +72,10 @@ export function initializeMap(containerId = "map", options = {}) {
  * @param {string} [style='streets'] - Estilo do mapa ('streets' ou 'satellite')
  * @returns {Object} Camada de tiles Leaflet
  */
-export function getTileLayer(style = "streets") {
-  const isDarkMode = appState.get("config.isDarkMode");
+export function getTileLayer(style = 'streets') {
+  const isDarkMode = appState.get('config.isDarkMode');
   const tileLayerConfig =
-    style === "satellite"
+    style === 'satellite'
       ? MAP_CONFIG.TILE_LAYERS.SATELLITE
       : MAP_CONFIG.TILE_LAYERS.STREETS;
 
@@ -83,7 +83,7 @@ export function getTileLayer(style = "streets") {
     attribution: tileLayerConfig.attribution,
     maxZoom: tileLayerConfig.maxZoom,
     // Adiciona classe CSS para tema escuro se necessário
-    className: isDarkMode ? "dark-tiles" : "",
+    className: isDarkMode ? 'dark-tiles' : '',
   });
 
   return tileLayer;
@@ -95,17 +95,17 @@ export function getTileLayer(style = "streets") {
  */
 function setupMapEventHandlers(map) {
   // Evento de movimentação do mapa
-  map.on("moveend", () => {
+  map.on('moveend', () => {
     const center = map.getCenter();
-    appState.set("map.center", {
+    appState.set('map.center', {
       lat: center.lat,
       lon: center.lng,
     });
   });
 
   // Evento de mudança de zoom
-  map.on("zoomend", () => {
-    appState.set("map.zoom", map.getZoom());
+  map.on('zoomend', () => {
+    appState.set('map.zoom', map.getZoom());
   });
 
   // Atualizar mapa quando mudar o tema
@@ -118,7 +118,7 @@ function setupMapEventHandlers(map) {
     map.invalidateSize();
   }, 200);
 
-  window.addEventListener("resize", handleResize);
+  window.addEventListener('resize', handleResize);
 }
 
 /**
@@ -131,9 +131,9 @@ export function updateMapTheme(map, isDarkMode) {
   const mapContainer = map.getContainer();
 
   if (isDarkMode) {
-    mapContainer.classList.add("dark-theme-map");
+    mapContainer.classList.add('dark-theme-map');
   } else {
-    mapContainer.classList.remove("dark-theme-map");
+    mapContainer.classList.remove('dark-theme-map');
   }
 
   // Recarregar camada de tiles com a classe apropriada
@@ -148,7 +148,7 @@ export function updateMapTheme(map, isDarkMode) {
       const newLayer = L.tileLayer(url, {
         attribution: layer.options.attribution,
         maxZoom: layer.options.maxZoom,
-        className: isDarkMode ? "dark-tiles" : "",
+        className: isDarkMode ? 'dark-tiles' : '',
       });
 
       newLayer.addTo(map);
@@ -164,7 +164,7 @@ export function updateMapTheme(map, isDarkMode) {
  * @param {Object} [options] - Opções adicionais
  */
 export function centerMap(lat, lon, zoom = null, options = {}) {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return;
 
   const zoomLevel = zoom !== null ? zoom : map.getZoom();
@@ -197,9 +197,9 @@ export function centerMap(lat, lon, zoom = null, options = {}) {
   }
 
   // Atualizar estado
-  appState.set("map.center", { lat, lon });
+  appState.set('map.center', { lat, lon });
   if (zoom !== null) {
-    appState.set("map.zoom", zoom);
+    appState.set('map.zoom', zoom);
   }
 }
 
@@ -220,7 +220,7 @@ export function adjustMapWithLocation(
   zoom = 17,
   offsetYPercent = 30
 ) {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return;
 
   // Centralizar mapa na localização com offset
@@ -241,7 +241,7 @@ export function adjustMapWithLocation(
  * @param {boolean} enable - Se true, habilita interação; se false, desabilita
  */
 export function setMapInteraction(enable) {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return;
 
   if (enable) {
@@ -263,7 +263,7 @@ export function setMapInteraction(enable) {
   }
 
   // Atualizar estado
-  appState.set("map.interaction.enabled", enable);
+  appState.set('map.interaction.enabled', enable);
 }
 
 /**
@@ -271,7 +271,7 @@ export function setMapInteraction(enable) {
  * @param {Function} [filter] - Função opcional para filtrar quais camadas devem ser removidas
  */
 export function clearMapLayers(filter = null) {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return;
 
   map.eachLayer((layer) => {
@@ -286,23 +286,23 @@ export function clearMapLayers(filter = null) {
   });
 
   // Limpar referências no estado
-  appState.set("map.layers.currentRoute", null);
-  appState.set("map.layers.alternatives", []);
+  appState.set('map.layers.currentRoute', null);
+  appState.set('map.layers.alternatives', []);
 }
 
 /**
  * Adiciona um botão de zoom customizado ao mapa
  * @param {string} position - Posição do controle ('topleft', 'topright', 'bottomleft', 'bottomright')
  */
-export function addCustomZoomControl(position = "bottomright") {
-  const map = appState.get("map.instance");
+export function addCustomZoomControl(position = 'bottomright') {
+  const map = appState.get('map.instance');
   if (!map) return;
 
   // Criar controle de zoom customizado
   const zoomControl = L.control.zoom({
     position,
-    zoomInTitle: "Aumentar zoom",
-    zoomOutTitle: "Diminuir zoom",
+    zoomInTitle: 'Aumentar zoom',
+    zoomOutTitle: 'Diminuir zoom',
   });
 
   zoomControl.addTo(map);
@@ -313,7 +313,7 @@ export function addCustomZoomControl(position = "bottomright") {
  * @returns {Object|null} Instância do mapa Leaflet ou null se não inicializado
  */
 export function getMap() {
-  return appState.get("map.instance");
+  return appState.get('map.instance');
 }
 
 /**
@@ -321,7 +321,7 @@ export function getMap() {
  * @returns {Object} Objeto {lat, lon}
  */
 export function getMapCenter() {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return MAP_CONFIG.DEFAULT_CENTER;
 
   const center = map.getCenter();
@@ -333,7 +333,7 @@ export function getMapCenter() {
  * @returns {number} Nível de zoom
  */
 export function getMapZoom() {
-  const map = appState.get("map.instance");
+  const map = appState.get('map.instance');
   if (!map) return MAP_CONFIG.DEFAULT_ZOOM;
 
   return map.getZoom();

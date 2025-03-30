@@ -1,4 +1,4 @@
-import { getState } from "./sharedState.js";
+import { getState } from './sharedState.js';
 
 /**
  * EventBus - Sistema de eventos para comunicação entre módulos
@@ -78,28 +78,28 @@ export const eventBus = {
 // Exemplos de eventos que serão usados na aplicação
 export const EVENT_TYPES = {
   // Eventos de navegação
-  NAVIGATION_STARTED: "navigation:started",
-  NAVIGATION_ENDED: "navigation:ended",
-  NAVIGATION_PAUSED: "navigation:paused",
-  NAVIGATION_RESUMED: "navigation:resumed",
-  ROUTE_RECALCULATED: "route:recalculated",
-  ROUTE_CREATED: "route:created",
+  NAVIGATION_STARTED: 'navigation:started',
+  NAVIGATION_ENDED: 'navigation:ended',
+  NAVIGATION_PAUSED: 'navigation:paused',
+  NAVIGATION_RESUMED: 'navigation:resumed',
+  ROUTE_RECALCULATED: 'route:recalculated',
+  ROUTE_CREATED: 'route:created',
 
   // Eventos de localização
-  LOCATION_UPDATED: "location:updated",
-  HEADING_UPDATED: "heading:updated",
+  LOCATION_UPDATED: 'location:updated',
+  HEADING_UPDATED: 'heading:updated',
 
   // Eventos de interface
-  LANGUAGE_CHANGED: "language:changed",
-  THEME_CHANGED: "theme:changed",
+  LANGUAGE_CHANGED: 'language:changed',
+  THEME_CHANGED: 'theme:changed',
 
   // Eventos de estado
-  STATE_CHANGED: "state:changed",
+  STATE_CHANGED: 'state:changed',
 
   // Eventos para POIs e destinos
-  DESTINATION_SELECTED: "destination:selected",
-  POI_DISPLAYED: "poi:displayed",
+  DESTINATION_SELECTED: 'destination:selected',
+  POI_DISPLAYED: 'poi:displayed',
 
   // Eventos para notificações
-  NOTIFICATION_SHOW: "notification:show",
+  NOTIFICATION_SHOW: 'notification:show',
 };

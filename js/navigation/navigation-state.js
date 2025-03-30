@@ -1,12 +1,12 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { getLastKnownLocation } from "../geolocation/tracking.js";
-import { calculateDistance } from "../utils/geo.js";
-import { showSuccess, showWarning } from "../ui/notifications.js";
-import { translate } from "../i18n/language.js";
-import { highlightNextStepInMap } from "../map/map-markers.js";
-import { getMap, centerMap } from "../map/map-core.js";
-import { LOCATION_CONFIG } from "../core/config.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { getLastKnownLocation } from '../geolocation/tracking.js';
+import { calculateDistance } from '../utils/geo.js';
+import { showSuccess, showWarning } from '../ui/notifications.js';
+import { translate } from '../i18n/language.js';
+import { highlightNextStepInMap } from '../map/map-markers.js';
+import { getMap, centerMap } from '../map/map-core.js';
+import { LOCATION_CONFIG } from '../core/config.js';
 
 /**
  * Módulo de Estado de Navegação
@@ -26,7 +26,7 @@ let lastRecalculationTime = 0;
  */
 export function startNavigation(route, options = {}) {
   if (!route) {
-    console.error("Tentativa de iniciar navegação sem rota");
+    console.error('Tentativa de iniciar navegação sem rota');
     return;
   }
 
@@ -43,14 +43,14 @@ export function startNavigation(route, options = {}) {
   const navOptions = { ...defaultOptions, ...options };
 
   // Configurar estado de navegação
-  appState.set("navigation.active", true);
-  appState.set("navigation.paused", false);
-  appState.set("navigation.currentStepIndex", navOptions.startAtStep || 0);
-  appState.set("navigation.startTime", Date.now());
-  appState.set("navigation.options", navOptions);
-  appState.set("navigation.progress", 0);
-  appState.set("navigation.distanceTraveled", 0);
-  appState.set("navigation.lastPosition", getLastKnownLocation());
+  appState.set('navigation.active', true);
+  appState.set('navigation.paused', false);
+  appState.set('navigation.currentStepIndex', navOptions.startAtStep || 0);
+  appState.set('navigation.startTime', Date.now());
+  appState.set('navigation.options', navOptions);
+  appState.set('navigation.progress', 0);
+  appState.set('navigation.distanceTraveled', 0);
+  appState.set('navigation.lastPosition', getLastKnownLocation());
 
   // Definir passo inicial
   const currentStep = route.instructions[navOptions.startAtStep || 0];
@@ -71,7 +71,7 @@ export function startNavigation(route, options = {}) {
   }
 
   // Mostrar mensagem para o usuário
-  showSuccess(translate("navigation-started"));
+  showSuccess(translate('navigation-started'));
 
   return true;
 }
@@ -90,10 +90,10 @@ export function stopNavigation(options = {}) {
   stopProgressTracking();
 
   // Limpar estado
-  appState.set("navigation.active", false);
-  appState.set("navigation.paused", false);
-  appState.set("navigation.currentStepIndex", 0);
-  appState.set("navigation.progress", 0);
+  appState.set('navigation.active', false);
+  appState.set('navigation.paused', false);
+  appState.set('navigation.currentStepIndex', 0);
+  appState.set('navigation.progress', 0);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.NAVIGATION_ENDED, {
@@ -102,7 +102,7 @@ export function stopNavigation(options = {}) {
 
   // Mostrar mensagem apenas se não cancelada
   if (!options.silent) {
-    showSuccess(translate("navigation-ended"));
+    showSuccess(translate('navigation-ended'));
   }
 }
 
@@ -114,7 +114,7 @@ export function pauseNavigation(pause = true) {
   // Apenas se a navegação estiver ativa
   if (!isNavigationActive()) return;
 
-  appState.set("navigation.paused", pause);
+  appState.set('navigation.paused', pause);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.NAVIGATION_PAUSED, { paused: pause });
@@ -125,7 +125,7 @@ export function pauseNavigation(pause = true) {
  * @returns {boolean} - true se estiver ativa
  */
 export function isNavigationActive() {
-  return appState.get("navigation.active") === true;
+  return appState.get('navigation.active') === true;
 }
 
 /**
@@ -133,7 +133,7 @@ export function isNavigationActive() {
  * @returns {boolean} - true se estiver pausada
  */
 export function isNavigationPaused() {
-  return appState.get("navigation.paused") === true;
+  return appState.get('navigation.paused') === true;
 }
 
 /**
@@ -141,7 +141,7 @@ export function isNavigationPaused() {
  * @returns {number} - Progresso entre 0 e 1
  */
 export function getNavigationProgress() {
-  return appState.get("navigation.progress") || 0;
+  return appState.get('navigation.progress') || 0;
 }
 
 /**
@@ -176,7 +176,7 @@ function updateNavigationProgress() {
     return;
   }
 
-  const currentRoute = appState.get("route.current");
+  const currentRoute = appState.get('route.current');
   if (!currentRoute) return;
 
   // Obter posição atual
@@ -184,13 +184,13 @@ function updateNavigationProgress() {
   if (!currentPosition) return;
 
   // Obter último passo de instrução
-  const stepIndex = appState.get("navigation.currentStepIndex") || 0;
+  const stepIndex = appState.get('navigation.currentStepIndex') || 0;
   const instructions = currentRoute.instructions;
 
   if (!instructions || !instructions.length) return;
 
   // Obter a posição anterior para cálculo de distância percorrida
-  const lastPosition = appState.get("navigation.lastPosition");
+  const lastPosition = appState.get('navigation.lastPosition');
 
   // Atualizar distância percorrida
   if (lastPosition) {
@@ -204,17 +204,17 @@ function updateNavigationProgress() {
     // Apenas considerar se o movimento for significativo (> 1m)
     if (distance > 1) {
       const distanceTraveled =
-        (appState.get("navigation.distanceTraveled") || 0) + distance;
-      appState.set("navigation.distanceTraveled", distanceTraveled);
-      appState.set("navigation.lastPosition", currentPosition);
+        (appState.get('navigation.distanceTraveled') || 0) + distance;
+      appState.set('navigation.distanceTraveled', distanceTraveled);
+      appState.set('navigation.lastPosition', currentPosition);
     }
   } else {
-    appState.set("navigation.lastPosition", currentPosition);
+    appState.set('navigation.lastPosition', currentPosition);
   }
 
   // Calcular progresso com base na distância
   const totalDistance = currentRoute.distance;
-  const distanceTraveled = appState.get("navigation.distanceTraveled") || 0;
+  const distanceTraveled = appState.get('navigation.distanceTraveled') || 0;
 
   // Limitar entre 0 e 1
   let progress = Math.min(1, Math.max(0, distanceTraveled / totalDistance));
@@ -244,7 +244,7 @@ function updateNavigationProgress() {
   }
 
   // Atualizar progresso no estado
-  appState.set("navigation.progress", progress);
+  appState.set('navigation.progress', progress);
 
   // Publicar evento
   eventBus.publish(EVENT_TYPES.NAVIGATION_PROGRESS_UPDATED, { progress });
@@ -275,7 +275,7 @@ function checkAndRecalculateIfNeeded(currentPosition) {
   }
 
   // Importar sob demanda para evitar dependência circular
-  const { checkRouteDeviation, recalculateRoute } = require("./route.js");
+  const { checkRouteDeviation, recalculateRoute } = require('./route.js');
 
   // Verificar desvio
   const needsRecalculation = checkRouteDeviation(currentPosition);
@@ -283,11 +283,11 @@ function checkAndRecalculateIfNeeded(currentPosition) {
   // Recalcular se necessário
   if (needsRecalculation) {
     lastRecalculationTime = now;
-    showWarning(translate("route-deviation-recalculating"));
+    showWarning(translate('route-deviation-recalculating'));
 
     // Executar recalculação
     recalculateRoute().catch((error) => {
-      console.error("Erro na recalculação automática:", error);
+      console.error('Erro na recalculação automática:', error);
     });
   }
 }
@@ -300,10 +300,10 @@ function handleArrival() {
   if (!isNavigationActive()) return;
 
   // Mostrar mensagem de chegada
-  showSuccess(translate("destination-reached"));
+  showSuccess(translate('destination-reached'));
 
   // Ir para o último passo
-  const route = appState.get("route.current");
+  const route = appState.get('route.current');
   if (route && route.instructions) {
     goToInstructionStep(route.instructions.length - 1);
   }
@@ -316,8 +316,8 @@ function handleArrival() {
  * Avança para o próximo passo de instrução
  */
 export function nextInstructionStep() {
-  const currentIndex = appState.get("navigation.currentStepIndex") || 0;
-  const route = appState.get("route.current");
+  const currentIndex = appState.get('navigation.currentStepIndex') || 0;
+  const route = appState.get('route.current');
 
   if (!route || !route.instructions) return;
 
@@ -329,7 +329,7 @@ export function nextInstructionStep() {
  * Retorna ao passo anterior de instrução
  */
 export function prevInstructionStep() {
-  const currentIndex = appState.get("navigation.currentStepIndex") || 0;
+  const currentIndex = appState.get('navigation.currentStepIndex') || 0;
 
   const newIndex = Math.max(0, currentIndex - 1);
   goToInstructionStep(newIndex);
@@ -340,10 +340,10 @@ export function prevInstructionStep() {
  * @param {number} stepIndex - Índice do passo
  */
 export function goToInstructionStep(stepIndex) {
-  const route = appState.get("route.current");
+  const route = appState.get('route.current');
 
   if (!route || !route.instructions) {
-    console.warn("Não há instruções para navegar");
+    console.warn('Não há instruções para navegar');
     return;
   }
 
@@ -351,7 +351,7 @@ export function goToInstructionStep(stepIndex) {
   stepIndex = Math.max(0, Math.min(route.instructions.length - 1, stepIndex));
 
   // Atualizar o passo atual
-  appState.set("navigation.currentStepIndex", stepIndex);
+  appState.set('navigation.currentStepIndex', stepIndex);
 
   // Obter o passo
   const step = route.instructions[stepIndex];
@@ -366,7 +366,7 @@ export function goToInstructionStep(stepIndex) {
   highlightNextStepInMap(step);
 
   // Centralizar mapa se necessário
-  const shouldCenterMap = appState.get("navigation.options.centerMap");
+  const shouldCenterMap = appState.get('navigation.options.centerMap');
   if (shouldCenterMap && step.location) {
     const map = getMap();
     if (map) {
@@ -382,7 +382,7 @@ export function goToInstructionStep(stepIndex) {
   }
 
   // Ler instrução em voz alta se ativado
-  const shouldSpeak = appState.get("navigation.options.speakInstructions");
+  const shouldSpeak = appState.get('navigation.options.speakInstructions');
   if (shouldSpeak) {
     speakInstruction(step.text);
   }

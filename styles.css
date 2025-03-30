@@ -82,7 +82,9 @@ html {
 /* Animação para o Rodapé */
 .route-footer {
   transform: translateY(100%); /* Começa fora da tela */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transition:
+    transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
   opacity: 0;
 }
 
@@ -98,7 +100,9 @@ html {
 
 /* Botões com Animação de Clique */
 .route-btn {
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .route-btn:hover {
@@ -111,7 +115,9 @@ html {
 
 /* Animações no polyline (transição suave) */
 .leaflet-interactive {
-  transition: stroke 0.5s ease, opacity 0.5s ease;
+  transition:
+    stroke 0.5s ease,
+    opacity 0.5s ease;
 }
 
 /* .step-icon (para ícones de passo-a-passo) */
@@ -462,7 +468,9 @@ html {
 .route-preview.hidden {
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .route-preview.show {
@@ -1436,10 +1444,10 @@ html {
   }
 }
 
-input[type="email"],
-input[type="text"],
-input[type="password"],
-input[type="number"],
+input[type='email'],
+input[type='text'],
+input[type='password'],
+input[type='number'],
 textarea {
   font-size: 18px;
 }

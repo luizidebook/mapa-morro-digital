@@ -1,11 +1,11 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { LOCATION_CONFIG } from "../core/config.js";
-import { showError, showWarning } from "../ui/notifications.js";
-import { updateUserMarker } from "../map/map-markers.js";
-import { centerMap } from "../map/map-core.js";
-import { translate } from "../i18n/language.js";
-import { calculateDistance } from "../utils/geo.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { LOCATION_CONFIG } from '../core/config.js';
+import { showError, showWarning } from '../ui/notifications.js';
+import { updateUserMarker } from '../map/map-markers.js';
+import { centerMap } from '../map/map-core.js';
+import { translate } from '../i18n/language.js';
+import { calculateDistance } from '../utils/geo.js';
 
 /**
  * Módulo de rastreamento de geolocalização
@@ -21,8 +21,8 @@ export function initContinuousLocationTracking(options = {}) {
   return new Promise((resolve, reject) => {
     // Verificar se o navegador suporta geolocalização
     if (!navigator.geolocation) {
-      const error = new Error("Geolocalização não suportada neste navegador.");
-      showError("geolocation-not-supported");
+      const error = new Error('Geolocalização não suportada neste navegador.');
+      showError('geolocation-not-supported');
       reject(error);
       return;
     }
@@ -41,14 +41,14 @@ export function initContinuousLocationTracking(options = {}) {
           position.coords;
 
         // Armazenar a localização inicial no estado
-        appState.set("user.location", {
+        appState.set('user.location', {
           lat: latitude,
           lon: longitude,
           accuracy,
         });
-        appState.set("user.heading", heading || 0);
-        appState.set("user.speed", speed || 0);
-        appState.set("user.locationUpdateTimestamp", position.timestamp);
+        appState.set('user.heading', heading || 0);
+        appState.set('user.speed', speed || 0);
+        appState.set('user.locationUpdateTimestamp', position.timestamp);
 
         // Atualizar marcador do usuário
         updateUserMarker(latitude, longitude, heading, accuracy);
@@ -102,8 +102,8 @@ function startContinuousTracking(options = {}) {
       const timestamp = position.timestamp;
 
       // Obter a última posição conhecida
-      const lastLocation = appState.get("user.location");
-      const lastTimestamp = appState.get("user.locationUpdateTimestamp");
+      const lastLocation = appState.get('user.location');
+      const lastTimestamp = appState.get('user.locationUpdateTimestamp');
 
       // Calcular distância da última posição (para filtrar atualizações mínimas)
       let distance = 0;
@@ -129,17 +129,17 @@ function startContinuousTracking(options = {}) {
       }
 
       // Atualizar estado com a nova posição
-      appState.set("user.location", {
+      appState.set('user.location', {
         lat: latitude,
         lon: longitude,
         accuracy,
       });
       appState.set(
-        "user.heading",
-        heading || appState.get("user.heading") || 0
+        'user.heading',
+        heading || appState.get('user.heading') || 0
       );
-      appState.set("user.speed", speed || 0);
-      appState.set("user.locationUpdateTimestamp", timestamp);
+      appState.set('user.speed', speed || 0);
+      appState.set('user.locationUpdateTimestamp', timestamp);
 
       // Atualizar marcador do usuário no mapa
       updateUserMarker(latitude, longitude, heading, accuracy);
@@ -163,7 +163,7 @@ function startContinuousTracking(options = {}) {
   );
 
   // Armazenar ID do watcher no estado
-  appState.set("user.watcherId", watcherId);
+  appState.set('user.watcherId', watcherId);
 
   // Também armazenar na variável global por compatibilidade
   window.positionWatcher = watcherId;
@@ -179,14 +179,14 @@ function startContinuousTracking(options = {}) {
  */
 export function stopLocationTracking() {
   // Obter ID do watcher atual
-  const watcherId = appState.get("user.watcherId");
+  const watcherId = appState.get('user.watcherId');
 
   if (watcherId) {
     // Parar o rastreamento
     navigator.geolocation.clearWatch(watcherId);
 
     // Limpar referências
-    appState.set("user.watcherId", null);
+    appState.set('user.watcherId', null);
     window.positionWatcher = null;
 
     // Publicar evento
@@ -203,8 +203,8 @@ export function getCurrentLocation(options = {}) {
   return new Promise((resolve, reject) => {
     // Verificar se o navegador suporta geolocalização
     if (!navigator.geolocation) {
-      const error = new Error("Geolocalização não suportada neste navegador.");
-      showError("geolocation-not-supported");
+      const error = new Error('Geolocalização não suportada neste navegador.');
+      showError('geolocation-not-supported');
       reject(error);
       return;
     }
@@ -234,14 +234,14 @@ export function getCurrentLocation(options = {}) {
 
         // Atualizar estado se solicitado
         if (options.updateState !== false) {
-          appState.set("user.location", {
+          appState.set('user.location', {
             lat: latitude,
             lon: longitude,
             accuracy,
           });
-          appState.set("user.heading", heading || 0);
-          appState.set("user.speed", speed || 0);
-          appState.set("user.locationUpdateTimestamp", position.timestamp);
+          appState.set('user.heading', heading || 0);
+          appState.set('user.speed', speed || 0);
+          appState.set('user.locationUpdateTimestamp', position.timestamp);
         }
 
         // Atualizar marcador do usuário se solicitado
@@ -279,20 +279,20 @@ export function getCurrentLocation(options = {}) {
  * @param {Object} error - Objeto de erro de geolocalização
  */
 function handleGeolocationError(error) {
-  console.error("Erro de geolocalização:", error);
+  console.error('Erro de geolocalização:', error);
 
-  let message = "Erro desconhecido de geolocalização.";
+  let message = 'Erro desconhecido de geolocalização.';
 
   // Tratar diferentes tipos de erro
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      message = "location-access-denied";
+      message = 'location-access-denied';
       break;
     case error.POSITION_UNAVAILABLE:
-      message = "location-unavailable";
+      message = 'location-unavailable';
       break;
     case error.TIMEOUT:
-      message = "location-timeout";
+      message = 'location-timeout';
       break;
   }
 
@@ -311,7 +311,7 @@ function handleGeolocationError(error) {
  * @returns {boolean} - true se o rastreamento estiver ativo
  */
 export function isTrackingActive() {
-  return appState.get("user.watcherId") !== null;
+  return appState.get('user.watcherId') !== null;
 }
 
 /**
@@ -320,13 +320,13 @@ export function isTrackingActive() {
  * @returns {string} - Descrição da precisão ("alta", "média", "baixa")
  */
 export function getLocationAccuracyLevel(location) {
-  if (!location || !location.accuracy) return "unknown";
+  if (!location || !location.accuracy) return 'unknown';
 
   const accuracy = location.accuracy;
 
-  if (accuracy <= 10) return "high"; // Alta precisão: <= 10 metros
-  if (accuracy <= 50) return "medium"; // Média precisão: <= 50 metros
-  return "low"; // Baixa precisão: > 50 metros
+  if (accuracy <= 10) return 'high'; // Alta precisão: <= 10 metros
+  if (accuracy <= 50) return 'medium'; // Média precisão: <= 50 metros
+  return 'low'; // Baixa precisão: > 50 metros
 }
 
 /**
@@ -347,10 +347,10 @@ export function isLocationRecent(timestamp, maxAge = 30000) {
  * @returns {Object|null} - Objeto de localização ou null
  */
 export function getLastKnownLocation() {
-  const location = appState.get("user.location");
-  const timestamp = appState.get("user.locationUpdateTimestamp");
-  const heading = appState.get("user.heading");
-  const speed = appState.get("user.speed");
+  const location = appState.get('user.location');
+  const timestamp = appState.get('user.locationUpdateTimestamp');
+  const heading = appState.get('user.heading');
+  const speed = appState.get('user.speed');
 
   if (!location) return null;
 
@@ -372,7 +372,7 @@ export function getLastKnownLocation() {
 export function requestLocationPermission() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      showError("geolocation-not-supported");
+      showError('geolocation-not-supported');
       resolve(false);
       return;
     }

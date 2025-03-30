@@ -52,12 +52,15 @@ export function throttle(func, limit) {
     } else {
       clearTimeout(lastFunc);
 
-      lastFunc = setTimeout(function () {
-        if (Date.now() - lastRan >= limit) {
-          func.apply(context, args);
-          lastRan = Date.now();
-        }
-      }, limit - (Date.now() - lastRan));
+      lastFunc = setTimeout(
+        function () {
+          if (Date.now() - lastRan >= limit) {
+            func.apply(context, args);
+            lastRan = Date.now();
+          }
+        },
+        limit - (Date.now() - lastRan)
+      );
     }
   };
 }
@@ -67,7 +70,7 @@ export function throttle(func, limit) {
  * @param {string} [prefix] - Prefixo opcional para o ID
  * @returns {string} ID único
  */
-export function generateId(prefix = "") {
+export function generateId(prefix = '') {
   return prefix + Math.random().toString(36).substr(2, 9);
 }
 
@@ -125,13 +128,13 @@ export function movingAverage(values, windowSize = 5) {
  * @param {string} [locale='pt-BR'] - Localidade para formatação
  * @returns {string} Data formatada
  */
-export function formatDateTime(date, format = "short", locale = "pt-BR") {
+export function formatDateTime(date, format = 'short', locale = 'pt-BR') {
   const dateObj = date instanceof Date ? date : new Date(date);
 
   const options = {
-    short: { dateStyle: "short", timeStyle: "short" },
-    long: { dateStyle: "long", timeStyle: "medium" },
-    time: { timeStyle: "short" },
+    short: { dateStyle: 'short', timeStyle: 'short' },
+    long: { dateStyle: 'long', timeStyle: 'medium' },
+    time: { timeStyle: 'short' },
   };
 
   return new Intl.DateTimeFormat(
@@ -147,10 +150,10 @@ export function formatDateTime(date, format = "short", locale = "pt-BR") {
  * @returns {boolean} true se o objeto é válido
  */
 export function validateObject(obj, requiredProps) {
-  if (!obj || typeof obj !== "object") return false;
+  if (!obj || typeof obj !== 'object') return false;
 
   return requiredProps.every((prop) => {
-    const props = prop.split(".");
+    const props = prop.split('.');
     let value = obj;
 
     for (const p of props) {
@@ -168,7 +171,7 @@ export function validateObject(obj, requiredProps) {
  * @returns {string} Texto escapado
  */
 export function escapeHTML(text) {
-  const div = document.createElement("div");
+  const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
@@ -187,7 +190,7 @@ export function isOffline() {
  */
 export function isPWA() {
   return (
-    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true
   );
 }

@@ -14,13 +14,13 @@ export const MAP_CONFIG = {
   // Camadas do mapa
   TILE_LAYERS: {
     STREETS: {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution: "© OpenStreetMap contributors",
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     },
     SATELLITE: {
-      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      attribution: "© Esri",
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: '© Esri',
       maxZoom: 19,
     },
   },
@@ -28,23 +28,23 @@ export const MAP_CONFIG = {
   // Opções de estilo para rotas
   ROUTE_STYLES: {
     PRIMARY: {
-      color: "blue",
+      color: 'blue',
       weight: 5,
       opacity: 0.8,
-      dashArray: "10,5",
+      dashArray: '10,5',
     },
     ALTERNATIVE: {
-      color: "purple",
+      color: 'purple',
       weight: 4,
       opacity: 0.7,
     },
     TRAVELED: {
-      color: "green",
+      color: 'green',
       weight: 5,
       opacity: 0.8,
     },
     HIGHLIGHT: {
-      color: "yellow",
+      color: 'yellow',
       weight: 6,
       opacity: 1,
     },
@@ -54,14 +54,14 @@ export const MAP_CONFIG = {
 // Chaves de API e URLs para serviços externos
 export const API = {
   // OpenRouteService API
-  ORS_KEY: "5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3",
-  ORS_BASE_URL: "https://api.openrouteservice.org/v2",
+  ORS_KEY: '5b3ce3597851110001cf62480e27ce5b5dcf4e75a9813468e027d0d3',
+  ORS_BASE_URL: 'https://api.openrouteservice.org/v2',
 
   // Nominatim API
-  NOMINATIM_URL: "https://nominatim.openstreetmap.org/search",
+  NOMINATIM_URL: 'https://nominatim.openstreetmap.org/search',
 
   // Overpass API
-  OVERPASS_API_URL: "https://overpass-api.de/api/interpreter",
+  OVERPASS_API_URL: 'https://overpass-api.de/api/interpreter',
 };
 
 // Queries Overpass predefinidas por categoria
@@ -102,9 +102,9 @@ export const LOCATION_CONFIG = {
 
   // Perfis de navegação
   NAVIGATION_PROFILES: {
-    WALKING: "foot-walking",
-    CYCLING: "cycling-regular",
-    DRIVING: "driving-car",
+    WALKING: 'foot-walking',
+    CYCLING: 'cycling-regular',
+    DRIVING: 'driving-car',
   },
 
   // Opções de rotação
@@ -141,13 +141,13 @@ export const UI_CONFIG = {
 export const STORAGE_CONFIG = {
   // Chaves para localStorage
   KEYS: {
-    LANGUAGE: "preferredLanguage",
-    THEME: "theme",
-    CACHED_ROUTE: "cachedRoute",
-    ROUTE_HISTORY: "routeHistory",
-    SEARCH_HISTORY: "searchHistory",
-    SELECTED_DESTINATION: "selectedDestination",
-    APP_STATE: "app_state",
+    LANGUAGE: 'preferredLanguage',
+    THEME: 'theme',
+    CACHED_ROUTE: 'cachedRoute',
+    ROUTE_HISTORY: 'routeHistory',
+    SEARCH_HISTORY: 'searchHistory',
+    SELECTED_DESTINATION: 'selectedDestination',
+    APP_STATE: 'app_state',
   },
 
   // Limites de armazenamento
@@ -158,22 +158,22 @@ export const STORAGE_CONFIG = {
 };
 
 // Idiomas suportados
-export const SUPPORTED_LANGUAGES = ["pt", "en", "es", "he"];
-export const DEFAULT_LANGUAGE = "pt";
+export const SUPPORTED_LANGUAGES = ['pt', 'en', 'es', 'he'];
+export const DEFAULT_LANGUAGE = 'pt';
 
 // Mapeamento de categorias para seus respectivos submenus
 export const FEATURE_TO_SUBMENU = {
-  "pontos-turisticos": "touristSpots-submenu",
-  passeios: "tours-submenu",
-  praias: "beaches-submenu",
-  festas: "nightlife-submenu",
-  restaurantes: "restaurants-submenu",
-  pousadas: "inns-submenu",
-  lojas: "shops-submenu",
-  emergencias: "emergencies-submenu",
-  dicas: "tips-submenu",
-  sobre: "about-submenu",
-  ensino: "education-submenu",
+  'pontos-turisticos': 'touristSpots-submenu',
+  passeios: 'tours-submenu',
+  praias: 'beaches-submenu',
+  festas: 'nightlife-submenu',
+  restaurantes: 'restaurants-submenu',
+  pousadas: 'inns-submenu',
+  lojas: 'shops-submenu',
+  emergencias: 'emergencies-submenu',
+  dicas: 'tips-submenu',
+  sobre: 'about-submenu',
+  ensino: 'education-submenu',
 };
 
 // Configurações de tema

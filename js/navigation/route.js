@@ -1,26 +1,26 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { API, MAP_CONFIG, LOCATION_CONFIG } from "../core/config.js";
-import { getMap, clearMapLayers, centerMap } from "../map/map-core.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { API, MAP_CONFIG, LOCATION_CONFIG } from '../core/config.js';
+import { getMap, clearMapLayers, centerMap } from '../map/map-core.js';
 import {
   createDestinationMarker,
   removeDestinationMarker,
   highlightNextStepInMap,
-} from "../map/map-markers.js";
+} from '../map/map-markers.js';
 import {
   showNotification,
   showError,
   showSuccess,
   showWarning,
-} from "../ui/notifications.js";
-import { translate } from "../i18n/language.js";
+} from '../ui/notifications.js';
+import { translate } from '../i18n/language.js';
 import {
   calculateDistance,
   calculateBearing,
   formatDistance,
   formatDuration,
-} from "../utils/geo.js";
-import { debounce } from "../utils/helpers.js";
+} from '../utils/geo.js';
+import { debounce } from '../utils/helpers.js';
 
 /**
  * Módulo de rotas
@@ -51,7 +51,7 @@ export async function createRoute(
   startLon,
   destLat,
   destLon,
-  profile = "foot-walking",
+  profile = 'foot-walking',
   options = {}
 ) {
   try {
@@ -72,7 +72,7 @@ export async function createRoute(
       !validateCoordinates(startLat, startLon) ||
       !validateCoordinates(destLat, destLon)
     ) {
-      throw new Error("Coordenadas inválidas para criação de rota");
+      throw new Error('Coordenadas inválidas para criação de rota');
     }
 
     // Construir URL para a API OpenRouteService
@@ -80,7 +80,7 @@ export async function createRoute(
       `${API.ORS_BASE_URL}/directions/${profile}?api_key=${API.ORS_KEY}` +
       `&start=${startLon},${startLat}&end=${destLon},${destLat}` +
       `&instructions=true&units=m&language=${
-        appState.get("language.selected") || "pt"
+        appState.get('language.selected') || 'pt'
       }`;
 
     // Fazer a requisição à API
@@ -94,7 +94,7 @@ export async function createRoute(
 
     // Verificar se a API retornou uma rota válida
     if (!data.features || data.features.length === 0) {
-      throw new Error("A API não retornou nenhuma rota válida");
+      throw new Error('A API não retornou nenhuma rota válida');
     }
 
     // Extrair dados da rota
@@ -105,7 +105,7 @@ export async function createRoute(
       createDestinationMarker(
         destLat,
         destLon,
-        options.destinationName || translate("destination")
+        options.destinationName || translate('destination')
       );
     }
 
@@ -116,8 +116,8 @@ export async function createRoute(
     hideRouteLoading();
 
     // Armazenar a rota no estado da aplicação
-    appState.set("route.current", routeData);
-    appState.set("route.profile", profile);
+    appState.set('route.current', routeData);
+    appState.set('route.profile', profile);
 
     // Publicar evento de rota criada
     eventBus.publish(EVENT_TYPES.ROUTE_CREATED, {
@@ -134,13 +134,13 @@ export async function createRoute(
 
     return routeData;
   } catch (error) {
-    console.error("Erro ao criar rota:", error);
+    console.error('Erro ao criar rota:', error);
 
     // Esconder indicador de carregamento
     hideRouteLoading();
 
     // Mostrar notificação de erro
-    showError(translate("createRouteError"));
+    showError(translate('createRouteError'));
 
     // Publicar evento de erro na criação da rota
     eventBus.publish(EVENT_TYPES.ROUTE_CREATION_ERROR, {
@@ -180,7 +180,7 @@ function processRouteData(apiData) {
         duration: step.duration,
         type: step.type,
         maneuver: step.maneuver,
-        name: step.name || "",
+        name: step.name || '',
         location:
           step.location || step.way_points
             ? coordinates[step.way_points[0]]
@@ -214,7 +214,7 @@ function processRouteData(apiData) {
  * @param {Object} routeData - Dados da rota a ser exibida
  * @param {string} [profile='foot-walking'] - Perfil de navegação
  */
-export function displayRoute(routeData, profile = "foot-walking") {
+export function displayRoute(routeData, profile = 'foot-walking') {
   const map = getMap();
   if (!map) return;
 
@@ -231,7 +231,7 @@ export function displayRoute(routeData, profile = "foot-walking") {
   const routeLine = L.polyline(latLngs, routeStyle).addTo(map);
 
   // Armazenar referência no estado
-  appState.set("map.layers.currentRoute", routeLine);
+  appState.set('map.layers.currentRoute', routeLine);
 
   // Ajustar o mapa para mostrar toda a rota se houver bounds
   if (routeData.bounds) {
@@ -259,24 +259,24 @@ export function clearRouteFromMap() {
   if (!map) return;
 
   // Remover a camada da rota atual
-  const currentRoute = appState.get("map.layers.currentRoute");
+  const currentRoute = appState.get('map.layers.currentRoute');
   if (currentRoute) {
     map.removeLayer(currentRoute);
-    appState.set("map.layers.currentRoute", null);
+    appState.set('map.layers.currentRoute', null);
   }
 
   // Remover qualquer destaque de segmento
-  const highlightedSegment = appState.get("map.layers.highlightedSegment");
+  const highlightedSegment = appState.get('map.layers.highlightedSegment');
   if (highlightedSegment) {
     map.removeLayer(highlightedSegment);
-    appState.set("map.layers.highlightedSegment", null);
+    appState.set('map.layers.highlightedSegment', null);
   }
 
   // Remover qualquer destaque de passo
-  const highlightedStep = appState.get("map.layers.highlightedStep");
+  const highlightedStep = appState.get('map.layers.highlightedStep');
   if (highlightedStep) {
     map.removeLayer(highlightedStep);
-    appState.set("map.layers.highlightedStep", null);
+    appState.set('map.layers.highlightedStep', null);
   }
 }
 
@@ -288,16 +288,16 @@ export function clearRouteFromMap() {
 function getRouteStyleForProfile(profile) {
   // Estilos base para os diferentes perfis
   const styles = {
-    "foot-walking": MAP_CONFIG.ROUTE_STYLES.PRIMARY,
-    "cycling-regular": {
+    'foot-walking': MAP_CONFIG.ROUTE_STYLES.PRIMARY,
+    'cycling-regular': {
       ...MAP_CONFIG.ROUTE_STYLES.PRIMARY,
-      color: "green",
-      dashArray: "15,10",
+      color: 'green',
+      dashArray: '15,10',
     },
-    "driving-car": {
+    'driving-car': {
       ...MAP_CONFIG.ROUTE_STYLES.PRIMARY,
-      color: "purple",
-      dashArray: "5,15",
+      color: 'purple',
+      dashArray: '5,15',
     },
   };
 
@@ -317,7 +317,7 @@ export function showRouteAlternatives(routeOptions) {
   clearRouteAlternatives();
 
   // Cores para as rotas alternativas
-  const colors = ["#2196F3", "#4CAF50", "#9C27B0", "#FF9800"];
+  const colors = ['#2196F3', '#4CAF50', '#9C27B0', '#FF9800'];
 
   // Array para armazenar as camadas criadas
   const alternativeRoutes = [];
@@ -337,7 +337,7 @@ export function showRouteAlternatives(routeOptions) {
       color: color,
       weight: 4,
       opacity: 0.7,
-      dashArray: "5,8",
+      dashArray: '5,8',
     }).addTo(map);
 
     // Adicionar popup com informações sobre a rota
@@ -347,22 +347,22 @@ export function showRouteAlternatives(routeOptions) {
     polyline.bindPopup(`
       <div class="route-alternative-popup">
         <strong>${option.profile}</strong>
-        <div>${translate("route_distance")}: ${distance}</div>
-        <div>${translate("route_eta")}: ${duration}</div>
+        <div>${translate('route_distance')}: ${distance}</div>
+        <div>${translate('route_eta')}: ${duration}</div>
         <button class="select-route-btn" data-index="${index}">${translate(
-      "select"
-    )}</button>
+          'select'
+        )}</button>
       </div>
     `);
 
     // Evento para seleção da rota através do popup
-    polyline.on("popupopen", (e) => {
+    polyline.on('popupopen', (e) => {
       setTimeout(() => {
         const popupContainer = e.popup._container;
         if (popupContainer) {
-          const button = popupContainer.querySelector(".select-route-btn");
+          const button = popupContainer.querySelector('.select-route-btn');
           if (button) {
-            button.addEventListener("click", () => {
+            button.addEventListener('click', () => {
               selectRouteAlternative(index);
               map.closePopup();
             });
@@ -376,8 +376,8 @@ export function showRouteAlternatives(routeOptions) {
   });
 
   // Armazenar referências no estado
-  appState.set("map.layers.alternatives", alternativeRoutes);
-  appState.set("route.alternatives", routeOptions);
+  appState.set('map.layers.alternatives', alternativeRoutes);
+  appState.set('route.alternatives', routeOptions);
 
   // Calcular os limites para todas as rotas
   if (alternativeRoutes.length > 0) {
@@ -401,7 +401,7 @@ export function clearRouteAlternatives() {
   if (!map) return;
 
   // Remover as camadas de rotas alternativas
-  const alternatives = appState.get("map.layers.alternatives") || [];
+  const alternatives = appState.get('map.layers.alternatives') || [];
   alternatives.forEach((route) => {
     if (route) {
       map.removeLayer(route);
@@ -409,7 +409,7 @@ export function clearRouteAlternatives() {
   });
 
   // Limpar referências no estado
-  appState.set("map.layers.alternatives", []);
+  appState.set('map.layers.alternatives', []);
 }
 
 /**
@@ -417,7 +417,7 @@ export function clearRouteAlternatives() {
  * @param {number} index - Índice da rota alternativa
  */
 export function selectRouteAlternative(index) {
-  const alternatives = appState.get("route.alternatives") || [];
+  const alternatives = appState.get('route.alternatives') || [];
   if (index < 0 || index >= alternatives.length) return;
 
   // Obter a rota selecionada
@@ -427,8 +427,8 @@ export function selectRouteAlternative(index) {
   displayRoute(selectedRoute.routeData, selectedRoute.profile);
 
   // Atualizar o estado
-  appState.set("route.current", selectedRoute.routeData);
-  appState.set("route.profile", selectedRoute.profile);
+  appState.set('route.current', selectedRoute.routeData);
+  appState.set('route.profile', selectedRoute.profile);
 
   // Limpar as rotas alternativas do mapa
   clearRouteAlternatives();
@@ -441,7 +441,7 @@ export function selectRouteAlternative(index) {
   });
 
   // Mostrar notificação
-  showSuccess(translate("routeSelected"));
+  showSuccess(translate('routeSelected'));
 }
 
 /**
@@ -463,7 +463,7 @@ export async function recalculateRoute(
   // Verificar cooldown para evitar recálculos frequentes demais
   const now = Date.now();
   if (now - lastRecalculationTime < RECALCULATION_COOLDOWN && !options.force) {
-    console.log("Recálculo de rota ignorado (cooldown)");
+    console.log('Recálculo de rota ignorado (cooldown)');
     return null;
   }
 
@@ -471,7 +471,7 @@ export async function recalculateRoute(
   lastRecalculationTime = now;
 
   // Mostrar notificação
-  showWarning(translate("recalculatingRoute"));
+  showWarning(translate('recalculatingRoute'));
 
   // Publicar evento de recálculo iniciado
   eventBus.publish(EVENT_TYPES.ROUTE_RECALCULATION_STARTED, {
@@ -480,7 +480,7 @@ export async function recalculateRoute(
   });
 
   // Obter o perfil atual ou usar o padrão
-  const profile = appState.get("route.profile") || "foot-walking";
+  const profile = appState.get('route.profile') || 'foot-walking';
 
   // Criar nova rota
   const routeData = await createRoute(
@@ -498,7 +498,7 @@ export async function recalculateRoute(
 
   if (routeData) {
     // Mostrar notificação de sucesso
-    showSuccess(translate("routeRecalculatedOk"));
+    showSuccess(translate('routeRecalculatedOk'));
 
     // Publicar evento de recálculo concluído
     eventBus.publish(EVENT_TYPES.ROUTE_RECALCULATION_COMPLETED, { routeData });
@@ -526,7 +526,7 @@ export function shouldRecalculateRoute(currentLat, currentLon) {
   }
 
   // Obter rota atual
-  const route = appState.get("route.current");
+  const route = appState.get('route.current');
   if (!route || !route.coordinates || route.coordinates.length === 0) {
     return false;
   }
@@ -675,8 +675,8 @@ function projectPointOnSegment(lat, lon, start, end) {
  * @returns {boolean} true se avançou para o próximo passo
  */
 export function advanceToNextStepIfClose(userLat, userLon) {
-  const route = appState.get("route.current");
-  const currentStepIndex = appState.get("navigation.currentStepIndex") || 0;
+  const route = appState.get('route.current');
+  const currentStepIndex = appState.get('navigation.currentStepIndex') || 0;
 
   if (!route || !route.instructions || route.instructions.length === 0) {
     return false;
@@ -720,10 +720,10 @@ export function advanceToNextStepIfClose(userLat, userLon) {
  * @param {number} stepIndex - Índice do passo
  */
 export function goToInstructionStep(stepIndex) {
-  const route = appState.get("route.current");
+  const route = appState.get('route.current');
 
   if (!route || !route.instructions || route.instructions.length === 0) {
-    console.warn("goToInstructionStep: Nenhuma instrução definida.");
+    console.warn('goToInstructionStep: Nenhuma instrução definida.');
     return;
   }
 
@@ -731,7 +731,7 @@ export function goToInstructionStep(stepIndex) {
   stepIndex = Math.max(0, Math.min(stepIndex, route.instructions.length - 1));
 
   // Atualizar o índice no estado
-  appState.set("navigation.currentStepIndex", stepIndex);
+  appState.set('navigation.currentStepIndex', stepIndex);
 
   // Obter o passo
   const step = route.instructions[stepIndex];
@@ -759,7 +759,7 @@ export function goToInstructionStep(stepIndex) {
  * Avança para o próximo passo da navegação
  */
 export function nextInstructionStep() {
-  const currentStepIndex = appState.get("navigation.currentStepIndex") || 0;
+  const currentStepIndex = appState.get('navigation.currentStepIndex') || 0;
   goToInstructionStep(currentStepIndex + 1);
 }
 
@@ -767,7 +767,7 @@ export function nextInstructionStep() {
  * Retrocede para o passo anterior da navegação
  */
 export function prevInstructionStep() {
-  const currentStepIndex = appState.get("navigation.currentStepIndex") || 0;
+  const currentStepIndex = appState.get('navigation.currentStepIndex') || 0;
   goToInstructionStep(currentStepIndex - 1);
 }
 
@@ -789,15 +789,15 @@ function updateInstructionDisplay(instructions, currentIndex) {
  * @param {string} text - Texto a ser falado
  * @param {string} [lang='pt-BR'] - Idioma
  */
-export function speakInstruction(text, lang = "pt-BR") {
+export function speakInstruction(text, lang = 'pt-BR') {
   // Verificar se a síntese de voz está disponível
-  if (!("speechSynthesis" in window)) {
-    console.warn("API de síntese de voz não disponível");
+  if (!('speechSynthesis' in window)) {
+    console.warn('API de síntese de voz não disponível');
     return;
   }
 
   // Verificar se a navegação por voz está ativada
-  if (appState.get("config.voiceGuidance") === false) {
+  if (appState.get('config.voiceGuidance') === false) {
     return;
   }
 
@@ -826,11 +826,11 @@ function showRouteLoading(timeout = 15000) {
   // Configurar timeout
   const timeoutId = setTimeout(() => {
     hideRouteLoading();
-    showError(translate("routeLoadTimeout"));
+    showError(translate('routeLoadTimeout'));
   }, timeout);
 
   // Armazenar ID do timeout no estado
-  appState.set("route.loadingTimeoutId", timeoutId);
+  appState.set('route.loadingTimeoutId', timeoutId);
 }
 
 /**
@@ -838,10 +838,10 @@ function showRouteLoading(timeout = 15000) {
  */
 function hideRouteLoading() {
   // Cancelar timeout se existir
-  const timeoutId = appState.get("route.loadingTimeoutId");
+  const timeoutId = appState.get('route.loadingTimeoutId');
   if (timeoutId) {
     clearTimeout(timeoutId);
-    appState.set("route.loadingTimeoutId", null);
+    appState.set('route.loadingTimeoutId', null);
   }
 
   // Publicar evento para esconder o indicador
@@ -856,8 +856,8 @@ function hideRouteLoading() {
  */
 function validateCoordinates(lat, lon) {
   return (
-    typeof lat === "number" &&
-    typeof lon === "number" &&
+    typeof lat === 'number' &&
+    typeof lon === 'number' &&
     !isNaN(lat) &&
     !isNaN(lon) &&
     lat >= -90 &&
@@ -872,7 +872,7 @@ function validateCoordinates(lat, lon) {
  * @param {Object} routeData - Dados da rota
  */
 function cacheRouteData(routeData) {
-  if (typeof localStorage === "undefined") return;
+  if (typeof localStorage === 'undefined') return;
 
   try {
     const cacheData = {
@@ -880,10 +880,10 @@ function cacheRouteData(routeData) {
       timestamp: Date.now(),
     };
 
-    localStorage.setItem("cachedRoute", JSON.stringify(cacheData));
-    console.log("Rota salva no cache");
+    localStorage.setItem('cachedRoute', JSON.stringify(cacheData));
+    console.log('Rota salva no cache');
   } catch (error) {
-    console.error("Erro ao salvar rota no cache:", error);
+    console.error('Erro ao salvar rota no cache:', error);
   }
 }
 
@@ -892,10 +892,10 @@ function cacheRouteData(routeData) {
  * @returns {Object|null} Dados da rota ou null se não houver cache
  */
 export function loadRouteFromCache() {
-  if (typeof localStorage === "undefined") return null;
+  if (typeof localStorage === 'undefined') return null;
 
   try {
-    const cacheDataStr = localStorage.getItem("cachedRoute");
+    const cacheDataStr = localStorage.getItem('cachedRoute');
     if (!cacheDataStr) return null;
 
     const cacheData = JSON.parse(cacheDataStr);
@@ -906,13 +906,13 @@ export function loadRouteFromCache() {
     const MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 horas
 
     if (cacheAge > MAX_CACHE_AGE) {
-      localStorage.removeItem("cachedRoute");
+      localStorage.removeItem('cachedRoute');
       return null;
     }
 
     return cacheData.routeData;
   } catch (error) {
-    console.error("Erro ao carregar rota do cache:", error);
+    console.error('Erro ao carregar rota do cache:', error);
     return null;
   }
 }
@@ -944,7 +944,7 @@ export function hasReachedDestination(
  * @returns {Object} Objeto com hora e minutos restantes
  */
 export function estimateArrivalTime(routeData, progress = 0) {
-  if (!routeData || typeof routeData.duration !== "number") {
+  if (!routeData || typeof routeData.duration !== 'number') {
     return {
       time: null,
       remainingMinutes: 0,

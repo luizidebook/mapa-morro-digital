@@ -1,6 +1,6 @@
-import { eventBus, EVENT_TYPES } from "./eventBus.js";
+import { eventBus, EVENT_TYPES } from './eventBus.js';
 
-console.log("state.js loaded");
+console.log('state.js loaded');
 
 // Estado inicial da aplicação
 const initialState = {
@@ -12,8 +12,8 @@ const initialState = {
 
   // Estado de idioma
   language: {
-    selected: "pt", // pt, en, es, he
-    direction: "ltr", // ltr, rtl (para hebraico)
+    selected: 'pt', // pt, en, es, he
+    direction: 'ltr', // ltr, rtl (para hebraico)
   },
 
   // Estado do usuário e sua localização
@@ -73,7 +73,7 @@ const initialState = {
     activeSubmenu: null,
     activeModal: null,
     lastSelectedFeature: null,
-    searchQuery: "",
+    searchQuery: '',
     isSearching: false,
     tutorialActive: false,
     tutorialStep: 0,
@@ -90,7 +90,7 @@ const initialState = {
 let state = {};
 
 export function setState(key, value) {
-  const keys = key.split(".");
+  const keys = key.split('.');
   const lastKey = keys.pop();
   const target = keys.reduce(
     (acc, part) => (acc[part] = acc[part] || {}),
@@ -100,11 +100,24 @@ export function setState(key, value) {
 }
 
 export function getState(key) {
-  return key.split(".").reduce((acc, part) => acc && acc[part], state) || null;
+  return key.split('.').reduce((acc, part) => acc && acc[part], state) || null;
 }
 
 export function resetState() {
   state = {};
+}
+
+// Função para obter uma propriedade aninhada de um objeto
+function getNestedProperty(obj, path) {
+  return path.split('.').reduce((acc, key) => acc && acc[key], obj);
+}
+
+// Função para definir uma propriedade aninhada de um objeto
+function setNestedProperty(obj, path, value) {
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const target = keys.reduce((acc, key) => (acc[key] = acc[key] || {}), obj);
+  target[lastKey] = value;
 }
 
 // Se você estava usando algum objeto com o nome appState, defina-o aqui
@@ -114,7 +127,7 @@ export const appState = { setState, resetState };
 eventBus.subscribe(EVENT_TYPES.STATE_CHANGED, (changeData) => {
   // Salvar automaticamente apenas para certas mudanças de estado
   // que são importantes para persistência
-  const criticalPaths = ["language", "config", "poi.history", "cache"];
+  const criticalPaths = ['language', 'config', 'poi.history', 'cache'];
 
   if (
     changeData.path &&

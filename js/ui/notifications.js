@@ -1,8 +1,8 @@
-import { appState } from "../core/state.js";
-import { eventBus, EVENT_TYPES } from "../core/eventBus.js";
-import { UI_CONFIG } from "../core/config.js";
-import { translate } from "../i18n/language.js";
-import { escapeHTML } from "../utils/helpers.js";
+import { appState } from '../core/state.js';
+import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
+import { UI_CONFIG } from '../core/config.js';
+import { translate } from '../i18n/language.js';
+import { escapeHTML } from '../utils/helpers.js';
 
 /**
  * Módulo de notificações
@@ -22,8 +22,8 @@ export const activeNotifications = [];
  * @param {number} [duration=3000] - Duração em ms
  */
 export function showNotification(message, type, duration = 3000) {
-  const container = document.getElementById("notification-container");
-  const notification = document.createElement("div");
+  const container = document.getElementById('notification-container');
+  const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
 
@@ -43,8 +43,8 @@ export function closeNotification(notificationId) {
   if (!notification) return;
 
   // Iniciar animação de saída
-  notification.classList.remove("show");
-  notification.classList.add("hide");
+  notification.classList.remove('show');
+  notification.classList.add('hide');
 
   // Remover da DOM após animação
   setTimeout(() => {
@@ -94,7 +94,7 @@ export function updateNotificationText(
   if (!notification) return;
 
   const displayMessage = shouldTranslate ? translate(newMessage) : newMessage;
-  const messageElement = notification.querySelector(".notification-message");
+  const messageElement = notification.querySelector('.notification-message');
 
   if (messageElement) {
     messageElement.textContent = displayMessage;
@@ -116,7 +116,7 @@ export function updateNotificationText(
  * @returns {string} ID da notificação
  */
 export function showError(message, duration = UI_CONFIG.TIMEOUTS.NOTIFICATION) {
-  return showNotification(message, "error", duration);
+  return showNotification(message, 'error', duration);
 }
 
 /**
@@ -129,7 +129,7 @@ export function showSuccess(
   message,
   duration = UI_CONFIG.TIMEOUTS.NOTIFICATION
 ) {
-  return showNotification(message, "success", duration);
+  return showNotification(message, 'success', duration);
 }
 
 /**
@@ -142,7 +142,7 @@ export function showWarning(
   message,
   duration = UI_CONFIG.TIMEOUTS.NOTIFICATION
 ) {
-  return showNotification(message, "warning", duration);
+  return showNotification(message, 'warning', duration);
 }
 
 /**
@@ -152,7 +152,7 @@ export function showWarning(
  * @returns {string} ID da notificação
  */
 export function showInfo(message, duration = UI_CONFIG.TIMEOUTS.NOTIFICATION) {
-  return showNotification(message, "info", duration);
+  return showNotification(message, 'info', duration);
 }
 
 /**
@@ -162,11 +162,11 @@ export function showInfo(message, duration = UI_CONFIG.TIMEOUTS.NOTIFICATION) {
 export function showOfflineNotification() {
   // Verificar se já existe uma notificação offline ativa
   const existingOffline = activeNotifications.find(
-    (n) => n.message === translate("offline-mode")
+    (n) => n.message === translate('offline-mode')
   );
 
   if (!existingOffline) {
-    return showNotification("offline-mode", "warning", 10000);
+    return showNotification('offline-mode', 'warning', 10000);
   }
 
   return null;
@@ -203,13 +203,13 @@ function enforceMaxVisibleNotifications(maxVisible = 3) {
  */
 function getIconForType(type) {
   switch (type) {
-    case "success":
+    case 'success':
       return '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
-    case "error":
+    case 'error':
       return '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>';
-    case "warning":
+    case 'warning':
       return '<svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>';
-    case "info":
+    case 'info':
     default:
       return '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
   }
@@ -218,7 +218,7 @@ function getIconForType(type) {
 // Subscrever a eventos de estado
 eventBus.subscribe(EVENT_TYPES.STATE_CHANGED, (changeData) => {
   // Mostrar notificação quando mudar para modo offline
-  if (changeData.path === "network.online" && changeData.newValue === false) {
+  if (changeData.path === 'network.online' && changeData.newValue === false) {
     showOfflineNotification();
   }
 });
