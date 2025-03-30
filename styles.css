@@ -1,15 +1,18 @@
 /* styles.css */
 
 /* Estilos gerais */
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    font-family: Arial, sans-serif;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
 
 /* Define que o container do mapa é o elemento relativo para posicionamento absoluto dos overlays */
 #map-container {
@@ -21,17 +24,16 @@ body, html {
 /* Estiliza o overlay de destino que será inserido no topo do mapa */
 #destination-overlay {
   position: absolute;
-  top: 10px;             /* Espaço de 10px do topo */
-  left: 50%;             /* Centralizado horizontalmente */
+  top: 10px; /* Espaço de 10px do topo */
+  left: 50%; /* Centralizado horizontalmente */
   transform: translateX(-50%);
   background-color: rgba(255, 255, 255, 0.8); /* Fundo semitransparente */
   padding: 5px 10px;
   border-radius: 4px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  z-index: 1000;         /* Acima dos demais elementos do mapa */
+  z-index: 1000; /* Acima dos demais elementos do mapa */
   font-size: 16px;
 }
-
 
 #map {
   width: 100%;
@@ -45,7 +47,7 @@ body, html {
   top: 10%;
   left: 83%;
   z-index: 999; /* Para ficar sobre o mapa */
-  
+
   /* Aparência */
   background-color: #fff;
   border: 1px solid #ccc;
@@ -60,9 +62,9 @@ body, html {
 
 /* Exemplo básico de CSS para foco visível */
 .modal:focus {
-    outline: 2px solid #f39c12;
-  }
-  
+  outline: 2px solid #f39c12;
+}
+
 /* Animação para o Banner de Instruções */
 .instruction-banner {
   transform: translateY(-100%); /* Começa fora da tela */
@@ -119,71 +121,71 @@ body, html {
 }
 
 .notification {
-    padding: 10px 15px;
-    margin: 10px;
-    border-radius: 4px;
-    font-size: 1rem;
-    opacity: 1;
-    transition: opacity 0.5s ease;
-  }
-  .notification.fade-out {
-    opacity: 0;
-  }
-  .notification.success {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  .notification.error {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  .notification.warning {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-  .notification.info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-  }
-  
+  padding: 10px 15px;
+  margin: 10px;
+  border-radius: 4px;
+  font-size: 1rem;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.notification.fade-out {
+  opacity: 0;
+}
+.notification.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+.notification.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+.notification.warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.notification.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
 
-.welcome-modal, .modal {
-    position: fixed;
-    top: 50%;
-    left: 45%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 100000;
-    display: none;
-    text-align: center;
+.welcome-modal,
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 45%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  max-width: 600px;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  z-index: 100000;
+  display: none;
+  text-align: center;
 }
 
 .lang-btn {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 5px;
-    font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  font-size: 16px;
 }
 
 .lang-btn:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 /* Contêiner geral para elementos flutuantes */
 .container-overlay {
-    position: absolute;
-    z-index: 100;
-    pointer-events: none; /* Elementos flutuantes não interferem com o mapa */
+  position: absolute;
+  z-index: 100;
+  pointer-events: none; /* Elementos flutuantes não interferem com o mapa */
 }
 
 /* Ícone do passo da instrução */
@@ -209,9 +211,15 @@ body, html {
 
 /* Animação de pulsar */
 @keyframes pulse {
-  0%   { transform: scale(1);   }
-  50%  { transform: scale(1.3); }
-  100% { transform: scale(1);   }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Componente Fixo de Instruções */
@@ -354,14 +362,11 @@ body, html {
   /* Outras propriedades se necessário */
 }
 
-
-
-
 /* Tooltip customizado */
 .my-custom-tooltip {
-  background-color: #FFC;
+  background-color: #ffc;
   color: #333;
-  border: 1px solid #CCC;
+  border: 1px solid #ccc;
   padding: 5px 8px;
   border-radius: 4px;
   font-weight: bold;
@@ -389,7 +394,7 @@ body, html {
   }
   100% {
     transform: scale(1.8);
-    opacity: 0.0;
+    opacity: 0;
   }
 }
 /* Ícone em formato de seta com efeito de “piscar” */
@@ -403,7 +408,7 @@ body, html {
   */
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
-  border-bottom: 20px solid red;  /* Cor da seta */
+  border-bottom: 20px solid red; /* Cor da seta */
 
   /* Animação: muda a opacidade para simular um piscar */
   animation: arrowBlink 1s infinite;
@@ -421,56 +426,54 @@ body, html {
   }
 }
 
-
 /* Container do resumo da rota */
 .route-preview {
-    display: none; /* Inicialmente oculto */
-    padding: 16px;
-    background-color: #f8f9fa; /* Cor de fundo suave */
-    border: 1px solid #dee2e6; /* Borda leve */
-    border-radius: 8px; /* Cantos arredondados */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
-    width: 100%;
-    max-width: 400px; /* Limita a largura */
-    margin: 20px auto; /* Centraliza horizontalmente */
-    font-family: Arial, sans-serif;
-    color: #333; /* Texto em cinza escuro */
-    z-index: 1000;
+  display: none; /* Inicialmente oculto */
+  padding: 16px;
+  background-color: #f8f9fa; /* Cor de fundo suave */
+  border: 1px solid #dee2e6; /* Borda leve */
+  border-radius: 8px; /* Cantos arredondados */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
+  width: 100%;
+  max-width: 400px; /* Limita a largura */
+  margin: 20px auto; /* Centraliza horizontalmente */
+  font-family: Arial, sans-serif;
+  color: #333; /* Texto em cinza escuro */
+  z-index: 1000;
 }
 
 /* Título do resumo */
 .route-preview h3 {
-    font-size: 1.5rem;
-    margin-bottom: 12px;
-    color: #007bff; /* Azul vibrante para destaque */
-    text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  color: #007bff; /* Azul vibrante para destaque */
+  text-align: center;
 }
 
 /* Parágrafos do resumo */
 .route-preview p {
-    margin: 8px 0;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #555;
+  margin: 8px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #555;
 }
 
 /* Efeito de transição ao exibir */
 .route-preview.hidden {
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .route-preview.show {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
-
-/* Resumo da Rota */
-#route-summary {
+  /* Resumo da Rota */
+  #route-summary {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -481,88 +484,91 @@ body, html {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     pointer-events: auto;
     z-index: 1000;
-}
+  }
 
-/* route-summary se existir */
-#route-summary.hidden {
-  display: none;
-}
-
-/* Loader e spinner para rota */
-.route-loader {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -40%);
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  z-index: 9999;
-}
-.spinner {
-  margin: 10px auto;
-  width: 40px;
-  height: 40px;
-  border: 5px solid #fff;
-  border-top: 5px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  position: fixed;
-  z-index: 1000;
-  left: 35%;
-  top: 40%;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.spinner.hidden {
+  /* route-summary se existir */
+  #route-summary.hidden {
     display: none;
-}
+  }
 
-/* Cancel Button */
-#cancel-nav-btn {
-  position: absolute;
-  top: 10px; 
-  right: 10px;
-  padding: 8px 16px;
-  border: none;
-  background: #dc3545;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-}
-#cancel-nav-btn:hover {
-  background: #c82333;
-}
+  /* Loader e spinner para rota */
+  .route-loader {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 9999;
+  }
+  .spinner {
+    margin: 10px auto;
+    width: 40px;
+    height: 40px;
+    border: 5px solid #fff;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: fixed;
+    z-index: 1000;
+    left: 35%;
+    top: 40%;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
-/* Checkbox container simulação */
-#simulate-container {
-  position: absolute;
-  top: 50px;
-  right: 10px;
-  background: #fff;
-  padding: 6px;
-  border-radius: 4px;
-}
+  .spinner.hidden {
+    display: none;
+  }
 
-/* Select de rotas alternativas */
-#route-options {
-  position: absolute;
-  top: 90px;
-  right: 10px;
-  padding: 4px;
-  background: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-}
+  /* Cancel Button */
+  #cancel-nav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 16px;
+    border: none;
+    background: #dc3545;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  #cancel-nav-btn:hover {
+    background: #c82333;
+  }
 
+  /* Checkbox container simulação */
+  #simulate-container {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 4px;
+  }
 
-/* Navegação Passo a Passo */
-#navigation-instructions {
+  /* Select de rotas alternativas */
+  #route-options {
+    position: absolute;
+    top: 90px;
+    right: 10px;
+    padding: 4px;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  /* Navegação Passo a Passo */
+  #navigation-instructions {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -575,98 +581,96 @@ body, html {
     max-height: 30%;
     overflow-y: auto;
     z-index: 10000;
+  }
 
-}
-
-.instruction-step {
+  .instruction-step {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-}
+  }
 
-.active-instruction {
+  .active-instruction {
     background-color: #007bff;
     color: white;
-}
+  }
 
-.direction-arrow {
+  .direction-arrow {
     margin-right: 10px;
     font-size: 1.5em;
-}
+  }
 
-/* Notificações */
-#notification-container {
+  /* Notificações */
+  #notification-container {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 1000;
     max-width: 300px;
-}
+  }
 
-.notification {
+  .notification {
     padding: 10px 15px;
     margin-bottom: 10px;
     border-radius: 4px;
     color: white;
     font-weight: bold;
-}
+  }
 
-.notification-info {
+  .notification-info {
     background-color: #17a2b8;
-}
+  }
 
-.notification-success {
+  .notification-success {
     background-color: #28a745;
-}
+  }
 
-.notification-warning {
+  .notification-warning {
     background-color: #ffc107;
-}
+  }
 
-.notification-error {
+  .notification-error {
     background-color: #dc3545;
-}
+  }
 
-
-/* Notificações */
-#notification-container {
+  /* Notificações */
+  #notification-container {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 1000;
     max-width: 300px;
-}
+  }
 
-.notification {
+  .notification {
     background: rgba(0, 123, 255, 0.9);
     color: white;
     padding: 10px 15px;
     margin-bottom: 10px;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+  }
 
-.notification-info {
+  .notification-info {
     background-color: #17a2b8;
-}
+  }
 
-.notification-success {
+  .notification-success {
     background-color: #28a745;
-}
+  }
 
-.notification-warning {
+  .notification-warning {
     background-color: #ffc107;
-}
+  }
 
-.notification-error {
+  .notification-error {
     background-color: #dc3545;
-}
+  }
 
-/* Barra de Progresso */
-#progress-bar-container {
+  /* Barra de Progresso */
+  #progress-bar-container {
     position: absolute;
     bottom: 20px;
     right: 20px;
@@ -677,9 +681,9 @@ body, html {
     padding: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     pointer-events: auto;
-}
+  }
 
-#progress-bar {
+  #progress-bar {
     background: #007bff;
     height: 20px;
     border-radius: 4px;
@@ -688,15 +692,13 @@ body, html {
     color: white;
     font-weight: bold;
     z-index: 1000000;
+  }
 
-}
-
-
-.menu-toggle {
+  .menu-toggle {
     position: absolute;
     bottom: 20px;
     right: 5px;
-    background: #007BFF;
+    background: #007bff;
     color: white;
     border: none;
     padding: 20px;
@@ -704,10 +706,10 @@ body, html {
     cursor: pointer;
     font-size: 2em;
     z-index: 990000;
-}
+  }
 
-/* Estilos para o controle de rota */
-#route-modal {
+  /* Estilos para o controle de rota */
+  #route-modal {
     display: none;
     position: fixed;
     top: 10%;
@@ -719,21 +721,22 @@ body, html {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     z-index: 2000;
-}
+  }
 
-.leaflet-routing-container {
+  .leaflet-routing-container {
     position: relative;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt {
+  .leaflet-routing-container .leaflet-routing-alt {
     display: none;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
+  .leaflet-routing-container
+    .leaflet-routing-alt.leaflet-routing-alt-minimized {
     display: block;
-}
+  }
 
-.leaflet-routing-container button.close-btn {
+  .leaflet-routing-container button.close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -741,35 +744,31 @@ body, html {
     border: none;
     font-size: 18px;
     cursor: pointer;
-}
+  }
 
-#route-steps {
+  #route-steps {
     max-height: 300px;
     overflow-y: auto;
     padding: 20px;
-}
+  }
 
-/* Estilização para o círculo de precisão do GPS */
-.gps-accuracy-circle {
-  stroke: blue !important;         /* Cor da borda */
-  stroke-width: 1px !important;     /* Largura da borda */
-  width: 5px;
-  fill: blue !important;            /* Cor de preenchimento */
-  fill-opacity: 0 !important;      /* Opacidade do preenchimento para um visual mais leve */
-  z-index: 50;
-  weight: 2px;
-  radius: 5px;
+  /* Estilização para o círculo de precisão do GPS */
+  .gps-accuracy-circle {
+    stroke: blue !important; /* Cor da borda */
+    stroke-width: 1px !important; /* Largura da borda */
+    width: 5px;
+    fill: blue !important; /* Cor de preenchimento */
+    fill-opacity: 0 !important; /* Opacidade do preenchimento para um visual mais leve */
+    z-index: 50;
+  }
 
-}
+  .tile {
+    transform: rotate(45deg); /* Rotação em graus */
+    transform-origin: center; /* Define o ponto de origem da rotação */
+  }
 
-.tile {
-  transform: rotate(45deg); /* Rotação em graus */
-  transform-origin: center; /* Define o ponto de origem da rotação */
-}
-
-
-/* Container do marcador: garante que o conteúdo (a seta) fique com a ponta na parte inferior */
-.user-marker {
+  /* Container do marcador: garante que o conteúdo (a seta) fique com a ponta na parte inferior */
+  .user-marker {
     transform-origin: 50% 50%;
     transition: transform 0.3s ease-out;
   }
@@ -777,17 +776,15 @@ body, html {
     transform-origin: 50% 50%;
   }
 
+  /* Estilização do ícone da seta */
+  .user-marker i {
+    color: red; /* Define a cor vermelha para a seta */
+    font-size: 48px; /* Tamanho padrão da seta (ajustável conforme necessário) */
+    transform-origin: 50% 100%; /* Define que a rotação ocorrerá a partir da ponta (base) da seta */
+    transition: transform 0.3s ease; /* Suaviza a transição de rotação */
+  }
 
-/* Estilização do ícone da seta */
-.user-marker i {
-  color: red;               /* Define a cor vermelha para a seta */
-  font-size: 48px;          /* Tamanho padrão da seta (ajustável conforme necessário) */
-  transform-origin: 50% 100%; /* Define que a rotação ocorrerá a partir da ponta (base) da seta */
-  transition: transform 0.3s ease; /* Suaviza a transição de rotação */
-}
-
-
-.floating-menu {
+  .floating-menu {
     position: absolute;
     top: 45%;
     right: 5px;
@@ -796,18 +793,18 @@ body, html {
     flex-direction: column;
     transition: opacity 0.3s ease-in-out;
     z-index: 991000;
-}
+  }
 
-.floating-menu.hidden {
+  .floating-menu.hidden {
     opacity: 0;
     pointer-events: none;
-}
+  }
 
-.menu-btn {
+  .menu-btn {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #007BFF;
+    background: #007bff;
     color: white;
     border: none;
     margin: 1px 0;
@@ -817,21 +814,21 @@ body, html {
     width: 10px;
     height: 10px;
     font-size: 1.2em;
-}
+  }
 
-.menu-btn:hover {
+  .menu-btn:hover {
     background: linear-gradient(135deg, #0056b3, #004494);
-}
+  }
 
-.leaflet-marker-icon {
+  .leaflet-marker-icon {
     width: 25px;
     height: 41px;
     margin-left: -12.5px;
     margin-top: -41px;
-}
+  }
 
-.control-btn {
-    background-color: #007BFF;
+  .control-btn {
+    background-color: #007bff;
     color: white;
     padding: 5px 10px;
     text-align: center;
@@ -844,14 +841,14 @@ body, html {
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
-}
+  }
 
-.control-btn:hover {
+  .control-btn:hover {
     background-color: #0056b3;
-}
+  }
 
-.control-btn-tutorial {
-    background-color: #007BFF;
+  .control-btn-tutorial {
+    background-color: #007bff;
     color: white;
     padding: 8px 30px;
     text-align: center;
@@ -864,14 +861,14 @@ body, html {
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
-}
+  }
 
-.control-btn:hover {
+  .control-btn:hover {
     background-color: #0056b3;
-}
+  }
 
-.menu-principal-btn {
-    background-color: #007BFF;
+  .menu-principal-btn {
+    background-color: #007bff;
     color: white;
     padding: 5px 10px;
     text-align: center;
@@ -884,24 +881,24 @@ body, html {
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
-}
+  }
 
-.control-btn:hover {
+  .control-btn:hover {
     background-color: #0056b3;
-}
+  }
 
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
+  .close-side-btn {
+    position: fixed;
+    top: 70%;
+    right: 13%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    z-index: 10000000;
+  }
 
-.close-btn {
+  .close-btn {
     position: fixed;
     top: 1%;
     right: 2%;
@@ -910,63 +907,67 @@ body, html {
     font-size: 13px;
     cursor: pointer;
     z-index: 10000;
-}
+  }
 
-/* Estilos para mensagens do tutorial */
-.tutorial-message {
+  /* Estilos para mensagens do tutorial */
+  .tutorial-message {
     position: absolute;
     background-color: #fff;
-    border: 2px solid #007BFF;
+    border: 2px solid #007bff;
     padding: 10px;
     border-radius: 5px;
     z-index: 10001;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
+  }
 
-.highlight {
+  .highlight {
     border: 3px solid red;
     animation: highlight-animation 1s infinite;
-}
+  }
 
-@keyframes highlight-animation {
-    0% { box-shadow: 0 0 5px red; }
-    50% { box-shadow: 0 0 20px red; }
-    100% { box-shadow: 0 0 5px red; }
-}
+  @keyframes highlight-animation {
+    0% {
+      box-shadow: 0 0 5px red;
+    }
+    50% {
+      box-shadow: 0 0 20px red;
+    }
+    100% {
+      box-shadow: 0 0 5px red;
+    }
+  }
 
-.tutorial-next-btn {
+  .tutorial-next-btn {
     display: block;
     margin-top: 10px;
-    background-color: #007BFF;
+    background-color: #007bff;
     color: #fff;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
-}
+  }
 
-.tutorial-next-btn:hover {
+  .tutorial-next-btn:hover {
     background-color: #0056b3;
-}
+  }
 
-
-
-.modal-content h2 {
+  .modal-content h2 {
     font-size: 25px;
     margin-bottom: 15px;
-}
+  }
 
-.modal-content ol {
+  .modal-content ol {
     padding-left: 20px;
-}
+  }
 
-.modal-content li {
+  .modal-content li {
     margin-bottom: 10px;
     line-height: 1.6;
-}
+  }
 
-/* Estilo base para o modal do carrossel */
-.carousel-modal {
+  /* Estilo base para o modal do carrossel */
+  .carousel-modal {
     display: none;
     position: fixed;
     z-index: 1050;
@@ -981,15 +982,15 @@ body, html {
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
-}
+  }
 
-/* Classe para mover o modal 30px à esquerda */
-.carousel-modal.shift-left {
+  /* Classe para mover o modal 30px à esquerda */
+  .carousel-modal.shift-left {
     transform: translate(-calc(50% + 30px), -50%);
-}
+  }
 
-/* Conteúdo do modal do carrossel */
-.carousel-modal .modal-content {
+  /* Conteúdo do modal do carrossel */
+  .carousel-modal .modal-content {
     position: relative;
     background-color: #fff;
     margin: auto;
@@ -999,10 +1000,10 @@ body, html {
     height: 100%;
     overflow: hidden;
     border-radius: 10px;
-}
+  }
 
-/* Botão de fechar o modal do carrossel */
-.carousel-modal .modal-close {
+  /* Botão de fechar o modal do carrossel */
+  .carousel-modal .modal-close {
     position: absolute;
     right: 10px;
     top: 10px;
@@ -1018,74 +1019,73 @@ body, html {
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-}
+  }
 
-.carousel-modal .modal-close:hover,
-.carousel-modal .modal-close:focus {
+  .carousel-modal .modal-close:hover,
+  .carousel-modal .modal-close:focus {
     color: #000;
     background: #fff;
-}
+  }
 
-/* Estilo base para o carrossel */
-.swiper-container {
+  /* Estilo base para o carrossel */
+  .swiper-container {
     width: 100%;
     height: 100%;
     border-radius: 10px;
     overflow: hidden;
-}
+  }
 
-.swiper-slide {
+  .swiper-slide {
     display: flex;
     justify-content: center;
     align-items: center;
-}
+  }
 
-.swiper-slide img {
+  .swiper-slide img {
     width: 100%;
     height: 100%;
     object-fit: cover; /* Garante que a imagem ocupe todo o espaço do modal */
-}
+  }
 
-/* Estilos específicos para dispositivos móveis */
-@media (max-width: 600px) {
-.carousel-modal {
-    display: none;
-    position: fixed;
-    z-index: 1050;
-    left: 50%;
-    top: 25%;
-    width: 100%;
-    height: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 0px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
+  /* Estilos específicos para dispositivos móveis */
+  @media (max-width: 600px) {
+    .carousel-modal {
+      display: none;
+      position: fixed;
+      z-index: 1050;
+      left: 50%;
+      top: 25%;
+      width: 100%;
+      height: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 0px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
 
     .carousel-modal .modal-content {
-        padding: 0px;
+      padding: 0px;
     }
 
     .carousel-modal .modal-close {
-        font-size: 20px;
-        width: 25px;
-        height: 25px;
+      font-size: 20px;
+      width: 25px;
+      height: 25px;
     }
 
     .swiper-container {
-        max-height: calc(100vh - 20px);
+      max-height: calc(100vh - 20px);
     }
-}
+  }
 
-
-.menu-toggle {
+  .menu-toggle {
     position: absolute;
     bottom: 20px;
     right: 5px;
-    background: #007BFF;
+    background: #007bff;
     color: white;
     border: none;
     padding: 20px;
@@ -1093,16 +1093,16 @@ body, html {
     cursor: pointer;
     font-size: 2em;
     z-index: 99000;
-}
+  }
 
-    .menu-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 1em;
-    }
+  .menu-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
 
-.control-btn {
-    background-color: #007BFF;
+  .control-btn {
+    background-color: #007bff;
     color: white;
     padding: 5px 10px;
     text-align: center;
@@ -1115,10 +1115,10 @@ body, html {
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
-}
+  }
 
-.control-btn-tutorial {
-    background-color: #007BFF;
+  .control-btn-tutorial {
+    background-color: #007bff;
     color: white;
     padding: 8px 30px;
     text-align: center;
@@ -1131,66 +1131,66 @@ body, html {
     border: none;
     transition: background-color 0.3s ease;
     z-index: 1000;
-}
+  }
 
-    .tutorial-message {
-        font-size: 0.9em;
-    }
+  .tutorial-message {
+    font-size: 0.9em;
+  }
 
-    .tutorial-next-btn {
-        padding: 5px 8px;
-    }
+  .tutorial-next-btn {
+    padding: 5px 8px;
+  }
 }
 
 /* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 @media (max-width: 480px) {
- .menu-toggle {
+  .menu-toggle {
     position: absolute;
     bottom: 20px;
     right: 5px;
-    background: #007BFF;
+    background: #007bff;
     color: white;
     border: none;
     padding: 20px;
@@ -1198,10 +1198,10 @@ body, html {
     cursor: pointer;
     font-size: 2em;
     z-index: 99000;
-}
+  }
 
-/* Estilos para o controle de rota */
-#route-modal {
+  /* Estilos para o controle de rota */
+  #route-modal {
     display: none;
     position: fixed;
     top: 10%;
@@ -1213,21 +1213,22 @@ body, html {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     z-index: 2000;
-}
+  }
 
-.leaflet-routing-container {
+  .leaflet-routing-container {
     position: relative;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt {
+  .leaflet-routing-container .leaflet-routing-alt {
     display: none;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
+  .leaflet-routing-container
+    .leaflet-routing-alt.leaflet-routing-alt-minimized {
     display: block;
-}
+  }
 
-.leaflet-routing-container button.close-btn {
+  .leaflet-routing-container button.close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -1235,204 +1236,204 @@ body, html {
     border: none;
     font-size: 18px;
     cursor: pointer;
-}
+  }
 
-#route-steps {
+  #route-steps {
     max-height: 300px;
     overflow-y: auto;
     padding: 20px;
-}
+  }
 
-    .menu-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 0.8em;
-    }
+  .menu-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8em;
+  }
 
-    .tutorial-message {
-        font-size: 0.7em;
-    }
+  .tutorial-message {
+    font-size: 0.7em;
+  }
 
-    .tutorial-next-btn {
-        padding: 4px 6px;
-    }
+  .tutorial-next-btn {
+    padding: 4px 6px;
+  }
 }
 
 /* Estilos para a seção de perfil de usuário */
 #user-profile {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 }
 
 #user-profile h2 {
-    font-size: 1.5em;
-    margin-bottom: 10px;
+  font-size: 1.5em;
+  margin-bottom: 10px;
 }
 
 #user-profile ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 #user-profile ul li {
-    background-color: #fff;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Estilos para botões de compartilhamento social */
 .social-share {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 .share-btn {
-    background-color: #007BFF;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    margin: 0 5px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
 }
 
 .share-btn:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 /* Ajuste o modal de informações do OSM */
 .leaflet-popup-content {
-    font-size: 12px;
-    max-width: 200px; /* Reduz o tamanho máximo do modal */
+  font-size: 12px;
+  max-width: 200px; /* Reduz o tamanho máximo do modal */
 }
 
 .leaflet-popup-content-wrapper {
-    padding: 10px;
+  padding: 10px;
 }
 
 .leaflet-popup-tip-container {
-    width: 20px;
-    height: 10px;
+  width: 20px;
+  height: 10px;
 }
-
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
-
-
 .arrow-highlight {
-    position: fixed;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 0px solid transparent;
-    border-top: 20px solid red;
-    z-index: 99200;
-    animation: bounce 1s infinite;
+  position: fixed;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 0px solid transparent;
+  border-top: 20px solid red;
+  z-index: 99200;
+  animation: bounce 1s infinite;
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-30px);
-    }
-    60% {
-        transform: translateY(-15px);
-    }
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-30px);
+  }
+  60% {
+    transform: translateY(-15px);
+  }
 }
 
 .notification {
-    background: rgba(0, 123, 255, 0.9);
-    color: white;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 123, 255, 0.9);
+  color: white;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .notification.error {
-    background-color: #f44336;
+  background-color: #f44336;
 }
 
 .notification.info {
-    background-color: #2196f3;
+  background-color: #2196f3;
 }
-
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 input[type="email"],
@@ -1440,595 +1441,587 @@ input[type="text"],
 input[type="password"],
 input[type="number"],
 textarea {
-    font-size: 18px;
+  font-size: 18px;
 }
-
 
 .modal {
-    position: absolute;
-    top: 10%;
-    left: 10%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    max-width: 600px;
-    background: white;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 999;
-    display: none;
-    text-align: left;
-    font-size: 18px;
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  max-width: 600px;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  display: none;
+  text-align: left;
+  font-size: 18px;
 }
 
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
+.close-side-btn {
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 10000000;
+}
 
 .close-btn {
-    position: fixed;
-    top: 4%;
-    right: 2%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 10000;
+  position: fixed;
+  top: 4%;
+  right: 2%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10000;
 }
 
 .close-menu-btn {
-    position: fixed;
-    top: 3%;
-    right: 3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 10000;
+  position: fixed;
+  top: 3%;
+  right: 3%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10000;
 }
 
 .close-side-menu-btn {
-    position: fixed;
-    top: 70%;
-    right: 13%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 1000000000;
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 1000000000;
 }
 
 .menu-toggle {
-    position: absolute;
-    bottom: 20px;
-    right: 5px;
-    background: #007BFF;
-    color: white;
-    border: none;
-    padding: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 2em;
-    z-index: 99000;
+  position: absolute;
+  bottom: 20px;
+  right: 5px;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 2em;
+  z-index: 99000;
 }
 
 /* Caixa de pesquisa */
 #search-box {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    width: 300px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    display: none;
-    z-index: 1001;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 300px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: none;
+  z-index: 1001;
 }
 
 #search-input {
-    width: 70%;
-    padding: 5px;
-    margin-right: 5px;
-    border: none;
-    border-radius: 3px;
+  width: 70%;
+  padding: 5px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 3px;
 }
 
 #search-input:focus {
-    outline: none;
-    border: 1px solid #007bff;
+  outline: none;
+  border: 1px solid #007bff;
 }
 
 #searchResults {
-    position: fixed;
-    top: 50px;
-    left: 10px;
-    width: 300px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    display: none;
-    z-index: 1001;
+  position: fixed;
+  top: 50px;
+  left: 10px;
+  width: 300px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: none;
+  z-index: 1001;
 }
 
 #searchResults div {
-    padding: 5px;
-    cursor: pointer;
+  padding: 5px;
+  cursor: pointer;
 }
 
 #searchResults div:hover {
-    background-color: #007bff;
-    color: white;
+  background-color: #007bff;
+  color: white;
 }
 
 .floating-menu {
-    position: absolute;
-    top: 45%;
-    right: 5px;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    transition: opacity 0.3s ease-in-out;
-    z-index: 99100;
+  position: absolute;
+  top: 45%;
+  right: 5px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 99100;
 }
 
 .floating-menu.hidden {
-    opacity: 0;
-    pointer-events: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.menu-toggle-btn, .menu-floating-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #007BFF;
-    color: white;
-    border: none;
-    margin: 1px 0;
-    padding: 18px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1em;
+.menu-toggle-btn,
+.menu-floating-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #007bff;
+  color: white;
+  border: none;
+  margin: 1px 0;
+  padding: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1em;
 }
 
 .menu-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #007BFF;
-    color: white;
-    border: none;
-    margin: 1px 0;
-    padding: 18px;
-    border-radius: 50%;
-    cursor: pointer;
-    width: 10px;
-    height: 10px;
-    font-size: 1.2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #007bff;
+  color: white;
+  border: none;
+  margin: 1px 0;
+  padding: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 10px;
+  height: 10px;
+  font-size: 1.2em;
 }
 
 .control-btn {
-    background-color: #007BFF;
-    color: white;
-    padding: 5px 10px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 26px;
-    margin: 1px 1px;
-    cursor: pointer;
-    border-radius: 18px;
-    border: none;
-    transition: background-color 0.3s ease;
-    z-index: 1000;
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 26px;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 18px;
+  border: none;
+  transition: background-color 0.3s ease;
+  z-index: 1000;
 }
 
 .control-btn:hover {
-    background-color: #45a049;
+  background-color: #45a049;
 }
 
 .control-btn-tutorial {
-    background-color: #007BFF;
-    color: white;
-    padding: 8px 30px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 25px;
-    margin: 1px 1px;
-    cursor: pointer;
-    border-radius: 18px;
-    border: none;
-    transition: background-color 0.3s ease;
-    z-index: 1000;
+  background-color: #007bff;
+  color: white;
+  padding: 8px 30px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 25px;
+  margin: 1px 1px;
+  cursor: pointer;
+  border-radius: 18px;
+  border: none;
+  transition: background-color 0.3s ease;
+  z-index: 1000;
 }
 .close-menu-btn {
-    position: fixed;
-    top: 3%;
-    right: 3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 10000;
+  position: fixed;
+  top: 3%;
+  right: 3%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10000;
 }
 
 .close-side-menu-btn {
-    position: fixed;
-    top: 70%;
-    right: 13%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 1000000000;
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 1000000000;
 }
-
-
 
 /* Modal styles */
 #assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 45%;
+  top: 15%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  max-width: 600px;
+  max-height: 100vh;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #888;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  padding: 30px;
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
-
 @keyframes highlight-animation {
-    from {
-        background-color: rgba(0, 0, 0, 0.3);
-    }
-    to {
-        background-color: rgba(0, 0, 0, 0.5);
-    }
+  from {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
 /* Menu lateral */
 .menu {
-    position: fixed;
-    top: 72%;
-    left: 7%;
-    width: 80%;
-    height: 25%;
-    background-color: #fff;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    overflow-y: auto;
-    z-index: 1000000;
-    display: none;
-    animation: slideIn 0.3s forwards;
-    transition: width 0.3s ease-in-out;
-    scrollbar-width: thin;
-    scrollbar-color: #007BFF #f1f1f1;
+  position: fixed;
+  top: 72%;
+  left: 7%;
+  width: 80%;
+  height: 25%;
+  background-color: #fff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  z-index: 1000000;
+  display: none;
+  animation: slideIn 0.3s forwards;
+  transition: width 0.3s ease-in-out;
+  scrollbar-width: thin;
+  scrollbar-color: #007bff #f1f1f1;
 }
 
 /* Personalização da barra de rolagem para navegadores baseados em WebKit (Chrome, Edge, Safari) */
 .menu::-webkit-scrollbar {
-    width: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: #007BFF #f1f1f1;
- /* Largura da barra de rolagem */
+  width: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #007bff #f1f1f1;
+  /* Largura da barra de rolagem */
 }
 
 .menu::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Cor do fundo da barra de rolagem */
-    border-radius: 5px; /* Bordas arredondadas no fundo */
+  background: #f1f1f1; /* Cor do fundo da barra de rolagem */
+  border-radius: 5px; /* Bordas arredondadas no fundo */
 }
 
 .menu::-webkit-scrollbar-thumb {
-    background: #007BFF; /* Cor da barra de rolagem */
-    border-radius: 5px; /* Bordas arredondadas na barra de rolagem */
-    border: 2px solid #f1f1f1; /* Adiciona uma borda para destacar */
+  background: #007bff; /* Cor da barra de rolagem */
+  border-radius: 5px; /* Bordas arredondadas na barra de rolagem */
+  border: 2px solid #f1f1f1; /* Adiciona uma borda para destacar */
 }
 
 .menu::-webkit-scrollbar-thumb:hover {
-    background: #0056b3; /* Cor ao passar o mouse sobre a barra */
+  background: #0056b3; /* Cor ao passar o mouse sobre a barra */
 }
 
 .menu.hidden {
-    width: 0;
-    overflow: auto;
-    z-index: 100000000000000;
-    transition: width 0.3s ease-in-out;
+  width: 0;
+  overflow: auto;
+  z-index: 100000000000000;
+  transition: width 0.3s ease-in-out;
 }
 
 @keyframes slideIn {
-    from { right: -250px; }
-    to { right: 0; }
+  from {
+    right: -250px;
+  }
+  to {
+    right: 0;
+  }
 }
 
 .close-menu-btn {
-    position: fixed;
-    top: 3%;
-    right: 3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 10000;
+  position: fixed;
+  top: 3%;
+  right: 3%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10000;
 }
 
 .close-side-menu-btn {
-    position: fixed;
-    top: 70%;
-    right: 13%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 1000000000;
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 1000000000;
 }
 
-
 .submenu {
-    display: none;
-    padding: 0px;
+  display: none;
+  padding: 0px;
 }
 
 .submenu-item {
-    width: 100%;
-    padding: 8px;
-    padding-right: 25px;
-    background: #f4f4f4;
-    border: none;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    cursor: pointer;
-    font-size: 12px;
-    z-index: 1000000;
+  width: 100%;
+  padding: 8px;
+  padding-right: 25px;
+  background: #f4f4f4;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  z-index: 1000000;
 }
 
 .submenu-item:hover {
-    background: #ddd;
+  background: #ddd;
 }
 
-
 p {
-    display: block;
-    font-size: 1em;
-    margin-block-start: 0.83em;
-    margin-block-end: 0.83em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    unicode-bidi: isolate;
+  display: block;
+  font-size: 1em;
+  margin-block-start: 0.83em;
+  margin-block-end: 0.83em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  unicode-bidi: isolate;
 }
 
 h2 {
-    display: block;
-    font-size: 1.2em;
-    margin-block-start: 0.83em;
-    margin-block-end: 0.83em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-weight: bold;
-    unicode-bidi: isolate;
+  display: block;
+  font-size: 1.2em;
+  margin-block-start: 0.83em;
+  margin-block-end: 0.83em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  font-weight: bold;
+  unicode-bidi: isolate;
 }
 
 .close-menu-btn {
-    position: fixed;
-    top: 3%;
-    right: 3%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 10000;
+  position: fixed;
+  top: 3%;
+  right: 3%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10000;
 }
 
 .close-side-menu-btn {
-    position: fixed;
-    top: 70%;
-    right: 13%;
-    background-color: #fff;
-    border: 10px;
-    font-size: 13px;
-    cursor: pointer;
-    z-index: 1000000000;
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 1000000000;
 }
 
-
-
 .notification {
-    background: rgba(0, 123, 255, 0.9);
-    color: white;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 123, 255, 0.9);
+  color: white;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .notification.error {
-    background-color: #f44336;
+  background-color: #f44336;
 }
 
 .notification.info {
-    background-color: #2196f3;
+  background-color: #2196f3;
 }
 
-
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Esconde elementos com .hidden */
 .hidden {
-    display: none;
+  display: none;
 }
 
 .blocked {
-    pointer-events: none;
-    opacity: 0.5;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .modal-content {
-    max-width: 100%;
-    max-height: 100vh;
-    overflow-y: auto;
-    padding: 1px;
+  max-width: 100%;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1px;
 }
 
 .modal-content h2 {
-    font-size: 18px;
-    margin-bottom: 15px;
+  font-size: 18px;
+  margin-bottom: 15px;
 }
 
 .modal-content ol {
-    padding-left: 20px;
+  padding-left: 20px;
 }
 
 .modal-content li {
-    margin-bottom: 10px;
-    line-height: 1.6;
-}
-
-
-/* Estilo para o destaque do botão "Ensino" */
-.circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  margin-bottom: 10px;
+  line-height: 1.6;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Estilo para o destaque do botão "Ensino" */
+.circle-highlight {
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 600px) {
+  .control-buttons {
+    position: absolute;
+    top: 58%;
+    left: 42%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 10000;
+    flex-direction: column;
+    justify-items: center;
+    align-items: stretch;
+    justify-content: center;
+    flex-wrap: wrap;
+    transition: left 0.3s ease-in-out;
+  }
 
-.control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
+  .control-initial-tutorial-buttons {
+    position: absolute;
+    top: 43%;
+    left: 45%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 10000;
+    flex-direction: row;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    transition: left 0.3s ease-in-out;
+  }
 
+  .close-side-btn {
+    position: fixed;
+    top: 70%;
+    right: 13%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    z-index: 10000000;
+  }
 
-.control-initial-tutorial-buttons {
-        position: absolute;
-        top: 43%;
-        left: 45%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }
-    
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
-
-/* Estilos para o controle de rota */
-#route-modal {
+  /* Estilos para o controle de rota */
+  #route-modal {
     display: none;
     position: fixed;
     top: 10%;
@@ -2040,21 +2033,22 @@ h2 {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     z-index: 2000;
-}
+  }
 
-.leaflet-routing-container {
+  .leaflet-routing-container {
     position: relative;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt {
+  .leaflet-routing-container .leaflet-routing-alt {
     display: none;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
+  .leaflet-routing-container
+    .leaflet-routing-alt.leaflet-routing-alt-minimized {
     display: block;
-}
+  }
 
-.leaflet-routing-container button.close-btn {
+  .leaflet-routing-container button.close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -2062,1488 +2056,1458 @@ h2 {
     border: none;
     font-size: 18px;
     cursor: pointer;
-}
+  }
 
-#route-steps {
+  #route-steps {
     max-height: 300px;
     overflow-y: auto;
     padding: 20px;
-}
+  }
 
-/* Modal styles */
-#assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  /* Modal styles */
+  #assistant-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 45%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 600px;
+    max-height: 100vh;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #888;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+  }
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
+.menu-toggle-btn {
+  width: 30px;
+  height: 30px;
+}
 
-
-    .menu-toggle-btn {
-        width: 30px;
-        height: 30px;
-    }
-
-    .menu-floating-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 1.5em;
-    }
+.menu-floating-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 1.5em;
+}
 
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
 
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-
 
 /* Adicione esses estilos ao seu arquivo styles.css */
-
-
-
-}
 
 @media (max-width: 768px) {
-/* Modal styles */
-#assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  /* Modal styles */
+  #assistant-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 45%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 600px;
+    max-height: 100vh;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #888;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+  }
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
-
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
+.close-side-btn {
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 10000000;
+}
 
 /* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 58%;
+  left: 42%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: column;
+  justify-items: center;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  transition: left 0.3s ease-in-out;
+}
 
 .control-initial-tutorial-buttons {
-        position: absolute;
-        top: 43%;
-        left: 45%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 43%;
+  left: 45%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: row;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transition: left 0.3s ease-in-out;
+}
 
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
-
-
-
-
-}
 @media (max-width: 1024px) {
-/* Modal styles */
-#assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  /* Modal styles */
+  #assistant-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 45%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 600px;
+    max-height: 100vh;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #888;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+  }
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
-
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
+.close-side-btn {
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 10000000;
+}
 
 .control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 58%;
+  left: 42%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: column;
+  justify-items: center;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  transition: left 0.3s ease-in-out;
+}
 
 .control-initial-tutorial-buttons {
-        position: absolute;
-        top: 43%;
-        left: 45%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }    
+  position: absolute;
+  top: 43%;
+  left: 45%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: row;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transition: left 0.3s ease-in-out;
+}
 
 /* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-
 
 /* Adicione esses estilos ao seu arquivo styles.css */
-
-}
-
 
 @media (max-width: 1200px) {
-/* Modal styles */
-#assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  /* Modal styles */
+  #assistant-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 45%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 600px;
+    max-height: 100vh;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #888;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+  }
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
+.close-side-btn {
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 10000000;
+}
 
 /* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 58%;
+  left: 42%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: column;
+  justify-items: center;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  transition: left 0.3s ease-in-out;
+}
 
 .control-initial-tutorial-buttons {
-        position: absolute;
-        top: 43%;
-        left: 45%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 43%;
+  left: 45%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: row;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transition: left 0.3s ease-in-out;
+}
 
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
-
-
-}
-
 @media (min-width: 1201px) {
-/* Modal styles */
-#assistant-modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 45%;
-        top: 15%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        max-width: 600px;
-        max-height: 100vh;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #888;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        padding: 30px;
-    }
+  /* Modal styles */
+  #assistant-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 45%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 600px;
+    max-height: 100vh;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #888;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+  }
 }
 
 #assistant-modal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .tabs {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .tablink {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-    flex: 1 1 30%;
-    text-align: center;
+  background-color: #f1f1f1;
+  color: black;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 5px 0;
+  flex: 1 1 30%;
+  text-align: center;
 }
 
 .tabcontent {
-    display: none;
+  display: none;
 }
 
 .tabcontent ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .tabcontent h4 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
+.close-side-btn {
+  position: fixed;
+  top: 70%;
+  right: 13%;
+  background-color: #fff;
+  border: 10px;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 10000000;
+}
 
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
-
-    /* Estilos para o controle de rota */
+/* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
-
+  position: absolute;
+  top: 58%;
+  left: 42%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: column;
+  justify-items: center;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  transition: left 0.3s ease-in-out;
+}
 
 .control-initial-tutorial-buttons {
-        position: absolute;
-        top: 43%;
-        left: 45%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }
-    
+  position: absolute;
+  top: 43%;
+  left: 45%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: row;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transition: left 0.3s ease-in-out;
+}
+
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
-
-
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 .progress-bar-inner {
-    height: 100%;
-    background-color: #007BFF;
-    width: 0%;
-    transition: width 0.5s;
-    z-index: 100000;
+  height: 100%;
+  background-color: #007bff;
+  width: 0%;
+  transition: width 0.5s;
+  z-index: 100000;
 }
 
-
 @media (max-width: 768px) {
-
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }}
+  .close-side-btn {
+    position: fixed;
+    top: 70%;
+    right: 13%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    z-index: 10000000;
+  }
+}
 
 #tutorial-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10001; /* Above the blocked overlay */
-    pointer-events: auto; /* Enable clicking */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001; /* Above the blocked overlay */
+  pointer-events: auto; /* Enable clicking */
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 /* Estilos para o controle de rota */
 #route-modal {
-    display: none;
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 600px;
-    background: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 2000;
 }
 
 .leaflet-routing-container {
-    position: relative;
+  position: relative;
 }
 
 .leaflet-routing-container .leaflet-routing-alt {
-    display: none;
+  display: none;
 }
 
 .leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
-    display: block;
+  display: block;
 }
 
 .leaflet-routing-container button.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #route-steps {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
 
 /* Estilos para a barra de progresso do tutorial */
 #tutorial-overlay {
-    display: none;
-    position: fixed;
-    z-index: 700;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.2);
-    padding-top: 60px;
+  display: none;
+  position: fixed;
+  z-index: 700;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-top: 60px;
 }
 
 #tutorial-overlay .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    position: relative;
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
 }
 
 #tutorial-progress-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 5px;
-    background-color: #4CAF50;
-    width: 0;
-    z-index: 1000000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #4caf50;
+  width: 0;
+  z-index: 1000000;
 }
 
 /* Animação para fechar o modal */
 @keyframes closeToEducation {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
-    }
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0)
+      translate(var(--education-btn-x), var(--education-btn-y));
+    opacity: 0;
+  }
 }
 
 .animate-close-to-education {
-    animation: closeToEducation 1s forwards;
+  animation: closeToEducation 1s forwards;
 }
 
 /* Estilo para o destaque do botão "Ensino" */
 .circle-highlight {
-    position: absolute;
-    border: 2px solid red;
-    border-radius: 50%;
-    z-index: 999;
-    animation: fadeIn 1s forwards;
+  position: absolute;
+  border: 2px solid red;
+  border-radius: 50%;
+  z-index: 999;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .control-buttons {
-        position: absolute;
-        top: 58%;
-        left: 42%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: column;
-        justify-items: center;
-        align-items: stretch;
-        justify-content: center;
-        flex-wrap: wrap;
-        transition: left 0.3s ease-in-out;
-    }
+  position: absolute;
+  top: 58%;
+  left: 42%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: column;
+  justify-items: center;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  transition: left 0.3s ease-in-out;
+}
 
 /* Adicione esses estilos ao seu arquivo styles.css */
 
-
 .control-initial-tutorial-buttons {
-        position: absolute;
-        top: 68%;
-        left: 49%;
-        width: 70%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        transition: opacity 0.3s ease-in-out;
-        z-index: 10000;
-        flex-direction: row;
-        align-content: center;
-        justify-items: center;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap;
-        transition: left 0.3s ease-in-out;
-    }
-    
-
-
-
+  position: absolute;
+  top: 68%;
+  left: 49%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10000;
+  flex-direction: row;
+  align-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  transition: left 0.3s ease-in-out;
 }
 
 @media (max-width: 480px) {
+  .close-side-btn {
+    position: fixed;
+    top: 70%;
+    right: 13%;
+    background-color: #fff;
+    border: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    z-index: 10000000;
+  }
 
-    .close-side-btn {
-        position: fixed;
-        top: 70%;
-        right: 13%;
-        background-color: #fff;
-        border: 10px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 10000000;
-    }
- 
-/* Estilos para o controle de rota */
-#route-modal {
+  /* Estilos para o controle de rota */
+  #route-modal {
     display: none;
     position: fixed;
     top: 10%;
@@ -3555,21 +3519,22 @@ h2 {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     z-index: 2000;
-}
+  }
 
-.leaflet-routing-container {
+  .leaflet-routing-container {
     position: relative;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt {
+  .leaflet-routing-container .leaflet-routing-alt {
     display: none;
-}
+  }
 
-.leaflet-routing-container .leaflet-routing-alt.leaflet-routing-alt-minimized {
+  .leaflet-routing-container
+    .leaflet-routing-alt.leaflet-routing-alt-minimized {
     display: block;
-}
+  }
 
-.leaflet-routing-container button.close-btn {
+  .leaflet-routing-container button.close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -3577,63 +3542,62 @@ h2 {
     border: none;
     font-size: 18px;
     cursor: pointer;
-}
+  }
 
-.leaflet-control-container .leaflet-touch .leaflet-control-layers {
-  top: 50px;
-}
+  .leaflet-control-container .leaflet-touch .leaflet-control-layers {
+    top: 50px;
+  }
 
-
-
-#route-steps {
+  #route-steps {
     max-height: 300px;
     overflow-y: auto;
     padding: 20px;
-}
+  }
 
-#tutorial-btn {
+  #tutorial-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 10001; /* Above the blocked overlay */
     pointer-events: auto; /* Enable clicking */
-}
+  }
 
-/* Animação para fechar o modal */
-@keyframes closeToEducation {
+  /* Animação para fechar o modal */
+  @keyframes closeToEducation {
     0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
+      transform: scale(1) translate(0, 0);
+      opacity: 1;
     }
     100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
+      transform: scale(0)
+        translate(var(--education-btn-x), var(--education-btn-y));
+      opacity: 0;
     }
-}
+  }
 
-.animate-close-to-education {
+  .animate-close-to-education {
     animation: closeToEducation 1s forwards;
-}
+  }
 
-/* Estilo para o destaque do botão "Ensino" */
-.circle-highlight {
+  /* Estilo para o destaque do botão "Ensino" */
+  .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
     animation: fadeIn 1s forwards;
-}
+  }
 
-@keyframes fadeIn {
+  @keyframes fadeIn {
     from {
-        opacity: 0;
+      opacity: 0;
     }
     to {
-        opacity: 1;
+      opacity: 1;
     }
-}
-/* Estilos para a barra de progresso do tutorial */
-#tutorial-overlay {
+  }
+  /* Estilos para a barra de progresso do tutorial */
+  #tutorial-overlay {
     display: none;
     position: fixed;
     z-index: 700;
@@ -3642,65 +3606,63 @@ h2 {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0, 0, 0, 0.2);
     padding-top: 60px;
-}
+  }
 
-#tutorial-overlay .modal-content {
+  #tutorial-overlay .modal-content {
     background-color: #fefefe;
     margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     position: relative;
-}
+  }
 
-#tutorial-progress-bar {
+  #tutorial-progress-bar {
     position: absolute;
     top: 0;
     left: 0;
     height: 5px;
-    background-color: #4CAF50;
+    background-color: #4caf50;
     width: 0;
     z-index: 1000000;
-}
+  }
 
-/* Animação para fechar o modal */
-@keyframes closeToEducation {
+  /* Animação para fechar o modal */
+  @keyframes closeToEducation {
     0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
+      transform: scale(1) translate(0, 0);
+      opacity: 1;
     }
     100% {
-        transform: scale(0) translate(var(--education-btn-x), var(--education-btn-y));
-        opacity: 0;
+      transform: scale(0)
+        translate(var(--education-btn-x), var(--education-btn-y));
+      opacity: 0;
     }
-}
+  }
 
-.animate-close-to-education {
+  .animate-close-to-education {
     animation: closeToEducation 1s forwards;
-}
+  }
 
-/* Estilo para o destaque do botão "Ensino" */
-.circle-highlight {
+  /* Estilo para o destaque do botão "Ensino" */
+  .circle-highlight {
     position: absolute;
     border: 2px solid red;
     border-radius: 50%;
     z-index: 999;
     animation: fadeIn 1s forwards;
-}
+  }
 
-@keyframes fadeIn {
+  @keyframes fadeIn {
     from {
-        opacity: 0;
+      opacity: 0;
     }
     to {
-        opacity: 1;
+      opacity: 1;
     }
-}
+  }
 
-
-/* Adicione esses estilos ao seu arquivo styles.css */
-
-
+  /* Adicione esses estilos ao seu arquivo styles.css */
 }
