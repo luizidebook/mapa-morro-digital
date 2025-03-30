@@ -8,10 +8,10 @@ import { showWelcomeMessage } from './js/core/config.js';
 document.addEventListener('DOMContentLoaded', () => {
   try {
     console.log('Iniciando a aplicação...');
-    initializeMap();
-    setupEventListeners();
-    autoAdjustTheme();
-    showWelcomeMessage();
+    initializeMap(); // Inicializa o mapa
+    setupEventListeners(); // Configura os event listeners
+    autoAdjustTheme(); // Ajusta o tema automaticamente
+    showWelcomeMessage(); // Exibe a mensagem de boas-vindas
     console.log('DOM completamente carregado e analisado.');
   } catch (error) {
     console.error('Erro ao inicializar a aplicação:', error);

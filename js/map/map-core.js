@@ -1,19 +1,51 @@
 import L from 'leaflet';
 
+let map; // Variável global para armazenar a instância do mapa
+
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  * @param {string} containerId - ID do elemento HTML que conterá o mapa.
  * @returns {Object} Instância do mapa Leaflet.
  */
 export function initializeMap() {
-  const map = L.map('map').setView([51.505, -0.09], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
+  if (map) {
+    console.warn('Mapa já inicializado.');
+    return;
+  }
+  console.log('Inicializando mapa...');
 
-  console.log('Mapa inicializado.');
-  return map;
+  // Define as camadas de tiles
+  const tileLayers = {
+    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }),
+    satellite: L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: '© Esri',
+        maxZoom: 19,
+      }
+    ),
+  };
+
+  // Cria o mapa com uma visão inicial (esta posição será atualizada quando a localização do usuário for obtida)
+  map = L.map('map', {
+    layers: [tileLayers.streets],
+    zoomControl: false,
+    maxZoom: 19,
+    minZoom: 3,
+  }).setView([-13.378, -38.918], 14);
+
+  // Adiciona o controle de camadas
+  L.control.layers(tileLayers).addTo(map);
+
+  if (typeof RotationPlugin !== 'undefined') {
+    RotationPlugin.initialize();
+  } else {
+    console.warn('Plugin de rotação não encontrado. Usando CSS para rotação.');
+    // Código alternativo para rotação via CSS
+  }
 }
 
 /**
@@ -36,8 +68,8 @@ export function resetMapView() {
     zoom: 13,
   };
 
-  if (mapInstance) {
-    mapInstance.setView([defaultView.lat, defaultView.lon], defaultView.zoom);
+  if (map) {
+    map.setView([defaultView.lat, defaultView.lon], defaultView.zoom);
     console.log('Visualização do mapa restaurada para o estado inicial.');
   }
 }
@@ -73,14 +105,12 @@ export function adjustMapWithLocation(
   zoom = 15,
   offsetYPercent = 0
 ) {
-  if (mapInstance) {
-    const offset = mapInstance.getSize().y * (offsetYPercent / 100);
-    const targetPoint = mapInstance
-      .project([lat, lon], zoom)
-      .subtract([0, offset]);
-    const targetLatLng = mapInstance.unproject(targetPoint, zoom);
+  if (map) {
+    const offset = map.getSize().y * (offsetYPercent / 100);
+    const targetPoint = map.project([lat, lon], zoom).subtract([0, offset]);
+    const targetLatLng = map.unproject(targetPoint, zoom);
 
-    mapInstance.setView(targetLatLng, zoom);
+    map.setView(targetLatLng, zoom);
     console.log(`Mapa ajustado para: [${lat}, ${lon}] - ${name}`);
   }
 }
@@ -90,10 +120,10 @@ export function adjustMapWithLocation(
  * @param {Function} filterFn - Função de filtro para remover marcadores.
  */
 export function clearMarkers(filterFn) {
-  if (mapInstance) {
-    mapInstance.eachLayer((layer) => {
+  if (map) {
+    map.eachLayer((layer) => {
       if (layer instanceof L.Marker && (!filterFn || filterFn(layer))) {
-        mapInstance.removeLayer(layer);
+        map.removeLayer(layer);
       }
     });
     console.log('Marcadores removidos do mapa.');
@@ -104,10 +134,10 @@ export function clearMarkers(filterFn) {
  * Remove todas as camadas do mapa.
  */
 export function clearMapLayers() {
-  if (mapInstance) {
-    mapInstance.eachLayer((layer) => {
+  if (map) {
+    map.eachLayer((layer) => {
       if (!(layer instanceof L.TileLayer)) {
-        mapInstance.removeLayer(layer);
+        map.removeLayer(layer);
       }
     });
     console.log('Todas as camadas foram removidas do mapa.');
@@ -212,8 +242,8 @@ export function visualizeRouteOnPreview(route) {
  * @param {Object} bounds - Limites (bounds) para aplicar o zoom.
  */
 export function zoomToSelectedArea(bounds) {
-  if (mapInstance) {
-    mapInstance.fitBounds(bounds);
+  if (map) {
+    map.fitBounds(bounds);
     console.log('Zoom aplicado aos limites especificados.');
   }
 }
@@ -225,8 +255,8 @@ export function zoomToSelectedArea(bounds) {
  * @param {number} zoom - Nível de zoom.
  */
 export function centerMapOnUser(lat, lon, zoom = 15) {
-  if (mapInstance) {
-    mapInstance.setView([lat, lon], zoom);
+  if (map) {
+    map.setView([lat, lon], zoom);
     console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
   }
 }
