@@ -1,6 +1,9 @@
-import { map } from '../core/state.js';
-import { selectedDestination, navigationState } from '../core/state.js';
-import { userLocation } from '../geolocation/tracking.js';
+import {
+  map,
+  selectedDestination,
+  navigationState,
+  userLocation,
+} from '../core/state.js';
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 import { clearRouteMarkers } from '../ui/routeMarkers.js';
