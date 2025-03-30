@@ -1,32 +1,19 @@
 import L from 'leaflet';
+
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  * @param {string} containerId - ID do elemento HTML que conterá o mapa.
  * @returns {Object} Instância do mapa Leaflet.
  */
 export function initializeMap() {
-  if (map) {
-    console.warn('Mapa já inicializado.');
-    return;
-  }
+  const map = L.map('map').setView([51.505, -0.09], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
 
-  console.log('Inicializando mapa...');
-  const tileLayers = {
-    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }),
-  };
-
-  // Inicializa o mapa e atualiza a variável global `map`
-  map = L.map('map', {
-    layers: [tileLayers.streets],
-    zoomControl: false,
-    maxZoom: 19,
-    minZoom: 3,
-  }).setView([-13.378, -38.918], 14);
-
-  L.control.layers(tileLayers).addTo(map);
+  console.log('Mapa inicializado.');
+  return map;
 }
 
 /**
