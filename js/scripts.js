@@ -1,8 +1,8 @@
 // Importações do módulo core/config.js
-import { initializeMap } from './js/map/map-core.js';
-import { showWelcomeMessage } from './js/core/config.js';
-import { setupEventListeners } from './js/core/event-listeners.js';
-import { autoAdjustTheme } from './js/ui/theme.js';
+import { initializeMap } from './map/map-core.js';
+import { showWelcomeMessage } from './core/config.js';
+import { setupEventListeners } from './core/event-listeners.js';
+import { autoAdjustTheme } from './ui/theme.js';
 // 1. onDOMContentLoaded       - Executado quando o DOM carrega (busca parâmetros iniciais)*/
 document.addEventListener('DOMContentLoaded', () => {
   try {
