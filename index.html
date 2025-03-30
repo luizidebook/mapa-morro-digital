@@ -602,32 +602,9 @@
       </div>
     </div>
 
-    <!--
-  scripts.js: Arquivo principal do projeto:
-  - Controla navegação (startNavigation, endNavigation), tutorial (initializeTutorial, nextTutorialStep), 
-  - Mapa (plotRouteOnMap, updateUserMarker, etc.), i18n (setLanguage, getGeneralText),
-  - Notificações (showNotification), e 
-  - Outras integrações (assistente de voz, menuse etc.).
--->
-    <script type="module" src="./js/scripts.js"></script>
-
-    <!-- Registro do Service Worker removido temporariamente -->
-    <!--
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker
-          .register('/service-worker.js')
-          .then(function (registration) {
-            console.log(
-              'Service Worker registered with scope:',
-              registration.scope
-            );
-          })
-          .catch(function (error) {
-            console.log('Service Worker registration failed:', error);
-          });
-      }
-    </script>
-    -->
+    <script
+      type="module"
+      src="../mapa-morro-digital-test/js/scripts.js"
+    ></script>
   </body>
 </html>
