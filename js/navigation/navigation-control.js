@@ -1,12 +1,9 @@
-import { map } from '../core/constants.js';
+import { map } from '../core/state.js';
 import { selectedDestination, navigationState } from '../core/state.js';
 import { userLocation } from '../geolocation/tracking.js';
-import {
-  showRouteLoadingIndicator,
-  hideRouteLoadingIndicator,
-} from '../ui/loading.js';
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
+import { clearRouteMarkers } from '../ui/routeMarkers.js';
 
 /**
  * startNavigation.

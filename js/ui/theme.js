@@ -1,4 +1,5 @@
 import { showNotification } from '../ui/notifications.js';
+
 /**
  * Ajusta automaticamente o tema com base na hora do dia.
  * Se a hora atual estiver entre 18h e 6h, ativa o tema escuro.

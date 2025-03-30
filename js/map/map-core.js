@@ -1,4 +1,5 @@
 import { map, markers } from '../core/state.js';
+import { showNotification } from '../ui/notifications.js';
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.

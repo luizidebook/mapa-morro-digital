@@ -1,7 +1,6 @@
 // Language.js
-import { showNotification } from '../utils/notifications.js';
-import { getGeneralText } from './translations.js';
-import { selectedLanguage } from './state.js';
+import { selectedLanguage } from '../core/state.js';
+import { showNotification } from '../ui/notifications.js';
 
 /* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {

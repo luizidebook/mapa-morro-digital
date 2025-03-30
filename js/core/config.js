@@ -1,3 +1,7 @@
+import { selectedLanguage } from './state.js';
+import { getGeneralText } from '../ui/texts.js';
+import { showNotification } from '../ui/notifications.js';
+
 //showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
 // Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
 export function showWelcomeMessage() {
@@ -11,6 +15,8 @@ export function showWelcomeMessage() {
 }
 
 // Função: Define e salva o idioma selecionado
+/*
+setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
   try {
     const availableLanguages = ['pt', 'en', 'es', 'he'];
@@ -18,19 +24,28 @@ export function setLanguage(lang) {
 
     if (!availableLanguages.includes(lang)) {
       console.warn(
-        `Idioma inválido. Revertendo para o padrão: ${defaultLanguage}`
+        `${getGeneralText('languageChanged', defaultLanguage)} => ${defaultLanguage}`
       );
       lang = defaultLanguage;
     }
 
     localStorage.setItem('preferredLanguage', lang);
+    selectedLanguage = lang;
+
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (welcomeModal) {
+      welcomeModal.style.display = 'none';
+    }
+
     console.log(`Idioma definido para: ${lang}`);
   } catch (error) {
-    console.error('Erro ao definir o idioma:', error);
+    console.error(getGeneralText('routeError', selectedLanguage), error);
+    showNotification(getGeneralText('routeError', selectedLanguage), 'error');
   }
 }
 
-// Função: Atualiza os textos da interface conforme o idioma
+/*
+updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
 export function updateInterfaceLanguage(lang) {
   const elementsToTranslate = document.querySelectorAll('[data-i18n]');
   let missingTranslations = 0;

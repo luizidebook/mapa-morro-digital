@@ -32,7 +32,7 @@ export async function startRouteCreation() {
 }
 
 /**
- * 2. createRoute
+ * createRoute
  *    Exemplo de função async para criar rota a partir de userLocation até selectedDestination. */
 export async function createRoute(userLocation) {
   try {
