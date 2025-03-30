@@ -1,897 +1,447 @@
-import { appState } from '../core/state.js';
-import { eventBus, EVENT_TYPES } from '../core/eventBus.js';
-import { getMap } from './map-core.js';
-import { smoothCoordinate } from '../utils/helpers.js';
-import { calculateDistance } from '../utils/geo.js';
-import { translate } from '../i18n/language.js';
+import { handleSubmenuButtons } from '../ui/submenus.js';
+import { fetchOSMData, displayOSMData, map, markers } from './map-core.js';
+import { queries } from '../core/config.js';
 
 /**
- * Módulo de marcadores do mapa
- * Responsável pela criação e gerenciamento de marcadores no mapa
+ * 1. displayCustomAbout - Exibe informações personalizadas sobre "Sobre".
  */
-
-// Cache de ícones para evitar recriar ícones idênticos
-const iconCache = new Map();
-
-/**
- * Cria um marcador personalizado e o adiciona ao mapa
- * @param {number} lat - Latitude
- * @param {number} lon - Longitude
- * @param {Object} options - Opções do marcador
- * @returns {Object} Marcador Leaflet
- */
-export function createMarker(lat, lon, options = {}) {
-  const map = getMap();
-  if (!map) return null;
-
-  // Opções padrão
-  const defaultOptions = {
-    title: '',
-    description: '',
-    icon: 'default',
-    category: '',
-    draggable: false,
-    clickable: true,
-    autoPan: true,
-    showPopup: false,
-    zIndexOffset: 0,
-    id: `marker-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-  };
-
-  // Mesclar opções
-  const markerOptions = { ...defaultOptions, ...options };
-
-  // Criar o ícone personalizado
-  const icon = getMarkerIcon(markerOptions.icon, markerOptions.category);
-
-  // Criar o marcador
-  const marker = L.marker([lat, lon], {
-    icon: icon,
-    draggable: markerOptions.draggable,
-    title: markerOptions.title,
-    alt: markerOptions.title,
-    zIndexOffset: markerOptions.zIndexOffset,
-    riseOnHover: true,
-    riseOffset: 250,
+export function displayCustomAbout() {
+  const about = [
+    {
+      name: 'Missão',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description:
+        'Nossa missão é oferecer a melhor experiência aos visitantes.',
+    },
+    {
+      name: 'Serviços',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Conheça todos os serviços que oferecemos.',
+    },
+    {
+      name: 'Benefícios para Turistas',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description:
+        'Saiba como você pode se beneficiar ao visitar Morro de São Paulo.',
+    },
+    {
+      name: 'Benefícios para Moradores',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Veja as vantagens para os moradores locais.',
+    },
+    {
+      name: 'Benefícios para Pousadas',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Descubra como as pousadas locais podem se beneficiar.',
+    },
+    {
+      name: 'Benefícios para Restaurantes',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Saiba mais sobre os benefícios para os restaurantes.',
+    },
+    {
+      name: 'Benefícios para Agências de Turismo',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Veja como as agências de turismo podem se beneficiar.',
+    },
+    {
+      name: 'Benefícios para Lojas e Comércios',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Descubra os benefícios para lojas e comércios.',
+    },
+    {
+      name: 'Benefícios para Transportes',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Saiba mais sobre os benefícios para transportes.',
+    },
+    {
+      name: 'Impacto em MSP',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Conheça o impacto do nosso projeto em Morro de São Paulo.',
+    },
+  ];
+  const subMenu = document.getElementById('about-submenu');
+  subMenu.innerHTML = '';
+  about.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.className = 'submenu-item';
+    btn.textContent = item.name;
+    btn.setAttribute('data-lat', item.lat);
+    btn.setAttribute('data-lon', item.lon);
+    btn.setAttribute('data-name', item.name);
+    btn.setAttribute('data-description', item.description);
+    btn.setAttribute('data-feature', 'sobre');
+    btn.setAttribute('data-destination', item.name);
+    btn.onclick = () => {
+      handleSubmenuButtons(
+        item.lat,
+        item.lon,
+        item.name,
+        item.description,
+        [],
+        'sobre'
+      );
+    };
+    subMenu.appendChild(btn);
+    const marker = L.marker([item.lat, item.lon])
+      .addTo(map)
+      .bindPopup(`<b>${item.name}</b><br>${item.description}`);
+    markers.push(marker);
   });
+  console.log("Informações 'Sobre' exibidas no submenu.");
+}
 
-  // Armazenar dados personalizados no marcador
-  marker.options.id = markerOptions.id;
-  marker.options.category = markerOptions.category;
-  marker.options.customData = markerOptions.customData || {};
-
-  // Adicionar ao mapa
-  marker.addTo(map);
-
-  // Configurar popup se necessário
-  if (markerOptions.title || markerOptions.description) {
-    const popupContent = createPopupContent(
-      markerOptions.title,
-      markerOptions.description,
-      markerOptions.customData,
-      markerOptions.category
-    );
-
-    marker.bindPopup(popupContent, {
-      closeButton: true,
-      autoClose: !markerOptions.keepPopupOpen,
-      className: `popup-${markerOptions.category}`,
-      maxWidth: 300,
-    });
-
-    // Exibir popup automaticamente se solicitado
-    if (markerOptions.showPopup) {
-      marker.openPopup();
+/**
+ * 2. displayCustomBeaches - Exibe praias customizadas.
+ */
+export function displayCustomBeaches() {
+  fetchOSMData(queries['beaches-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'beaches-submenu', 'praias');
     }
-  }
-
-  // Configurar eventos
-  setupMarkerEvents(marker, markerOptions);
-
-  // Adicionar ao estado
-  const currentMarkers = appState.get('map.markers') || [];
-  currentMarkers.push(marker);
-  appState.set('map.markers', currentMarkers);
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.MARKER_CREATED, {
-    id: markerOptions.id,
-    lat,
-    lon,
-    category: markerOptions.category,
-    title: markerOptions.title,
   });
-
-  return marker;
 }
 
 /**
- * Cria o marcador do usuário e o adiciona ao mapa
- * @param {number} lat - Latitude
- * @param {number} lon - Longitude
- * @param {number} [accuracy=null] - Precisão da localização em metros
- * @param {number} [heading=null] - Direção do usuário em graus
- * @returns {Object} Objeto com marcador e círculo de precisão
+ * 3. displayCustomEducation - Exibe dados educacionais customizados.
  */
-export function createUserMarker(lat, lon, accuracy = null, heading = null) {
-  const map = getMap();
-  if (!map) return null;
-
-  // Remover marcador existente do usuário
-  removeUserMarker();
-
-  // Criar ícone personalizado para o usuário
-  const userIcon = L.divIcon({
-    className: 'user-location-marker',
-    html: `
-      <div style="
-        width: 22px;
-        height: 22px;
-        background-color: #4285F4;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 0 5px rgba(0,0,0,0.3);
-        position: relative;
-        transform: ${heading !== null ? `rotate(${heading}deg)` : ''};
-      ">
-        ${
-          heading !== null
-            ? `
-          <div style="
-            position: absolute;
-            top: -6px;
-            left: 7px;
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-bottom: 8px solid #4285F4;
-            transform: rotate(0deg);
-          "></div>
-        `
-            : ''
-        }
-      </div>
-    `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-
-  // Criar marcador do usuário
-  const userMarker = L.marker([lat, lon], {
-    icon: userIcon,
-    zIndexOffset: 1000,
-    interactive: false,
-  }).addTo(map);
-
-  // Criar círculo de precisão, se fornecido
-  let accuracyCircle = null;
-  if (accuracy && accuracy > 0) {
-    accuracyCircle = L.circle([lat, lon], {
-      radius: accuracy,
-      className: 'user-location-accuracy-circle',
-      interactive: false,
-    }).addTo(map);
-  }
-
-  // Armazenar no estado
-  appState.set('map.layers.userMarker', userMarker);
-  appState.set('map.layers.accuracyCircle', accuracyCircle);
-
-  return { marker: userMarker, accuracyCircle };
-}
-
-/**
- * Atualiza a posição do marcador do usuário
- * @param {number} lat - Latitude
- * @param {number} lon - Longitude
- * @param {number} [heading=null] - Direção do usuário em graus
- * @param {number} [accuracy=null] - Precisão da localização em metros
- * @param {boolean} [smooth=true] - Se true, suaviza a transição
- */
-export function updateUserMarker(
-  lat,
-  lon,
-  heading = null,
-  accuracy = null,
-  smooth = true
-) {
-  let userMarker = appState.get('map.layers.userMarker');
-  let accuracyCircle = appState.get('map.layers.accuracyCircle');
-
-  // Se não existe, criar novo marcador
-  if (!userMarker) {
-    const result = createUserMarker(lat, lon, accuracy, heading);
-    userMarker = result.marker;
-    accuracyCircle = result.accuracyCircle;
+export function displayCustomEducation() {
+  const educationItems = [
+    {
+      name: 'Iniciar Tutorial',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Comece aqui para aprender a usar o site.',
+    },
+    {
+      name: 'Planejar Viagem com IA',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Planeje sua viagem com a ajuda de inteligência artificial.',
+    },
+    {
+      name: 'Falar com IA',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Converse com nosso assistente virtual.',
+    },
+    {
+      name: 'Falar com Suporte',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Entre em contato com o suporte.',
+    },
+    {
+      name: 'Configurações',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Ajuste as configurações do site.',
+    },
+  ];
+  const subMenu = document.getElementById('education-submenu');
+  if (!subMenu) {
+    console.error('Submenu education-submenu não encontrado.');
     return;
   }
-
-  // Obter posição atual
-  const currentPos = userMarker.getLatLng();
-  let targetPos = { lat, lon };
-
-  // Aplicar suavização se solicitado
-  if (smooth) {
-    targetPos = smoothCoordinate(
-      { lat: currentPos.lat, lon: currentPos.lng },
-      { lat, lon },
-      0.3
-    );
-  }
-
-  // Calcular distância entre posição atual e nova
-  const distance = calculateDistance(
-    currentPos.lat,
-    currentPos.lng,
-    targetPos.lat,
-    targetPos.lon
-  );
-
-  // Atualizar posição do marcador
-  userMarker.setLatLng([targetPos.lat, targetPos.lon]);
-
-  // Atualizar rotação se fornecida
-  if (heading !== null) {
-    const iconElement = userMarker.getElement();
-    if (iconElement) {
-      const innerDiv = iconElement.querySelector('div');
-      if (innerDiv) {
-        innerDiv.style.transform = `rotate(${heading}deg)`;
-      }
-    }
-  }
-
-  // Atualizar círculo de precisão
-  if (accuracyCircle && accuracy && accuracy > 0) {
-    accuracyCircle.setLatLng([targetPos.lat, targetPos.lon]);
-    accuracyCircle.setRadius(accuracy);
-  } else if (accuracy && accuracy > 0) {
-    // Criar novo círculo se não existir
-    accuracyCircle = L.circle([targetPos.lat, targetPos.lon], {
-      radius: accuracy,
-      className: 'user-location-accuracy-circle',
-      interactive: false,
-    }).addTo(getMap());
-
-    appState.set('map.layers.accuracyCircle', accuracyCircle);
-  }
-
-  // Publicar evento apenas se a distância for significativa
-  if (distance > 1) {
-    eventBus.publish(EVENT_TYPES.USER_LOCATION_UPDATED, {
-      lat: targetPos.lat,
-      lon: targetPos.lon,
-      heading,
-      accuracy,
-      distance,
-    });
-  }
-}
-
-/**
- * Remove o marcador do usuário do mapa
- */
-export function removeUserMarker() {
-  const map = getMap();
-  if (!map) return;
-
-  const userMarker = appState.get('map.layers.userMarker');
-  const accuracyCircle = appState.get('map.layers.accuracyCircle');
-
-  if (userMarker) {
-    map.removeLayer(userMarker);
-    appState.set('map.layers.userMarker', null);
-  }
-
-  if (accuracyCircle) {
-    map.removeLayer(accuracyCircle);
-    appState.set('map.layers.accuracyCircle', null);
-  }
-}
-
-/**
- * Cria um marcador de destino
- * @param {number} lat - Latitude
- * @param {number} lon - Longitude
- * @param {string} title - Título do destino
- * @param {Object} [options={}] - Opções adicionais
- * @returns {Object} Marcador Leaflet
- */
-export function createDestinationMarker(lat, lon, title, options = {}) {
-  // Remover marcador de destino existente
-  removeDestinationMarker();
-
-  // Opções padrão para destino
-  const destinationOptions = {
-    icon: 'destination',
-    category: 'destination',
-    title: title || translate('destination'),
-    description: options.description || '',
-    customData: options.customData || {},
-    zIndexOffset: 500,
-    showPopup: options.showPopup || false,
-    id: 'destination-marker',
-  };
-
-  // Criar marcador
-  const marker = createMarker(lat, lon, destinationOptions);
-
-  // Armazenar no estado
-  appState.set('map.layers.destinationMarker', marker);
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.DESTINATION_MARKER_CREATED, {
-    lat,
-    lon,
-    title: destinationOptions.title,
-  });
-
-  return marker;
-}
-
-/**
- * Remove o marcador de destino do mapa
- */
-export function removeDestinationMarker() {
-  const map = getMap();
-  if (!map) return;
-
-  const destinationMarker = appState.get('map.layers.destinationMarker');
-
-  if (destinationMarker) {
-    map.removeLayer(destinationMarker);
-    appState.set('map.layers.destinationMarker', null);
-
-    // Atualizar lista de marcadores
-    const markers = appState.get('map.markers') || [];
-    const updatedMarkers = markers.filter(
-      (marker) => marker.options.id !== 'destination-marker'
-    );
-
-    appState.set('map.markers', updatedMarkers);
-
-    // Publicar evento
-    eventBus.publish(EVENT_TYPES.DESTINATION_MARKER_REMOVED);
-  }
-}
-
-/**
- * Cria marcadores para múltiplos pontos de interesse
- * @param {Array} pois - Array de pontos de interesse
- * @param {string} category - Categoria dos POIs
- * @param {Function} [onClick] - Função de callback para clique
- * @returns {Array} Array de marcadores criados
- */
-export function createPOIMarkers(pois, category, onClick = null) {
-  if (!pois || !pois.length) return [];
-
-  // Limpar marcadores existentes da mesma categoria
-  clearMarkersByCategory(category);
-
-  // Criar marcadores para cada POI
-  const markers = pois.map((poi) => {
-    const options = {
-      icon: category,
-      category: category,
-      title: poi.name || poi.title || poi.properties?.name || '',
-      description: poi.description || poi.properties?.description || '',
-      customData: poi,
-      showPopup: false,
-      id: `${category}-${poi.id || Date.now() + Math.random()}`,
+  subMenu.innerHTML = '';
+  educationItems.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.className = 'submenu-item';
+    btn.textContent = item.name;
+    btn.setAttribute('data-lat', item.lat);
+    btn.setAttribute('data-lon', item.lon);
+    btn.setAttribute('data-name', item.name);
+    btn.setAttribute('data-description', item.description);
+    btn.setAttribute('data-feature', 'ensino');
+    btn.setAttribute('data-destination', item.name);
+    btn.onclick = () => {
+      handleSubmenuButtons(
+        item.lat,
+        item.lon,
+        item.name,
+        item.description,
+        [],
+        'ensino'
+      );
     };
-
-    return createMarker(
-      poi.lat ||
-        poi.latitude ||
-        poi.coordinates?.[1] ||
-        poi.geometry?.coordinates[1],
-      poi.lon ||
-        poi.longitude ||
-        poi.coordinates?.[0] ||
-        poi.geometry?.coordinates[0],
-      options
-    );
+    subMenu.appendChild(btn);
+    const marker = L.marker([item.lat, item.lon])
+      .addTo(map)
+      .bindPopup(`<b>${item.name}</b><br>${item.description}`);
+    markers.push(marker);
   });
-
-  // Configurar evento personalizado se fornecido
-  if (onClick && typeof onClick === 'function') {
-    markers.forEach((marker) => {
-      marker.on('click', (e) => {
-        onClick(marker.options.customData, marker);
-      });
-    });
-  }
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.POI_MARKERS_CREATED, {
-    category,
-    count: markers.length,
-  });
-
-  return markers;
+  console.log('Dados educacionais customizados exibidos.');
 }
 
 /**
- * Limpa todos os marcadores do mapa, exceto os especificados
- * @param {Array} [exclude=[]] - Array de categorias a serem excluídas da limpeza
+ * 4. displayCustomEmergencies - Exibe dados de emergência customizados.
  */
-export function clearMarkers(exclude = []) {
-  const map = getMap();
-  if (!map) return;
-
-  // Adicionar categorias protegidas por padrão
-  const protectedCategories = ['user', 'destination', ...exclude];
-
-  const markers = appState.get('map.markers') || [];
-  const updatedMarkers = [];
-
-  markers.forEach((marker) => {
-    if (
-      marker &&
-      marker.options &&
-      protectedCategories.includes(marker.options.category)
-    ) {
-      // Manter este marcador
-      updatedMarkers.push(marker);
-    } else if (marker && map.hasLayer(marker)) {
-      // Remover do mapa
-      map.removeLayer(marker);
-    }
-  });
-
-  // Atualizar estado
-  appState.set('map.markers', updatedMarkers);
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.MARKERS_CLEARED, {
-    excludedCategories: protectedCategories,
-  });
-}
-
-/**
- * Limpa marcadores de uma categoria específica
- * @param {string} category - Categoria a ser limpa
- */
-export function clearMarkersByCategory(category) {
-  const map = getMap();
-  if (!map || !category) return;
-
-  const markers = appState.get('map.markers') || [];
-  const updatedMarkers = [];
-
-  markers.forEach((marker) => {
-    if (
-      marker &&
-      marker.options &&
-      marker.options.category === category &&
-      map.hasLayer(marker)
-    ) {
-      // Remover do mapa
-      map.removeLayer(marker);
-    } else {
-      // Manter este marcador
-      updatedMarkers.push(marker);
-    }
-  });
-
-  // Atualizar estado
-  appState.set('map.markers', updatedMarkers);
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.CATEGORY_MARKERS_CLEARED, { category });
-}
-
-/**
- * Obtém ícone para um marcador baseado em seu tipo
- * @param {string} iconType - Tipo de ícone
- * @param {string} [category=''] - Categoria do marcador
- * @returns {Object} Ícone Leaflet
- */
-function getMarkerIcon(iconType, category = '') {
-  // Verificar cache primeiro
-  const cacheKey = `${iconType}-${category}`;
-  if (iconCache.has(cacheKey)) {
-    return iconCache.get(cacheKey);
-  }
-
-  // Configurações padrão
-  const defaultIcon = {
-    iconUrl: 'img/markers/default-marker.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  };
-
-  // Configurações específicas por tipo
-  const iconConfig = {
-    default: defaultIcon,
-    destination: {
-      iconUrl: 'img/markers/destination-marker.png',
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-      popupAnchor: [0, -36],
-    },
-    'pontos-turisticos': {
-      iconUrl: 'img/markers/tourist-marker.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    },
-    praias: {
-      iconUrl: 'img/markers/beach-marker.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    },
-    restaurantes: {
-      iconUrl: 'img/markers/restaurant-marker.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    },
-    pousadas: {
-      iconUrl: 'img/markers/hotel-marker.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    },
-    emergencias: {
-      iconUrl: 'img/markers/emergency-marker.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    },
-  };
-
-  // Usar categoria como fallback para o tipo
-  const config = iconConfig[iconType] || iconConfig[category] || defaultIcon;
-
-  // Criar ícone
-  const icon = L.icon(config);
-
-  // Armazenar no cache
-  iconCache.set(cacheKey, icon);
-
-  return icon;
-}
-
-/**
- * Configura eventos para um marcador
- * @param {Object} marker - Marcador Leaflet
- * @param {Object} options - Opções do marcador
- */
-function setupMarkerEvents(marker, options) {
-  // Evento de clique
-  marker.on('click', (e) => {
-    // Suprimir o evento se o marcador não for clicável
-    if (!options.clickable) {
-      return;
-    }
-
-    // Publicar evento
-    eventBus.publish(EVENT_TYPES.MARKER_CLICKED, {
-      id: options.id,
-      lat: e.latlng.lat,
-      lon: e.latlng.lng,
-      category: options.category,
-      title: options.title,
-      customData: options.customData,
-    });
-  });
-
-  // Evento de arrastar (se o marcador for arrastável)
-  if (options.draggable) {
-    marker.on('dragend', (e) => {
-      const latlng = e.target.getLatLng();
-
-      // Publicar evento
-      eventBus.publish(EVENT_TYPES.MARKER_MOVED, {
-        id: options.id,
-        lat: latlng.lat,
-        lon: latlng.lng,
-        category: options.category,
-      });
-    });
-  }
-}
-
-/**
- * Cria conteúdo HTML para popup de marcador
- * @param {string} title - Título
- * @param {string} description - Descrição
- * @param {Object} [customData={}] - Dados personalizados
- * @param {string} [category=''] - Categoria do marcador
- * @returns {string} HTML para o popup
- */
-function createPopupContent(
-  title,
-  description,
-  customData = {},
-  category = ''
-) {
-  // Obter botões específicos da categoria
-  const buttons = getPopupButtons(category, customData);
-
-  // Montando o HTML do conteúdo
-  let html = `
-    <div class="marker-popup ${category}-popup">
-      ${title ? `<h3 class="popup-title">${title}</h3>` : ''}
-      ${
-        description ? `<div class="popup-description">${description}</div>` : ''
-      }
-  `;
-
-  // Adicionar informações extras se disponíveis
-  if (customData.address) {
-    html += `<div class="popup-address"><i class="fas fa-map-marker-alt"></i> ${customData.address}</div>`;
-  }
-
-  if (customData.phone) {
-    html += `<div class="popup-phone"><i class="fas fa-phone"></i> ${customData.phone}</div>`;
-  }
-
-  if (customData.website) {
-    html += `<div class="popup-website"><i class="fas fa-globe"></i> <a href="${
-      customData.website
-    }" target="_blank">${translate('visit-website')}</a></div>`;
-  }
-
-  // Adicionar botões
-  if (buttons && buttons.length > 0) {
-    html += `<div class="popup-actions">`;
-
-    buttons.forEach((button) => {
-      html += `
-        <button 
-          class="popup-btn popup-btn-${button.type}" 
-          data-action="${button.action}"
-          data-id="${customData.id || ''}"
-          onclick="${button.onclick}"
-        >
-          ${button.icon ? `<i class="${button.icon}"></i>` : ''}
-          ${button.label}
-        </button>
-      `;
-    });
-
-    html += `</div>`;
-  }
-
-  html += `</div>`;
-
-  return html;
-}
-
-/**
- * Obtém botões para o popup com base na categoria
- * @param {string} category - Categoria do marcador
- * @param {Object} data - Dados do marcador
- * @returns {Array} Array de objetos de botão
- */
-function getPopupButtons(category, data) {
-  // Botões padrão disponíveis para todas as categorias
-  const defaultButtons = [
+export function displayCustomEmergencies() {
+  const emergencies = [
     {
-      label: translate('create-route'),
-      type: 'primary',
-      action: 'create-route',
-      icon: 'fas fa-route',
-      onclick: `window.createRouteToMarker(${data.id || '0'}, ${
-        data.lat || 0
-      }, ${data.lon || 0}, '${data.name?.replace(/'/g, "\\'") || ''}')`,
+      name: 'Ambulância',
+      lat: -13.3773,
+      lon: -38.9171,
+      description: 'Serviço de ambulância 24h. Contato: +55 75-99894-5017.',
+    },
+    {
+      name: 'Unidade de Saúde',
+      lat: -13.3773,
+      lon: -38.9171,
+      description: 'Unidade de saúde local. Contato: +55 75-3652-1798.',
+    },
+    {
+      name: 'Polícia Civil',
+      lat: -13.3775,
+      lon: -38.915,
+      description: 'Delegacia da Polícia Civil. Contato: +55 75-3652-1645.',
+    },
+    {
+      name: 'Polícia Militar',
+      lat: -13.3775,
+      lon: -38.915,
+      description: 'Posto da Polícia Militar. Contato: +55 75-99925-0856.',
+    },
+  ];
+  const subMenu = document.getElementById('emergencies-submenu');
+  subMenu.innerHTML = '';
+  emergencies.forEach((emergency) => {
+    const btn = document.createElement('button');
+    btn.className = 'submenu-item';
+    btn.textContent = emergency.name;
+    btn.setAttribute('data-lat', emergency.lat);
+    btn.setAttribute('data-lon', emergency.lon);
+    btn.setAttribute('data-name', emergency.name);
+    btn.setAttribute('data-description', emergency.description);
+    btn.setAttribute('data-feature', 'emergencias');
+    btn.setAttribute('data-destination', emergency.name);
+    btn.onclick = () => {
+      handleSubmenuButtons(
+        emergency.lat,
+        emergency.lon,
+        emergency.name,
+        emergency.description,
+        [],
+        'emergencias'
+      );
+    };
+    subMenu.appendChild(btn);
+    const marker = L.marker([emergency.lat, emergency.lon])
+      .addTo(map)
+      .bindPopup(`<b>${emergency.name}</b><br>${emergency.description}`);
+    markers.push(marker);
+  });
+  console.log('Dados de emergência customizados exibidos.');
+}
+
+/**
+ * 5. displayCustomInns - Exibe dados de pousadas customizados.
+ */
+export function displayCustomInns() {
+  fetchOSMData(queries['inns-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'inns-submenu', 'pousadas');
+    }
+  });
+}
+
+/**
+ * 6. displayCustomItems - Exibe itens customizados com base em um array.
+ */
+export function displayCustomItems(items, subMenuId, feature) {
+  const subMenu = document.getElementById(subMenuId);
+  subMenu.innerHTML = '';
+  items.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.className = 'submenu-item submenu-button';
+    btn.textContent = item.name;
+    btn.setAttribute('data-lat', item.lat);
+    btn.setAttribute('data-lon', item.lon);
+    btn.setAttribute('data-name', item.name);
+    btn.setAttribute('data-description', item.description);
+    btn.setAttribute('data-feature', feature);
+    btn.setAttribute('data-destination', item.name);
+    btn.onclick = () => {
+      handleSubmenuButtons(
+        item.lat,
+        item.lon,
+        item.name,
+        item.description,
+        [],
+        feature
+      );
+    };
+    subMenu.appendChild(btn);
+    const marker = L.marker([item.lat, item.lon])
+      .addTo(map)
+      .bindPopup(`<b>${item.name}</b><br>${item.description}`);
+    markers.push(marker);
+  });
+  console.log(`Itens customizados para ${feature} exibidos.`);
+}
+
+/**
+ * 7. displayCustomNightlife - Exibe dados de vida noturna customizados.
+ */
+export function displayCustomNightlife() {
+  fetchOSMData(queries['nightlife-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'nightlife-submenu', 'festas');
+    }
+  });
+}
+
+/**
+ * 8. displayCustomRestaurants - Exibe dados de restaurantes customizados.
+ */
+export function displayCustomRestaurants() {
+  fetchOSMData(queries['restaurants-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'restaurants-submenu', 'restaurantes');
+    }
+  });
+}
+
+/**
+ * 9. displayCustomShops - Exibe dados de lojas customizados.
+ */
+export function displayCustomShops() {
+  fetchOSMData(queries['shops-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'shops-submenu', 'lojas');
+    }
+  });
+}
+
+/**
+ * 10. displayCustomTips - Exibe dados de dicas customizados.
+ */
+export function displayCustomTips() {
+  const tips = [
+    {
+      name: 'Melhores Pontos Turísticos',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Explore os pontos turísticos mais icônicos.',
+    },
+    {
+      name: 'Melhores Passeios',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Descubra os passeios mais recomendados.',
+    },
+    {
+      name: 'Melhores Praias',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Saiba quais são as praias mais populares.',
+    },
+    {
+      name: 'Melhores Restaurantes',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Conheça os melhores lugares para comer.',
+    },
+    {
+      name: 'Melhores Pousadas',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Encontre as melhores opções de pousadas.',
+    },
+    {
+      name: 'Melhores Lojas',
+      lat: -13.3766787,
+      lon: -38.9172057,
+      description: 'Descubra as melhores lojas para suas compras.',
+    },
+  ];
+  const subMenu = document.getElementById('tips-submenu');
+  subMenu.innerHTML = '';
+  tips.forEach((tip) => {
+    const btn = document.createElement('button');
+    btn.className = 'submenu-item';
+    btn.textContent = tip.name;
+    btn.setAttribute('data-lat', tip.lat);
+    btn.setAttribute('data-lon', tip.lon);
+    btn.setAttribute('data-name', tip.name);
+    btn.setAttribute('data-description', tip.description);
+    btn.setAttribute('data-feature', 'dicas');
+    btn.setAttribute('data-destination', tip.name);
+    btn.onclick = () => {
+      handleSubmenuButtons(
+        tip.lat,
+        tip.lon,
+        tip.name,
+        tip.description,
+        [],
+        'dicas'
+      );
+    };
+    subMenu.appendChild(btn);
+    const marker = L.marker([tip.lat, tip.lon])
+      .addTo(map)
+      .bindPopup(`<b>${tip.name}</b><br>${tip.description}`);
+    markers.push(marker);
+  });
+  console.log('Dados de dicas customizados exibidos.');
+}
+
+/**
+ * 11. displayCustomTouristSpots
+ *    Exibe pontos turísticos (touristSpots-submenu) e esconde botões extras se desejar.
+ */
+export function displayCustomTouristSpots() {
+  fetchOSMData(queries['touristSpots-submenu']).then((data) => {
+    if (data) {
+      displayOSMData(data, 'touristSpots-submenu', 'pontos-turisticos');
+    }
+    hideAllButtons();
+  });
+}
+
+/**
+ * 12. displayCustomTours
+ *    Exibe passeios personalizados (tours-submenu).
+ */
+export function displayCustomTours() {
+  const tours = [
+    {
+      name: 'Passeio de lancha Volta a Ilha de Tinharé',
+      lat: -13.3837729,
+      lon: -38.908536,
+      description:
+        'Desfrute de um emocionante passeio de lancha ao redor da Ilha de Tinharé...',
+    },
+    {
+      name: 'Passeio de Quadriciclo para Garapuá',
+      lat: -13.3827765,
+      lon: -38.91055,
+      description:
+        'Aventure-se em um passeio de quadriciclo até a vila de Garapuá...',
+    },
+    {
+      name: 'Passeio 4X4 para Garapuá',
+      lat: -13.3808638,
+      lon: -38.9127107,
+      description: 'Embarque em uma viagem emocionante de 4x4 até Garapuá...',
+    },
+    {
+      name: 'Passeio de Barco para Gamboa',
+      lat: -13.3766536,
+      lon: -38.9186205,
+      description: 'Relaxe em um agradável passeio de barco até Gamboa...',
     },
   ];
 
-  // Botões específicos por categoria
-  const categoryButtons = {
-    destination: [],
-    pousadas: [
-      {
-        label: translate('book-now'),
-        type: 'secondary',
-        action: 'book',
-        icon: 'fas fa-bed',
-        onclick: data.bookingUrl
-          ? `window.openDestinationWebsite('${data.bookingUrl}')`
-          : '',
-      },
-    ],
-    restaurantes: [
-      {
-        label: translate('see-menu'),
-        type: 'secondary',
-        action: 'menu',
-        icon: 'fas fa-utensils',
-        onclick: data.menuUrl
-          ? `window.openDestinationWebsite('${data.menuUrl}')`
-          : '',
-      },
-    ],
-    passeios: [
-      {
-        label: translate('buy-ticket'),
-        type: 'secondary',
-        action: 'buy-ticket',
-        icon: 'fas fa-ticket-alt',
-        onclick: data.ticketUrl
-          ? `window.openDestinationWebsite('${data.ticketUrl}')`
-          : '',
-      },
-    ],
-  };
-
-  // Combinar botões padrão com específicos da categoria
-  return [...defaultButtons, ...(categoryButtons[category] || [])];
+  displayCustomItems(tours, 'tours-submenu', 'passeios');
 }
-
-/**
- * Realça um marcador específico temporariamente
- * @param {string} markerId - ID do marcador
- * @param {number} [duration=2000] - Duração em ms
- */
-export function highlightMarker(markerId, duration = 2000) {
-  const markers = appState.get('map.markers') || [];
-  const marker = markers.find((m) => m.options.id === markerId);
-
-  if (!marker) return;
-
-  // Obter elemento DOM do marcador
-  const element = marker.getElement();
-  if (!element) return;
-
-  // Adicionar classe de destaque
-  element.classList.add('marker-highlight');
-
-  // Remover classe após a duração
-  setTimeout(() => {
-    element.classList.remove('marker-highlight');
-  }, duration);
-
-  // Garantir que o marcador está visível
-  const map = getMap();
-  if (map) {
-    map.panTo(marker.getLatLng(), { animate: true, duration: 0.5 });
-  }
-}
-
-/**
- * Implementa a função que estava em falta no código original
- * Realça o próximo passo da rota no mapa
- * @param {Object} step - Passo da rota (contém informações de localização e instrução)
- */
-export function highlightNextStepInMap(step) {
-  if (!step || !step.location) return;
-
-  const map = getMap();
-  if (!map) return;
-
-  // Limpar qualquer destaque anterior
-  clearRouteHighlights();
-
-  // Extrair coordenadas do passo
-  const lat = step.location[1] || step.location.lat;
-  const lon = step.location[0] || step.location.lon;
-
-  // Criar um marcador temporário para o passo
-  const stepIcon = L.divIcon({
-    className: 'step-highlight-marker',
-    html: `
-      <div style="
-        width: 24px;
-        height: 24px;
-        background-color: #FFC107;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 0 0 2px #FFC107, 0 0 10px rgba(0,0,0,0.35);
-        animation: pulse-highlight 1.5s infinite;
-      "></div>
-    `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-
-  // Criar o marcador
-  const stepMarker = L.marker([lat, lon], {
-    icon: stepIcon,
-    zIndexOffset: 900,
-    interactive: false,
-  }).addTo(map);
-
-  // Armazenar no estado
-  appState.set('map.layers.highlightedStep', stepMarker);
-
-  // Destacar o segmento da rota se existir
-  const currentRoute = appState.get('map.layers.currentRoute');
-  if (currentRoute && step.index !== undefined) {
-    try {
-      // Tentar obter o segmento da rota
-      highlightRouteSegment(currentRoute, step.index);
-    } catch (error) {
-      console.warn('Não foi possível destacar o segmento da rota:', error);
-    }
-  }
-
-  // Centralizar o mapa na localização do passo
-  map.panTo([lat, lon], {
-    animate: true,
-    duration: 0.5,
-    easeLinearity: 0.25,
-  });
-
-  // Publicar evento
-  eventBus.publish(EVENT_TYPES.STEP_HIGHLIGHTED, {
-    lat,
-    lon,
-    instruction: step.text,
-    index: step.index,
-  });
-}
-
-/**
- * Destaca um segmento específico da rota
- * @param {Object} routeLayer - Camada da rota (polyline)
- * @param {number} index - Índice do segmento
- */
-function highlightRouteSegment(routeLayer, index) {
-  const map = getMap();
-  if (!map || !routeLayer) return;
-
-  // Verificar se temos acesso às coordenadas da rota
-  if (!routeLayer._latlngs || index >= routeLayer._latlngs.length - 1) {
-    return;
-  }
-
-  // Obter coordenadas do segmento
-  const start = routeLayer._latlngs[index];
-  const end = routeLayer._latlngs[index + 1];
-
-  // Criar um polyline para destacar o segmento
-  const highlightLine = L.polyline([start, end], {
-    color: '#FFC107',
-    weight: 8,
-    opacity: 0.8,
-    className: 'route-highlight',
-    dashArray: null,
-  }).addTo(map);
-
-  // Armazenar no estado
-  appState.set('map.layers.highlightedSegment', highlightLine);
-}
-
-/**
- * Limpa destaques de rota do mapa
- */
-function clearRouteHighlights() {
-  const map = getMap();
-  if (!map) return;
-
-  // Remover marcador de passo destacado
-  const stepMarker = appState.get('map.layers.highlightedStep');
-  if (stepMarker) {
-    map.removeLayer(stepMarker);
-    appState.set('map.layers.highlightedStep', null);
-  }
-
-  // Remover segmento destacado
-  const segmentLine = appState.get('map.layers.highlightedSegment');
-  if (segmentLine) {
-    map.removeLayer(segmentLine);
-    appState.set('map.layers.highlightedSegment', null);
-  }
-}
-
-// Exportar funções
-export default {
-  createMarker,
-  createUserMarker,
-  updateUserMarker,
-  removeUserMarker,
-  createDestinationMarker,
-  removeDestinationMarker,
-  createPOIMarkers,
-  clearMarkers,
-  clearMarkersByCategory,
-  highlightMarker,
-  highlightNextStepInMap,
-};

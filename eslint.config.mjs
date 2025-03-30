@@ -1,16 +1,25 @@
-import { defineConfig } from "eslint/config";
-import globals from "globals";
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import pluginVue from "eslint-plugin-vue";
+//  1. onDOMContentLoaded       - Executado quando o DOM carrega (busca parâmetros iniciais)*/
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    initializeMap();
+    loadResources();
+    showWelcomeMessage();
+    setupEventListeners();
+    autoAdjustTheme();
+  } catch (error) {
+    console.error('Erro durante a inicialização:', error);
+  }
+});
 
-
-export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts,vue}"] },
-  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
-  { files: ["**/*.{js,mjs,cjs,ts,vue}"], languageOptions: { globals: globals.browser } },
-  { files: ["**/*.{js,mjs,cjs,ts,vue}"], plugins: { js }, extends: ["js/recommended"] },
-  tseslint.configs.recommended,
-  pluginVue.configs["flat/essential"],
-  { files: ["**/*.vue"], languageOptions: { parserOptions: { parser: tseslint.parser } } },
-]);
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch((error) =>
+        console.error('Erro ao registrar o Service Worker:', error)
+      );
+  } else {
+    console.warn('Service Workers não são suportados neste navegador.');
+  }
+}
