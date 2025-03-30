@@ -1,5 +1,3 @@
-import L from 'leaflet';
-
 export let map; // Variável global para armazenar a instância do mapa
 
 /**
