@@ -1,16 +1,6 @@
 // Importações necessárias
 import { tutorialIsActive, currentStep, tutorialSteps } from '../core/state.js';
 import { hideAllControlButtons } from '../ui/control-buttons.js';
-import {
-  hideAssistantModal,
-  updateAssistantModalContent,
-} from '../ui/assistant.js';
-import { hideRouteSummary, hideRoutePreview } from '../ui/route.js';
-import {
-  highlightElement,
-  showMenuButtons,
-  setupSubmenuListeners,
-} from '../ui/highlights.js';
 
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)

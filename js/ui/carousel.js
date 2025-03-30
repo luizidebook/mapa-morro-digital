@@ -1,6 +1,5 @@
 // Importações necessárias
-import { showModal } from './modals.js';
-import { getImagesForLocation } from '../data/images.js';
+import { showModal } from '../ui/modals.js';
 
 // Variável global para gerenciar o carrossel
 let swiperInstance = null;

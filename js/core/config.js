@@ -1,5 +1,3 @@
-import { selectedLanguage } from './state.js';
-import { getGeneralText } from '../ui/texts.js';
 import { showNotification } from '../ui/notifications.js';
 
 //showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.

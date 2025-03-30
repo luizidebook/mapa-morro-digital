@@ -1,5 +1,3 @@
-import { selectedDestination } from '../core/state.js';
-import { showNotification } from '../ui/notifications.js';
 import {
   showControlButtonsTouristSpots,
   showControlButtonsTour,
@@ -22,11 +20,10 @@ import {
   displayCustomShops,
   displayCustomEmergencies,
   displayCustomEducation,
-} from '../map/map-markers.js';
-import { closeCarouselModal } from '../ui/carousel.js';
+} from '../';
 
 export let map; // Instância do mapa
-export const markers = []; // Array para armazenar marcadores
+const markers = []; // Array para armazenar marcadores
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.

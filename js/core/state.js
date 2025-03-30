@@ -1,9 +1,5 @@
 // Importações necessárias
 import { showNotification } from '../ui/notifications.js';
-import { adjustMapWithLocation } from '../map/map-core.js';
-import { displayStepByStepInstructions } from '../ui/instructions.js';
-import { updateUserPositionOnMap } from '../geolocation/tracking.js';
-import { clearNavigationState } from '../navigation/navigation-control.js';
 
 // Estado global da navegação
 export const navigationState = {
