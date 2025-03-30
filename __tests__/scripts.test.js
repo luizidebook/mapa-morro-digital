@@ -1,9 +1,9 @@
-import { initializeMap, showWelcomeMessage } from '../map/map-core.js';
+import { initializeMap, showWelcomeMessage } from '../js/map/map-core.js';
 import { autoAdjustTheme } from '../ui/theme.js';
 import { setupEventListeners } from '../core/event-listeners.js';
 import { loadResources } from '../core/config.js';
 
-jest.mock('../map/map-core.js', () => ({
+jest.mock('../js/map/map-core.js', () => ({
   initializeMap: jest.fn(),
   showWelcomeMessage: jest.fn(),
 }));
