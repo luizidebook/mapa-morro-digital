@@ -1,39 +1,6 @@
 // Language.js
-import { selectedLanguage } from '../core/state.js';
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
-
-// Dados de tradução
-export const translationsData = {
-  pt: {
-    welcome: 'Bem-vindo ao nosso site!',
-    chooseLanguage: 'Escolha seu idioma:',
-    languageChanged: 'Idioma alterado para: {lang}',
-    routeError: 'Erro ao carregar rota.',
-    // Adicione mais chaves conforme necessário
-  },
-  en: {
-    welcome: 'Welcome to our site!',
-    chooseLanguage: 'Choose your language:',
-    languageChanged: 'Language changed to: {lang}',
-    routeError: 'Error loading route.',
-    // Adicione mais chaves conforme necessário
-  },
-  es: {
-    welcome: '¡Bienvenido a nuestro sitio!',
-    chooseLanguage: 'Elige tu idioma:',
-    languageChanged: 'Idioma cambiado a: {lang}',
-    routeError: 'Error al cargar la ruta.',
-    // Adicione mais chaves conforme necessário
-  },
-  he: {
-    welcome: 'ברוך הבא לאתר שלנו!',
-    chooseLanguage: 'בחר את השפה שלך:',
-    languageChanged: 'השפה הוחלפה ל: {lang}',
-    routeError: 'שגיאה בטעינת המסלול.',
-    // Adicione mais chaves conforme necessário
-  },
-};
 
 /* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
