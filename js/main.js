@@ -55,7 +55,3 @@ export function onDOMContentLoaded() {
 
   console.log('Aplicação inicializada com sucesso!');
 }
-
-<script nomodule>
-  alert('Seu navegador não suporta ES Modules. Atualize para continuar.');
-</script>;

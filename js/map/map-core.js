@@ -27,8 +27,8 @@ import {
 } from '../ui/custom-displays.js';
 import { closeCarouselModal } from '../ui/carousel.js';
 
-let map; // Instância do mapa
-const markers = []; // Array para armazenar marcadores
+export let map; // Instância do mapa
+export const markers = []; // Array para armazenar marcadores
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
