@@ -37,7 +37,7 @@ describe('Teste de inicialização do main.js', () => {
     expect(autoAdjustTheme).toHaveBeenCalled();
   });
 
-  test('Deve capturar erros na inicialização do mapa', () => {
+  test('Deve capturar erros na inicialização do mapa e continuar o fluxo', () => {
     // Simula um erro na função initializeMap
     initializeMap.mockImplementation(() => {
       throw new Error('Erro ao inicializar o mapa');
@@ -53,7 +53,7 @@ describe('Teste de inicialização do main.js', () => {
     expect(autoAdjustTheme).toHaveBeenCalled();
   });
 
-  test('Deve capturar erros na exibição da mensagem de boas-vindas', () => {
+  test('Deve capturar erros na exibição da mensagem de boas-vindas e continuar o fluxo', () => {
     // Simula um erro na função showWelcomeMessage
     showWelcomeMessage.mockImplementation(() => {
       throw new Error('Erro ao exibir mensagem de boas-vindas');

@@ -27,28 +27,31 @@ import { autoAdjustTheme } from './ui/theme.js';
 document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
 
 export function onDOMContentLoaded() {
+  console.log('Iniciando aplicação...');
+
   try {
-    console.log('Iniciando aplicação...');
-
-    // Inicializa o mapa Leaflet com as configurações padrão
     initializeMap();
-    // Exibe a tela de boas-vindas com seleção de idioma
-    showWelcomeMessage();
-    // Configura todos os event listeners para interação do usuário
-    setupEventListeners();
-    // Ajusta o tema da interface (claro/escuro) com base nas preferências
-    autoAdjustTheme();
-
-    console.log('Aplicação inicializada com sucesso!');
   } catch (error) {
-    // Captura e registra qualquer erro durante a inicialização
-    console.error('Erro durante a inicialização:', error);
-
-    // Exibe mensagem de erro ao usuário
-    const errorMessage = document.createElement('div');
-    errorMessage.className = 'error-message';
-    errorMessage.textContent =
-      'Ocorreu um erro ao iniciar o aplicativo. Por favor, recarregue a página.';
-    document.body.appendChild(errorMessage);
+    console.error('Erro ao inicializar o mapa:', error);
   }
+
+  try {
+    showWelcomeMessage();
+  } catch (error) {
+    console.error('Erro ao exibir mensagem de boas-vindas:', error);
+  }
+
+  try {
+    setupEventListeners();
+  } catch (error) {
+    console.error('Erro ao configurar ouvintes de eventos:', error);
+  }
+
+  try {
+    autoAdjustTheme();
+  } catch (error) {
+    console.error('Erro ao ajustar o tema:', error);
+  }
+
+  console.log('Aplicação inicializada com sucesso!');
 }
