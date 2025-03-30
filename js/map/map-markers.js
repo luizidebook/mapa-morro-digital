@@ -2,8 +2,6 @@ import { handleSubmenuButtons } from '../ui/submenus.js';
 import { fetchOSMData, displayOSMData, map, markers } from './map-core.js';
 import { queries } from '../core/config.js';
 import { hideAllButtons } from '../ui/buttons.js';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 /**
  * 1. displayCustomAbout - Exibe informações personalizadas sobre "Sobre".

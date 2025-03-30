@@ -1,5 +1,3 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { selectedDestination } from '../core/state.js';
 import { showNotification } from '../ui/notifications.js';
 import {
@@ -24,7 +22,7 @@ import {
   displayCustomShops,
   displayCustomEmergencies,
   displayCustomEducation,
-} from '../ui/custom-displays.js';
+} from '../map/map-markers.js';
 import { closeCarouselModal } from '../ui/carousel.js';
 
 export let map; // Instância do mapa

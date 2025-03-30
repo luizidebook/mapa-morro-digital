@@ -12,8 +12,8 @@ import {
   currentStep,
   selectedDestination,
 } from './state.js';
-import { handleFeatureSelection } from '../ui/submenus.js';
-import { openDestinationWebsite, closeSideMenu } from '../ui/buttons.js';
+import { handleFeatureSelection, closeSideMenu } from '../ui/submenus.js';
+import { openDestinationWebsite } from '../ui/buttons.js';
 import { startCarousel } from '../ui/carousel.js';
 import { closeCarouselModal } from '../ui/modals.js';
 import { searchLocation } from '../ui/search.js';
