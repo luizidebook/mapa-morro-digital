@@ -13,10 +13,8 @@
  */
 
 // Importações do módulo core/config.js
-import { initializeMap } from './map/map-core.js';
-import { showWelcomeMessage } from './core/config.js';
 import { setupEventListeners } from './core/event-listeners.js';
-import { autoAdjustTheme } from './ui/theme.js';
+import { autoAdjustTheme } from './core/config.js';
 
 /**
  * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
@@ -54,4 +52,46 @@ export function onDOMContentLoaded() {
   }
 
   console.log('Aplicação inicializada com sucesso!');
+}
+/**
+ * Inicializa o mapa Leaflet e configura as camadas.
+ */
+let map;
+export function initializeMap() {
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) {
+    console.error('Elemento #map não encontrado no DOM.');
+    showNotification(
+      'Erro ao carregar o mapa. Elemento não encontrado.',
+      'error'
+    );
+    return;
+  }
+
+  // Inicialização do mapa Leaflet
+  map = L.map(mapContainer).setView([-13.3766787, -38.9172057], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  console.log('Mapa inicializado com sucesso.');
+}
+
+/**
+ * Retorna a camada de tiles para o mapa.
+ * @returns {Object} Camada de tiles Leaflet.
+ */
+export function getTileLayer() {
+  return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+  });
+}
+
+//showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
+// Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
+export function showWelcomeMessage() {
+  const modal = document.getElementById('welcome-modal');
+  if (!modal) return;
+  modal.style.display = 'block';
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    btn.style.pointerEvents = 'auto';
+  });
+  console.log('Mensagem de boas-vindas exibida.');
 }

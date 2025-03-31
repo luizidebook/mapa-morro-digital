@@ -1,18 +1,20 @@
 // Importações necessárias
-import {
-  tutorialIsActive,
-  currentStep,
-  selectedLanguage,
-} from '../core/varGlobals.js';
-import { showNotification } from '../ui/notifications.js';
+import { currentStep, tutorialIsActive } from '../core/varGlobals.js';
+import { hideAllControlButtons, showButtons } from '../ui/buttons.js';
+import { updateAssistantModalContent } from '../ui/modals.js';
+import { highlightElement } from '../ui/highlight.js';
+import { clearAllMarkers } from '../ui/markers.js';
+import { closeSideMenu } from '../ui/menu.js';
+import { selectedLanguage } from '../core/varGlobals.js';
+
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */
 export function startTutorial() {
-  tutorialIsActive = true; // Agora permitido
-  currentStep = 0; // Agora permitido
-  showTutorial();
-  console.log('Tutorial iniciado.');
+  tutorialIsActive = true; // Atualiza o estado do tutorial
+  currentStep = 0; // Define o passo inicial
+  showTutorialStep('start-tutorial'); // Exibe o primeiro passo do tutorial
+  console.log('startTutorial: Tutorial iniciado.');
 }
 
 /**
@@ -59,20 +61,14 @@ export function previousTutorialStep(currentStepId) {
 export function showTutorialStep(step) {
   const stepConfig = tutorialSteps.find((s) => s.step === step);
   if (!stepConfig) {
-    console.error(`Passo do tutorial '${step}' não encontrado.`);
-    showNotification(`Erro ao carregar o passo do tutorial: ${step}`, 'error');
+    console.error(`Passo ${step} não encontrado.`);
     return;
   }
 
   const { message, action } = stepConfig;
-  const tutorialMessageElement = document.getElementById('tutorial-message');
-  if (!tutorialMessageElement) {
-    console.error('Elemento #tutorial-message não encontrado.');
-    return;
-  }
+  updateAssistantModalContent(step, message[selectedLanguage]);
+  hideAllControlButtons();
 
-  tutorialMessageElement.textContent =
-    message[selectedLanguage] || message['pt'];
   if (action) action();
 }
 
@@ -89,6 +85,58 @@ export function storeAndProceed(interest) {
     console.error('Passo específico para o interesse não encontrado.');
   }
 }
+
+// Passos do tutorial
+const tutorialSteps = [
+  {
+    step: 'start-tutorial',
+    message: {
+      pt: 'Sua aventura inesquecível em Morro de São Paulo começa aqui!',
+      es: '¡Tu aventura inolvidable en Morro de São Paulo comienza aquí!',
+      en: 'Your unforgettable adventure in Morro de São Paulo starts here!',
+      he: 'ההרפתקה הבלתי נשכחת שלך במורו דה סאו פאולו מתחילה כאן!',
+    },
+    action: () => {
+      showButtons(['tutorial-iniciar-btn']);
+    },
+  },
+  {
+    step: 'ask-interest',
+    message: {
+      pt: 'O que você está procurando em Morro de São Paulo? Escolha uma das opções abaixo.',
+      es: '¿Qué estás buscando en Morro de São Paulo? Elige una de las opciones a continuación.',
+      en: 'What are you looking for in Morro de São Paulo? Choose one of the options below.',
+      he: 'מה אתה מחפש במורו דה סאו פאולו? בחר אחת מהאפשרויות הבאות.',
+    },
+    action: () => {
+      showButtons([
+        'pontos-turisticos-btn',
+        'passeios-btn',
+        'praias-btn',
+        'festas-btn',
+        'restaurantes-btn',
+        'pousadas-btn',
+        'lojas-btn',
+        'emergencias-btn',
+      ]);
+      clearAllMarkers();
+      closeSideMenu();
+    },
+  },
+  ...generateInterestSteps(),
+  {
+    step: 'end-tutorial',
+    message: {
+      pt: 'Parabéns! Você concluiu o tutorial! Aproveite para explorar todas as funcionalidades disponíveis.',
+      es: '¡Felicidades! Has completado el tutorial. Disfruta explorando todas las funciones disponibles.',
+      en: 'Congratulations! You have completed the tutorial! Enjoy exploring all the available features.',
+      he: 'מזל טוב! סיימת את המדריך! תהנה מחקר כל התכונות הזמינות.',
+    },
+    action: () => {
+      showButtons(['tutorial-end-btn']);
+    },
+  },
+];
 
 /**
  * generateInterestSteps - Gera passos personalizados de interesse (tutorial).

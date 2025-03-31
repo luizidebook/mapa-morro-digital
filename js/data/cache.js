@@ -6,8 +6,8 @@ CACHE, PERSISTÊNCIA & HISTÓRICO
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
 export function cacheRouteData(routeInstructions, routeLatLngs) {
-  if (typeof localStorage === 'undefined') {
-    console.warn('LocalStorage não está disponível.');
+  if (!isLocalStorageAvailable()) {
+    console.warn('localStorage não está disponível. Dados não serão salvos.');
     return;
   }
   try {
@@ -18,13 +18,31 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
     };
     localStorage.setItem('cachedRoute', JSON.stringify(data));
     console.log('[cacheRouteData] Rota salva no cache local (localStorage).');
-    showNotification('Rota salva em cache para uso offline.', 'success');
+    showNotification('Rota salva em cache.', 'success');
   } catch (err) {
     console.error('[cacheRouteData] Erro ao salvar rota no cache:', err);
     showNotification(
       getGeneralText('routeDataError', navigationState.lang),
       'error'
     );
+  }
+}
+
+//  --- 5.2. Destinos, LocalStorage e Histórico ---
+/**
+ * 1. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker). */
+export function loadDestinationsFromCache(callback) {
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      command: 'loadDestinations',
+    });
+    navigator.serviceWorker.onmessage = (event) => {
+      if (event.data.command === 'destinationsLoaded') {
+        callback(event.data.data);
+      }
+    };
+  } else {
+    console.error('Service worker não está ativo.');
   }
 }
 
@@ -53,57 +71,36 @@ export function loadRouteFromCache() {
     );
     return null;
   }
-} /*
-
-  --- Destinos, LocalStorage e Histórico ---
- /**
- * 3. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker). */
-export function loadDestinationsFromCache(callback) {
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      command: 'loadDestinations',
-    });
-    navigator.serviceWorker.onmessage = (event) => {
-      if (event.data.command === 'destinationsLoaded') {
-        callback(event.data.data);
-      }
-    };
-  } else {
-    console.error('Service worker não está ativo.');
-  }
-} /*
+}
 
 /**
- * 4. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
- */
-/**
- * 4. getLocalStorageItem - Recupera item do localStorage, parseando JSON se necessário.
+ * 3. getLocalStorageItem - Recupera item do localStorage, parseando JSON se necessário.
  * @param {string} key - Chave do item no localStorage
  * @param {any} defaultValue - Valor padrão se o item não existir
  * @returns {any} Valor convertido do localStorage ou defaultValue
  */
-/**
- * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
- */
-export function getLocalStorageItem(key) {
+export function getLocalStorageItem(key, defaultValue) {
   const item = localStorage.getItem(key);
   try {
-    return JSON.parse(item); // Tenta converter o valor para JSON
+    // Verifica se o valor é um JSON válido
+    return item && (item.startsWith('{') || item.startsWith('['))
+      ? JSON.parse(item)
+      : item || defaultValue;
   } catch (error) {
     console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
-    return item; // Retorna o valor bruto se não for JSON válido
+    return defaultValue; // Retorna o valor padrão se não for JSON válido
   }
 }
 
 /**
- * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
+ * 4. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 export function setLocalStorageItem(key, value) {
   localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
 }
 
 /**
- * 4. removeLocalStorageItem - Remove item do localStorage por chave.
+ * 5. removeLocalStorageItem - Remove item do localStorage por chave.
  */
 export function removeLocalStorageItem(key) {
   try {
@@ -114,7 +111,7 @@ export function removeLocalStorageItem(key) {
 }
 
 /**
- * 7. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
+ * 6. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
  */
 export function saveSearchQueryToHistory(query) {
   const searchHistoryStr = localStorage.getItem('searchHistory') || '[]';
@@ -123,6 +120,7 @@ export function saveSearchQueryToHistory(query) {
   localStorage.setItem('searchHistory', JSON.stringify(searchHistoryArr));
   console.log('Consulta de pesquisa salva no histórico:', query);
 }
+
 /**
  * 12. openOfflineCacheDB
  * Abre (ou cria) o banco de dados IndexedDB para cache offline.
@@ -132,8 +130,8 @@ export function openOfflineCacheDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('OfflineCacheDB', 1);
     request.onerror = (event) => {
-      console.error('IndexedDB error:', event.target.errorCode);
-      reject(event.target.errorCode);
+      console.error('Erro ao abrir IndexedDB:', event.target.errorCode);
+      reject(new Error('Erro ao abrir IndexedDB'));
     };
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
@@ -226,4 +224,20 @@ export function messageServiceWorker(message) {
       messageChannel.port2,
     ]);
   });
+}
+
+/**
+ * Check if localStorage is available
+ * @returns {boolean} True if localStorage is available, false otherwise
+ */
+export function isLocalStorageAvailable() {
+  try {
+    const testKey = '__test__';
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    return true;
+  } catch (error) {
+    console.warn('localStorage não está disponível:', error);
+    return false;
+  }
 }

@@ -1,13 +1,13 @@
 //=====================================================================
 // VARIÁVEIS ESSENCIAIS DO SISTEMA
 //=====================================================================
-
-import { getLocalStorageItem } from '../core/data/cache.js';
-
 /**
  * Configurações essenciais do mapa e da aplicação
  */
 export let map; // Instância principal do mapa (Leaflet)
+import { getLocalStorageItem } from '../data/cache.js';
+
+// Idioma atual da interface
 export let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt'); // Idioma atual da interface
 
 /**
@@ -68,8 +68,8 @@ export let trackingActive = false; // Se o rastreamento contínuo está ativo
  */
 export let currentSubMenu = null; // Submenu atualmente aberto
 export let currentLocation = null; // Localização atual no fluxo da UI
-export let currentStep = null; // Passo atual em um fluxo de UI multi-etapas
-export let tutorialIsActive = false; // Se o tutorial está ativo
+export let currentStep = null; // Passo atual do tutorial
+export let tutorialIsActive = false; // Alterado de const para let
 export let swiperInstance = null; // Instância do componente de swipe (carrossel)
 export let debounceTimer = null; // Timer para limitação de frequência de funções
 
@@ -186,4 +186,5 @@ export const PARTNER_CHECKIN_RADIUS = 50; // Raio em metros para check-in em par
 
 export function setSelectedLanguage(lang) {
   selectedLanguage = lang;
+  console.log(`Idioma global atualizado para: ${selectedLanguage}`);
 }

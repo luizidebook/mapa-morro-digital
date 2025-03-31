@@ -1,6 +1,43 @@
 // Importações necessárias
-import { showNotification } from './notifications.js';
-import { getGeneralText } from '../ui/texts.js';
+
+/**
+ * Exibe o modal do assistente virtual (assistant-modal).
+ * @param {string} message - Mensagem a ser exibida no modal.
+ */
+export function showAssistantModal(message) {
+  const assistantModal = document.getElementById('assistant-modal');
+  const assistantMessage = document.getElementById('assistant-message');
+
+  if (!assistantModal || !assistantMessage) {
+    console.error('Elementos do modal do assistente não encontrados.');
+    return;
+  }
+
+  // Define a mensagem no modal
+  assistantMessage.textContent = message;
+
+  // Exibe o modal
+  assistantModal.style.display = 'block';
+
+  console.log('Modal do assistente exibido com a mensagem:', message);
+}
+
+/**
+ * Oculta o modal do assistente virtual (assistant-modal).
+ */
+export function hideAssistantModal() {
+  const assistantModal = document.getElementById('assistant-modal');
+
+  if (!assistantModal) {
+    console.error('Elemento do modal do assistente não encontrado.');
+    return;
+  }
+
+  // Oculta o modal
+  assistantModal.style.display = 'none';
+
+  console.log('Modal do assistente ocultado.');
+}
 
 // Função: Alterna a visibilidade de modais
 export function toggleModals(modalId) {
@@ -67,12 +104,12 @@ export function animateInstructionChange(instructionText) {
 }
 
 // Função: Atualiza o conteúdo do modal do assistente
-export function updateAssistantModalContent(content) {
-  const modalContent = document.getElementById('assistant-content');
-  if (!modalContent) {
-    console.warn('Conteúdo do modal do assistente não encontrado.');
-    return;
+export function updateAssistantModalContent(step, message) {
+  const modal = document.getElementById('assistant-modal');
+  if (modal) {
+    modal.textContent = message;
+    modal.style.display = 'block';
+  } else {
+    console.error('Modal do assistente não encontrado.');
   }
-  modalContent.innerHTML = content;
-  console.log('Conteúdo do modal do assistente atualizado.');
 }

@@ -2,7 +2,6 @@
 import { showNotification } from '../ui/notifications.js';
 import { calculateDistance, createRoute } from '../navigation/route.js';
 import { endNavigation } from '../navigation/navigation-control.js';
-import { getGeneralText } from '../ui/texts.js';
 import { navigationState } from '../core/varGlobal.js';
 import { setMapRotation } from '../map/map-core.js';
 import { map } from '../map/map-core.js';

@@ -1,5 +1,4 @@
 // Importações necessárias
-import { getGeneralText } from '../ui/texts.js';
 import { navigationState, selectedLanguage } from '../core/varGlobals.js';
 
 // Função: Exibe uma notificação para o usuário

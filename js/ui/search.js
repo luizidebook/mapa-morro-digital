@@ -2,8 +2,6 @@
 import { OPENROUTESERVICE_API_KEY, map, markers } from '../core/varGlobals.js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { showNotification } from '../ui/notifications.js';
-import { getGeneralText } from '../ui/texts.js';
 
 // Variável global para armazenar o marcador atual
 let currentMarker = null;

@@ -5,7 +5,6 @@ import {
   navigationState,
 } from '../core/varGlobals.js';
 import { showNotification } from '../ui/notifications.js';
-import { getGeneralText } from '../ui/texts.js';
 import {
   fetchMultipleRouteOptions,
   plotRouteOnMap,

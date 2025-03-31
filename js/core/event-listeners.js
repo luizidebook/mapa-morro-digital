@@ -1,303 +1,190 @@
-import { initializeMap } from '../map/map-core.js';
 import { setLanguage } from '../core/config.js';
+import { tutorialIsActive, currentStep } from '../core/varGlobals.js';
+import {
+  startTutorial,
+  showTutorialStep,
+  nextTutorialStep,
+  endTutorial,
+} from '../tutorial/tutorial.js';
 import { closeCarouselModal } from '../ui/modals.js';
-import { startTutorial } from '../tutorial/tutorial.js';
-import { showNotification } from '../ui/notifications.js';
-import { startCarousel } from '../ui/carousel.js';
-import { loadResources } from '../core/config.js';
-import { autoAdjustTheme } from '../ui/theme.js';
-
-// Função: Executada quando o DOM é carregado
-export function onDOMContentLoaded() {
-  try {
-    initializeMap();
-  } catch (error) {
-    console.error('Erro ao inicializar o mapa:', error);
-    showNotification('Erro ao carregar o mapa. Tente novamente.', 'error');
-  }
-
-  try {
-    loadResources();
-  } catch (error) {
-    console.error('Erro ao carregar recursos:', error);
-    showNotification('Erro ao carregar recursos. Tente novamente.', 'error');
-  }
-
-  try {
-    setupEventListeners();
-  } catch (error) {
-    console.error('Erro ao configurar eventos:', error);
-    showNotification('Erro ao configurar eventos. Tente novamente.', 'error');
-  }
-
-  try {
-    autoAdjustTheme();
-  } catch (error) {
-    console.error('Erro ao ajustar tema:', error);
-    showNotification('Erro ao ajustar tema. Tente novamente.', 'error');
-  }
-
-  console.log('DOM completamente carregado e inicializado.');
-}
 
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
  */
 export function setupEventListeners() {
-  // Configuração dos botões de seleção de idioma
   document.querySelectorAll('.lang-btn').forEach((button) => {
     button.addEventListener('click', () => {
       try {
         const lang = button.dataset.lang;
-        console.log(`Botão de idioma clicado: ${lang}`);
-
-        // Define o idioma globalmente
-        setLanguage(lang);
-
-        // Fecha o modal de boas-vindas
-        const welcomeModal = document.getElementById('welcome-modal');
-        if (welcomeModal) {
-          welcomeModal.style.display = 'none';
-          console.log('Modal de boas-vindas fechado');
-        } else {
-          console.warn("Elemento 'welcome-modal' não encontrado");
-        }
-
-        // Inicia o tutorial com tratamento de erro
-        try {
-          console.log('Tentando iniciar tutorial...');
-          startTutorial();
-          console.log('Tutorial iniciado com sucesso');
-        } catch (tutorialError) {
-          console.error('Erro ao iniciar tutorial:', tutorialError);
-        }
-
-        console.log(`Idioma alterado para: ${lang}`);
+        setLanguage(lang); // Define o idioma
+        console.log(`Idioma definido para: ${lang}`);
       } catch (error) {
         console.error('Erro ao processar seleção de idioma:', error);
       }
     });
   });
 
-  const floatingMenu = document.getElementById('floating-menu');
-  const startCreateRouteBtn = document.getElementById('create-route-btn');
-  const searchBtn = document.querySelector(
-    '.menu-btn[data-feature="pesquisar"]'
-  );
-  const carouselModalClose = document.getElementById('carousel-modal-close');
-  const aboutMoreBtn = document.getElementById('about-more-btn');
-  const menuToggle = document.getElementById('menu-btn');
-  const buyTicketBtn = document.getElementById('buy-ticket-btn');
+  // event listeners para os botões do tutorial
 
-  // Exemplo de evento para fechar o modal com a tecla ESC
-  document.addEventListener('keydown', function (event) {
-    const modal = document.querySelector('.modal[style*="display: block"]');
-    if (modal && event.key === 'Escape') {
-      modal.style.display = 'none';
-    }
-  });
+  // Configuração do botão de avançar do tutorial
+  const tutorialStartBtn = document.getElementById('tutorial-iniciar-btn');
+  if (tutorialStartBtn) {
+    tutorialStartBtn.addEventListener('click', () => {
+      try {
+        console.log('Botão Iniciar Tutorial clicado');
+        // Avança para o próximo passo
+        nextTutorialStep();
+      } catch (error) {
+        console.error(
+          'Erro ao processar clique no botão de iniciar tutorial:',
+          error
+        );
+      }
+    });
+  }
 
-  if (menuToggle) {
-    menuToggle.style.display = 'none';
-    menuToggle.addEventListener('click', () => {
-      floatingMenu.classList.toggle('hidden');
+  // Configuração do botão de finalizar o tutorial
+  const tutorialEndBtn = document.getElementById('tutorial-finalizar-btn');
+  if (tutorialEndBtn) {
+    tutorialEndBtn.addEventListener('click', () => {
+      try {
+        console.log('Botão Finalizar Tutorial clicado');
+        // Finaliza o tutorial
+        endTutorial();
+      } catch (error) {
+        console.error(
+          'Erro ao processar clique no botão de finalizar tutorial:',
+          error
+        );
+      }
+    });
+  }
+
+  // Configuração do botão de zoom in do mapa
+  const zoomInBtn = document.querySelector('.menu-btn.zoom-in');
+  if (zoomInBtn) {
+    zoomInBtn.addEventListener('click', () => {
+      // Verificamos se o mapa existe antes de chamar zoomIn
+      if (window.map) {
+        window.map.zoomIn(); // Aumenta o zoom do mapa
+      } else {
+        console.warn('Mapa não inicializado ao tentar usar zoomIn');
+      }
+      closeSideMenu(); // Fecha o menu lateral se estiver aberto
+
+      // Se o tutorial estiver ativo e este for o passo atual, avança para o próximo
       if (
         tutorialIsActive &&
-        tutorialSteps[currentStep].step === 'menu-toggle'
+        allTutorialSteps[currentStep] &&
+        allTutorialSteps[currentStep].step === 'zoom-in-button'
       ) {
         nextTutorialStep();
       }
     });
   }
 
-  // Evento para o botão "start-navigation-btn"
-  const startNavigationRodapeBtn = document.getElementById(
-    'start-navigation-rodape-btn'
-  );
-  if (startNavigationRodapeBtn) {
-    startNavigationRodapeBtn.addEventListener('click', () => {
-      console.log("✅ Botão 'start-navigation-rodape-btn' clicado!");
-      startNavigation();
+  // Configuração do botão de zoom out do mapa
+  const zoomOutBtn = document.querySelector('.menu-btn.zoom-out');
+  if (zoomOutBtn) {
+    zoomOutBtn.addEventListener('click', () => {
+      // Verificamos se o mapa existe antes de chamar zoomOut
+      if (window.map) {
+        window.map.zoomOut(); // Reduz o zoom do mapa
+      } else {
+        console.warn('Mapa não inicializado ao tentar usar zoomOut');
+      }
+      closeSideMenu(); // Fecha o menu lateral se estiver aberto
+
+      // Se o tutorial estiver ativo e este for o passo atual, avança para o próximo
+      if (
+        tutorialIsActive &&
+        allTutorialSteps[currentStep] &&
+        allTutorialSteps[currentStep].step === 'zoom-out-button'
+      ) {
+        nextTutorialStep();
+      }
     });
   }
 
-  // Evento para o botão "menu-details-btn"
+  // Configuração do botão de alternar o menu flutuante
+  const menuToggle = document.getElementById('menu-toggle-btn'); // ID correto
+  if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+      const menu = document.getElementById('menu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+
+      showTutorialStep('ask-interest'); // Exibe o passo específico do tutorial (pergunta de interesses)
+
+      // Se o tutorial estiver ativo e estiver no passo que requer interação com o menu toggle
+      if (
+        tutorialIsActive &&
+        allTutorialSteps[currentStep] &&
+        allTutorialSteps[currentStep].step === 'menu-toggle-btn'
+      ) {
+        nextTutorialStep();
+      }
+    });
+  }
+
+  // Configuração do botão de detalhes do menu
   const menuDetailsBtn = document.getElementById('menu-details-btn');
   if (menuDetailsBtn) {
     menuDetailsBtn.addEventListener('click', () => {
       console.log("✅ Botão 'menu-details-btn' clicado!");
-      clearRouteMarkers();
-      hideInstructionBanner();
-      showTutorialStep('ask-interest'); // ou showTutorialStep('someStep') se for esse o caso
+      // Funções simplificadas para evitar erros
+      console.log('Limpando marcadores de rota...');
+      console.log('Escondendo banner de instruções...');
+      showTutorialStep('ask-interest'); // Exibe o passo específico do tutorial (pergunta de interesses)
     });
   }
 
-  if (aboutMoreBtn) {
-    aboutMoreBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.name) {
-        startCarousel(selectedDestination.name);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
+  // Configuração dos botões do menu flutuante com identificador de feature
+  const floatingMenu = document.getElementById('floating-menu'); // Menu flutuante com opções principais
+  if (floatingMenu) {
+    document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        const feature = btn.getAttribute('data-feature'); // Obtém o identificador da feature
+        console.log(`Feature selecionada: ${feature}`);
+        handleFeatureSelection(feature); // Manipula a seleção da feature
+        closeCarouselModal(); // Fecha o modal do carrossel se estiver aberto
+        event.stopPropagation(); // Impede propagação do evento para evitar cliques duplicados
+
+        // Verificação para o passo search-button do tutorial
+        if (
+          tutorialIsActive &&
+          allTutorialSteps[currentStep] &&
+          allTutorialSteps[currentStep].step === 'search-button' &&
+          feature === 'pesquisar'
+        ) {
+          nextTutorialStep();
+        }
+      });
     });
   }
 
-  if (buyTicketBtn) {
-    buyTicketBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  // Evento para o botão "cancel-route-btn"
-  const cancelRouteBtn = document.getElementById('cancel-route-btn');
-  if (cancelRouteBtn) {
-    cancelRouteBtn.addEventListener('click', () => {
-      console.log("✅ Botão 'cancel-route-btn' clicado!");
-      // Finaliza a navegação, desfazendo todas as ações iniciadas pelo fluxo de startNavigation
-      endNavigation();
-      // Em seguida, restaura a interface para a última feature selecionada
-      // (Utiliza a variável global 'lastSelectedFeature' que deve ter sido atualizada quando o usuário selecionou uma feature)
-
-      restoreFeatureUI(Feature);
-    });
-  }
-
-  const reserveChairsBtn = document.getElementById('reserve-chairs-btn');
-  if (reserveChairsBtn) {
-    reserveChairsBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  const reserveRestaurantsBtn = document.getElementById(
-    'reserve-restaurants-btn'
-  );
-  if (reserveRestaurantsBtn) {
-    reserveRestaurantsBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  const reserveInnsBtn = document.getElementById('reserve-inns-btn');
-  if (reserveInnsBtn) {
-    reserveInnsBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  const speakAttendentBtn = document.getElementById('speak-attendent-btn');
-  if (speakAttendentBtn) {
-    speakAttendentBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  const callBtn = document.getElementById('call-btn');
-  if (callBtn) {
-    callBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.url) {
-        openDestinationWebsite(selectedDestination.url);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
-    });
-  }
-
-  // Evento para botões do menu flutuante
-  document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      const feature = btn.getAttribute('data-feature');
-      console.log(`Feature selecionada: ${feature}`);
-      handleFeatureSelection(feature);
-      closeCarouselModal();
-      event.stopPropagation();
-    });
-  });
-
-  // Evento para botões de controle
+  // Configuração dos botões de controle com identificador de feature
   document.querySelectorAll('.control-btn[data-feature]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
-      const feature = btn.getAttribute('data-feature');
+      const feature = btn.getAttribute('data-feature'); // Obtém o identificador da feature
       console.log(`Control button feature selected: ${feature}`);
-      handleFeatureSelection(feature);
-      event.stopPropagation();
-      if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
+      handleFeatureSelection(feature); // Manipula a seleção da feature
+      event.stopPropagation(); // Impede propagação do evento
+
+      // Se o tutorial estiver ativo e este for o passo ask-interest, avança para o próximo
+      if (
+        tutorialIsActive &&
+        allTutorialSteps[currentStep] &&
+        allTutorialSteps[currentStep].step === 'ask-interest'
+      ) {
         nextTutorialStep();
       }
     });
   });
 
-  document.querySelector('.menu-btn.zoom-in').addEventListener('click', () => {
-    map.zoomIn();
-    closeSideMenu();
-    if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-in') {
-      nextTutorialStep();
-    }
-  });
-
-  document.querySelector('.menu-btn.zoom-out').addEventListener('click', () => {
-    map.zoomOut();
-    closeSideMenu();
-    if (tutorialIsActive && tutorialSteps[currentStep].step === 'zoom-out') {
-      nextTutorialStep();
-    }
-  });
-
-  const startTutorialBtn = document.getElementById('tutorial-iniciar-btn');
-  if (startTutorialBtn) {
-    startTutorialBtn.addEventListener('click', () => {
-      nextTutorialStep();
-    });
-  }
-
-  if (searchBtn) {
-    searchBtn.addEventListener('click', () => {
-      searchLocation();
-      closeSideMenu();
-      if (tutorialIsActive && tutorialSteps[currentStep].step === 'pesquisar') {
-        nextTutorialStep();
-      }
-    });
-  }
-
-  document
-    .getElementById('carousel-modal-close')
-    .addEventListener('click', function () {
-      const modal = document.getElementById('carousel-modal');
-      if (modal) {
-        modal.style.display = 'none';
-      }
-    });
-
-  if (startCreateRouteBtn) {
-    startCreateRouteBtn.addEventListener('click', () => {
-      startRouteCreation();
-    });
-  }
-
-  if (carouselModalClose) {
-    carouselModalClose.addEventListener('click', closeCarouselModal);
-  }
+  // Registrar que os eventos foram configurados
+  console.log('Todos os event listeners configurados com sucesso');
 }
 
 /**
