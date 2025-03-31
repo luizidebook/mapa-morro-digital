@@ -1,34 +1,46 @@
 // Importações necessárias
 import { showNotification } from '../ui/notifications.js';
+import { getLocalStorageItem } from '../data/cache.js';
 
+export let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt'); // Idioma atual da interface
+
+export function setSelectedLanguage(lang) {
+  selectedLanguage = lang;
+}
 // Estado global da navegação
+/**
+ * Estado de navegação - Objeto que mantém o estado completo da navegação atual
+ * Usado para controlar flags, índices e parâmetros durante o fluxo de navegação
+ */
 export const navigationState = {
-  isActive: false,
-  isPaused: false,
-  watchId: null,
-  currentStepIndex: 0,
-  instructions: [],
-  selectedDestination: null,
-  lang: 'pt',
-  isRotationEnabled: true,
-  quietMode: true,
-  rotationInterval: 1000,
-  speed: 0,
-  manualOverride: false,
-  manualAngle: 0,
-  tilt: 10,
-  rotationMode: 'compass',
-  headingBuffer: [],
-  minRotationDelta: 2,
-  alpha: 0.2,
-  currentHeading: 0,
-  lastRotationTime: 0,
+  // Controle básico da navegação
+  isActive: false, // Se a navegação está ativa
+  isPaused: false, // Se a navegação está em pausa
+  watchId: null, // ID do watchPosition para monitoramento
+  currentStepIndex: 0, // Índice do passo atual na rota
+  instructions: [], // Lista de instruções detalhadas para o usuário
+  selectedDestination: null, // Destino selecionado para a navegação
+  lang: 'pt', // Idioma das instruções de navegação
+
+  // Propriedades para controle da rotação do mapa
+  isRotationEnabled: true, // Habilita/desabilita rotação automática do mapa
+  quietMode: true, // Modo silencioso - menos atualizações de UI
+  rotationInterval: 1000, // Intervalo mínimo entre atualizações de rotação (ms)
+  speed: 0, // Velocidade atual do usuário (m/s)
+  manualOverride: false, // Se a rotação manual está ativada
+  manualAngle: 0, // Ângulo manual (graus) quando override ativado
+  tilt: 10, // Inclinação do mapa (graus) para efeito 3D
+  rotationMode: 'compass', // Modo de rotação (north-up: fixo ou compass: seguindo direção)
+  headingBuffer: [], // Buffer para suavizar leituras de direção
+  minRotationDelta: 2, // Mudança mínima (graus) para atualizar rotação
+  alpha: 0.2, // Fator de suavização (0-1)
+  currentHeading: 0, // Direção atual aplicada (graus)
+  lastRotationTime: 0, // Timestamp da última rotação (ms)
 };
 
 // Variáveis auxiliares
 export let map = null; // Variável global para a instância do mapa
-export const markers = []; // Array para armazenar marcadores
-export let selectedLanguage = 'pt'; // Idioma padrão
+export let markers = []; // Array para armazenar marcadores
 export let selectedDestination = {};
 export let userLocation = null;
 export let currentRoute = null;
@@ -64,6 +76,7 @@ export let debounceTimer = null;
 export let trackingActive = false;
 export let watchId = null;
 export let userPosition = null;
+export let positionWatcher = (window.positionWatcher = null); // ID do watchPosition global
 
 /* 1. initNavigationState
  * Reinicializa o objeto global de navegação, limpando estados anteriores. */

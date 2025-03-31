@@ -1,5 +1,5 @@
 import { initializeMap } from '../map/map-core.js';
-import { setLanguage, updateInterfaceLanguage } from '../core/config.js';
+import { setLanguage } from '../core/config.js';
 import { closeCarouselModal } from '../ui/modals.js';
 import { startTutorial } from '../tutorial/tutorial.js';
 import { showNotification } from '../ui/notifications.js';
@@ -44,6 +44,41 @@ export function onDOMContentLoaded() {
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
  */
 export function setupEventListeners() {
+  // Configuração dos botões de seleção de idioma
+  document.querySelectorAll('.lang-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      try {
+        const lang = button.dataset.lang;
+        console.log(`Botão de idioma clicado: ${lang}`);
+
+        // Define o idioma globalmente
+        setLanguage(lang);
+
+        // Fecha o modal de boas-vindas
+        const welcomeModal = document.getElementById('welcome-modal');
+        if (welcomeModal) {
+          welcomeModal.style.display = 'none';
+          console.log('Modal de boas-vindas fechado');
+        } else {
+          console.warn("Elemento 'welcome-modal' não encontrado");
+        }
+
+        // Inicia o tutorial com tratamento de erro
+        try {
+          console.log('Tentando iniciar tutorial...');
+          startTutorial();
+          console.log('Tutorial iniciado com sucesso');
+        } catch (tutorialError) {
+          console.error('Erro ao iniciar tutorial:', tutorialError);
+        }
+
+        console.log(`Idioma alterado para: ${lang}`);
+      } catch (error) {
+        console.error('Erro ao processar seleção de idioma:', error);
+      }
+    });
+  });
+
   const floatingMenu = document.getElementById('floating-menu');
   const startCreateRouteBtn = document.getElementById('create-route-btn');
   const searchBtn = document.querySelector(
@@ -187,20 +222,6 @@ export function setupEventListeners() {
       }
     });
   }
-
-  // Configura o evento de mudança de idioma com integração ao tutorial do assistente
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const lang = button.dataset.lang;
-
-      // Define o idioma globalmente
-      setLanguage(lang);
-      updateInterfaceLanguage(lang);
-      startTutorial();
-
-      console.log(`Idioma alterado para: ${lang}`);
-    });
-  });
 
   // Evento para botões do menu flutuante
   document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {

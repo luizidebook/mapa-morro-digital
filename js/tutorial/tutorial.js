@@ -1,15 +1,15 @@
 // Importações necessárias
 import { tutorialIsActive, currentStep } from '../core/state.js';
 import { showNotification } from '../ui/notifications.js';
-
+import { selectedLanguage } from '../core/state.js';
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */
 export function startTutorial() {
-  tutorialIsActive = true;
-  currentStep = 0; // índice do passo inicial
-  showTutorialStep('start-tutorial');
-  console.log('startTutorial: Tutorial iniciado.');
+  tutorialIsActive = true; // Agora permitido
+  currentStep = 0; // Agora permitido
+  showTutorial();
+  console.log('Tutorial iniciado.');
 }
 
 /**

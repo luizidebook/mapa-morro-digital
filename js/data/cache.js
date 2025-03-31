@@ -1,8 +1,7 @@
-// Importações necessárias
-import { navigationState, searchHistory } from '../core/state.js';
-import { showNotification } from '../ui/notifications.js';
-import { getGeneralText } from '../ui/texts.js';
-
+/**===========================================================================
+CACHE, PERSISTÊNCIA & HISTÓRICO
+===========================================================================
+  --- Cache de POIs e Rota ---
 /**
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
@@ -29,9 +28,8 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
   }
 }
 
-/**
- * 2. loadRouteFromCache - Carrega rota salva do cache (localStorage).
- */
+/*
+ * 2. loadRouteFromCache - Carrega rota salva do cache (localStorage). */
 export function loadRouteFromCache() {
   if (typeof localStorage === 'undefined') {
     console.warn('LocalStorage não está disponível.');
@@ -55,30 +53,66 @@ export function loadRouteFromCache() {
     );
     return null;
   }
-}
+} /*
+
+  --- Destinos, LocalStorage e Histórico ---
+ /**
+ * 3. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker). */
+export function loadDestinationsFromCache(callback) {
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      command: 'loadDestinations',
+    });
+    navigator.serviceWorker.onmessage = (event) => {
+      if (event.data.command === 'destinationsLoaded') {
+        callback(event.data.data);
+      }
+    };
+  } else {
+    console.error('Service worker não está ativo.');
+  }
+} /*
 
 /**
- * 3. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
+ * 4. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
+ */
+/**
+ * 4. getLocalStorageItem - Recupera item do localStorage, parseando JSON se necessário.
+ * @param {string} key - Chave do item no localStorage
+ * @param {any} defaultValue - Valor padrão se o item não existir
+ * @returns {any} Valor convertido do localStorage ou defaultValue
  */
 export function getLocalStorageItem(key, defaultValue = null) {
   const item = localStorage.getItem(key);
-  try {
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
+
+  // Se o item não existir, retorna o valor padrão
+  if (item === null) {
     return defaultValue;
   }
+
+  // Se o item parece ser um objeto JSON (começa com { ou [), tenta analisá-lo
+  if (item && (item.startsWith('{') || item.startsWith('['))) {
+    try {
+      return JSON.parse(item);
+    } catch (error) {
+      console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
+      return item; // Retorna o valor bruto se não for JSON válido
+    }
+  }
+
+  // Caso contrário, retorna o valor como está (string, etc.)
+  return item;
 }
 
 /**
- * 4. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
+ * 5. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 export function setLocalStorageItem(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
 }
 
 /**
- * 5. removeLocalStorageItem - Remove item do localStorage por chave.
+ * 6. removeLocalStorageItem - Remove item do localStorage por chave.
  */
 export function removeLocalStorageItem(key) {
   try {
@@ -89,27 +123,34 @@ export function removeLocalStorageItem(key) {
 }
 
 /**
- * 6. loadSearchHistory - Carrega o histórico de buscas do localStorage e exibe na interface.
+ * 7. saveDestinationToCache - Salva destino selecionado no cache local.
  */
-export function loadSearchHistory() {
-  const history = getLocalStorageItem('searchHistory', []);
-  searchHistory.length = 0; // Limpa o array global
-  searchHistory.push(...history); // Atualiza a variável global
-
-  const historyContainer = document.getElementById('search-history-container');
-  if (historyContainer) {
-    historyContainer.innerHTML = '';
-    history.forEach((query) => {
-      const historyItem = document.createElement('div');
-      historyItem.className = 'history-item';
-      historyItem.textContent = query;
-      historyContainer.appendChild(historyItem);
-    });
-  }
+export function saveDestinationToCache(destination) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log('Saving Destination to Cache:', destination);
+      localStorage.setItem('selectedDestination', JSON.stringify(destination));
+      resolve();
+    } catch (error) {
+      console.error('Erro ao salvar destino no cache:', error);
+      reject(new Error('Erro ao salvar destino no cache.'));
+    }
+  });
 }
 
 /**
- * 7. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
+ * 8. saveRouteToHistory - Salva rota no histórico (localStorage).
+ */
+export function saveRouteToHistory(route) {
+  const historyStr = localStorage.getItem('routeHistory') || '[]';
+  const history = JSON.parse(historyStr);
+  history.push(route);
+  localStorage.setItem('routeHistory', JSON.stringify(history));
+  console.log('Rota salva no histórico (routeHistory).');
+}
+
+/**
+ * 9. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
  */
 export function saveSearchQueryToHistory(query) {
   const searchHistoryStr = localStorage.getItem('searchHistory') || '[]';
@@ -120,7 +161,7 @@ export function saveSearchQueryToHistory(query) {
 }
 
 /**
- * 8. loadOfflineInstructions - Carrega instruções offline (ex.: localStorage).
+ * 10. loadOfflineInstructions - Carrega instruções offline (ex.: localStorage).
  */
 export function loadOfflineInstructions() {
   const cachedInstr = localStorage.getItem('offlineInstructions');
@@ -133,7 +174,7 @@ export function loadOfflineInstructions() {
 }
 
 /**
- * 9. loadSearchHistory
+ * 11. loadSearchHistory
  *    Carrega o histórico de buscas do localStorage e exibe na interface.
  */
 export function loadSearchHistory() {
@@ -150,4 +191,109 @@ export function loadSearchHistory() {
       historyContainer.appendChild(historyItem);
     });
   }
+}
+
+/**
+ * 12. openOfflineCacheDB
+ * Abre (ou cria) o banco de dados IndexedDB para cache offline.
+ * @returns {Promise<IDBDatabase>} Promise que resolve com a instância do banco de dados.
+ */
+export function openOfflineCacheDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('OfflineCacheDB', 1);
+    request.onerror = (event) => {
+      console.error('IndexedDB error:', event.target.errorCode);
+      reject(event.target.errorCode);
+    };
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('routes')) {
+        db.createObjectStore('routes', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('destinations')) {
+        db.createObjectStore('destinations', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+  });
+}
+
+/**
+ * 13. cacheRouteDataOffline
+ * Cacheia os dados da rota no IndexedDB.
+ * @param {string} id - Identificador único para os dados (por exemplo, uma concatenação de coordenadas ou um hash).
+ * @param {Object} routeData - Dados da rota a serem armazenados.
+ * @returns {Promise<boolean>} Promise que resolve com true em caso de sucesso.
+ */
+export async function cacheRouteDataOffline(id, routeData) {
+  const db = await openOfflineCacheDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['routes'], 'readwrite');
+    const store = transaction.objectStore('routes');
+    const request = store.put({ id, data: routeData, timestamp: Date.now() });
+    request.onsuccess = () => {
+      console.log('Route data cached offline.');
+      resolve(true);
+    };
+    request.onerror = (event) => {
+      console.error('Error caching route data:', event);
+      reject(event);
+    };
+  });
+}
+
+/**
+ * 14. getRouteDataOffline
+ * Recupera os dados de rota cacheados do IndexedDB.
+ * @param {string} id - Identificador usado para armazenar os dados.
+ * @returns {Promise<Object>} Promise que resolve com os dados cacheados ou undefined.
+ */
+export async function getRouteDataOffline(id) {
+  const db = await openOfflineCacheDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['routes'], 'readonly');
+    const store = transaction.objectStore('routes');
+    const request = store.get(id);
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+    request.onerror = (event) => {
+      console.error('Error retrieving route data:', event);
+      reject(event);
+    };
+  });
+}
+
+/**
+ * Send message to service worker and wait for response
+ * @param {Object} message - Message to send to service worker
+ * @returns {Promise} - Promise that resolves with the service worker's response
+ */
+export function messageServiceWorker(message) {
+  return new Promise((resolve, reject) => {
+    // Check if service worker is ready
+    if (!navigator.serviceWorker.controller) {
+      reject(new Error('Service worker not ready'));
+      return;
+    }
+
+    // Create a message channel for the response
+    const messageChannel = new MessageChannel();
+
+    // Set up the response handler
+    messageChannel.port1.onmessage = (event) => {
+      if (event.data.error) {
+        reject(new Error(event.data.error));
+      } else {
+        resolve(event.data);
+      }
+    };
+
+    // Send the message
+    navigator.serviceWorker.controller.postMessage(message, [
+      messageChannel.port2,
+    ]);
+  });
 }
