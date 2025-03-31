@@ -1,4 +1,4 @@
-import { map, markers } from '../core/state.js';
+import { map, markers } from '../core/varGlobals.js';
 
 /**
  * clearRouteMarkers

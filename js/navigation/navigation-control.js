@@ -3,7 +3,7 @@ import {
   selectedDestination,
   navigationState,
   userLocation,
-} from '../core/state.js';
+} from '../core/varGlobals.js';
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 import { clearRouteMarkers } from '../ui/routeMarkers.js';

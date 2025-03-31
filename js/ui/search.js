@@ -1,6 +1,5 @@
 // Importações necessárias
-import { OPENROUTESERVICE_API_KEY } from '../core/constants.js';
-import { map, markers } from '../core/state.js';
+import { OPENROUTESERVICE_API_KEY, map, markers } from '../core/varGlobals.js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { showNotification } from '../ui/notifications.js';

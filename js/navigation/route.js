@@ -1,5 +1,9 @@
 // Importações necessárias
-import { map, selectedDestination, navigationState } from '../core/state.js';
+import {
+  map,
+  selectedDestination,
+  navigationState,
+} from '../core/varGlobals.js';
 import { showNotification } from '../ui/notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 import {
@@ -425,4 +429,31 @@ export function applyRouteStyling(routeLayer) {
   routeLayer.on('mouseout', function () {
     this.setStyle({ color: 'blue' });
   });
+}
+
+/**
+ * 5. saveDestinationToCache - Salva destino selecionado no cache local.
+ */
+export function saveDestinationToCache(destination) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log('Saving Destination to Cache:', destination);
+      localStorage.setItem('selectedDestination', JSON.stringify(destination));
+      resolve();
+    } catch (error) {
+      console.error('Erro ao salvar destino no cache:', error);
+      reject(new Error('Erro ao salvar destino no cache.'));
+    }
+  });
+}
+
+/**
+ * 6. saveRouteToHistory - Salva rota no histórico (localStorage).
+ */
+export function saveRouteToHistory(route) {
+  const historyStr = localStorage.getItem('routeHistory') || '[]';
+  const history = JSON.parse(historyStr);
+  history.push(route);
+  localStorage.setItem('routeHistory', JSON.stringify(history));
+  console.log('Rota salva no histórico (routeHistory).');
 }

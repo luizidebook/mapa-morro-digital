@@ -26,7 +26,7 @@ import { clearCurrentRoute } from '../map/map-route.js';
 import { getUrlsForLocation } from '../ui/carousel.js';
 import { showDestinationContent } from '../ui/carousel.js';
 import { closeCarouselModal } from '../ui/modals.js';
-import { lastSelectedFeature } from '../core/state.js';
+import { lastSelectedFeature } from '../core/varGlobals.js';
 
 /**
  * 1. handleSubmenuButtonClick - Lida com cliques em botões de submenu.

@@ -2,7 +2,7 @@
 import { showNotification } from './notifications.js';
 import { getGeneralText } from '../ui/texts.js';
 import { displayRetryRouteLoadOption } from '../ui/route.js';
-import { navigationState, selectedLanguage } from '../core/state.js';
+import { navigationState, selectedLanguage } from '../core/varGlobals.js';
 
 /**
  * showRouteLoadingIndicator

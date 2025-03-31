@@ -82,37 +82,28 @@ export function loadDestinationsFromCache(callback) {
  * @param {any} defaultValue - Valor padrão se o item não existir
  * @returns {any} Valor convertido do localStorage ou defaultValue
  */
-export function getLocalStorageItem(key, defaultValue = null) {
+/**
+ * 2. getLocalStorageItem - Recupera item do localStorage, parseando JSON.
+ */
+export function getLocalStorageItem(key) {
   const item = localStorage.getItem(key);
-
-  // Se o item não existir, retorna o valor padrão
-  if (item === null) {
-    return defaultValue;
+  try {
+    return JSON.parse(item); // Tenta converter o valor para JSON
+  } catch (error) {
+    console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
+    return item; // Retorna o valor bruto se não for JSON válido
   }
-
-  // Se o item parece ser um objeto JSON (começa com { ou [), tenta analisá-lo
-  if (item && (item.startsWith('{') || item.startsWith('['))) {
-    try {
-      return JSON.parse(item);
-    } catch (error) {
-      console.error(`Erro ao analisar JSON para a chave ${key}:`, error);
-      return item; // Retorna o valor bruto se não for JSON válido
-    }
-  }
-
-  // Caso contrário, retorna o valor como está (string, etc.)
-  return item;
 }
 
 /**
- * 5. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
+ * 3. setLocalStorageItem - Define item no localStorage, convertendo para JSON.
  */
 export function setLocalStorageItem(key, value) {
   localStorage.setItem(key, JSON.stringify(value)); // Armazena o valor de forma segura como JSON
 }
 
 /**
- * 6. removeLocalStorageItem - Remove item do localStorage por chave.
+ * 4. removeLocalStorageItem - Remove item do localStorage por chave.
  */
 export function removeLocalStorageItem(key) {
   try {
@@ -123,34 +114,7 @@ export function removeLocalStorageItem(key) {
 }
 
 /**
- * 7. saveDestinationToCache - Salva destino selecionado no cache local.
- */
-export function saveDestinationToCache(destination) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.log('Saving Destination to Cache:', destination);
-      localStorage.setItem('selectedDestination', JSON.stringify(destination));
-      resolve();
-    } catch (error) {
-      console.error('Erro ao salvar destino no cache:', error);
-      reject(new Error('Erro ao salvar destino no cache.'));
-    }
-  });
-}
-
-/**
- * 8. saveRouteToHistory - Salva rota no histórico (localStorage).
- */
-export function saveRouteToHistory(route) {
-  const historyStr = localStorage.getItem('routeHistory') || '[]';
-  const history = JSON.parse(historyStr);
-  history.push(route);
-  localStorage.setItem('routeHistory', JSON.stringify(history));
-  console.log('Rota salva no histórico (routeHistory).');
-}
-
-/**
- * 9. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
+ * 7. saveSearchQueryToHistory - Salva query de pesquisa no histórico.
  */
 export function saveSearchQueryToHistory(query) {
   const searchHistoryStr = localStorage.getItem('searchHistory') || '[]';
@@ -159,40 +123,6 @@ export function saveSearchQueryToHistory(query) {
   localStorage.setItem('searchHistory', JSON.stringify(searchHistoryArr));
   console.log('Consulta de pesquisa salva no histórico:', query);
 }
-
-/**
- * 10. loadOfflineInstructions - Carrega instruções offline (ex.: localStorage).
- */
-export function loadOfflineInstructions() {
-  const cachedInstr = localStorage.getItem('offlineInstructions');
-  if (cachedInstr) {
-    return JSON.parse(cachedInstr);
-  } else {
-    console.warn('Nenhuma instrução offline encontrada.');
-    return [];
-  }
-}
-
-/**
- * 11. loadSearchHistory
- *    Carrega o histórico de buscas do localStorage e exibe na interface.
- */
-export function loadSearchHistory() {
-  const history = getLocalStorageItem('searchHistory', []);
-  searchHistory = history; // Atualiza a variável global
-
-  const historyContainer = document.getElementById('search-history-container');
-  if (historyContainer) {
-    historyContainer.innerHTML = '';
-    history.forEach((query) => {
-      const historyItem = document.createElement('div');
-      historyItem.className = 'history-item';
-      historyItem.textContent = query;
-      historyContainer.appendChild(historyItem);
-    });
-  }
-}
-
 /**
  * 12. openOfflineCacheDB
  * Abre (ou cria) o banco de dados IndexedDB para cache offline.

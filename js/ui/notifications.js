@@ -1,6 +1,6 @@
 // Importações necessárias
 import { getGeneralText } from '../ui/texts.js';
-import { navigationState, selectedLanguage } from '../core/state.js';
+import { navigationState, selectedLanguage } from '../core/varGlobals.js';
 
 // Função: Exibe uma notificação para o usuário
 export function showNotification(message, type = 'info', duration = 3000) {

@@ -1,7 +1,10 @@
 // Importações necessárias
-import { tutorialIsActive, currentStep } from '../core/state.js';
+import {
+  tutorialIsActive,
+  currentStep,
+  selectedLanguage,
+} from '../core/varGlobals.js';
 import { showNotification } from '../ui/notifications.js';
-import { selectedLanguage } from '../core/state.js';
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */
