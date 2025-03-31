@@ -1,12 +1,14 @@
 // Importações necessárias
-import { currentStep, tutorialIsActive } from '../core/varGlobals.js';
 import { hideAllControlButtons, showButtons } from '../ui/buttons.js';
 import { updateAssistantModalContent } from '../ui/modals.js';
 import { highlightElement } from '../ui/highlight.js';
 import { clearAllMarkers } from '../ui/markers.js';
 import { closeSideMenu } from '../ui/menu.js';
 import { selectedLanguage } from '../core/varGlobals.js';
+import { hideWelcomeModal } from '../ui/modals.js';
 
+let tutorialIsActive = false; // Variável para controlar o estado do tutorial
+let currentStep = null; // Passo atual do tutorial
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */
@@ -14,6 +16,7 @@ export function startTutorial() {
   tutorialIsActive = true; // Atualiza o estado do tutorial
   currentStep = 0; // Define o passo inicial
   showTutorialStep('start-tutorial'); // Exibe o primeiro passo do tutorial
+  hideWelcomeModal(); // Oculta o modal de boas-vindas
   console.log('startTutorial: Tutorial iniciado.');
 }
 
@@ -120,7 +123,6 @@ const tutorialSteps = [
         'emergencias-btn',
       ]);
       clearAllMarkers();
-      closeSideMenu();
     },
   },
   ...generateInterestSteps(),

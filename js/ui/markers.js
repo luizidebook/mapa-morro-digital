@@ -1,16 +1,23 @@
-/**
- * 1. clearAllMarkers
- *    Remove todos os marcadores do mapa e limpa o array global. */
+let markers = []; // Array global para armazenar os marcadores
+
 export function clearAllMarkers() {
-  markers.forEach((marker) => map.removeLayer(marker));
-  markers = [];
-  if (userMarker) {
-    map.removeLayer(userMarker);
-    userMarker = null;
+  if (!markers || markers.length === 0) {
+    console.warn('Nenhum marcador para limpar.');
+    return;
   }
-  if (currentMarker) {
-    map.removeLayer(currentMarker);
-    currentMarker = null;
+
+  markers.forEach((marker) => marker.remove());
+  markers = []; // Limpa o array de marcadores
+  console.log('Todos os marcadores foram removidos.');
+}
+
+export function clearMarkers() {
+  if (!markers || markers.length === 0) {
+    console.warn('Nenhum marcador para limpar.');
+    return;
   }
-  console.log('Todos os marcadores removidos.');
+
+  markers.forEach((marker) => marker.remove());
+  markers = []; // Limpa o array de marcadores
+  console.log('Todos os marcadores foram removidos.');
 }

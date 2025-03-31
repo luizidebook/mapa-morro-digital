@@ -68,3 +68,45 @@ export function resetMapView() {
     console.log('Visualização do mapa restaurada para o estado inicial.');
   }
 }
+
+/**
+ * 6. restoreState - Restaura estado completo do sistema (geral).
+ */
+export function restoreState(state) {
+  if (!state) {
+    console.log('Nenhum estado para restaurar.');
+    return;
+  }
+
+  console.log('Restaurando estado:', state);
+
+  // Restaura o destino selecionado
+  if (state.selectedDestination) {
+    selectedDestination = state.selectedDestination;
+    adjustMapWithLocation();
+  }
+
+  // Restaura as instruções da rota
+  if (state.instructions) {
+    displayStepByStepInstructions(state.instructions, 0);
+  }
+
+  // Restaura a localização do usuário
+  if (state.userPosition) {
+    updateUserPositionOnMap(state.userPosition);
+  }
+
+  document
+    .getElementById('continue-navigation-btn')
+    .addEventListener('click', () => {
+      navigator.serviceWorker.controller.postMessage({ action: 'getState' });
+      document.getElementById('recovery-modal').classList.add('hidden');
+    });
+
+  document
+    .getElementById('start-new-navigation-btn')
+    .addEventListener('click', () => {
+      clearNavigationState();
+      document.getElementById('recovery-modal').classList.add('hidden');
+    });
+}

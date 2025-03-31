@@ -111,6 +111,8 @@ const translationsData = {
     route_distance: 'Distância:',
     route_eta: 'Tempo Estimado:',
     instructions_title: 'Instruções de Navegação',
+    call: 'Ligar', // Tradução adicionada
+    reserveTable: 'Reservar Mesa', // Exemplo de outra tradução adicionada
 
     // Chaves já existentes
     close_modal: 'X',
@@ -324,6 +326,8 @@ const translationsData = {
     route_distance: 'Distance:',
     route_eta: 'Estimated Time:',
     instructions_title: 'Navigation Instructions',
+    call: 'Call',
+    reserveTable: 'Reserve Table',
 
     close_modal: 'X',
     close_modal_carousel: 'X',
@@ -532,6 +536,8 @@ const translationsData = {
     route_distance: 'Distancia:',
     route_eta: 'Tiempo Estimado:',
     instructions_title: 'Instrucciones de Navegación',
+    call: 'Llamar',
+    reserveTable: 'Reservar Mesa',
 
     close_modal: 'X',
     close_modal_carousel: 'X',
@@ -741,6 +747,8 @@ const translationsData = {
       route_distance: 'מרחק:',
       route_eta: 'זמן משוער:',
       instructions_title: 'הוראות ניווט',
+      call: 'התקשר',
+      reserveTable: 'הזמן שולחן',
 
       close_modal: 'X',
       close_modal_carousel: 'X',

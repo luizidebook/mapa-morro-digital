@@ -5,6 +5,49 @@ CACHE, PERSISTÊNCIA & HISTÓRICO
 /**
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
+
+import { selectedDestination } from '../core/varGlobals.js';
+
+/**
+ * 5. saveDestinationToCache - Salva destino selecionado no cache local.
+ */
+export function saveDestinationToLocalStorage(destination) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!destination || !destination.name) {
+        console.error(
+          'Destino inválido para salvar no Local Storage:',
+          destination
+        );
+        reject(new Error('Destino inválido.'));
+        return;
+      }
+
+      console.log('Salvando destino no Local Storage:', destination);
+      localStorage.setItem('selectedDestination', JSON.stringify(destination));
+      resolve();
+    } catch (error) {
+      console.error('Erro ao salvar destino no Local Storage:', error);
+      reject(new Error('Erro ao salvar destino no Local Storage.'));
+    }
+  });
+}
+
+export function loadDestinationFromLocalStorage() {
+  try {
+    const destination = localStorage.getItem('selectedDestination');
+    if (!destination) {
+      console.warn('Nenhum destino salvo no Local Storage.');
+      return null;
+    }
+    console.log('Destino carregado do Local Storage:', JSON.parse(destination));
+    return JSON.parse(destination);
+  } catch (error) {
+    console.error('Erro ao carregar destino do Local Storage:', error);
+    return null;
+  }
+}
+
 export function cacheRouteData(routeInstructions, routeLatLngs) {
   if (!isLocalStorageAvailable()) {
     console.warn('localStorage não está disponível. Dados não serão salvos.');
@@ -32,17 +75,11 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
 /**
  * 1. loadDestinationsFromCache - Carrega destinos salvos do cache (ou Service Worker). */
 export function loadDestinationsFromCache(callback) {
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      command: 'loadDestinations',
-    });
-    navigator.serviceWorker.onmessage = (event) => {
-      if (event.data.command === 'destinationsLoaded') {
-        callback(event.data.data);
-      }
-    };
+  const destination = loadDestinationFromLocalStorage();
+  if (destination) {
+    callback([destination]);
   } else {
-    console.error('Service worker não está ativo.');
+    console.warn('Nenhum destino encontrado no cache.');
   }
 }
 
@@ -240,4 +277,47 @@ export function isLocalStorageAvailable() {
     console.warn('localStorage não está disponível:', error);
     return false;
   }
+}
+
+/**
+ *  getSelectedDestination - Retorna o destino selecionado do cache (localStorage).
+ */
+export function getSelectedDestination() {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!localStorage) {
+        console.warn('localStorage não está disponível.');
+        reject(new Error('localStorage não está disponível.'));
+        return;
+      }
+
+      const destinationStr = localStorage.getItem('selectedDestination');
+      if (!destinationStr) {
+        console.warn('Nenhum destino encontrado no localStorage.');
+        reject(new Error('Nenhum destino encontrado no localStorage.'));
+        return;
+      }
+
+      console.log(
+        'Destino encontrado no localStorage (string):',
+        destinationStr
+      );
+
+      const destination = JSON.parse(destinationStr);
+      if (destination && destination.name) {
+        console.log('Destino recuperado do localStorage:', destination);
+        selectedDestination = destination; // Atualiza a variável global
+        resolve(destination);
+      } else {
+        console.warn(
+          'Destino inválido recuperado do localStorage:',
+          destination
+        );
+        reject(new Error('Destino inválido recuperado do localStorage.'));
+      }
+    } catch (error) {
+      console.error('Erro ao resgatar destino do localStorage:', error);
+      reject(new Error('Erro ao resgatar destino do localStorage.'));
+    }
+  });
 }

@@ -1,3 +1,6 @@
+import { map } from '../main.js';
+import { markers } from '../core/varGlobals.js';
+
 /**
  * Ajusta o mapa para a localização do usuário.
  * @param {number} lat - Latitude do usuário.
@@ -7,7 +10,7 @@ export function adjustMapWithLocationUser(lat, lon) {
   map.setView([lat, lon], 21);
   const marker = L.marker([lat, lon])
     .addTo(map)
-    .bindPopup('Você está aqui!')
+    .bindPopup(translations[selectedLanguage].youAreHere || 'Você está aqui!')
     .openPopup();
   markers.push(marker);
 }
@@ -24,18 +27,48 @@ export function adjustMapWithLocationUser(lat, lon) {
 export function adjustMapWithLocation(
   lat,
   lon,
-  name,
-  description,
+  name = '',
+  description = '',
   zoom = 15,
-  offsetYPercent = 0
+  offsetYPercent = 10
 ) {
-  if (map) {
-    const offset = map.getSize().y * (offsetYPercent / 100);
-    const targetPoint = map.project([lat, lon], zoom).subtract([0, offset]);
-    const targetLatLng = map.unproject(targetPoint, zoom);
+  try {
+    if (!map || typeof map.setView !== 'function') {
+      console.error('Mapa não inicializado ou inválido.');
+      return;
+    }
 
-    map.setView(targetLatLng, zoom);
-    console.log(`Mapa ajustado para: [${lat}, ${lon}] - ${name}`);
+    if (!lat || !lon) {
+      console.error('Coordenadas inválidas:', { lat, lon });
+      return;
+    }
+
+    clearMarkers(); // Remove marcadores antigos
+
+    // Adiciona marcador no local especificado
+    const marker = L.marker([lat, lon])
+      .addTo(map)
+      .bindPopup(
+        `<b>${name}</b><br>${description || 'Localização selecionada'}`
+      )
+      .openPopup();
+
+    markers.push(marker); // Armazena marcador para referência futura
+
+    const mapSize = map.getSize();
+    const offsetY = (mapSize.y * Math.min(offsetYPercent, 100)) / 100;
+
+    const projectedPoint = map.project([lat, lon], zoom).subtract([0, offsetY]);
+    const adjustedLatLng = map.unproject(projectedPoint, zoom);
+
+    map.setView(adjustedLatLng, zoom, {
+      animate: true,
+      pan: { duration: 0.5 },
+    });
+
+    console.log(`Mapa ajustado para (${lat}, ${lon}) com zoom ${zoom}.`);
+  } catch (error) {
+    console.error('Erro ao ajustar o mapa:', error);
   }
 }
 

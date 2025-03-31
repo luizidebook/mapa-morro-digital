@@ -1,12 +1,21 @@
 import { setLanguage } from '../core/config.js';
-import { tutorialIsActive, currentStep } from '../core/varGlobals.js';
 import {
-  startTutorial,
+  tutorialIsActive,
+  currentStep,
+  selectedDestination,
+} from '../core/varGlobals.js';
+import {
   showTutorialStep,
   nextTutorialStep,
   endTutorial,
+  startTutorial,
 } from '../tutorial/tutorial.js';
 import { closeCarouselModal } from '../ui/modals.js';
+import { closeSideMenu } from '../ui/menu.js';
+import { handleFeatureSelection } from '../ui/feature-selection.js';
+import { hideAllControlButtons } from '../ui/buttons.js';
+import { startCarousel } from '../ui/carousel.js'; // Importa a função startCarousel
+import { getSelectedDestination } from '../data/cache.js'; // Importa a função getSelectedDestination
 
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
@@ -17,6 +26,7 @@ export function setupEventListeners() {
       try {
         const lang = button.dataset.lang;
         setLanguage(lang); // Define o idioma
+        startTutorial(lang); //
         console.log(`Idioma definido para: ${lang}`);
       } catch (error) {
         console.error('Erro ao processar seleção de idioma:', error);
@@ -143,23 +153,14 @@ export function setupEventListeners() {
   // Configuração dos botões do menu flutuante com identificador de feature
   const floatingMenu = document.getElementById('floating-menu'); // Menu flutuante com opções principais
   if (floatingMenu) {
+    // Evento para botões do menu flutuante
     document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
       btn.addEventListener('click', (event) => {
-        const feature = btn.getAttribute('data-feature'); // Obtém o identificador da feature
+        const feature = btn.getAttribute('data-feature');
         console.log(`Feature selecionada: ${feature}`);
-        handleFeatureSelection(feature); // Manipula a seleção da feature
-        closeCarouselModal(); // Fecha o modal do carrossel se estiver aberto
-        event.stopPropagation(); // Impede propagação do evento para evitar cliques duplicados
-
-        // Verificação para o passo search-button do tutorial
-        if (
-          tutorialIsActive &&
-          allTutorialSteps[currentStep] &&
-          allTutorialSteps[currentStep].step === 'search-button' &&
-          feature === 'pesquisar'
-        ) {
-          nextTutorialStep();
-        }
+        handleFeatureSelection(feature);
+        closeCarouselModal();
+        event.stopPropagation();
       });
     });
   }
@@ -171,6 +172,7 @@ export function setupEventListeners() {
       console.log(`Control button feature selected: ${feature}`);
       handleFeatureSelection(feature); // Manipula a seleção da feature
       event.stopPropagation(); // Impede propagação do evento
+      hideAllControlButtons(); // Esconde todos os botões de controle
 
       // Se o tutorial estiver ativo e este for o passo ask-interest, avança para o próximo
       if (
@@ -182,9 +184,37 @@ export function setupEventListeners() {
       }
     });
   });
-
-  // Registrar que os eventos foram configurados
-  console.log('Todos os event listeners configurados com sucesso');
+}
+// Configuração do botão "about-more-btn"
+const aboutMoreBtn = document.getElementById('about-more-btn');
+if (aboutMoreBtn) {
+  aboutMoreBtn.addEventListener('click', () => {
+    if (!selectedDestination || !selectedDestination.name) {
+      console.log('Tentando recuperar destino do localStorage...');
+      getSelectedDestination()
+        .then((destination) => {
+          if (destination && destination.name) {
+            console.log(
+              'Destino recuperado para o carrossel:',
+              destination.name
+            );
+            startCarousel(destination.name);
+          } else {
+            alert('Por favor, selecione um destino primeiro.');
+          }
+        })
+        .catch((error) => {
+          console.error('Erro ao recuperar destino para o carrossel:', error);
+          alert('Por favor, selecione um destino primeiro.');
+        });
+    } else {
+      console.log(
+        'Destino selecionado para o carrossel:',
+        selectedDestination.name
+      );
+      startCarousel(selectedDestination.name);
+    }
+  });
 }
 
 /**

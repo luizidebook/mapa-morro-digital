@@ -13,7 +13,7 @@ export let selectedLanguage = getLocalStorageItem('preferredLanguage', 'pt'); //
 /**
  * Variáveis de localização e destino
  */
-export let selectedDestination = {}; // Destino selecionado pelo usuário (lat, lon, nome, etc.)
+export let selectedDestination = null; // Permite reatribuição
 export let userLocation = null; // Localização atual do usuário capturada pelo GPS
 export let userPosition = null; // Posição formatada do usuário para cálculos
 export let userCurrentLocation = null; // Cache da última localização conhecida
@@ -26,7 +26,7 @@ export let cachedLocation = null; // Localização armazenada para uso quando GP
 /**
  * Marcadores e elementos visuais do mapa
  */
-export let markers = []; // Todos os marcadores adicionados ao mapa
+export let markers = []; // Array para armazenar os marcadores no mapa
 export let currentRoute = null; // Linha (polyline) da rota atual no mapa
 export let userMarker = null; // Marcador visual da posição do usuário
 export let userLocationMarker = null; // Marcador alternativo para a localização do usuário

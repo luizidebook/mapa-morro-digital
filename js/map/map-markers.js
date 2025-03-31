@@ -1,5 +1,5 @@
 import { handleSubmenuButtons } from '../ui/submenus.js';
-import { fetchOSMData, displayOSMData, map, markers } from './map-core.js';
+import { fetchOSMData, displayOSMData, map, markers } from './map.js';
 import { queries } from '../core/config.js';
 import { hideAllButtons } from '../ui/buttons.js';
 

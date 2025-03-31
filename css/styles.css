@@ -154,8 +154,7 @@ html {
   color: #0c5460;
 }
 
-.welcome-modal,
-.modal {
+.welcome-modal {
   position: fixed;
   top: 50%;
   left: 45%;

@@ -113,3 +113,20 @@ export function updateAssistantModalContent(step, message) {
     console.error('Modal do assistente não encontrado.');
   }
 }
+
+/**
+ * Oculta o modal de boas-vindas (welcome-modal).
+ */
+export function hideWelcomeModal() {
+  const welcomeModal = document.getElementById('welcome-modal');
+
+  if (!welcomeModal) {
+    console.error('Elemento welcome-modal não encontrado.');
+    return;
+  }
+
+  // Oculta o modal
+  welcomeModal.style.display = 'none';
+
+  console.log('Modal de boas-vindas ocultado.');
+}

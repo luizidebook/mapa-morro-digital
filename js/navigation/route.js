@@ -5,12 +5,6 @@ import {
   navigationState,
 } from '../core/varGlobals.js';
 import { showNotification } from '../ui/notifications.js';
-import {
-  fetchMultipleRouteOptions,
-  plotRouteOnMap,
-  validateDestination,
-} from '../navigation/route.js';
-import { updateRouteFooter } from '../ui/navigation.js';
 
 /**
  * startRouteCreation - Inicia a criação de uma nova rota.
@@ -233,22 +227,6 @@ export function pointToSegmentDistance(P, A, B) {
   // Converter a distância radiana para metros
   const R = 6371000; // Raio da Terra em metros
   return distanceRad * R;
-}
-
-/**
-* clearCurrentRoute /**
-/**
-* clearCurrentRoute
-* Remove a rota atual (polyline) do mapa, se existir.
-*/
-function clearCurrentRoute() {
-  if (window.currentRoute) {
-    map.removeLayer(window.currentRoute);
-    window.currentRoute = null;
-    console.log('[clearCurrentRoute] Rota removida do mapa.');
-  } else {
-    console.log('[clearCurrentRoute] Nenhuma rota ativa para remover.');
-  }
 }
 
 /**

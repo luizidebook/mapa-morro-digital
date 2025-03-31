@@ -56,23 +56,36 @@ export function onDOMContentLoaded() {
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  */
-let map;
+let map; // Variável global para o mapa
+
 export function initializeMap() {
-  const mapContainer = document.getElementById('map');
-  if (!mapContainer) {
-    console.error('Elemento #map não encontrado no DOM.');
-    showNotification(
-      'Erro ao carregar o mapa. Elemento não encontrado.',
-      'error'
-    );
+  if (map) {
+    console.warn('Mapa já inicializado.');
     return;
   }
 
-  // Inicialização do mapa Leaflet
-  map = L.map(mapContainer).setView([-13.3766787, -38.9172057], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  console.log('Inicializando mapa...');
+
+  // Define as camadas de tiles
+  const tileLayers = {
+    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }),
+  };
+
+  // Cria o mapa com uma visão inicial
+  map = L.map('map', {
+    layers: [tileLayers.streets],
+    zoomControl: true,
+    maxZoom: 19,
+    minZoom: 3,
+  }).setView([-13.378, -38.918], 14);
+
   console.log('Mapa inicializado com sucesso.');
 }
+
+export { map }; // Exporta a variável `map` para ser usada em outros módulos
 
 /**
  * Retorna a camada de tiles para o mapa.

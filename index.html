@@ -1,7 +1,7 @@
 <!-- Morro Digital - index.html -->
 
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 
 <head> <!-- Inicio do <head> -->
 
@@ -144,14 +144,14 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 <button id="tutorial-finalizar-btn" class="control-btn" style="display:none;" data-action="end" data-i18n="tutorialEnd">Não</button>
 
 <!-- Botões interesses -->
-  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" onclick="performControlAction('pontos-turisticos')" data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
-  <button id="passeios-btn" class="control-btn" style="display:none" onclick="performControlAction('passeios')" data-feature="passeios" data-i18n="tours">Passeios</button>
-  <button id="praias-btn" class="control-btn" style="display:none" data-action="praias" onclick="performControlAction('praias')" data-feature="praias" data-i18n="beaches">Praias</button>
-  <button id="festas-btn" class="control-btn" style="display:none" onclick="performControlAction('festas')" data-feature="festas" data-i18n="parties">Festas</button>
-  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" onclick="performControlAction('restaurantes')" data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
-  <button id="pousadas-btn" class="control-btn" style="display:none" onclick="performControlAction('pousadas')" data-feature="pousadas" data-i18n="inns">Pousadas</button>
-  <button id="lojas-btn" class="control-btn" style="display:none" onclick="performControlAction('lojas')" data-feature="lojas" data-i18n="shops">Lojas</button>
-  <button id="emergencias-btn" class="control-btn" style="display:none" onclick="performControlAction('emergencias')" data-feature="emergencias" data-i18n="emergencies">Emergências</button>
+  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
+  <button id="passeios-btn" class="control-btn" style="display:none"  data-feature="passeios" data-i18n="tours">Passeios</button>
+  <button id="praias-btn" class="control-btn" style="display:none" data-action="praias"  data-feature="praias" data-i18n="beaches">Praias</button>
+  <button id="festas-btn" class="control-btn" style="display:none"  data-feature="festas" data-i18n="parties">Festas</button>
+  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
+  <button id="pousadas-btn" class="control-btn" style="display:none"  data-feature="pousadas" data-i18n="inns">Pousadas</button>
+  <button id="lojas-btn" class="control-btn" style="display:none"  data-feature="lojas" data-i18n="shops">Lojas</button>
+  <button id="emergencias-btn" class="control-btn" style="display:none" data-feature="emergencias" data-i18n="emergencies">Emergências</button>
   
 <!-- Botões adicionais que aparecem ao clicar em lugar específico do mapa, etc. -->
   <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
@@ -181,16 +181,14 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 </div>
 
 <!-- #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).-->
-<div id="carousel-modal" class="carousel-modal">
-  <div class="modal-content">
-    <span id="carousel-modal-close" class="modal-close" data-i18n="close_modal_carousel">X</span>
-    <!-- Swiper container -->
-    <div class="swiper-container">
-      <div class="swiper-wrapper"></div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
-      <div class="swiper-pagination"></div>
+<div id="carousel-modal" class="carousel-modal hidden">
+  <div class="swiper-container">
+    <div class="swiper-wrapper">
+      <!-- As imagens serão adicionadas dinamicamente aqui -->
     </div>
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
   </div>
 </div>
 
@@ -228,6 +226,7 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 </div>
 
 <!-- Script Principal -->
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script type="module" src="./js/main.js"></script>
 
 </body>
