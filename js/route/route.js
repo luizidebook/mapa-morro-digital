@@ -1,26 +1,25 @@
 // Importações necessárias
-
-import { getCurrentLocation } from '../../../js/geolocation/tracking.js';
-import {
-  map,
-  selectedDestination,
-  navigationState,
-} from '../core/varGlobals.js';
-
+import { getCurrentLocation } from '../geolocation/tracking.js';
 import { showNotification } from '../ui/notifications.js';
-import { getGeneralText } from '../ui/texts.js';
-import { apiKey } from '../core/varGlobals.js';
-import { currentRouteData } from '../core/varGlobals.js';
 import { getSelectedDestination } from '../data/cache.js';
+import { selectedDestination } from '../data/cache.js';
+import { selectedLanguage } from '../core/varGlobals.js';
+import { apiKey } from '../core/varGlobals.js';
+import { map } from '../main.js';
+import { currentRouteData } from '../core/varGlobals.js';
+import { cacheRouteData } from '../data/cache.js';
+
+// Variáveis globais
 
 /**
- * 1. startRouteCreation - Inicia a criação de uma nova rota.
+ * Função principal: startRouteCreation
+ * Inicia o fluxo completo de criação de rota.
  */
 export async function startRouteCreation() {
   try {
     console.log('[startRouteCreation] Iniciando criação de rota...');
 
-    // Verifica se o destino está carregado
+    // 1️⃣ Validação do destino
     if (!selectedDestination || !selectedDestination.name) {
       console.log('[startRouteCreation] Tentando carregar destino do cache...');
       const destination = await getSelectedDestination();
@@ -43,18 +42,19 @@ export async function startRouteCreation() {
       );
     }
 
-    // Valida o destino carregado
+    console.log('[startRouteCreation] Validando destino...');
     if (!validateSelectedDestination()) {
       console.warn('[startRouteCreation] Validação do destino falhou.');
       return; // Interrompe o fluxo se o destino não for válido
     }
 
-    // Obtém a localização do usuário
+    // 2️⃣ Obtenção da localização do usuário
     console.log('[startRouteCreation] Obtendo localização do usuário...');
     const userLocation = await getCurrentLocation();
-    if (!userLocation) {
+    if (!userLocation || !userLocation.latitude || !userLocation.longitude) {
       console.error(
-        '[startRouteCreation] Não foi possível obter a localização do usuário.'
+        '[startRouteCreation] Localização do usuário inválida:',
+        userLocation
       );
       showNotification('Não foi possível obter sua localização.', 'error');
       return;
@@ -64,7 +64,7 @@ export async function startRouteCreation() {
       userLocation
     );
 
-    // Cria a rota
+    // 3️⃣ Criação da rota
     console.log('[startRouteCreation] Criando rota...');
     const routeData = await createRoute(userLocation);
     if (!routeData) {
@@ -74,12 +74,27 @@ export async function startRouteCreation() {
     }
     console.log('[startRouteCreation] Rota criada com sucesso:', routeData);
 
-    // Armazena os dados da rota e atualiza a interface
-    currentRouteData = routeData;
+    // 4️⃣ Atualização dos dados da rota
+    if (!currentRouteData) {
+      currentRouteData = {}; // Inicializa o objeto, se necessário
+    }
+    currentRouteData.route = routeData.route;
+    currentRouteData.distance = routeData.distance;
+    currentRouteData.duration = routeData.duration;
+
+    // 5️⃣ Início da pré-visualização da rota
+    console.log('[startRouteCreation] Iniciando pré-visualização da rota...');
     startRoutePreview();
+
+    // 6️⃣ Atualização da interface
+    console.log('[startRouteCreation] Atualizando interface...');
     hideAllControlButtons();
     updateRouteFooter(routeData, selectedLanguage);
     closeSideMenu();
+
+    console.log(
+      '[startRouteCreation] Fluxo de criação de rota concluído com sucesso.'
+    );
   } catch (error) {
     console.error(
       '❌ [startRouteCreation] Erro ao iniciar criação de rota:',
@@ -93,27 +108,33 @@ export async function startRouteCreation() {
 }
 
 /**
+ * Função auxiliar: validateSelectedDestination
+ * Valida se o destino selecionado é válido.
+ */
+// validateSelectedDestination - Valida destino selecionado
+export function validateSelectedDestination() {
+  if (
+    !selectedDestination ||
+    !selectedDestination.lat ||
+    !selectedDestination.lon
+  ) {
+    showNotification('Por favor, selecione um destino válido.', 'error');
+    giveVoiceFeedback('Nenhum destino válido selecionado.');
+    return false;
+  }
+  return true;
+}
+
+/**
  * 2. createRoute
  *    Exemplo de função async para criar rota a partir de userLocation até selectedDestination. */
 export async function createRoute(userLocation) {
   try {
-    console.log('[createRoute] Iniciando criação de rota...');
-    console.log('[createRoute] Localização do usuário:', userLocation);
-    console.log('[createRoute] Destino selecionado:', selectedDestination);
-
-    // Garante que o destino está carregado
-    if (
-      !selectedDestination ||
-      !selectedDestination.lat ||
-      !selectedDestination.lon
-    ) {
-      console.error(
-        '[createRoute] Destino inválido. Certifique-se de que um destino foi selecionado.'
-      );
+    if (!validateSelectedDestination()) {
+      console.warn('[createRoute] Validação do destino falhou.');
       return null;
     }
 
-    // Plota a rota no mapa
     const routeData = await plotRouteOnMap(
       userLocation.latitude,
       userLocation.longitude,
@@ -127,7 +148,18 @@ export async function createRoute(userLocation) {
       return null;
     }
 
-    console.log('[createRoute] Rota criada com sucesso:', routeData);
+    // Atualiza a variável global com os dados da rota
+    let currentRouteData = routeData;
+
+    // Salva a rota no cache
+    cacheRouteData(routeData);
+    console.log('[createRoute] Dados da rota salvos no cache:', routeData);
+
+    finalizeRouteMarkers(
+      userLocation.latitude,
+      userLocation.longitude,
+      selectedDestination
+    );
     return routeData;
   } catch (error) {
     console.error('[createRoute] Erro ao criar rota:', error);
@@ -139,48 +171,21 @@ export async function createRoute(userLocation) {
   }
 }
 
-// validateSelectedDestination - Valida destino selecionado
-export function validateSelectedDestination() {
-  console.log(
-    '[validateSelectedDestination] Validando destino:',
-    selectedDestination
-  );
-
-  if (
-    !selectedDestination ||
-    !selectedDestination.lat ||
-    !selectedDestination.lon
-  ) {
-    console.warn(
-      '[validateSelectedDestination] Destino inválido:',
-      selectedDestination
-    );
-    showNotification('Por favor, selecione um destino válido.', 'error');
-    return false;
-  }
-
-  console.log(
-    '[validateSelectedDestination] Destino válido:',
-    selectedDestination
-  );
-  return true;
-}
-
 /**
-* 3. plotRouteOnMap
+ * 3. plotRouteOnMap
 /**
-* plotRouteOnMap
-* Consulta a API OpenRouteService, obtém as coordenadas e plota a rota no mapa.
-* - Remove a rota anterior, se existir.
-* - Cria uma polyline e ajusta os limites do mapa.
-*
-* @param {number} startLat - Latitude de partida.
-* @param {number} startLon - Longitude de partida.
-* @param {number} destLat - Latitude do destino.
-* @param {number} destLon - Longitude do destino.
-* @param {string} [profile="foot-walking"] - Perfil de navegação.
-* @returns {Promise<Object|null>} - Dados da rota ou null em caso de erro.
-*/
+ * plotRouteOnMap
+ * Consulta a API OpenRouteService, obtém as coordenadas e plota a rota no mapa.
+ * - Remove a rota anterior, se existir.
+ * - Cria uma polyline e ajusta os limites do mapa.
+ *
+ * @param {number} startLat - Latitude de partida.
+ * @param {number} startLon - Longitude de partida.
+ * @param {number} destLat - Latitude do destino.
+ * @param {number} destLon - Longitude do destino.
+ * @param {string} [profile="foot-walking"] - Perfil de navegação.
+ * @returns {Promise<Object|null>} - Dados da rota ou null em caso de erro.
+ */
 export async function plotRouteOnMap(
   startLat,
   startLon,
@@ -188,29 +193,44 @@ export async function plotRouteOnMap(
   destLon,
   profile = 'foot-walking'
 ) {
+  if (!map) {
+    console.error(
+      '[plotRouteOnMap] A instância do mapa (map) não está inicializada.'
+    );
+    showNotification(
+      'Erro ao inicializar o mapa. Recarregue a página.',
+      'error'
+    );
+    return null;
+  }
+
   const url =
     `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}` +
     `&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=false`;
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
       console.error('[plotRouteOnMap] Erro ao obter rota:', response.status);
       return null;
     }
+
     const data = await response.json();
-    // Extrai as coordenadas da rota e converte para formato [lat, lon]
     const coords = data.features[0].geometry.coordinates;
     const latLngs = coords.map(([lon, lat]) => [lat, lon]);
-    // Se já houver uma rota traçada, remove-a
+
+    // Remove a rota anterior, se existir
     if (window.currentRoute) {
       map.removeLayer(window.currentRoute);
     }
+
     // Cria e adiciona a polyline ao mapa
     window.currentRoute = L.polyline(latLngs, {
       color: 'blue',
       weight: 5,
       dashArray: '10,5',
     }).addTo(map);
+
     // Ajusta o mapa para mostrar toda a rota
     map.fitBounds(window.currentRoute.getBounds(), { padding: [50, 50] });
     console.log('[plotRouteOnMap] Rota plotada com sucesso.');
@@ -222,295 +242,61 @@ export async function plotRouteOnMap(
 }
 
 /**
- * 4. calculateDistance
- * Calcula a distância (em metros) entre dois pontos usando a fórmula de Haversine.
- * @param {number} lat1
- * @param {number} lon1
- * @param {number} lat2
- * @param {number} lon2
- * @returns {number} Distância em metros.
+ * 6. finalizeRouteMarkers
+/**
+ * finalizeRouteMarkers
+ * Adiciona marcadores de origem e destino no mapa.
+ *
+ * @param {number} userLat - Latitude do ponto de origem.
+ * @param {number} userLon - Longitude do ponto de origem.
+ * @param {Object} destination - Objeto contendo lat, lon e (opcionalmente) o nome do destino.
  */
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // Raio da Terra em metros
-  const toRad = Math.PI / 180;
-  const dLat = (lat2 - lat1) * toRad;
-  const dLon = (lon2 - lon1) * toRad;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-/**
-* 5. distanceToPolyline
-/**
-* Calcula a distância mínima entre um ponto e uma linha (polyline) definida por um array de pontos.
-* Cada ponto no array deve ter as propriedades {lat, lon}.
-* @param {Object} currentPos - Objeto com {lat, lon} representando a posição atual.
-* @param {Array} routePoints - Array de pontos representando a rota.
-* @returns {number} - Distância mínima em metros entre o ponto e a rota.
-*/
-export function distanceToPolyline(currentPos, routePoints) {
-  if (!routePoints || routePoints.length === 0) return Infinity;
-
-  let minDistance = Infinity;
-  for (let i = 0; i < routePoints.length - 1; i++) {
-    const A = routePoints[i];
-    const B = routePoints[i + 1];
-    const dist = pointToSegmentDistance(currentPos, A, B);
-    if (dist < minDistance) {
-      minDistance = dist;
-    }
-  }
-  return minDistance;
-}
-
-/**
- * 6. pointToSegmentDistance
- *    Calcula a distância de um ponto a um segmento. */
-/**
- * Calcula a distância de um ponto P à reta definida pelos pontos A e B.
- * @param {Object} P - Objeto com {lat, lon} representando o ponto.
- * @param {Object} A - Objeto com {lat, lon} representando o início do segmento.
- * @param {Object} B - Objeto com {lat, lon} representando o fim do segmento.
- * @returns {number} - Distância mínima em metros.
- */
-function pointToSegmentDistance(P, A, B) {
-  // Conversão de graus para radianos
-  const toRad = (deg) => (deg * Math.PI) / 180;
-
-  // Converter os pontos para uma aproximação local (equirectangular)
-  const latA = toRad(A.lat),
-    lonA = toRad(A.lon);
-  const latB = toRad(B.lat),
-    lonB = toRad(B.lon);
-  const latP = toRad(P.lat),
-    lonP = toRad(P.lon);
-
-  // Aproximar coordenadas para uma projeção plana
-  const xA = lonA * Math.cos(latA),
-    yA = latA;
-  const xB = lonB * Math.cos(latB),
-    yB = latB;
-  const xP = lonP * Math.cos(latP),
-    yP = latP;
-
-  const AtoP_x = xP - xA;
-  const AtoP_y = yP - yA;
-  const AtoB_x = xB - xA;
-  const AtoB_y = yB - yA;
-
-  const segmentLengthSq = AtoB_x * AtoB_x + AtoB_y * AtoB_y;
-  let t = 0;
-  if (segmentLengthSq !== 0) {
-    t = (AtoP_x * AtoB_x + AtoP_y * AtoB_y) / segmentLengthSq;
-    t = Math.max(0, Math.min(1, t));
-  }
-
-  const projX = xA + t * AtoB_x;
-  const projY = yA + t * AtoB_y;
-
-  const deltaX = xP - projX;
-  const deltaY = yP - projY;
-  const distanceRad = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-  // Converter a distância radiana para metros
-  const R = 6371000; // Raio da Terra em metros
-  return distanceRad * R;
-}
-
-/**
-* 7. clearCurrentRoute /**
-/**
-* clearCurrentRoute
-* Remove a rota atual (polyline) do mapa, se existir.
-*/
-export function clearCurrentRoute() {
-  if (window.currentRoute) {
-    map.removeLayer(window.currentRoute);
-    window.currentRoute = null;
-    console.log('[clearCurrentRoute] Rota removida do mapa.');
-  } else {
-    console.log('[clearCurrentRoute] Nenhuma rota ativa para remover.');
-  }
-}
-
-/**
- * 8. getClosestPointOnRoute
- * Para cada segmento da rota (definida por um array de {lat, lon}),
- * calcula a projeção do ponto do usuário sobre o segmento e retorna o
- * ponto de projeção, o índice do segmento e o fator de projeção (t).
- * @param {number} userLat - Latitude do usuário.
- * @param {number} userLon - Longitude do usuário.
- * @param {Array} routeCoordinates - Array de pontos {lat, lon}.
- * @returns {Object} { closestPoint: {lat, lon}, segmentIndex, t }
- */
-export function getClosestPointOnRoute(userLat, userLon, routeCoordinates) {
-  let minDistance = Infinity;
-  let bestProjection = null;
-  let bestIndex = -1;
-  let bestT = 0;
-
-  for (let i = 0; i < routeCoordinates.length - 1; i++) {
-    const A = routeCoordinates[i];
-    const B = routeCoordinates[i + 1];
-    const dx = B.lon - A.lon;
-    const dy = B.lat - A.lat;
-    const magSq = dx * dx + dy * dy;
-    // Se o segmento é um ponto único, pule
-    if (magSq === 0) continue;
-
-    // Fator de projeção t (pode estar fora do intervalo [0, 1])
-    const t = ((userLon - A.lon) * dx + (userLat - A.lat) * dy) / magSq;
-    // Projeção restrita ao segmento
-    const tClamped = Math.max(0, Math.min(1, t));
-    const projLon = A.lon + tClamped * dx;
-    const projLat = A.lat + tClamped * dy;
-
-    const d = calculateDistance(userLat, userLon, projLat, projLon);
-    if (d < minDistance) {
-      minDistance = d;
-      bestProjection = { lat: projLat, lon: projLon };
-      bestIndex = i;
-      bestT = tClamped;
-    }
-  }
-
-  return {
-    closestPoint: bestProjection,
-    segmentIndex: bestIndex,
-    t: bestT,
-  };
-}
-
-/**
- * 9. computeBearing
- * Calcula o rumo (bearing) entre dois pontos geográficos.
- * @param {number} lat1 - Latitude do ponto de partida.
- * @param {number} lon1 - Longitude do ponto de partida.
- * @param {number} lat2 - Latitude do ponto de destino.
- * @param {number} lon2 - Longitude do ponto de destino.
- * @returns {number} Rumo em graus (0-360).
- */
-export function computeBearing(lat1, lon1, lat2, lon2) {
-  const toRad = Math.PI / 180;
-  const toDeg = 180 / Math.PI;
-  const dLon = (lon2 - lon1) * toRad;
-  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
-  const x =
-    Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) -
-    Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
-  let bearing = Math.atan2(y, x) * toDeg;
-  return (bearing + 360) % 360;
-}
-
-/**
- * 10. showRouteLoadingIndicator
- * Adiciona um indicador de carregamento antes da rota ser traçada
- */
-export function showRouteLoadingIndicator(timeout = 15000) {
-  const loader = document.getElementById('route-loader');
-  if (!loader) {
-    console.error('Elemento do loader não encontrado no DOM.');
+export function finalizeRouteMarkers(userLat, userLon, destination) {
+  if (!destination || !destination.lat || !destination.lon) {
+    console.error(
+      '[finalizeRouteMarkers] Coordenadas do destino inválidas:',
+      destination
+    );
     return;
   }
 
-  loader.style.display = 'block';
-  console.log('[showRouteLoadingIndicator] Indicador de carregamento ativado.');
+  // Adiciona um marcador no destino com um ícone de bandeira de chegada
+  window.destRouteMarker = L.marker([destination.lat, destination.lon])
+    .addTo(map)
+    .bindPopup(`🏁${destination.name || 'Destino'}`)
+    .openPopup();
+  console.log(
+    '[finalizeRouteMarkers] Marcadores de origem e destino adicionados.'
+  );
+}
 
-  // Define um timeout para evitar carregamento infinito
-  navigationState.loadingTimeout = setTimeout(() => {
-    hideRouteLoadingIndicator();
-
-    // Notifica o usuário do erro
+/**
+ * Função auxiliar: startRoutePreview
+ * Exibe uma pré-visualização da rota no mapa.
+ */
+export function startRoutePreview() {
+  if (
+    !currentRouteData ||
+    !currentRouteData.route ||
+    currentRouteData.route.length === 0
+  ) {
+    console.warn(
+      '[startRoutePreview] Dados da rota inválidos para pré-visualização:',
+      currentRouteData
+    );
     showNotification(
-      getGeneralText('routeLoadTimeout', selectedLanguage) ||
-        'Tempo esgotado para carregar a rota. Por favor, tente novamente.',
-      'error'
+      'Nenhuma rota disponível para pré-visualização.',
+      'warning'
     );
-
-    console.error(
-      '[showRouteLoadingIndicator] Timeout: Falha ao carregar rota.'
-    );
-
-    // Oferece ação ao usuário: tentar novamente
-    displayRetryRouteLoadOption();
-  }, 15000); // timeout após 15 segundos
-}
-
-/**
- * 11. hideRouteLoadingIndicator
- * Remove o indicador de carregamento antes da rota ser traçada
- */
-export function hideRouteLoadingIndicator() {
-  // Cancela timeout se existir
-  if (navigationState.loadingTimeout) {
-    clearTimeout(navigationState.loadingTimeout);
-    navigationState.loadingTimeout = null;
+    return;
   }
 
-  const loader = document.getElementById('route-loader');
-  if (loader) loader.style.display = 'none';
-
-  console.log('Indicador de carregamento desativado.');
-}
-
-/**
-* 12. fetchMultipleRouteOptions
-/**
-* fetchMultipleRouteOptions
-* Obtém diferentes opções de rota para o trajeto, usando perfis variados.
-* - Para cada perfil (ex.: "foot-walking", "cycling-regular", "driving-car"),
-*   chama fetchRouteInstructions para obter as instruções correspondentes.
-*
-* @param {number} startLat - Latitude de partida.
-* @param {number} startLon - Longitude de partida.
-* @param {number} destLat - Latitude do destino.
-* @param {number} destLon - Longitude do destino.
-* @returns {Promise<Array>} - Array de objetos contendo o perfil e as instruções da rota.
-*/
-export async function fetchMultipleRouteOptions(
-  startLat,
-  startLon,
-  destLat,
-  destLon
-) {
-  const options = ['foot-walking', 'cycling-regular', 'driving-car'];
-  let routes = [];
-  // Para cada perfil (modo de transporte), obtém as instruções de rota
-  for (const profile of options) {
-    const routeData = await fetchRouteInstructions(
-      startLat,
-      startLon,
-      destLat,
-      destLon,
-      selectedLanguage,
-      10000,
-      true,
-      profile
-    );
-    routes.push({ profile, routeData });
-  }
-  return routes;
-}
-
-/**
- * 13. applyRouteStyling
- * Cria gradientes de cor e adicionar ícones personalizados
- */
-export function applyRouteStyling(routeLayer) {
-  routeLayer.setStyle({
-    color: 'blue',
-    weight: 5,
-    dashArray: '10, 5',
-  });
-
-  routeLayer.on('mouseover', function () {
-    this.setStyle({ color: 'yellow' });
-  });
-
-  routeLayer.on('mouseout', function () {
-    this.setStyle({ color: 'blue' });
-  });
+  console.log('[startRoutePreview] Exibindo pré-visualização da rota...');
+  // Exemplo: plotar a rota no mapa
+  plotRouteOnMap(
+    currentRouteData.route[0].latitude,
+    currentRouteData.route[0].longitude,
+    currentRouteData.route[currentRouteData.route.length - 1].latitude,
+    currentRouteData.route[currentRouteData.route.length - 1].longitude
+  );
 }

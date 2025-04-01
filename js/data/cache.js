@@ -5,14 +5,21 @@ CACHE, PERSISTÊNCIA & HISTÓRICO
 /**
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
+import { showNotification } from '../ui/notifications.js';
 
-export let selectedDestination = null;
-
+export let selectedDestination = null; // Permitir reatribuição
+export let cachedRoute = null; // Permitir reatribuição
 /**
  * 5. saveDestinationToCache - Salva destino selecionado no cache local.
  */
 export function saveDestinationToLocalStorage(destination) {
   return new Promise((resolve, reject) => {
+    if (!isLocalStorageAvailable()) {
+      console.warn('localStorage não está disponível. Destino não será salvo.');
+      reject(new Error('localStorage não está disponível.'));
+      return;
+    }
+
     try {
       if (!destination || !destination.name) {
         console.error(
@@ -48,15 +55,17 @@ export function loadDestinationFromLocalStorage() {
   }
 }
 
-export function cacheRouteData(routeInstructions, routeLatLngs) {
+export function cacheRouteData(routeData) {
   if (!isLocalStorageAvailable()) {
     console.warn('localStorage não está disponível. Dados não serão salvos.');
     return;
   }
   try {
     const data = {
-      instructions: routeInstructions,
-      route: routeLatLngs,
+      instructions: routeData.instructions || [],
+      route: routeData.route || [],
+      distance: routeData.distance || 0,
+      duration: routeData.duration || 0,
       timestamp: Date.now(),
     };
     localStorage.setItem('cachedRoute', JSON.stringify(data));
@@ -64,10 +73,7 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
     showNotification('Rota salva em cache.', 'success');
   } catch (err) {
     console.error('[cacheRouteData] Erro ao salvar rota no cache:', err);
-    showNotification(
-      getGeneralText('routeDataError', navigationState.lang),
-      'error'
-    );
+    showNotification('Erro ao salvar rota no cache.', 'error');
   }
 }
 
@@ -86,8 +92,8 @@ export function loadDestinationsFromCache(callback) {
 /*
  * 2. loadRouteFromCache - Carrega rota salva do cache (localStorage). */
 export function loadRouteFromCache() {
-  if (typeof localStorage === 'undefined') {
-    console.warn('LocalStorage não está disponível.');
+  if (!isLocalStorageAvailable()) {
+    console.warn('localStorage não está disponível.');
     return null;
   }
   try {
@@ -97,15 +103,19 @@ export function loadRouteFromCache() {
       return null;
     }
     const data = JSON.parse(dataStr);
+    if (!data.route || !data.instructions) {
+      console.warn(
+        '[loadRouteFromCache] Dados da rota incompletos no cache:',
+        data
+      );
+      return null;
+    }
     console.log('[loadRouteFromCache] Rota carregada do cache:', data);
     showNotification('Rota carregada do cache com sucesso.', 'info');
     return data;
   } catch (err) {
     console.error('[loadRouteFromCache] Erro ao carregar rota do cache:', err);
-    showNotification(
-      getGeneralText('routeDataError', navigationState.lang),
-      'error'
-    );
+    showNotification('Erro ao carregar rota do cache.', 'error');
     return null;
   }
 }
@@ -303,7 +313,16 @@ export function getSelectedDestination() {
           '[getSelectedDestination] Destino recuperado do localStorage:',
           destination
         );
-        selectedDestination = destination; // Atualiza a variável global
+        if (!selectedDestination) {
+          selectedDestination = {}; // Inicializa o objeto, se necessário
+        }
+        selectedDestination.name = destination.name;
+        selectedDestination.lat = destination.lat;
+        selectedDestination.lon = destination.lon;
+        console.log(
+          '[getSelectedDestination] selectedDestination atualizado:',
+          selectedDestination
+        );
         resolve(destination);
       } else {
         console.warn(
@@ -323,28 +342,34 @@ export function getSelectedDestination() {
 }
 
 /**
- * 5. saveDestinationToCache - Salva destino selecionado no cache local.
- */
-export function saveDestinationToCache(destination) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.log('Saving Destination to Cache:', destination);
-      localStorage.setItem('selectedDestination', JSON.stringify(destination));
-      resolve();
-    } catch (error) {
-      console.error('Erro ao salvar destino no cache:', error);
-      reject(new Error('Erro ao salvar destino no cache.'));
-    }
-  });
-}
-
-/**
  * 6. saveRouteToHistory - Salva rota no histórico (localStorage).
  */
 export function saveRouteToHistory(route) {
-  const historyStr = localStorage.getItem('routeHistory') || '[]';
-  const history = JSON.parse(historyStr);
-  history.push(route);
-  localStorage.setItem('routeHistory', JSON.stringify(history));
-  console.log('Rota salva no histórico (routeHistory).');
+  if (!isLocalStorageAvailable()) {
+    console.warn('localStorage não está disponível. Histórico não será salvo.');
+    return;
+  }
+  try {
+    const historyStr = localStorage.getItem('routeHistory') || '[]';
+    const history = JSON.parse(historyStr);
+
+    // Evita duplicação de rotas no histórico
+    const isDuplicate = history.some(
+      (item) =>
+        item.route && JSON.stringify(item.route) === JSON.stringify(route.route)
+    );
+    if (isDuplicate) {
+      console.warn('[saveRouteToHistory] Rota já existe no histórico.');
+      return;
+    }
+
+    history.push(route);
+    localStorage.setItem('routeHistory', JSON.stringify(history));
+    console.log('[saveRouteToHistory] Rota salva no histórico (routeHistory).');
+  } catch (err) {
+    console.error(
+      '[saveRouteToHistory] Erro ao salvar rota no histórico:',
+      err
+    );
+  }
 }

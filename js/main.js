@@ -15,7 +15,7 @@
 // Importações do módulo core/config.js
 import { setupEventListeners } from './core/event-listeners.js';
 import { autoAdjustTheme } from './core/config.js';
-import { getSelectedDestination } from './data/cache.js'; // Importa a função getSelectedDestination
+
 /**
  * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
  * Este é o ponto de entrada principal da aplicação, onde iniciamos todos os
@@ -53,54 +53,27 @@ export function onDOMContentLoaded() {
 
   console.log('Aplicação inicializada com sucesso!');
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Inicializando o sistema...');
-  getSelectedDestination()
-    .then((destination) => {
-      if (destination && destination.name) {
-        console.log('Destino carregado na inicialização:', destination);
-        selectedDestination = destination; // Atualiza a variável global
-      }
-    })
-    .catch((error) => {
-      console.warn('Nenhum destino carregado na inicialização:', error);
-    });
-});
-
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  */
-let map; // Variável global para o mapa
-
+export let map;
 export function initializeMap() {
-  if (map) {
-    console.warn('Mapa já inicializado.');
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) {
+    console.error('Elemento #map não encontrado no DOM.');
+    showNotification(
+      'Erro ao carregar o mapa. Elemento não encontrado.',
+      'error'
+    );
     return;
   }
 
-  console.log('Inicializando mapa...');
-
-  // Define as camadas de tiles
-  const tileLayers = {
-    streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }),
-  };
-
-  // Cria o mapa com uma visão inicial
-  map = L.map('map', {
-    layers: [tileLayers.streets],
-    zoomControl: true,
-    maxZoom: 19,
-    minZoom: 3,
-  }).setView([-13.378, -38.918], 14);
-
-  console.log('Mapa inicializado com sucesso.');
+  // Inicialização do mapa Leaflet
+  map = L.map('map').setView([-13.3766787, -38.9172057], 13); // Coordenadas iniciais
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
 }
-
-export { map }; // Exporta a variável `map` para ser usada em outros módulos
 
 /**
  * Retorna a camada de tiles para o mapa.

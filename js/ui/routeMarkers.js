@@ -1,5 +1,3 @@
-import { map, markers } from '../core/varGlobals.js';
-
 /**
  * clearRouteMarkers
  * Remove marcadores de origem, destino e quaisquer marcadores relacionados à rota.

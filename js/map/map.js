@@ -33,16 +33,6 @@ export function adjustMapWithLocation(
   offsetYPercent = 10
 ) {
   try {
-    if (!map || typeof map.setView !== 'function') {
-      console.error('Mapa não inicializado ou inválido.');
-      return;
-    }
-
-    if (!lat || !lon) {
-      console.error('Coordenadas inválidas:', { lat, lon });
-      return;
-    }
-
     clearMarkers(); // Remove marcadores antigos
 
     // Adiciona marcador no local especificado

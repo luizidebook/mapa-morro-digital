@@ -4,6 +4,7 @@ console.log(
 );
 // Importações necessárias
 import { showModal } from '../ui/modals.js';
+
 import { selectedDestination } from '../data/cache.js';
 
 // Variável global para gerenciar o carrossel
