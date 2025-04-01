@@ -6,7 +6,7 @@ CACHE, PERSISTÊNCIA & HISTÓRICO
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
 
-import { selectedDestination } from '../core/varGlobals.js';
+export let selectedDestination = null;
 
 /**
  * 5. saveDestinationToCache - Salva destino selecionado no cache local.
@@ -285,39 +285,66 @@ export function isLocalStorageAvailable() {
 export function getSelectedDestination() {
   return new Promise((resolve, reject) => {
     try {
-      if (!localStorage) {
-        console.warn('localStorage não está disponível.');
-        reject(new Error('localStorage não está disponível.'));
-        return;
-      }
-
+      console.log(
+        '[getSelectedDestination] Tentando carregar destino do localStorage...'
+      );
       const destinationStr = localStorage.getItem('selectedDestination');
       if (!destinationStr) {
-        console.warn('Nenhum destino encontrado no localStorage.');
+        console.warn(
+          '[getSelectedDestination] Nenhum destino encontrado no localStorage.'
+        );
         reject(new Error('Nenhum destino encontrado no localStorage.'));
         return;
       }
 
-      console.log(
-        'Destino encontrado no localStorage (string):',
-        destinationStr
-      );
-
       const destination = JSON.parse(destinationStr);
       if (destination && destination.name) {
-        console.log('Destino recuperado do localStorage:', destination);
+        console.log(
+          '[getSelectedDestination] Destino recuperado do localStorage:',
+          destination
+        );
         selectedDestination = destination; // Atualiza a variável global
         resolve(destination);
       } else {
         console.warn(
-          'Destino inválido recuperado do localStorage:',
+          '[getSelectedDestination] Destino inválido recuperado do localStorage:',
           destination
         );
         reject(new Error('Destino inválido recuperado do localStorage.'));
       }
     } catch (error) {
-      console.error('Erro ao resgatar destino do localStorage:', error);
+      console.error(
+        '[getSelectedDestination] Erro ao resgatar destino do localStorage:',
+        error
+      );
       reject(new Error('Erro ao resgatar destino do localStorage.'));
     }
   });
+}
+
+/**
+ * 5. saveDestinationToCache - Salva destino selecionado no cache local.
+ */
+export function saveDestinationToCache(destination) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log('Saving Destination to Cache:', destination);
+      localStorage.setItem('selectedDestination', JSON.stringify(destination));
+      resolve();
+    } catch (error) {
+      console.error('Erro ao salvar destino no cache:', error);
+      reject(new Error('Erro ao salvar destino no cache.'));
+    }
+  });
+}
+
+/**
+ * 6. saveRouteToHistory - Salva rota no histórico (localStorage).
+ */
+export function saveRouteToHistory(route) {
+  const historyStr = localStorage.getItem('routeHistory') || '[]';
+  const history = JSON.parse(historyStr);
+  history.push(route);
+  localStorage.setItem('routeHistory', JSON.stringify(history));
+  console.log('Rota salva no histórico (routeHistory).');
 }

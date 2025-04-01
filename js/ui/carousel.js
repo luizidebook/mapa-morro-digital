@@ -1,10 +1,13 @@
+console.log(
+  'Swiper:',
+  typeof Swiper !== 'undefined' ? 'Disponível' : 'Indisponível'
+);
 // Importações necessárias
 import { showModal } from '../ui/modals.js';
-import { getSelectedDestination } from '../data/cache.js';
+import { selectedDestination } from '../data/cache.js';
 
 // Variável global para gerenciar o carrossel
 let swiperInstance = null;
-let selectedDestination = null;
 
 /**
  * startCarousel - Inicia o carrossel de imagens para um local.

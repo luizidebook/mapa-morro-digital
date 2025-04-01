@@ -1,7 +1,7 @@
 <!-- Morro Digital - index.html -->
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 
 <head> <!-- Inicio do <head> -->
 
@@ -36,6 +36,7 @@
 
 <!-- Swiper (Carrossel de Imagens) -->
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
 <!-- Font Awesome (Ícones) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -181,14 +182,16 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 </div>
 
 <!-- #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).-->
-<div id="carousel-modal" class="carousel-modal hidden">
-  <div class="swiper-container">
-    <div class="swiper-wrapper">
-      <!-- As imagens serão adicionadas dinamicamente aqui -->
+<div id="carousel-modal" class="carousel-modal">
+  <div class="modal-content">
+    <span id="carousel-modal-close" class="modal-close" data-i18n="close_modal_carousel">X</span>
+    <!-- Swiper container -->
+    <div class="swiper-container">
+      <div class="swiper-wrapper"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
     </div>
-    <div class="swiper-pagination"></div>
-    <div class="swiper-button-next"></div>
-    <div class="swiper-button-prev"></div>
   </div>
 </div>
 
@@ -226,7 +229,6 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 </div>
 
 <!-- Script Principal -->
-<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script type="module" src="./js/main.js"></script>
 
 </body>

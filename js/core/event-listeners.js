@@ -1,9 +1,6 @@
 import { setLanguage } from '../core/config.js';
-import {
-  tutorialIsActive,
-  currentStep,
-  selectedDestination,
-} from '../core/varGlobals.js';
+import { selectedDestination } from '../data/cache.js';
+import { tutorialIsActive, currentStep } from '../core/varGlobals.js';
 import {
   showTutorialStep,
   nextTutorialStep,
@@ -16,6 +13,7 @@ import { handleFeatureSelection } from '../ui/feature-selection.js';
 import { hideAllControlButtons } from '../ui/buttons.js';
 import { startCarousel } from '../ui/carousel.js'; // Importa a função startCarousel
 import { getSelectedDestination } from '../data/cache.js'; // Importa a função getSelectedDestination
+import { startRouteCreation } from '../route/route.js';
 
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
@@ -138,6 +136,13 @@ export function setupEventListeners() {
     });
   }
 
+  const startCreateRouteBtn = document.getElementById('create-route-btn');
+  if (startCreateRouteBtn) {
+    startCreateRouteBtn.addEventListener('click', () => {
+      startRouteCreation();
+    });
+  }
+
   // Configuração do botão de detalhes do menu
   const menuDetailsBtn = document.getElementById('menu-details-btn');
   if (menuDetailsBtn) {
@@ -165,6 +170,15 @@ export function setupEventListeners() {
     });
   }
 
+  // Configuração do botão "carousel-modal-close"
+  const carouselModalCloseBtn = document.getElementById('carousel-modal-close');
+  if (carouselModalCloseBtn) {
+    carouselModalCloseBtn.addEventListener('click', () => {
+      closeCarouselModal(); // Chama a função para fechar o modal do carrossel
+      console.log('Modal do carrossel fechado.');
+    });
+  }
+
   // Configuração dos botões de controle com identificador de feature
   document.querySelectorAll('.control-btn[data-feature]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
@@ -188,31 +202,28 @@ export function setupEventListeners() {
 // Configuração do botão "about-more-btn"
 const aboutMoreBtn = document.getElementById('about-more-btn');
 if (aboutMoreBtn) {
-  aboutMoreBtn.addEventListener('click', () => {
-    if (!selectedDestination || !selectedDestination.name) {
-      console.log('Tentando recuperar destino do localStorage...');
-      getSelectedDestination()
-        .then((destination) => {
-          if (destination && destination.name) {
-            console.log(
-              'Destino recuperado para o carrossel:',
-              destination.name
-            );
-            startCarousel(destination.name);
-          } else {
-            alert('Por favor, selecione um destino primeiro.');
-          }
-        })
-        .catch((error) => {
-          console.error('Erro ao recuperar destino para o carrossel:', error);
-          alert('Por favor, selecione um destino primeiro.');
-        });
-    } else {
-      console.log(
-        'Destino selecionado para o carrossel:',
-        selectedDestination.name
-      );
-      startCarousel(selectedDestination.name);
+  aboutMoreBtn.addEventListener('click', async () => {
+    try {
+      // Verifica se o destino já está definido
+      if (!selectedDestination || !selectedDestination.name) {
+        console.log('Tentando recuperar destino do localStorage...');
+        const destination = await getSelectedDestination();
+        if (destination && destination.name) {
+          console.log('Destino recuperado para o carrossel:', destination.name);
+          startCarousel(destination.name);
+          return;
+        }
+      } else {
+        // Se o destino já está definido, inicia o carrossel
+        startCarousel(selectedDestination.name);
+        return;
+      }
+
+      // Exibe o alerta apenas se o destino não foi encontrado
+      alert('Por favor, selecione um destino primeiro.');
+    } catch (error) {
+      console.error('Erro ao recuperar destino para o carrossel:', error);
+      alert('Por favor, selecione um destino primeiro.');
     }
   });
 }

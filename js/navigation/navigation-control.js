@@ -346,57 +346,6 @@ export function notifyDeviation() {
 }
 
 /**
- * validateDestination
- * Verifica se o destino fornecido (ou o global selectedDestination) possui coordenadas válidas.
- * Agora também verifica os limites geográficos.
- * @param {Object} [destination=selectedDestination] - Objeto com as propriedades lat e lon.
- * @returns {boolean} - true se o destino for válido; false caso contrário. */
-export function validateDestination(destination = selectedDestination) {
-  console.log('[validateDestination] Verificando destino...');
-
-  if (!destination) {
-    showNotification(
-      getGeneralText('invalidDestination', navigationState.lang),
-      'warning'
-    );
-    console.warn('[validateDestination] Destino não fornecido.');
-    return false;
-  }
-
-  const { lat, lon } = destination;
-  if (
-    typeof lat !== 'number' ||
-    typeof lon !== 'number' ||
-    Number.isNaN(lat) ||
-    Number.isNaN(lon)
-  ) {
-    showNotification(
-      getGeneralText('invalidDestination', navigationState.lang),
-      'warning'
-    );
-    console.warn(
-      '[validateDestination] Propriedades lat/lon inválidas:',
-      destination
-    );
-    return false;
-  }
-  // Verifica limites: latitude entre -90 e 90; longitude entre -180 e 180
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-    showNotification(
-      getGeneralText('invalidDestination', navigationState.lang),
-      'warning'
-    );
-    console.warn(
-      '[validateDestination] Coordenadas fora dos limites:',
-      destination
-    );
-    return false;
-  }
-  console.log('[validateDestination] Destino válido:', destination);
-  return true;
-}
-
-/**
  * handleRecalculation
  * Lida com o recálculo automático da rota. */
 export function handleRecalculation() {

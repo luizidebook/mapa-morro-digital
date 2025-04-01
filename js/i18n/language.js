@@ -92,7 +92,7 @@ function getGeneralText(key, lang = 'pt') {
  * translationsData - Objeto contendo todas as traduções disponíveis
  * Idiomas suportados: português (pt), inglês (en), espanhol (es), hebraico (he)
  */
-const translationsData = {
+export const translationsData = {
   pt: {
     // NOVAS CHAVES ADICIONADAS OU AJUSTADAS
     title: 'Morro de São Paulo Digital',

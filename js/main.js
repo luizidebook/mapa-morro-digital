@@ -15,7 +15,7 @@
 // Importações do módulo core/config.js
 import { setupEventListeners } from './core/event-listeners.js';
 import { autoAdjustTheme } from './core/config.js';
-
+import { getSelectedDestination } from './data/cache.js'; // Importa a função getSelectedDestination
 /**
  * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
  * Este é o ponto de entrada principal da aplicação, onde iniciamos todos os
@@ -53,6 +53,21 @@ export function onDOMContentLoaded() {
 
   console.log('Aplicação inicializada com sucesso!');
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Inicializando o sistema...');
+  getSelectedDestination()
+    .then((destination) => {
+      if (destination && destination.name) {
+        console.log('Destino carregado na inicialização:', destination);
+        selectedDestination = destination; // Atualiza a variável global
+      }
+    })
+    .catch((error) => {
+      console.warn('Nenhum destino carregado na inicialização:', error);
+    });
+});
+
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  */

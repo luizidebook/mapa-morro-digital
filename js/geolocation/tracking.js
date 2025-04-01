@@ -1,12 +1,4 @@
 // Importações necessárias
-import { showNotification } from '../ui/notifications.js';
-import { calculateDistance, createRoute } from '../navigation/route.js';
-import { endNavigation } from '../navigation/navigation-control.js';
-import { navigationState } from '../core/varGlobal.js';
-import { setMapRotation } from '../map/map-core.js';
-import { map } from '../map/map-core.js';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 // Variáveis globais
 let lastRecalculationTime = 0; // Controle de tempo para recalcular rota

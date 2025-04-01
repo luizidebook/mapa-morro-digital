@@ -9,7 +9,7 @@ export function getGeneralText(key, lang = 'pt') {
   return translationsData[lang][key];
 }
 
-const translationsData = {
+export const translationsData = {
   pt: {
     // NOVAS CHAVES ADICIONADAS OU AJUSTADAS
     title: 'Morro de São Paulo Digital',
