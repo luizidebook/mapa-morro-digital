@@ -1,34 +1,43 @@
-import { translateInterface } from '../i18n/language.js';
-import { setSelectedLanguage, map } from '../core/varGlobals.js';
+import { translatePageContent } from '../i18n/language.js';
+import { map } from '../main.js';
 import { showNotification } from '../ui/notifications.js';
-import { startTutorial } from '../tutorial/tutorial.js';
+import { startTutorial, showTutorialStep } from '../tutorial/tutorial.js';
+import { getGeneralText } from '../i18n/language.js';
+
+// No arquivo varGlobals.js
+export let selectedLanguage = 'pt'; // Altere de const para let
 
 /* setLanguage - Define e salva o idioma selecionado */
 export function setLanguage(lang) {
-  return new Promise((resolve, reject) => {
-    try {
-      const availableLanguages = ['pt', 'en', 'es', 'he'];
-      const defaultLanguage = 'pt';
+  try {
+    const availableLanguages = ['pt', 'en', 'es', 'he'];
+    const defaultLanguage = 'pt';
 
-      if (!availableLanguages.includes(lang)) {
-        console.warn(
-          `Idioma inválido: ${lang}. Revertendo para o padrão (${defaultLanguage}).`
-        );
-        lang = defaultLanguage;
-      }
-
-      localStorage.setItem('preferredLanguage', lang);
-      setSelectedLanguage(lang); // Atualiza a variável global
-      translateInterface(lang); // Traduz a interface
-      console.log(`Idioma definido para: ${lang}`);
-      resolve(); // Resolve a Promise após a tradução
-    } catch (error) {
-      console.error('Erro ao definir idioma:', error);
-      reject(error); // Rejeita a Promise em caso de erro
+    if (!availableLanguages.includes(lang)) {
+      console.warn(
+        `${getGeneralText('languageChanged', defaultLanguage)} => ${defaultLanguage}`
+      );
+      lang = defaultLanguage;
     }
-  }).then(() => {
-    startTutorial(); // Inicia o tutorial após a tradução
-  });
+
+    localStorage.setItem('preferredLanguage', lang);
+    selectedLanguage = lang;
+
+    // Traduz tudo
+    translatePageContent(lang);
+
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (welcomeModal) {
+      welcomeModal.style.display = 'none';
+    }
+
+    console.log(`Idioma definido para: ${lang}`);
+    // opcionalmente iniciar tutorial
+    showTutorialStep('start-tutorial');
+  } catch (error) {
+    console.error(getGeneralText('routeError', selectedLanguage), error);
+    showNotification(getGeneralText('routeError', selectedLanguage), 'error');
+  }
 }
 
 /**

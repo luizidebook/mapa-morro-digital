@@ -9,6 +9,7 @@ import { hideWelcomeModal } from '../ui/modals.js';
 
 let tutorialIsActive = false; // Variável para controlar o estado do tutorial
 let currentStep = null; // Passo atual do tutorial
+
 /**
  * 1. startTutorial - Inicia o tutorial interativo (definindo tutorialIsActive etc.)
  */

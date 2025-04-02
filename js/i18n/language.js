@@ -1,98 +1,135 @@
 // Language.js
 
-/**
- * translateInterface - Função unificada para traduzir toda a interface
- * @param {string} lang - Código do idioma para tradução (pt, en, es, he)
- * @param {boolean} [logDetails=false] - Se deve registrar detalhes da tradução no console
- * @returns {number} - Número de elementos traduzidos
- *
- * Esta função substitui tanto translatePageContent quanto updateInterfaceLanguage,
- * unificando a lógica de tradução da interface.
- */
-export function translateInterface(lang, logDetails = false) {
-  // Seleciona todos os elementos que precisam ser traduzidos
-  const elements = document.querySelectorAll('[data-i18n]');
-  let missingCount = 0; // Contador de traduções ausentes
-  let translatedCount = 0; // Contador de elementos traduzidos
+import { showTutorialStep } from '../tutorial/tutorial.js';
 
-  if (logDetails) {
+/**
+ * 1. translateInstruction - Traduz uma instrução usando um dicionário.
+ */
+export function translateInstruction(instruction, lang = 'pt') {
+  const dictionary = {
+    pt: {
+      'Turn right': 'Vire à direita',
+      'Turn left': 'Vire à esquerda',
+      'Continue straight': 'Continue em frente',
+    },
+    en: {
+      'Vire à direita': 'Turn right',
+      'Vire à esquerda': 'Turn left',
+      'Continue em frente': 'Continue straight',
+    },
+  };
+  if (!dictionary[lang]) return instruction;
+  return dictionary[lang][instruction] || instruction;
+}
+
+/**
+ * 2. translatePageContent - Atualiza todos os textos da interface conforme o idioma.
+ */
+export function translatePageContent(lang) {
+  const elements = document.querySelectorAll('[data-i18n]');
+  let missingCount = 0;
+  elements.forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const translation = getGeneralText(key, lang);
+    if (translation.startsWith('⚠️')) {
+      missingCount++;
+      console.warn(
+        `translatePageContent: Tradução ausente para "${key}" em ${lang}.`
+      );
+    }
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = translation;
+    } else if (el.hasAttribute('title')) {
+      el.title = translation;
+    } else {
+      el.textContent = translation;
+    }
+  });
+  if (missingCount > 0) {
+    console.warn(`translatePageContent: ${missingCount} traduções ausentes.`);
+  } else {
+    console.log(`translatePageContent: Interface traduzida para ${lang}.`);
+  }
+}
+
+/**
+ * 3. validateTranslations - Verifica se todas as chaves de tradução estão definidas.
+ */
+export function validateTranslations(lang) {
+  const elements = document.querySelectorAll('[data-i18n]');
+  const missingKeys = [];
+  elements.forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const translation = getGeneralText(key, lang);
+    if (translation.startsWith('⚠️')) {
+      missingKeys.push(key);
+    }
+  });
+  if (missingKeys.length > 0) {
+    console.warn(
+      `validateTranslations: Faltam traduções para ${lang}:`,
+      missingKeys
+    );
+  } else {
     console.log(
-      `Traduzindo ${elements.length} elementos para o idioma: ${lang}`
+      `validateTranslations: Todas as traduções definidas para ${lang}.`
     );
   }
+}
 
-  // Itera sobre cada elemento para aplicar a tradução
-  elements.forEach((el) => {
-    const key = el.getAttribute('data-i18n'); // Obtém a chave de tradução
-    const translation = getGeneralText(key, lang); // Obtém o texto traduzido
+/**
+ * 4. applyLanguage - Aplica o idioma na interface e valida as traduções.
+ */
+export function applyLanguage(lang) {
+  validateTranslations(lang);
+  updateInterfaceLanguage(lang);
+  console.log(`applyLanguage: Idioma aplicado: ${lang}`);
+}
+/**
+ * 5. getGeneralText - Retorna o texto traduzido para uma chave e idioma.
+ */
+export function getGeneralText(key, lang = 'pt') {
+  if (!translationsData[lang] || !translationsData[lang][key]) {
+    console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);
+    return key; // Se não houver tradução, retorna a própria chave
+  }
+  return translationsData[lang][key];
+}
 
-    // Verifica se a tradução está ausente
-    if (!translation || translation === key || translation.startsWith('⚠️')) {
-      missingCount++;
-      if (logDetails) {
-        console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);
-      }
-    } else {
-      translatedCount++;
+/*
+    7. updateInterfaceLanguage - Atualiza os textos da interface conforme o idioma */
+
+export function updateInterfaceLanguage(lang) {
+  const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+  let missingTranslations = 0;
+
+  elementsToTranslate.forEach((element) => {
+    const key = element.getAttribute('data-i18n');
+    let translation = getGeneralText(key, lang);
+
+    if (!translation || translation.startsWith('⚠️')) {
+      missingTranslations++;
+      console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);
+      translation = key; // Usa a chave original se não houver tradução
     }
 
-    // Aplica a tradução conforme o tipo de elemento
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      el.placeholder = translation; // Para campos de entrada, define o placeholder
-    } else if (el.hasAttribute('title')) {
-      el.title = translation; // Para elementos com título, atualiza o atributo title
+    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+      element.placeholder = translation;
+    } else if (element.hasAttribute('title')) {
+      element.title = translation;
     } else {
-      el.textContent = translation; // Para elementos de texto padrão, atualiza o conteúdo
+      element.textContent = translation;
     }
   });
 
-  // Registra informações sobre o processo de tradução
-  if (missingCount > 0) {
-    console.warn(
-      `Tradução: ${missingCount} traduções ausentes de ${elements.length} elementos.`
-    );
-  } else if (elements.length > 0) {
-    console.log(
-      `Tradução: Interface traduzida com sucesso para ${lang} (${elements.length} elementos).`
-    );
+  if (missingTranslations > 0) {
+    console.warn(`Total de traduções ausentes: ${missingTranslations}`);
   } else {
-    console.warn(
-      `Tradução: Nenhum elemento encontrado para traduzir (data-i18n).`
-    );
+    console.log(`Traduções aplicadas com sucesso para o idioma: ${lang}`);
   }
-
-  return translatedCount;
 }
 
-/**
- * getGeneralText - Retorna o texto traduzido para uma chave e idioma específicos
- * @param {string} key - Chave de identificação do texto no objeto de traduções
- * @param {string} lang - Código do idioma (padrão: 'pt')
- * @returns {string} - Texto traduzido ou a própria chave se não encontrado
- * Esta função acessa o objeto translationsData para buscar a tradução
- * correspondente à chave e idioma fornecidos.
- */
-function getGeneralText(key, lang = 'pt') {
-  // Verifica se o idioma e a chave existem no objeto de traduções
-  if (!translationsData[lang] || !translationsData[lang][key]) {
-    // Verifica se a chave existe no idioma padrão (pt) como fallback
-    if (lang !== 'pt' && translationsData.pt && translationsData.pt[key]) {
-      return translationsData.pt[key]; // Usa tradução em português como fallback
-    }
-
-    // Se não encontrar em nenhum idioma, retorna a própria chave
-    console.warn(`Tradução ausente para: '${key}' em '${lang}'.`);
-    return key;
-  }
-
-  return translationsData[lang][key]; // Retorna o texto traduzido
-}
-
-/**
- * translationsData - Objeto contendo todas as traduções disponíveis
- * Idiomas suportados: português (pt), inglês (en), espanhol (es), hebraico (he)
- */
-export const translationsData = {
+const translationsData = {
   pt: {
     // NOVAS CHAVES ADICIONADAS OU AJUSTADAS
     title: 'Morro de São Paulo Digital',
@@ -939,21 +976,3 @@ export const translationsData = {
     },
   },
 };
-
-/* translateInstruction - Traduz uma instrução usando um dicionário */
-export function translateInstruction(instruction, lang = 'pt') {
-  const dictionary = {
-    pt: {
-      'Turn right': 'Vire à direita',
-      'Turn left': 'Vire à esquerda',
-      'Continue straight': 'Continue em frente',
-    },
-    en: {
-      'Vire à direita': 'Turn right',
-      'Vire à esquerda': 'Turn left',
-      'Continue em frente': 'Continue straight',
-    },
-  };
-  if (!dictionary[lang]) return instruction;
-  return dictionary[lang][instruction] || instruction;
-}

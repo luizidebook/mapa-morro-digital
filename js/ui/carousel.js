@@ -4,31 +4,20 @@ console.log(
 );
 // Importações necessárias
 import { showModal } from '../ui/modals.js';
-
-import { selectedDestination } from '../data/cache.js';
+import { getUrlsForLocation } from '../utils/utils.js';
 
 // Variável global para gerenciar o carrossel
 let swiperInstance = null;
 
 /**
- * startCarousel - Inicia o carrossel de imagens para um local.
+ * 1. startCarousel - Inicia o carrossel de imagens para um local.
  */
 export function startCarousel(locationName) {
-  if (!locationName) {
-    console.error('Nenhuma localização fornecida para o carrossel.');
-    alert('Por favor, selecione um destino primeiro.');
-    return;
-  }
-
-  console.log('Iniciando carrossel para o destino:', locationName);
-
   const images = getImagesForLocation(locationName);
   if (!images || images.length === 0) {
-    console.warn(`Nenhuma imagem encontrada para o local: ${locationName}`);
-    alert('Nenhuma imagem encontrada para o destino selecionado.');
+    alert('Nenhuma imagem disponível para o carrossel.');
     return;
   }
-
   const swiperWrapper = document.querySelector('.swiper-wrapper');
   swiperWrapper.innerHTML = '';
   images.forEach((src) => {
@@ -37,7 +26,6 @@ export function startCarousel(locationName) {
     slide.innerHTML = `<img src="${src}" alt="${locationName}" style="width: 100%; height: 100%;">`;
     swiperWrapper.appendChild(slide);
   });
-
   showModal('carousel-modal');
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
@@ -59,14 +47,15 @@ export function startCarousel(locationName) {
       disableOnInteraction: false,
     },
   });
+  console.log('startCarousel: Carrossel iniciado para', locationName);
 }
 
 /**
- * 12. getImagesForLocation
+ * 2. getImagesForLocation
  *    Retorna um array de URLs de imagens para um local (nome => lista de strings).
  */
 export function getImagesForLocation(locationName) {
-  const basePath = 'images/'; // Caminho relativo para a pasta de imagens
+  const basePath = 'Images/';
 
   const imageDatabase = {
     'Farol do Morro': [
@@ -661,13 +650,5 @@ export function getImagesForLocation(locationName) {
     ],
   };
 
-  if (!imageDatabase[locationName]) {
-    console.warn(
-      `Destino "${locationName}" não encontrado no banco de imagens.`
-    );
-  }
-
-  const images = imageDatabase[locationName] || [];
-  console.log(`Imagens para "${locationName}":`, images);
-  return images;
+  return imageDatabase[locationName] || [];
 }

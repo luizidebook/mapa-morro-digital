@@ -1,5 +1,26 @@
+// routeSummary.js
+//  * @param {Object} userLocation - A localização atual do usuário.
+// * @returns {Promise<Object>} - Dados da rota criada (incluindo polyline).
+
+import { showNotification } from '../../ui/notifications.js';
+import { currentRouteData } from '../../core/varGlobals.js';
+//import { showNotification } from '../../ui/notifications.js';
+// import { getGeneralText } from '../../i18n/language.js';
 /**
- * 1. displayRouteSummary - Exibe um resumo da rota no painel lateral.
+ * 1. showRouteSummary
+ * Exibe a pré-visualização da rota antes de iniciar a navegação. */
+
+export function showRouteSummary() {
+  if (!currentRouteData) {
+    showNotification('Nenhuma rota disponível para pré-visualização.', 'error');
+    return;
+  }
+  // Exibe o resumo
+  displayRouteSummary(currentRouteData);
+}
+
+/**
+ * 2. displayRouteSummary - Exibe um resumo da rota no painel lateral.
  */
 export function displayRouteSummary(routeData, lang = selectedLanguage) {
   const summary = routeData.features[0].properties.summary;

@@ -1,7 +1,7 @@
 // updateRouteFooter.js
 
-import { getGeneralText } from '../core/varGlobals.js';
-import { selectedLanguage } from '../core/varGlobals.js';
+import { getGeneralText } from '../../core/varGlobals.js';
+import { selectedLanguage } from '../../core/varGlobals.js';
 /**
  * 1. updateRouteFooter
  * Atualiza o rodapé da rota com informações de tempo estimado e distância.

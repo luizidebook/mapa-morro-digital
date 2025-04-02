@@ -9,13 +9,26 @@ import { showNotification } from '../ui/notifications.js';
 import { finalizeRouteMarkers } from '../ui/routeMarkers.js';
 import { hideAllControlButtons } from '../ui/buttons.js';
 import { closeSideMenu } from '../ui/menu.js';
+import { plotRouteOnMap } from './routeUi/plotRouteOnMap.js';
 // Importações de variáveis globais
-import { selectedDestination, currentRouteData } from '../core/varGlobals.js';
-import { plotRouteOnMap, showMenuFooter } from '../route/managerRoute.js';
+import {
+  selectedDestination,
+  currentRouteData,
+  selectedProfile, // Adicionado
+  currentRoute, // Adicionado
+  markers, // Adicionado
+  isNavigationActive, // Adicionado
+} from '../core/varGlobals.js';
+
+export let map;
 // Importação de constantes
+import { ORS_API_KEY } from '../core/varGlobals.js'; // Adicionado
+
 /////////////////////////////
 // 1. FLUXO PRINCIPAL
 /////////////////////////////
+
+export let userLocation = null; // Última localização conhecida do usuário (atualizada pelo GPS)
 
 /**
  * 1.1. startRouteCreation
@@ -31,7 +44,19 @@ export async function startRouteCreation() {
     // 2️⃣ Obtenção da localização do usuário
     const userLocation = await getCurrentLocation();
 
-    // 3️⃣ Criação da rota
+    console.log('Localização do usuário:', userLocation);
+    console.log('Destino selecionado:', selectedDestination);
+
+    // 3️⃣ Verifica se a navegação já está ativa
+    if (isNavigationActive) {
+      showNotification(
+        'Uma navegação já está ativa. Finalize-a antes de iniciar uma nova.',
+        'warning'
+      );
+      return;
+    }
+
+    // 4️⃣ Criação da rota
     const routeData = await createRoute(userLocation);
 
     if (!routeData) {
@@ -39,14 +64,14 @@ export async function startRouteCreation() {
       return;
     }
 
-    // 4️⃣ Atualização dos dados da rota
+    // 5️⃣ Atualização dos dados da rota
     currentRouteData = routeData;
 
-    // 5️⃣ Início da pré-visualização da rota
+    // 6️⃣ Início da pré-visualização da rota
     showRouteSummary();
     showMenuFooter();
 
-    // 6️⃣ Atualização da interface
+    // 7️⃣ Atualização da interface
     hideAllControlButtons();
     closeSideMenu();
 
@@ -64,7 +89,7 @@ export async function startRouteCreation() {
  * @param {Object} userLocation - Localização do usuário ({ latitude, longitude }).
  * @returns {Object|null} - Dados da rota ou null em caso de erro.
  */
-async function createRoute(userLocation) {
+export async function createRoute(userLocation) {
   try {
     validateSelectedDestination();
 
@@ -104,7 +129,7 @@ async function createRoute(userLocation) {
  * 2.1. validateSelectedDestination
  * Valida se o destino selecionado é válido.
  */
-function validateSelectedDestination() {
+export function validateSelectedDestination() {
   if (
     !selectedDestination ||
     !selectedDestination.lat ||

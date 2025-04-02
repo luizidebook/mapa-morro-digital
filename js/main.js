@@ -53,9 +53,27 @@ export function onDOMContentLoaded() {
 
   console.log('Aplicação inicializada com sucesso!');
 }
+
+export function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch((error) =>
+        console.error('Erro ao registrar o Service Worker:', error)
+      );
+  } else {
+    console.warn('Service Workers não são suportados neste navegador.');
+  }
+}
+
+// Certifique-se de rodar em um servidor local (ex.: http://localhost)
+registerServiceWorker();
+
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
  */
+
 export let map;
 export function initializeMap() {
   const mapContainer = document.getElementById('map');

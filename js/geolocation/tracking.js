@@ -38,6 +38,26 @@
 /////////////////////////////
 // Código do módulo começa aqui
 /////////////////////////////
+// Importações de funções externas
+import { showNotification } from '../ui/notifications.js';
+import { getGeneralText } from '../i18n/language.js';
+import { calculateDistance, computeBearing } from '../geolocation/geoUtil.js';
+import {
+  setMapRotation,
+  startRotationAuto,
+  centerMapOnUser,
+} from '../map/mapUtils.js';
+
+import { endNavigation } from '../navigation/navigation.js';
+
+// Importações de variáveis globais
+import { selectedLanguage } from '../core/varGlobals.js';
+import { map } from '../main.js';
+export let userLocation = null; // Última localização conhecida do usuário (atualizada pelo GPS)
+export let trackingActive = false;
+export let watchId = null;
+export let userPosition = null;
+export let lastRecalculationTime = 0;
 
 /**
  * 1. getCurrentLocation
@@ -73,7 +93,7 @@ export async function getCurrentLocation(
     console.log('[getCurrentLocation] Localização obtida:', userLocation);
 
     // Inicia o tracking contínuo após obter a posição inicial
-    initContinuousLocationTracking();
+    startPositionTracking();
 
     return userLocation;
   } catch (error) {
@@ -102,7 +122,7 @@ export async function getCurrentLocation(
  * 2. useCurrentLocation
  * Centraliza o mapa na posição atual do usuário.
  */
-async function useCurrentLocation() {
+export async function useCurrentLocation() {
   try {
     userLocation = await getCurrentLocation();
     if (!userLocation) return;
@@ -118,7 +138,7 @@ async function useCurrentLocation() {
  * 1. startPositionTracking
  *     Inicia o rastreamento contínuo (watchPosition).
  */
-function startPositionTracking(options = {}) {
+export function startPositionTracking(options = {}) {
   const {
     enableHighAccuracy = true,
     maximumAge = 10000,
@@ -165,19 +185,10 @@ function startPositionTracking(options = {}) {
 }
 
 /**
- * 2. startUserTracking (Exemplo de stub)
- */
-function startUserTracking() {
-  console.log('Iniciando rastreamento do usuário...');
-  trackingActive = true;
-  startPositionTracking();
-}
-
-/**
  * 3. updateMapWithUserLocation
  *     Atualiza a visualização do mapa com a localização do usuário.
  */
-function updateMapWithUserLocation(zoomLevel = 18) {
+export function updateMapWithUserLocation(zoomLevel = 18) {
   if (!userLocation || !map) {
     console.warn('Localização ou mapa indisponível.');
     return;
@@ -193,7 +204,7 @@ function updateMapWithUserLocation(zoomLevel = 18) {
  * 4. detectMotion
  *     Detecta movimento do dispositivo (usando devicemotion).
  */
-function detectMotion() {
+export function detectMotion() {
   if ('DeviceMotionEvent' in window) {
     window.addEventListener('devicemotion', (event) => {
       const acc = event.acceleration;
@@ -215,7 +226,7 @@ function detectMotion() {
  * Atualiza ou cria o marker do usuário com animação e rotação.
  * A função atualiza a rotação do ícone e chama setMapRotation para sincronizar a camada de tiles.
  */
-function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
+export function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
   console.log(
     `[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`
   );
@@ -299,7 +310,7 @@ function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
  * 3. updateUserPositionOnRoute
  *     Atualiza a posição do usuário na rota ativa.
  */
-function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
+export function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
   const distance = calculateDistance(userLat, userLon, destLat, destLon);
   if (distance === null) {
     showNotification(
@@ -327,7 +338,7 @@ function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
 /**
  * 1. stopPositionTracking
  *    Encerra o rastreamento de posição. */
-function stopPositionTracking() {
+export function stopPositionTracking() {
   if (navigationWatchId !== null) {
     navigator.geolocation.clearWatch(navigationWatchId);
     navigationWatchId = null;

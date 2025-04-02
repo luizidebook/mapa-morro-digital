@@ -1,4 +1,7 @@
 export { startRouteCreation } from './route.js';
-export { plotRouteOnMap } from './uiRoute/plotRouteOnMap.js';
-export { showMenuFooter } from './uiRoute/showMenuFooter.js';
-// export { showRouteSummary } from './uiRoute/showRouteSummary.js';
+export { showMenuFooter } from './routeUi/menuFooter.js';
+export { plotRouteOnMap } from './routeUi/plotRouteOnMap.js';
+export {
+  showRouteSummary,
+  displayRouteSummary,
+} from './routeUi/routeSummary.js';

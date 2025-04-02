@@ -1,33 +1,35 @@
-import { setLanguage } from '../core/config.js';
-import { selectedDestination } from '../data/cache.js';
+import {
+  selectedDestination,
+  lastSelectedFeature,
+} from '../core/varGlobals.js';
 import { tutorialIsActive, currentStep } from '../core/varGlobals.js';
 import {
   showTutorialStep,
   nextTutorialStep,
   endTutorial,
-  startTutorial,
 } from '../tutorial/tutorial.js';
 import { closeCarouselModal } from '../ui/modals.js';
 import { closeSideMenu } from '../ui/menu.js';
 import { handleFeatureSelection } from '../ui/feature-selection.js';
-import { hideAllControlButtons } from '../ui/buttons.js';
 import { startCarousel } from '../ui/carousel.js'; // Importa a função startCarousel
-import { getSelectedDestination } from '../data/cache.js'; // Importa a função getSelectedDestination
-import { startRouteCreation } from '../route/managerRoute.js';
+import { updateInterfaceLanguage } from '../i18n/language.js';
+import { setLanguage } from './config.js';
+import { hideAllControlButtons } from '../ui/buttons.js';
+import { startRouteCreation } from '../route/route.js';
+
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
  */
 export function setupEventListeners() {
+  // Configura o evento de mudança de idioma com integração ao tutorial do assistente
   document.querySelectorAll('.lang-btn').forEach((button) => {
     button.addEventListener('click', () => {
-      try {
-        const lang = button.dataset.lang;
-        setLanguage(lang); // Define o idioma
-        startTutorial(lang); //
-        console.log(`Idioma definido para: ${lang}`);
-      } catch (error) {
-        console.error('Erro ao processar seleção de idioma:', error);
-      }
+      const lang = button.dataset.lang;
+
+      // Define o idioma globalmente
+      setLanguage(lang);
+      updateInterfaceLanguage(lang);
+      console.log(`Idioma alterado para: ${lang}`);
     });
   });
 
@@ -135,14 +137,6 @@ export function setupEventListeners() {
     });
   }
 
-  const startCreateRouteBtn = document.getElementById('create-route-btn');
-  if (startCreateRouteBtn) {
-    startCreateRouteBtn.addEventListener('click', () => {
-      startRouteCreation();
-      hideAllControlButtons();
-    });
-  }
-
   // Configuração do botão de detalhes do menu
   const menuDetailsBtn = document.getElementById('menu-details-btn');
   if (menuDetailsBtn) {
@@ -170,6 +164,13 @@ export function setupEventListeners() {
     });
   }
 
+  const startCreateRouteBtn = document.getElementById('create-route-btn');
+  if (startCreateRouteBtn) {
+    startCreateRouteBtn.addEventListener('click', () => {
+      startRouteCreation();
+    });
+  }
+
   // Configuração do botão "carousel-modal-close"
   const carouselModalCloseBtn = document.getElementById('carousel-modal-close');
   if (carouselModalCloseBtn) {
@@ -180,28 +181,22 @@ export function setupEventListeners() {
   }
 
   // Configuração dos botões de controle com identificador de feature
+  // Evento para botões de controle
   document.querySelectorAll('.control-btn[data-feature]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
-      const feature = btn.getAttribute('data-feature'); // Obtém o identificador da feature
+      const feature = btn.getAttribute('data-feature');
       console.log(`Control button feature selected: ${feature}`);
-      handleFeatureSelection(feature); // Manipula a seleção da feature
-      event.stopPropagation(); // Impede propagação do evento
-      hideAllControlButtons(); // Esconde todos os botões de controle
-
-      // Se o tutorial estiver ativo e este for o passo ask-interest, avança para o próximo
-      if (
-        tutorialIsActive &&
-        allTutorialSteps[currentStep] &&
-        allTutorialSteps[currentStep].step === 'ask-interest'
-      ) {
+      handleFeatureSelection(feature);
+      event.stopPropagation();
+      hideAllControlButtons();
+      if (tutorialIsActive && tutorialSteps[currentStep].step === feature) {
         nextTutorialStep();
       }
     });
   });
-}
 
-// Adiciona eventos de clique aos botões
-/*
+  // Adiciona eventos de clique aos botões
+  /*
 document
   .getElementById('start-navigation-rodape-btn')
   .addEventListener('click', startNavigation);
@@ -210,47 +205,46 @@ document
   .addEventListener('click', endNavigation);
 */
 
-// Configuração do botão "about-more-btn"
-const aboutMoreBtn = document.getElementById('about-more-btn');
-if (aboutMoreBtn) {
-  aboutMoreBtn.addEventListener('click', async () => {
-    try {
-      // Verifica se o destino já está definido
-      if (!selectedDestination || !selectedDestination.name) {
-        console.log('Tentando recuperar destino do localStorage...');
-        const destination = await getSelectedDestination();
-        if (destination && destination.name) {
-          console.log('Destino recuperado para o carrossel:', destination.name);
-          startCarousel(destination.name);
-          return;
-        }
-      } else {
-        // Se o destino já está definido, inicia o carrossel
+  // Configuração do botão "about-more-btn"
+  const aboutMoreBtn = document.getElementById('about-more-btn');
+  if (aboutMoreBtn) {
+    aboutMoreBtn.addEventListener('click', () => {
+      if (selectedDestination && selectedDestination.name) {
         startCarousel(selectedDestination.name);
-        return;
+      } else {
+        alert('Por favor, selecione um destino primeiro.');
       }
+    });
+  }
 
-      // Exibe o alerta apenas se o destino não foi encontrado
-      alert('Por favor, selecione um destino primeiro.');
-    } catch (error) {
-      console.error('Erro ao recuperar destino para o carrossel:', error);
-      alert('Por favor, selecione um destino primeiro.');
-    }
-  });
-}
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registrado com sucesso:', registration);
+      })
+      .catch((error) => {
+        console.error('Erro ao registrar o Service Worker:', error);
+      });
 
-/**
- * 3. handleUserIdleState - Detecta inatividade e oferece ação.
- */
-export function handleUserIdleState(lastLocation, currentLocation) {
-  const movedDistance = calculateDistance(
-    lastLocation.latitude,
-    lastLocation.longitude,
-    currentLocation.latitude,
-    currentLocation.longitude
-  );
-  if (movedDistance < 5) {
-    showNotification('Você está inativo. Deseja recalcular a rota?', 'info');
-    console.log('handleUserIdleState: Usuário inativo detectado.');
+    // Recuperar o estado ao carregar a página
+    navigator.serviceWorker.ready.then(() => {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          action: 'getState',
+        });
+      }
+    });
+
+    // Ouvir mensagens do Service Worker
+    navigator.serviceWorker.onmessage = (event) => {
+      const { action, payload } = event.data;
+
+      if (action === 'stateRestored') {
+        restoreState(payload);
+      } else if (action === 'positionUpdate') {
+        updateUserPositionOnMap(payload);
+      }
+    };
   }
 }

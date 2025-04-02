@@ -46,7 +46,7 @@
  *  - Animação e plotagem da rota no mapa;
  *  - Configuração do monitoramento contínuo da posição do usuário.
  */
-async function startNavigation() {
+export async function startNavigation() {
   try {
     console.log('[startNavigation] Iniciando navegação...');
 
@@ -222,7 +222,7 @@ function notifyDeviation() {
  * 3.1. stopNavigation
  * Finaliza a navegação, limpando estados e parando o monitoramento.
  */
-function stopNavigation() {
+export function endNavigation() {
   if (window.positionWatcher) {
     navigator.geolocation.clearWatch(window.positionWatcher);
     window.positionWatcher = null;
@@ -236,7 +236,7 @@ function stopNavigation() {
  * 3.2. pauseNavigation
  * Pausa a navegação.
  */
-function pauseNavigation() {
+export function pauseNavigation() {
   if (!navigationState.isActive) {
     console.warn('[pauseNavigation] Navegação não está ativa.');
     return;
@@ -249,7 +249,7 @@ function pauseNavigation() {
  * 3.3. resumeNavigation
  * Retoma a navegação pausada.
  */
-function resumeNavigation() {
+export function resumeNavigation() {
   if (!navigationState.isPaused) {
     console.warn('[resumeNavigation] Navegação não está pausada.');
     return;

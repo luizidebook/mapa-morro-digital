@@ -3,7 +3,10 @@ import { markers } from '../core/varGlobals.js';
 import { adjustMapWithLocation } from '../map/map.js';
 import { clearMarkers } from '../map/map.js';
 import { hideAllControlButtons } from './buttons.js';
-import { saveDestinationToLocalStorage } from '../data/cache.js';
+import {
+  saveDestinationToCache,
+  sendDestinationToServiceWorker,
+} from '../data/cache.js';
 import { clearCurrentRoute } from '../ui/routeMarkers.js';
 import { closeAssistantModal } from './modals.js';
 import { getSelectedDestination } from '../data/cache.js';
@@ -18,7 +21,7 @@ let currentStep = null;
 let tutorialIsActive = false;
 
 /**
- * 14. handleFeatureSelection
+ * 1. handleFeatureSelection
  *    Gerencia seleção de funcionalidades (ex.: praias, pontos turísticos).
  */
 export function handleFeatureSelection(feature) {
@@ -98,7 +101,7 @@ export function handleFeatureSelection(feature) {
 }
 
 /**
- * 10. performControlAction
+ * 2. performControlAction
  *    Executa ações específicas de controle, conforme 'action' recebido.
  */
 export function performControlAction(action) {
@@ -172,22 +175,10 @@ export function performControlAction(action) {
   }
 }
 
-/* 1. storeAndProceed - Armazena a resposta do usuário e chama showTutorialStep para o próximo passo. */
-function storeAndProceed(interest) {
-  localStorage.setItem('ask-interest', interest);
-  const specificStep = tutorialSteps.find((s) => s.step === interest);
-  if (specificStep) {
-    currentStep = tutorialSteps.indexOf(specificStep);
-    showTutorialStep(specificStep.step);
-  } else {
-    console.error('Passo específico para o interesse não encontrado.');
-  }
-}
-
 /**
  * 1. displayCustomAbout - Exibe informações personalizadas sobre "Sobre".
  */
-function displayCustomAbout() {
+export function displayCustomAbout() {
   const about = [
     {
       name: 'Missão',
@@ -646,9 +637,9 @@ function displayCustomTours() {
  * @returns {Promise<Object>} Dados retornados pela API
  */
 /**
- * 17. fetchOSMData - Busca dados do OSM utilizando a Overpass API.
+ * 1. fetchOSMData - Busca dados do OSM utilizando a Overpass API.
  */
-async function fetchOSMData(query) {
+export async function fetchOSMData(query) {
   try {
     // Monta URL para Overpass
     const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
@@ -698,58 +689,48 @@ async function fetchOSMData(query) {
  * @param {string} feature - Tipo de feature
  */
 function displayOSMData(data, subMenuId, feature) {
+  // Limpa o conteúdo do submenu
   const subMenu = document.getElementById(subMenuId);
   subMenu.innerHTML = '';
 
-  if (!data || !data.elements || data.elements.length === 0) {
-    console.warn(`Nenhum dado encontrado para o submenu: ${subMenuId}`);
-    return;
-  }
-
-  console.log(
-    `Carregando ${data.elements.length} itens para o submenu: ${subMenuId}`
-  );
-
+  // Cria botões dinamicamente
   data.elements.forEach((element) => {
-    if (
-      element.type === 'node' &&
-      element.lat &&
-      element.lon &&
-      element.tags.name
-    ) {
+    if (element.type === 'node' && element.tags.name) {
       const btn = document.createElement('button');
       btn.className = 'submenu-item submenu-button';
       btn.textContent = element.tags.name;
-      btn.setAttribute('data-lat', element.lat);
-      btn.setAttribute('data-lon', element.lon);
-      btn.setAttribute('data-name', element.tags.name);
-      btn.setAttribute(
-        'data-description',
-        element.tags.description || 'Descrição não disponível'
-      );
+      btn.setAttribute('data-destination', element.tags.name);
+
+      const description =
+        element.tags.description || 'Descrição não disponível';
 
       btn.onclick = () => {
         handleSubmenuButtons(
           element.lat,
           element.lon,
           element.tags.name,
-          element.tags.description || 'Descrição não disponível',
-          [],
+          description,
+          element.tags.images || [],
           feature
         );
       };
 
       subMenu.appendChild(btn);
 
+      // Adiciona marcador
       const marker = L.marker([element.lat, element.lon])
         .addTo(map)
-        .bindPopup(
-          `<b>${element.tags.name}</b><br>${element.tags.description || ''}`
-        );
+        .bindPopup(`<b>${element.tags.name}</b><br>${description}`);
       markers.push(marker);
-    } else {
-      console.warn('Elemento inválido:', element);
     }
+  });
+
+  // Configura evento de clique
+  document.querySelectorAll('.submenu-button').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const destination = this.getAttribute('data-destination');
+      console.log(`Destination selected: ${destination}`);
+    });
   });
 }
 
@@ -779,7 +760,7 @@ const queries = {
     '[out:json];node["education"](around:10000,-13.376,-38.913);out body;',
 };
 
-export function loadSubMenu(subMenuId, feature) {
+function loadSubMenu(subMenuId, feature) {
   // 1. Verifica se o submenu existe
   const subMenu = document.getElementById(subMenuId);
   if (!subMenu) {
@@ -967,35 +948,32 @@ export function handleSubmenuButtonsTips(lat, lon, name, description) {
  * Atualiza o destino global e executa uma função de controle.
  */
 
-export function handleSubmenuButtons(
-  lat,
-  lon,
-  name,
-  description,
-  images,
-  feature
-) {
-  if (!lat || !lon) {
-    console.error('Coordenadas inválidas:', { lat, lon });
-    return;
-  }
+/**
+ * 12. handleSubmenuButton - Lida com cliques em botões de submenu.
+ * Atualiza o destino global e executa uma função de controle.
+ */
 
-  // Ajusta o mapa para a localização selecionada
+function handleSubmenuButtons(lat, lon, name, description, images, feature) {
+  // 1. Obtém URLs adicionais relacionados ao local
+  const url = getUrlsForLocation(name);
+
+  // 2. Limpa os marcadores existentes no mapa e ajusta para a localização selecionada
+  clearMarkers();
   adjustMapWithLocation(lat, lon, name, description, 15, -10);
 
-  // Atualiza o estado global e salva o destino no Local Storage
-  selectedDestination = { name, description, lat, lon, images, feature };
-
-  saveDestinationToLocalStorage(selectedDestination)
+  // 3. Atualiza o estado global e salva o destino selecionado no cache
+  selectedDestination = { name, description, lat, lon, images, feature, url };
+  saveDestinationToCache(selectedDestination)
     .then(() => {
-      console.log('Destino salvo no Local Storage com sucesso.');
-      clearCurrentRoute(); // Limpa rotas atuais após salvar o destino
+      // 4. Envia o destino para o Service Worker e limpa rotas atuais
+      sendDestinationToServiceWorker(selectedDestination);
+      clearCurrentRoute();
     })
     .catch((error) => {
-      console.error('Erro ao salvar destino no Local Storage:', error);
+      console.error('Erro ao salvar destino no cache:', error);
     });
 
-  // Exibe botões de controle específicos com base na funcionalidade
+  // 5. Exibe botões de controle específicos com base na funcionalidade
   switch (feature) {
     case 'passeios':
       showControlButtonsTour();
@@ -1027,6 +1005,7 @@ export function handleSubmenuButtons(
     case 'ensino':
       showControlButtonsEducation();
       break;
+    // 7. Funcionalidade não reconhecida: Exibe botões genéricos
     default:
       showControlButtons();
       break;
@@ -1040,13 +1019,15 @@ export function handleSubmenuButtons(
  */
 
 export function setupSubmenuClickListeners() {
-  document.querySelectorAll('.submenu-item').forEach((item) => {
-    item.addEventListener('click', () => {
-      const feature = item.getAttribute('data-feature');
-      handleSubmenuItemClick(feature, item);
+  document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      const feature = btn.getAttribute('data-feature');
+      console.log(`Feature selected: ${feature}`);
+      handleFeatureSelection(feature);
+      closeCarouselModal();
+      event.stopPropagation();
     });
   });
-  console.log('Listeners configurados para itens do submenu.');
 }
 
 function handleSubmenuItemClick(feature, item) {

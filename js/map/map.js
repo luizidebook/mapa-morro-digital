@@ -192,16 +192,3 @@ export function zoomToSelectedArea(bounds) {
     console.log('Zoom aplicado aos limites especificados.');
   }
 }
-
-/**
- * Recentraliza o mapa na localização do usuário.
- * @param {number} lat - Latitude do usuário.
- * @param {number} lon - Longitude do usuário.
- * @param {number} zoom - Nível de zoom.
- */
-export function centerMapOnUser(lat, lon, zoom = 15) {
-  if (map) {
-    map.setView([lat, lon], zoom);
-    console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
-  }
-}
