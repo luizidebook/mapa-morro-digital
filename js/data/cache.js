@@ -303,6 +303,7 @@ export function getSelectedDestination() {
         console.warn(
           '[getSelectedDestination] Nenhum destino encontrado no localStorage.'
         );
+        s;
         reject(new Error('Nenhum destino encontrado no localStorage.'));
         return;
       }

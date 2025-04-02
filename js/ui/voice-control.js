@@ -123,6 +123,7 @@ export function cancelVoiceRecognition() {
 }
 
 // Função: Converte texto em áudio
+
 export function giveVoiceFeedback(text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'pt-BR';

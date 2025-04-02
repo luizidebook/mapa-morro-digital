@@ -1,17 +1,13 @@
 /* styles.css */
 
 /* Estilos gerais */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
+body,
 html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
+  font-family: Arial, sans-serif;
 }
 
 /* Define que o container do mapa é o elemento relativo para posicionamento absoluto dos overlays */
@@ -60,11 +56,6 @@ html {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Exemplo básico de CSS para foco visível */
-.modal:focus {
-  outline: 2px solid #f39c12;
-}
-
 /* Animação para o Banner de Instruções */
 .instruction-banner {
   transform: translateY(-100%); /* Começa fora da tela */
@@ -77,40 +68,6 @@ html {
 
 .instruction-banner:not(.hidden) {
   transform: translateY(0); /* Totalmente visível */
-}
-
-/* Animação para o Rodapé */
-.route-footer {
-  transform: translateY(100%); /* Começa fora da tela */
-  transition:
-    transform 0.3s ease-in-out,
-    opacity 0.3s ease-in-out;
-  opacity: 0;
-}
-
-.route-footer.hidden {
-  transform: translateY(100%); /* Escondido abaixo da tela */
-  opacity: 0;
-}
-
-.route-footer:not(.hidden) {
-  transform: translateY(0); /* Totalmente visível */
-  opacity: 1;
-}
-
-/* Botões com Animação de Clique */
-.route-btn {
-  transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.route-btn:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.route-btn:active {
-  transform: scale(0.95); /* Pequena redução no tamanho ao clicar */
 }
 
 /* Animações no polyline (transição suave) */
@@ -126,35 +83,8 @@ html {
   background: transparent;
 }
 
-.notification {
-  padding: 10px 15px;
-  margin: 10px;
-  border-radius: 4px;
-  font-size: 1rem;
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-.notification.fade-out {
-  opacity: 0;
-}
-.notification.success {
-  background-color: #d4edda;
-  color: #155724;
-}
-.notification.error {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-.notification.warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-.notification.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
-
-.welcome-modal {
+.welcome-modal,
+.modal {
   position: fixed;
   top: 50%;
   left: 45%;
@@ -244,26 +174,6 @@ html {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.route-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 94%;
-  background-color: #fff;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
-.route-details {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-}
-
 .instruction-banner.hidden {
   display: none;
 }
@@ -285,57 +195,6 @@ html {
   font-size: 1rem;
   margin: 5px 0 0;
   opacity: 0.9;
-}
-
-.route-footer.hidden {
-  display: none;
-}
-
-.route-details {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.route-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.route-btn {
-  padding: 10px 10px;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.start-btn {
-  background-color: #007bff; /* Azul */
-  color: white;
-}
-
-.start-btn:hover {
-  background-color: #0056b3;
-}
-
-.details-btn {
-  background-color: #f8f9fa; /* Cinza claro */
-  color: #333;
-  border: 1px solid #ccc;
-}
-
-.details-btn:hover {
-  background-color: #e2e6ea;
-}
-
-.cancel-btn {
-  background-color: #dc3545; /* Vermelho */
-  color: white;
-}
-
-.cancel-btn:hover {
-  background-color: #a71d2a;
 }
 
 .start-marker-icon {
@@ -408,9 +267,9 @@ html {
   width: 0;
   height: 0;
   /* 
-    Exemplo de uma seta feita com bordas triangulares.
-    Ajuste o "border" para criar uma seta de diferentes tamanhos e inclinações.
-  */
+  Exemplo de uma seta feita com bordas triangulares.
+  Ajuste o "border" para criar uma seta de diferentes tamanhos e inclinações.
+*/
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
   border-bottom: 20px solid red; /* Cor da seta */
@@ -763,10 +622,12 @@ html {
   .gps-accuracy-circle {
     stroke: blue !important; /* Cor da borda */
     stroke-width: 1px !important; /* Largura da borda */
-    width: 5px;
+    max-width: 5px;
     fill: blue !important; /* Cor de preenchimento */
     fill-opacity: 0 !important; /* Opacidade do preenchimento para um visual mais leve */
     z-index: 50;
+    weight: 2px;
+    radius: 5px;
   }
 
   .tile {
@@ -776,11 +637,9 @@ html {
 
   /* Container do marcador: garante que o conteúdo (a seta) fique com a ponta na parte inferior */
   .user-marker {
-    transform-origin: 50% 50%;
-    transition: transform 0.3s ease-out;
-  }
-  .leaflet-tile-pane {
-    transform-origin: 50% 50%;
+    display: flex;
+    align-items: flex-end; /* Alinha o conteúdo à parte inferior */
+    justify-content: center;
   }
 
   /* Estilização do ícone da seta */

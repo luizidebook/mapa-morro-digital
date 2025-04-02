@@ -36,7 +36,6 @@
 
 <!-- Swiper (Carrossel de Imagens) -->
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
 <!-- Font Awesome (Ícones) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -106,7 +105,7 @@
 
 <!-- MENUS -->
 <!-- Menu Toggle -->
-<button id="menu-toggle-btn" class="menu-toggle" aria-label="Abrir menu">
+<button id="menu-toggle" class="menu-toggle hidden" aria-label="Abrir menu">
   <i class="fas fa-bars"></i>
 </button>
 
@@ -145,14 +144,14 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
 <button id="tutorial-finalizar-btn" class="control-btn" style="display:none;" data-action="end" data-i18n="tutorialEnd">Não</button>
 
 <!-- Botões interesses -->
-  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos" data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
+  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos"  data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
   <button id="passeios-btn" class="control-btn" style="display:none"  data-feature="passeios" data-i18n="tours">Passeios</button>
   <button id="praias-btn" class="control-btn" style="display:none" data-action="praias"  data-feature="praias" data-i18n="beaches">Praias</button>
   <button id="festas-btn" class="control-btn" style="display:none"  data-feature="festas" data-i18n="parties">Festas</button>
-  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes" data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
+  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes"  data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
   <button id="pousadas-btn" class="control-btn" style="display:none"  data-feature="pousadas" data-i18n="inns">Pousadas</button>
   <button id="lojas-btn" class="control-btn" style="display:none"  data-feature="lojas" data-i18n="shops">Lojas</button>
-  <button id="emergencias-btn" class="control-btn" style="display:none" data-feature="emergencias" data-i18n="emergencies">Emergências</button>
+  <button id="emergencias-btn" class="control-btn" style="display:none"  data-feature="emergencias" data-i18n="emergencies">Emergências</button>
   
 <!-- Botões adicionais que aparecem ao clicar em lugar específico do mapa, etc. -->
   <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
@@ -195,18 +194,12 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
   </div>
 </div>
 
-<!-- #route-preview: Pré-visualização da rota (ex.: resumo rápido sem iniciar a navegação).-->
-<div id="route-preview" class="route-preview hidden"></div>
-
 <!-- #route-summary: Mostra título "Resumo da Rota", distância e tempo estimado.-->
-<div id="route-summary" class="hidden">
+<div id="route-summary" class="route-summary hidden">
     <h3 data-i18n="route_summary_title">Resumo da Rota</h3>
     <p id="route-distance" data-i18n="route_distance">Distância: </p>
     <p id="route-eta" data-i18n="route_eta">Tempo Estimado: </p>
 </div>
-
-<!-- Select para rotas alternativas (exemplo) -->
-  <select id="route-options" class="hidden"></select>
 
 <!-- #instruction-banner: Banner fixo no topo, exibindo a próxima manobra e detalhes.-->
 <div id="instruction-banner" class="instruction-banner hidden">
@@ -219,12 +212,13 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
   </div>
 </div>
 
-<!-- #route-footer: Rodapé com botões de ação ("Iniciar Navegação", "Acessar menu", "Voltar").-->
-<div id="route-footer" class="route-footer hidden">
-  <div class="route-actions">
-    <button id="start-navigation-rodape-btn" class="route-btn start-btn">Iniciar Navegação</button>
-    <button id="menu-details-btn" class="route-btn details-btn">Acessar menu</button>
-    <button id="cancel-route-btn" class="route-btn cancel-btn">Voltar</button>
+
+<!-- #menu-footer: Rodapé com botões de ação ("Iniciar Navegação" "Encerrar e "Voltar").-->
+<div id="menu-footer" class="menu-footer hidden">
+  <div class="menu-footer-actions">
+    <button id="start-navigation-footer-btn" class="footer-btn">Iniciar Navegação</button>
+    <button id="stop-navigation-footer-btn" class="footer-btn">Parar Navegação</button>
+    <button id="back-footer-btn" class="footer-btn">Voltar</button>
   </div>
 </div>
 

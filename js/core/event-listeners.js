@@ -13,8 +13,7 @@ import { handleFeatureSelection } from '../ui/feature-selection.js';
 import { hideAllControlButtons } from '../ui/buttons.js';
 import { startCarousel } from '../ui/carousel.js'; // Importa a função startCarousel
 import { getSelectedDestination } from '../data/cache.js'; // Importa a função getSelectedDestination
-import { startRouteCreation } from '../route/route.js';
-
+import { startRouteCreation } from '../route/managerRoute.js';
 /**
  * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
  */
@@ -140,6 +139,7 @@ export function setupEventListeners() {
   if (startCreateRouteBtn) {
     startCreateRouteBtn.addEventListener('click', () => {
       startRouteCreation();
+      hideAllControlButtons();
     });
   }
 
@@ -199,6 +199,17 @@ export function setupEventListeners() {
     });
   });
 }
+
+// Adiciona eventos de clique aos botões
+/*
+document
+  .getElementById('start-navigation-rodape-btn')
+  .addEventListener('click', startNavigation);
+document
+  .getElementById('stop-navigation-rodape-btn')
+  .addEventListener('click', endNavigation);
+*/
+
 // Configuração do botão "about-more-btn"
 const aboutMoreBtn = document.getElementById('about-more-btn');
 if (aboutMoreBtn) {

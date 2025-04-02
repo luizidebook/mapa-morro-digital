@@ -41,7 +41,7 @@ export let currentMarker = null; // Marcador atualmente em foco/selecionado
  * Sistema de navegação e rotas
  */
 export let routingControl = null; // Controlador da navegação (Leaflet Routing Machine)
-export let currentRouteData = null; // Permitir reatribuição
+export let currentRouteData = {}; // Inicializa como um objeto vazio
 export let isNavigationActive = false; // Flag que indica se navegação está ativa
 export let isnavigationPaused = false; // Flag que indica se navegação está pausada
 export let currentRouteSteps = []; // Lista de passos (instruções) da rota atual

@@ -1,103 +1,284 @@
-// Importações necessárias
+/**
+ * Módulo: tracking.js
+ * Descrição: Este módulo gerencia a geolocalização, rastreamento contínuo e atualização de marcadores no mapa.
+ *
+ * Dependências:
+ * 1. **Funções Externas**:
+ *    - `showNotification(message, type)`: Exibe notificações para o usuário.
+ *    - `getGeneralText(key, lang)`: Retorna mensagens traduzidas com base no idioma selecionado.
+ *    - `calculateDistance(lat1, lon1, lat2, lon2)`: Calcula a distância entre dois pontos geográficos.
+ *    - `computeBearing(lat1, lon1, lat2, lon2)`: Calcula o rumo (heading) entre dois pontos geográficos.
+ *    - `animateMarker(marker, fromLatLng, toLatLng, duration)`: Anima a transição de um marcador no mapa.
+ *    - `setMapRotation()`: Sincroniza a rotação do mapa com a orientação do dispositivo.
+ *    - `startRotationAuto()`: Inicia a rotação automática do mapa.
+ *    - `createRoute(destLat, destLon)`: Cria uma nova rota para o destino especificado.
+ *    - `endNavigation()`: Finaliza a navegação ativa.
+ *    - `centerMapOnUser(lat, lon)`: Centraliza o mapa na posição do usuário.
+ *
+ * 2. **Variáveis Globais**:
+ *    - `userLocation`: Objeto contendo a localização atual do usuário (`latitude`, `longitude`, `accuracy`).
+ *    - `userPosition`: Objeto contendo a posição atual do usuário durante o rastreamento contínuo.
+ *    - `trackingActive`: Booleano indicando se o rastreamento contínuo está ativo.
+ *    - `watchId`: ID retornado pelo `navigator.geolocation.watchPosition`.
+ *    - `map`: Instância do mapa (ex.: Leaflet ou outro framework de mapas).
+ *    - `window.userMarker`: Marcador do usuário no mapa.
+ *    - `window.userAccuracyCircle`: Círculo indicando a margem de erro do GPS no mapa.
+ *    - `window.lastPosition`: Última posição conhecida do usuário.
+ *    - `window.routeDestination`: Objeto contendo as coordenadas do destino da rota.
+ *    - `lastRecalculationTime`: Timestamp da última vez que a rota foi recalculada.
+ *    - `selectedLanguage`: Idioma selecionado pelo usuário (ex.: "pt", "en").
+ *
+ * 3. **Constantes**:
+ *    - `navigator.geolocation`: API de geolocalização do navegador.
+ *
+ * Observação:
+ * Certifique-se de que todas as dependências estão disponíveis no escopo global ou importadas corretamente.
+ */
 
-// Variáveis globais
-let lastRecalculationTime = 0; // Controle de tempo para recalcular rota
-let smoothedPosition = null; // Última posição suavizada
-const SMOOTHING_ALPHA = 0.2; // Fator de suavização
+/////////////////////////////
+// Código do módulo começa aqui
+/////////////////////////////
 
-// Função: Obtém a localização atual do usuário
-export function getCurrentLocation(options = {}) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      showNotification(
-        'Geolocalização não é suportada pelo navegador.',
-        'error'
-      );
-      reject(new Error('Geolocalização não suportada.'));
-      return;
-    }
+/**
+ * 1. getCurrentLocation
+ * getCurrentLocation
+ * Obtém a localização atual do usuário uma única vez.
+ * Em caso de sucesso, inicia o tracking contínuo e retorna a posição.
+ *
+ * @param {Object} [options] - Opções para getCurrentPosition.
+ * @returns {Object|null} - Objeto com latitude, longitude e precisão ou null em caso de erro.
+ */
+export async function getCurrentLocation(
+  options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+) {
+  console.log('[getCurrentLocation] Solicitando posição atual...');
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        resolve({ latitude, longitude, accuracy });
-      },
-      (error) => {
-        console.error('Erro ao obter localização:', error);
-        reject(error);
-      },
-      options
+  // Verifica se a API de geolocalização está disponível
+  if (!('geolocation' in navigator)) {
+    showNotification(
+      getGeneralText('geolocationUnsupported', selectedLanguage) ||
+        'Geolocalização não suportada.',
+      'error'
     );
-  });
-}
+    return null;
+  }
 
-// Função: Usa a localização atual do usuário para centralizar o mapa
-export function useCurrentLocation() {
-  getCurrentLocation()
-    .then(({ latitude, longitude }) => {
-      updateUserMarker(latitude, longitude);
-      console.log('Localização atual usada:', { latitude, longitude });
-    })
-    .catch((error) => {
-      console.error('Erro ao usar localização atual:', error);
+  try {
+    // Solicita a posição atual
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
     });
+    const { latitude, longitude, accuracy } = position.coords;
+    userLocation = { latitude, longitude, accuracy };
+    console.log('[getCurrentLocation] Localização obtida:', userLocation);
+
+    // Inicia o tracking contínuo após obter a posição inicial
+    initContinuousLocationTracking();
+
+    return userLocation;
+  } catch (error) {
+    console.error('[getCurrentLocation] Erro:', error);
+    // Define mensagem de erro específica com base no código do erro
+    let message = getGeneralText('trackingError', selectedLanguage);
+    if (error.code === error.PERMISSION_DENIED) {
+      message =
+        getGeneralText('noLocationPermission', selectedLanguage) ||
+        'Permissão de localização negada.';
+    } else if (error.code === error.TIMEOUT) {
+      message =
+        getGeneralText('locationTimeout', selectedLanguage) ||
+        'Tempo limite para obtenção de localização excedido.';
+    } else if (error.code === error.POSITION_UNAVAILABLE) {
+      message =
+        getGeneralText('positionUnavailable', selectedLanguage) ||
+        'Posição indisponível.';
+    }
+    showNotification(message, 'error');
+    return null;
+  }
 }
 
-// Função: Inicializa o rastreamento contínuo da localização
-export function initContinuousLocationTracking() {
-  if (!navigator.geolocation) {
-    showNotification('Geolocalização não é suportada pelo navegador.', 'error');
+/**
+ * 2. useCurrentLocation
+ * Centraliza o mapa na posição atual do usuário.
+ */
+async function useCurrentLocation() {
+  try {
+    userLocation = await getCurrentLocation();
+    if (!userLocation) return;
+    centerMapOnUser(userLocation.latitude, userLocation.longitude);
+    console.log('Mapa centralizado na localização do usuário.');
+  } catch (error) {
+    console.error('Erro em useCurrentLocation:', error);
+  }
+} /*
+
+  --- 10.2. Rastreamento Contínuo ---
+  /**
+ * 1. startPositionTracking
+ *     Inicia o rastreamento contínuo (watchPosition).
+ */
+function startPositionTracking(options = {}) {
+  const {
+    enableHighAccuracy = true,
+    maximumAge = 10000,
+    timeout = 15000,
+  } = options;
+
+  if (!trackingActive) {
+    console.warn('[startPositionTracking] trackingActive=false, abortando...');
     return;
   }
 
-  const watchId = navigator.geolocation.watchPosition(
-    (position) => {
-      const { latitude, longitude, heading, accuracy } = position.coords;
-      updateUserMarker(latitude, longitude, heading, accuracy);
-    },
-    (error) => {
-      console.error('Erro no rastreamento contínuo:', error);
-    },
-    { enableHighAccuracy: true }
-  );
-
-  console.log('Rastreamento contínuo iniciado. Watch ID:', watchId);
-  return watchId;
-}
-
-// Função: Atualiza ou cria o marcador do usuário no mapa
-export function updateUserMarker(lat, lon, heading, accuracy) {
-  console.log(
-    `[updateUserMarker] Atualizando posição para (${lat}, ${lon}) com heading: ${heading}°`
-  );
-
-  if (accuracy !== undefined && accuracy > 20) {
-    console.log(
-      `[updateUserMarker] Precisão baixa (${accuracy}m), atualização pode ser menos agressiva.`
-    );
+  if (!('geolocation' in navigator)) {
+    console.warn('[startPositionTracking] Geolocalização não suportada.');
+    return;
   }
 
+  if (watchId !== null) {
+    console.log('[startPositionTracking] Limpando watch anterior.');
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+
+  watchId = navigator.geolocation.watchPosition(
+    (position) => {
+      userPosition = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      };
+      console.log('[startPositionTracking] Posição atualizada:', userPosition);
+    },
+    (error) => {
+      console.error('[startPositionTracking] Erro:', error);
+      showNotification('Não foi possível obter localização.', 'error');
+      fallbackToSensorNavigation(); // Ativa fallback
+    },
+    { enableHighAccuracy, maximumAge, timeout }
+  );
+
+  console.log(
+    '[startPositionTracking] watchPosition iniciado. watchId =',
+    watchId
+  );
+}
+
+/**
+ * 2. startUserTracking (Exemplo de stub)
+ */
+function startUserTracking() {
+  console.log('Iniciando rastreamento do usuário...');
+  trackingActive = true;
+  startPositionTracking();
+}
+
+/**
+ * 3. updateMapWithUserLocation
+ *     Atualiza a visualização do mapa com a localização do usuário.
+ */
+function updateMapWithUserLocation(zoomLevel = 18) {
+  if (!userLocation || !map) {
+    console.warn('Localização ou mapa indisponível.');
+    return;
+  }
+  map.setView([userLocation.latitude, userLocation.longitude], zoomLevel);
+  console.log(
+    'Mapa atualizado para a localização do usuário, zoom:',
+    zoomLevel
+  );
+}
+
+/**
+ * 4. detectMotion
+ *     Detecta movimento do dispositivo (usando devicemotion).
+ */
+function detectMotion() {
+  if ('DeviceMotionEvent' in window) {
+    window.addEventListener('devicemotion', (event) => {
+      const acc = event.acceleration;
+      if (acc.x > 5 || acc.y > 5 || acc.z > 5) {
+        console.log('Movimento brusco detectado!');
+      }
+    });
+  } else {
+    console.warn('DeviceMotionEvent não suportado.');
+  }
+} /*
+
+  --- 10.3. Atualização de Marcadores ---
+
+/**
+ * 1. updateUserMarker
+ /**
+ * updateUserMarker(lat, lon, heading, accuracy, iconSize)
+ * Atualiza ou cria o marker do usuário com animação e rotação.
+ * A função atualiza a rotação do ícone e chama setMapRotation para sincronizar a camada de tiles.
+ */
+function updateUserMarker(lat, lon, heading, accuracy, iconSize) {
+  console.log(
+    `[updateUserMarker] Atualizando posição para: (${lat}, ${lon}) com heading: ${heading} e precisão: ${accuracy}`
+  );
+  // Se a precisão for baixa (acima de 15m), ignora a atualização
+  if (accuracy !== undefined && accuracy > 15) {
+    console.log('[updateUserMarker] Precisão GPS baixa. Atualização ignorada.');
+    return;
+  }
+  // Se houver uma posição anterior, calcula a distância para evitar atualizações insignificantes
+  if (window.lastPosition) {
+    const distance = calculateDistance(
+      window.lastPosition.lat,
+      window.lastPosition.lon,
+      lat,
+      lon
+    );
+    if (distance < 1) {
+      console.log(
+        '[updateUserMarker] Movimento insignificante. Atualização ignorada.'
+      );
+      return;
+    }
+  }
+  window.lastPosition = { lat, lon };
+
+  // Se existir um destino (routeDestination), recalcula o heading (rumo) para o destino
+  if (window.routeDestination) {
+    heading = computeBearing(
+      lat,
+      lon,
+      window.routeDestination.lat,
+      window.routeDestination.lon
+    );
+  } else if (heading === undefined) {
+    heading = 0;
+  }
+
+  // Define o HTML para o ícone do marcador (usando Font Awesome)
+  const iconHtml = '<i class="fas fa-location-arrow"></i>';
+  const finalIconSize = iconSize || [60, 60];
+  const finalIconAnchor = [finalIconSize[0] / 2, finalIconSize[1]];
+
+  // Se já existir um marcador, anima sua transição; caso contrário, cria-o
   if (window.userMarker) {
-    window.userMarker.setLatLng([lat, lon]);
-    if (typeof window.userMarker.setRotationAngle === 'function') {
-      window.userMarker.setRotationAngle(heading);
-    } else if (window.userMarker._icon) {
-      window.userMarker._icon.style.transformOrigin = '50% 50%';
+    const currentPos = window.userMarker.getLatLng();
+    animateMarker(window.userMarker, currentPos, [lat, lon], 300);
+    if (window.userMarker._icon) {
       window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
     }
   } else {
-    const iconHtml = '<i class="fas fa-location-arrow"></i>';
     window.userMarker = L.marker([lat, lon], {
       icon: L.divIcon({
         className: 'user-marker',
         html: iconHtml,
-        iconSize: [50, 50],
-        iconAnchor: [25, 25],
+        iconSize: finalIconSize,
+        iconAnchor: finalIconAnchor,
       }),
-      rotationAngle: heading,
     }).addTo(map);
+    if (window.userMarker._icon) {
+      window.userMarker._icon.style.transform = `rotate(${heading}deg)`;
+    }
   }
-
+  // Atualiza ou cria um círculo que indica a margem de erro do GPS
   if (accuracy !== undefined) {
     if (window.userAccuracyCircle) {
       window.userAccuracyCircle.setLatLng([lat, lon]);
@@ -109,33 +290,16 @@ export function updateUserMarker(lat, lon, heading, accuracy) {
       }).addTo(map);
     }
   }
-}
-
-// Função: Aplica suavização às coordenadas de geolocalização
-export function applyCoordinateSmoothing(newCoord) {
-  if (
-    !newCoord ||
-    typeof newCoord.latitude !== 'number' ||
-    typeof newCoord.longitude !== 'number'
-  ) {
-    return smoothedPosition;
+  // Se houver função de rotação, inicia a rotação automática
+  if (typeof setMapRotation === 'function') {
+    startRotationAuto();
   }
-
-  if (smoothedPosition === null) {
-    smoothedPosition = { ...newCoord };
-  } else {
-    smoothedPosition.latitude =
-      SMOOTHING_ALPHA * newCoord.latitude +
-      (1 - SMOOTHING_ALPHA) * smoothedPosition.latitude;
-    smoothedPosition.longitude =
-      SMOOTHING_ALPHA * newCoord.longitude +
-      (1 - SMOOTHING_ALPHA) * smoothedPosition.longitude;
-  }
-  return smoothedPosition;
 }
-
-// Função: Atualiza a posição do usuário na rota ativa
-export function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
+/*
+ * 3. updateUserPositionOnRoute
+ *     Atualiza a posição do usuário na rota ativa.
+ */
+function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
   const distance = calculateDistance(userLat, userLon, destLat, destLon);
   if (distance === null) {
     showNotification(
@@ -144,8 +308,8 @@ export function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
     );
     return;
   }
-
   console.log(`Distância do usuário ao destino: ${distance} metros.`);
+  // Recalcula apenas se o usuário estiver fora do buffer e após 5 segundos
   const now = Date.now();
   if (distance > 100 && now - lastRecalculationTime > 5000) {
     console.log('Usuário fora da rota. Iniciando recalculo...');
@@ -153,119 +317,22 @@ export function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
     createRoute(destLat, destLon);
     lastRecalculationTime = now;
   }
-
   if (distance < 50) {
     console.log('Usuário chegou ao destino.');
     endNavigation();
   }
-}
+} /*
 
-export function onDeviceOrientationChange(event) {
-  const alpha = event.alpha; // tipicamente 0-360
-  if (typeof alpha === 'number' && !isNaN(alpha)) {
-    // Ajusta rotação do mapa
-    setMapRotation(alpha);
-  }
-}
-
+  --- 10.4. Finalização do Rastreamento ---
 /**
- * autoRotationAuto
- *
- * Atualiza a visualização do mapa para centralizar na localização atual do usuário e
- * inicia o processo de rotação automática da camada de tiles.
- *
- * Fluxo:
- * 1. Verifica se a variável global userLocation está definida.
- * 2. Chama updateMapWithUserLocation para reposicionar o mapa com base nas coordenadas reais.
- * 3. Se a propriedade heading estiver disponível em userLocation, aplica a rotação inicial
- *    usando setMapRotation. Isso garante que, logo no início, o mapa seja rotacionado
- *    de acordo com o heading atual do usuário.
- * 4. Chama startRotationAuto para ativar os eventos de deviceorientation, permitindo
- *    que o mapa atualize continuamente a rotação com base nas leituras do dispositivo.
- */
-export function startRotationAuto() {
-  console.log(
-    '[startRotationAuto] Tentando ativar rotação automática do mapa...'
-  );
-
-  // Habilita a flag no navigationState (caso usemos em setMapRotation)
-  if (navigationState) {
-    navigationState.isRotationEnabled = true;
+ * 1. stopPositionTracking
+ *    Encerra o rastreamento de posição. */
+function stopPositionTracking() {
+  if (navigationWatchId !== null) {
+    navigator.geolocation.clearWatch(navigationWatchId);
+    navigationWatchId = null;
+    console.log('Rastreamento encerrado.');
   }
-
-  // Verifica se o dispositivo/navegador suportam DeviceOrientationEvent
-  if (typeof DeviceOrientationEvent === 'undefined') {
-    console.warn("[startRotationAuto] 'DeviceOrientationEvent' não suportado.");
-    showNotification(
-      'Rotação automática não suportada neste dispositivo.',
-      'warning'
-    );
-    return;
-  }
-
-  // iOS >= 13 precisa de permissão
-  if (
-    DeviceOrientationEvent.requestPermission &&
-    typeof DeviceOrientationEvent.requestPermission === 'function'
-  ) {
-    DeviceOrientationEvent.requestPermission()
-      .then((response) => {
-        if (response === 'granted') {
-          console.log('[startRotationAuto] Permissão concedida para heading.');
-          attachOrientationListener();
-        } else {
-          console.warn('[startRotationAuto] Permissão negada para heading.');
-          showNotification('Rotação automática não autorizada.', 'warning');
-        }
-      })
-      .catch((err) => {
-        console.error('[startRotationAuto] Erro ao solicitar permissão:', err);
-        showNotification(
-          'Não foi possível ativar rotação automática.',
-          'error'
-        );
-      });
-  } else {
-    // Se não exigir permissão, adiciona o listener diretamente
-    attachOrientationListener();
-  }
-
-  function attachOrientationListener() {
-    // Evita adicionar múltiplos listeners
-    window.removeEventListener(
-      'deviceorientation',
-      onDeviceOrientationChange,
-      true
-    );
-    window.addEventListener(
-      'deviceorientation',
-      onDeviceOrientationChange,
-      true
-    );
-    console.log(
-      "[startRotationAuto] Evento 'deviceorientation' registrado com sucesso."
-    );
-  }
-}
-
-/**
- * 3. pauseNavigation
- *     Pausa a navegação.
- */
-export function pauseNavigation() {
-  if (!navigationState.isActive) {
-    console.warn('Navegação não está ativa para pausar.');
-    return;
-  }
-  if (navigationState.isPaused) {
-    console.log('Navegação já está pausada.');
-    return;
-  }
-  navigationState.isPaused = true;
-  if (window.positionWatcher) {
-    navigator.geolocation.clearWatch(window.positionWatcher);
-    window.positionWatcher = null;
-  }
-  showNotification(getGeneralText('navPaused', navigationState.lang), 'info');
-  console.log('Navegação pausada.');
+  userCurrentLocation = null;
+  trackingActive = false;
 }
