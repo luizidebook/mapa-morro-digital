@@ -2,12 +2,10 @@ import { getLocalStorageItem } from '../data/cache.js';
 
 // Variáveis essenciais para a instância do mapa e configuração geral
 export let selectedLanguage = getLocalStorageItem('preferredLanguage') || 'pt'; // Idioma selecionado (padrão 'pt')
-
+export let lastSelectedFeature = null; // Última feature selecionada
 // Variáveis de destino e localização do usuário
 export let selectedDestination = {}; // Objeto com as propriedades do destino (lat, lon, name, etc.)
 export let userLocation = null; // Última localização conhecida do usuário (atualizada pelo GPS)
-export let lastSelectedFeature = null;
-// Variáveis para controle e exibição de marcadores e rota
 export let markers = []; // Array que armazena todos os marcadores adicionados ao mapa
 export let currentRoute = null; // Camada (polyline) da rota atual exibida no mapa
 export let userMarker = null; // Marcador que representa a posição atual do usuário

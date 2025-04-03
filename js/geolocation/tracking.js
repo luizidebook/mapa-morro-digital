@@ -34,6 +34,7 @@
  * Observação:
  * Certifique-se de que todas as dependências estão disponíveis no escopo global ou importadas corretamente.
  */
+// Exemplo de chaves e constantes
 
 /////////////////////////////
 // Código do módulo começa aqui
@@ -52,13 +53,14 @@ import { endNavigation } from '../navigation/navigation.js';
 
 // Importações de variáveis globais
 import { selectedLanguage } from '../core/varGlobals.js';
-import { map } from '../main.js';
+import { map } from '../map/map.js';
 export let userLocation = null; // Última localização conhecida do usuário (atualizada pelo GPS)
 export let trackingActive = false;
 export let watchId = null;
 export let userPosition = null;
 export let lastRecalculationTime = 0;
-
+// Variável global para o ID do watchPosition (armazenada na propriedade window.positionWatcher)
+export let positionWatcher = null;
 /**
  * 1. getCurrentLocation
  * getCurrentLocation
@@ -69,51 +71,31 @@ export let lastRecalculationTime = 0;
  * @returns {Object|null} - Objeto com latitude, longitude e precisão ou null em caso de erro.
  */
 export async function getCurrentLocation(
-  options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+  options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
 ) {
   console.log('[getCurrentLocation] Solicitando posição atual...');
 
-  // Verifica se a API de geolocalização está disponível
   if (!('geolocation' in navigator)) {
-    showNotification(
-      getGeneralText('geolocationUnsupported', selectedLanguage) ||
-        'Geolocalização não suportada.',
-      'error'
-    );
+    showNotification('Geolocalização não suportada pelo navegador.', 'error');
     return null;
   }
 
   try {
-    // Solicita a posição atual
     const position = await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, options);
     });
+
     const { latitude, longitude, accuracy } = position.coords;
     userLocation = { latitude, longitude, accuracy };
     console.log('[getCurrentLocation] Localização obtida:', userLocation);
 
-    // Inicia o tracking contínuo após obter a posição inicial
-    startPositionTracking();
-
     return userLocation;
   } catch (error) {
-    console.error('[getCurrentLocation] Erro:', error);
-    // Define mensagem de erro específica com base no código do erro
-    let message = getGeneralText('trackingError', selectedLanguage);
-    if (error.code === error.PERMISSION_DENIED) {
-      message =
-        getGeneralText('noLocationPermission', selectedLanguage) ||
-        'Permissão de localização negada.';
-    } else if (error.code === error.TIMEOUT) {
-      message =
-        getGeneralText('locationTimeout', selectedLanguage) ||
-        'Tempo limite para obtenção de localização excedido.';
-    } else if (error.code === error.POSITION_UNAVAILABLE) {
-      message =
-        getGeneralText('positionUnavailable', selectedLanguage) ||
-        'Posição indisponível.';
-    }
-    showNotification(message, 'error');
+    console.error('[getCurrentLocation] Erro ao obter localização:', error);
+    showNotification(
+      'Erro ao obter localização. Verifique as permissões.',
+      'error'
+    );
     return null;
   }
 }
@@ -138,17 +120,10 @@ export async function useCurrentLocation() {
  * 1. startPositionTracking
  *     Inicia o rastreamento contínuo (watchPosition).
  */
-export function startPositionTracking(options = {}) {
-  const {
-    enableHighAccuracy = true,
-    maximumAge = 10000,
-    timeout = 15000,
-  } = options;
-
-  if (!trackingActive) {
-    console.warn('[startPositionTracking] trackingActive=false, abortando...');
-    return;
-  }
+export function startPositionTracking(
+  options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+) {
+  console.log('[startPositionTracking] Iniciando rastreamento contínuo...');
 
   if (!('geolocation' in navigator)) {
     console.warn('[startPositionTracking] Geolocalização não suportada.');
@@ -163,23 +138,50 @@ export function startPositionTracking(options = {}) {
 
   watchId = navigator.geolocation.watchPosition(
     (position) => {
-      userPosition = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-      };
+      const { latitude, longitude, accuracy } = position.coords;
+
+      // Ignora atualizações com baixa precisão
+      if (accuracy > 20) {
+        console.warn(
+          '[startPositionTracking] Precisão baixa. Atualização ignorada.'
+        );
+        return;
+      }
+
+      // Atualiza apenas se houver uma mudança significativa na posição
+      if (userPosition) {
+        const distance = calculateDistance(
+          userPosition.latitude,
+          userPosition.longitude,
+          latitude,
+          longitude
+        );
+        if (distance < 5) {
+          console.log(
+            '[startPositionTracking] Movimento insignificante. Atualização ignorada.'
+          );
+          return;
+        }
+      }
+
+      userPosition = { latitude, longitude, accuracy };
       console.log('[startPositionTracking] Posição atualizada:', userPosition);
+
+      // Atualiza o mapa com a nova posição
+      updateMapWithUserLocation();
     },
     (error) => {
-      console.error('[startPositionTracking] Erro:', error);
-      showNotification('Não foi possível obter localização.', 'error');
-      fallbackToSensorNavigation(); // Ativa fallback
+      console.error(
+        '[startPositionTracking] Erro ao rastrear localização:',
+        error
+      );
+      showNotification('Erro ao rastrear localização.', 'error');
     },
-    { enableHighAccuracy, maximumAge, timeout }
+    options
   );
 
   console.log(
-    '[startPositionTracking] watchPosition iniciado. watchId =',
+    '[startPositionTracking] Rastreamento contínuo iniciado. watchId =',
     watchId
   );
 }
@@ -214,6 +216,41 @@ export function detectMotion() {
     });
   } else {
     console.warn('DeviceMotionEvent não suportado.');
+  }
+}
+
+/**
+ * 5. detectMotionAndOrientation
+ *     Detecta movimento e orientação do dispositivo.
+ */
+export function detectMotionAndOrientation() {
+  if ('DeviceMotionEvent' in window) {
+    window.addEventListener('devicemotion', (event) => {
+      const { x, y, z } = event.acceleration;
+      if (x > 5 || y > 5 || z > 5) {
+        console.log('[detectMotionAndOrientation] Movimento detectado:', {
+          x,
+          y,
+          z,
+        });
+      }
+    });
+  } else {
+    console.warn('[detectMotionAndOrientation] Acelerômetro não suportado.');
+  }
+
+  if ('DeviceOrientationEvent' in window) {
+    window.addEventListener('deviceorientation', (event) => {
+      const { alpha, beta, gamma } = event;
+      console.log('[detectMotionAndOrientation] Orientação detectada:', {
+        alpha,
+        beta,
+        gamma,
+      });
+      setMapRotation(alpha); // Ajusta a rotação do mapa com base na orientação
+    });
+  } else {
+    console.warn('[detectMotionAndOrientation] Giroscópio não suportado.');
   }
 } /*
 
@@ -319,21 +356,31 @@ export function updateUserPositionOnRoute(userLat, userLon, destLat, destLon) {
     );
     return;
   }
+
   console.log(`Distância do usuário ao destino: ${distance} metros.`);
-  // Recalcula apenas se o usuário estiver fora do buffer e após 5 segundos
+
   const now = Date.now();
   if (distance > 100 && now - lastRecalculationTime > 5000) {
-    console.log('Usuário fora da rota. Iniciando recalculo...');
+    console.log(
+      '[updateUserPositionOnRoute] Usuário fora da rota. Recalculando...'
+    );
     showNotification('Recalculando a rota devido a desvio...', 'info');
     createRoute(destLat, destLon);
     lastRecalculationTime = now;
   }
+
   if (distance < 50) {
-    console.log('Usuário chegou ao destino.');
+    console.log('[updateUserPositionOnRoute] Usuário chegou ao destino.');
     endNavigation();
   }
-} /*
+}
 
+export function notifyUser(message, type = 'info') {
+  showNotification(message, type);
+  console.log(`[notifyUser] ${type.toUpperCase()}: ${message}`);
+}
+
+/*
   --- 10.4. Finalização do Rastreamento ---
 /**
  * 1. stopPositionTracking

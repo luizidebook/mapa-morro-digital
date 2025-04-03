@@ -1,4 +1,5 @@
 // Importações necessárias
+import { getGeneralText } from '../i18n/language.js';
 import { navigationState, selectedLanguage } from '../core/varGlobals.js';
 
 // Função: Exibe uma notificação para o usuário

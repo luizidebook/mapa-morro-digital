@@ -1,3 +1,5 @@
+import { map } from '../map/map.js'; // Importa o mapa do arquivo principal
+
 /**
  * clearRouteMarkers
  * Remove marcadores de origem, destino e quaisquer marcadores relacionados à rota.

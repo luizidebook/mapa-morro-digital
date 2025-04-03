@@ -1,9 +1,10 @@
 // routeSummary.js
 //  * @param {Object} userLocation - A localização atual do usuário.
 // * @returns {Promise<Object>} - Dados da rota criada (incluindo polyline).
-
+import { getGeneralText } from '../../i18n/language.js';
 import { showNotification } from '../../ui/notifications.js';
-import { currentRouteData } from '../../core/varGlobals.js';
+let currentRouteData = null;
+
 //import { showNotification } from '../../ui/notifications.js';
 // import { getGeneralText } from '../../i18n/language.js';
 /**

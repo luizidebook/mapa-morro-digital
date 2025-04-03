@@ -1,3 +1,8 @@
+// Variáveis de destino e localização do usuário
+export let userLocation = null; // Última localização conhecida do usuário (atualizada pelo GPS)
+// Variável global para o ID do watchPosition (armazenada na propriedade window.positionWatcher)
+export let positionWatcher = null;
+
 /**
  * 1. cacheRouteData - Salva dados da rota (instruções e polyline) no cache local (localStorage).
  */
@@ -22,17 +27,6 @@ export function cacheRouteData(routeInstructions, routeLatLngs) {
       'error'
     );
   }
-}
-
-export function selectDestination(destination) {
-  selectedDestination = destination; // Atualiza a variável global
-  saveDestinationToCache(destination)
-    .then(() => {
-      console.log('Destino salvo no cache:', destination);
-    })
-    .catch((error) => {
-      console.error('Erro ao salvar destino no cache:', error);
-    });
 }
 
 /*
@@ -119,16 +113,18 @@ export function removeLocalStorageItem(key) {
  * 5. saveDestinationToCache - Salva destino selecionado no cache local.
  */
 export function saveDestinationToCache(destination) {
-  return new Promise((resolve, reject) => {
-    try {
-      console.log('Saving Destination to Cache:', destination);
-      localStorage.setItem('selectedDestination', JSON.stringify(destination));
-      resolve();
-    } catch (error) {
-      console.error('Erro ao salvar destino no cache:', error);
-      reject(new Error('Erro ao salvar destino no cache.'));
-    }
-  });
+  try {
+    localStorage.setItem('selectedDestination', JSON.stringify(destination));
+    console.log(
+      '[saveDestinationToCache] Destino salvo no cache:',
+      destination
+    );
+  } catch (error) {
+    console.error(
+      '[saveDestinationToCache] Erro ao salvar destino no cache:',
+      error
+    );
+  }
 }
 
 /**
@@ -195,16 +191,13 @@ export function getSelectedDestination() {
       const destination = JSON.parse(
         localStorage.getItem('selectedDestination')
       );
-      console.log('Retrieved Selected Destination:', destination);
-      if (destination) {
-        selectedDestination = destination;
+      if (destination && destination.lat && destination.lon) {
         resolve(destination);
       } else {
-        reject(new Error('No destination selected.'));
+        reject(new Error('Destino inválido ou não encontrado no cache.'));
       }
     } catch (error) {
-      console.error('Erro ao resgatar destino do cache:', error);
-      reject(new Error('Erro ao resgatar destino do cache.'));
+      reject(new Error('Erro ao recuperar destino do cache.'));
     }
   });
 }
@@ -218,5 +211,51 @@ export function sendDestinationToServiceWorker(destination) {
       action: 'saveDestination',
       payload: destination,
     });
+    console.log(
+      '[sendDestinationToServiceWorker] Destino enviado para o Service Worker:',
+      destination
+    );
+  } else {
+    console.error(
+      '[sendDestinationToServiceWorker] Service Worker não está ativo.'
+    );
   }
+}
+
+/**
+ * 12. displayOSMData - Exibe dados do OpenStreetMap no submenu e adiciona marcadores no mapa.
+ */
+export function displayOSMData(data, subMenuId, feature) {
+  const subMenu = document.getElementById(subMenuId);
+  subMenu.innerHTML = '';
+
+  data.elements.forEach((element) => {
+    if (element.type === 'node' && element.tags.name) {
+      const btn = document.createElement('button');
+      btn.className = 'submenu-item submenu-button';
+      btn.textContent = element.tags.name;
+      btn.setAttribute('data-destination', element.tags.name);
+
+      const description =
+        element.tags.description || 'Descrição não disponível';
+
+      btn.onclick = () => {
+        handleSubmenuButtons(
+          element.lat,
+          element.lon,
+          element.tags.name,
+          description,
+          element.tags.images || [],
+          feature
+        );
+      };
+
+      subMenu.appendChild(btn);
+
+      const marker = L.marker([element.lat, element.lon])
+        .addTo(map)
+        .bindPopup(`<b>${element.tags.name}</b><br>${description}`);
+      markers.push(marker);
+    }
+  });
 }

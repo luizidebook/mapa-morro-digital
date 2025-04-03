@@ -1,5 +1,17 @@
 // Importações necessárias
 
+//showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
+// Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
+export function showWelcomeMessage() {
+  const modal = document.getElementById('welcome-modal');
+  if (!modal) return;
+  modal.style.display = 'block';
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    btn.style.pointerEvents = 'auto';
+  });
+  console.log('Mensagem de boas-vindas exibida.');
+}
+
 /**
  * Exibe o modal do assistente virtual (assistant-modal).
  * @param {string} message - Mensagem a ser exibida no modal.

@@ -1,0 +1,11 @@
+{
+  "name": "digital-assistant-system",
+  "version": "1.0.0",
+  "description": "Sistema de Assistente Digital para Mapa Morro Digital",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Morro Digital",
+  "license": "ISC"
+}

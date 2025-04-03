@@ -7,27 +7,28 @@
  * @param {Array<string>} buttonsToShow - IDs dos botões que devem ser exibidos.
  */
 export function showMenuFooter(buttonsToShow = []) {
-  // Seleciona todos os botões do rodapé
-  const allButtons = document.querySelectorAll('#menu-footer .footer-btn');
+  console.log(
+    '[showMenuFooter] Exibindo menu footer com botões:',
+    buttonsToShow
+  );
 
-  // Oculta todos os botões inicialmente
-  allButtons.forEach((button) => {
-    button.classList.add('hidden');
-  });
+  const footer = document.getElementById('menu-footer');
+  if (!footer) {
+    console.error('[showMenuFooter] Elemento do rodapé não encontrado.');
+    return;
+  }
 
-  // Exibe apenas os botões especificados
-  buttonsToShow.forEach((buttonId) => {
-    const button = document.getElementById(buttonId);
-    if (button) {
-      button.classList.remove('hidden');
+  footer.classList.remove('hidden');
+  footer.style.display = 'block';
+
+  const buttons = footer.querySelectorAll('.footer-btn');
+  buttons.forEach((btn) => {
+    if (buttonsToShow.includes(btn.id)) {
+      btn.style.display = 'block';
+    } else {
+      btn.style.display = 'none';
     }
   });
 
-  // Exibe o rodapé se pelo menos um botão estiver visível
-  const menuFooter = document.getElementById('menu-footer');
-  if (buttonsToShow.length > 0) {
-    menuFooter.classList.remove('hidden');
-  } else {
-    menuFooter.classList.add('hidden');
-  }
+  console.log('[showMenuFooter] Menu footer atualizado.');
 }

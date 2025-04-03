@@ -11,49 +11,88 @@
  * autoAdjustTheme - Ajusta o tema da interface (claro/escuro) com base nas preferências do usuário
  * showWelcomeMessage - Exibe a mensagem de boas-vindas e seleção de idioma inicial
  */
-
 // Importações do módulo core/config.js
+import { initializeMap } from './map/map.js';
 import { setupEventListeners } from './core/event-listeners.js';
-import { autoAdjustTheme } from './core/config.js';
+import { showWelcomeMessage } from './ui/modals.js';
+import { autoAdjustTheme } from './ui/theme.js';
+import { initializeWeatherWidgets } from './ui/widgets.js';
+import { initializeAssistant } from './assistente/index.js';
 
-/**
- * Evento DOMContentLoaded - Executado quando o DOM está totalmente carregado
- * Este é o ponto de entrada principal da aplicação, onde iniciamos todos os
- * componentes essenciais na ordem correta.
- */
-
-document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+document.addEventListener('DOMContentLoaded', () => {
+  onDOMContentLoaded();
+});
 
 export function onDOMContentLoaded() {
   console.log('Iniciando aplicação...');
 
   try {
+    // Ocultar explicitamente o widget de clima e o botão do assistente no início
+    const weatherWidget = document.getElementById('weather-widget');
+    const assistantContainer = document.getElementById('digital-assistant');
+
+    if (weatherWidget) {
+      weatherWidget.style.display = 'none';
+      weatherWidget.classList.add('hidden');
+    }
+
+    if (assistantContainer) {
+      assistantContainer.style.display = 'none';
+      assistantContainer.classList.add('hidden');
+    }
+
+    // Primeiro inicializar o mapa
     initializeMap();
-  } catch (error) {
-    console.error('Erro ao inicializar o mapa:', error);
-  }
 
-  try {
-    showWelcomeMessage();
-  } catch (error) {
-    console.error('Erro ao exibir mensagem de boas-vindas:', error);
-  }
-
-  try {
-    setupEventListeners();
-  } catch (error) {
-    console.error('Erro ao configurar ouvintes de eventos:', error);
-  }
-
-  try {
+    // Depois configurar tema
     autoAdjustTheme();
-  } catch (error) {
-    console.error('Erro ao ajustar o tema:', error);
-  }
 
-  console.log('Aplicação inicializada com sucesso!');
+    // Inicializar componentes relacionados ao clima, mas mantê-los ocultos
+    initializeWeatherWidgets();
+
+    // Inicializar assistente com opções - ele ficará oculto no início
+    try {
+      const assistantAPI = initializeAssistant(window.map, {
+        autoShow: false,
+        enableVoice: true,
+        rememberHistory: true,
+      });
+
+      window.assistantApi = assistantAPI;
+      console.log('Assistente virtual inicializado com sucesso');
+    } catch (assistantError) {
+      console.error('Erro ao inicializar assistente virtual:', assistantError);
+      // Criar API vazia para evitar erros cascata
+      window.assistantApi = {
+        showAssistant: () => false,
+        hideAssistant: () => false,
+        sendMessage: () => false,
+        isActive: () => false,
+        getState: () => ({}),
+        notifyOpened: () => false,
+        startVoiceInput: () => false,
+      };
+    }
+
+    // Registrar Service Worker
+    registerServiceWorker();
+
+    // Por último, mostrar a mensagem de boas-vindas
+    // Os widgets e o assistente serão mostrados após o usuário selecionar o idioma
+    showWelcomeMessage();
+
+    // Configurar event listeners
+    setupEventListeners();
+
+    console.log('Aplicação inicializada com sucesso!');
+  } catch (error) {
+    console.error('Erro ao inicializar aplicação:', error);
+  }
 }
 
+/**
+ * Registra o Service Worker para funcionalidades offline
+ */
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
@@ -65,52 +104,4 @@ export function registerServiceWorker() {
   } else {
     console.warn('Service Workers não são suportados neste navegador.');
   }
-}
-
-// Certifique-se de rodar em um servidor local (ex.: http://localhost)
-registerServiceWorker();
-
-/**
- * Inicializa o mapa Leaflet e configura as camadas.
- */
-
-export let map;
-export function initializeMap() {
-  const mapContainer = document.getElementById('map');
-  if (!mapContainer) {
-    console.error('Elemento #map não encontrado no DOM.');
-    showNotification(
-      'Erro ao carregar o mapa. Elemento não encontrado.',
-      'error'
-    );
-    return;
-  }
-
-  // Inicialização do mapa Leaflet
-  map = L.map('map').setView([-13.3766787, -38.9172057], 13); // Coordenadas iniciais
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-  }).addTo(map);
-}
-
-/**
- * Retorna a camada de tiles para o mapa.
- * @returns {Object} Camada de tiles Leaflet.
- */
-export function getTileLayer() {
-  return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-  });
-}
-
-//showWelcomeMessage - Exibe a mensagem de boas-vindas e habilita os botões de idioma.
-// Função: Exibe a mensagem de boas-vindas e habilita os botões de idioma
-export function showWelcomeMessage() {
-  const modal = document.getElementById('welcome-modal');
-  if (!modal) return;
-  modal.style.display = 'block';
-  document.querySelectorAll('.lang-btn').forEach((btn) => {
-    btn.style.pointerEvents = 'auto';
-  });
-  console.log('Mensagem de boas-vindas exibida.');
 }

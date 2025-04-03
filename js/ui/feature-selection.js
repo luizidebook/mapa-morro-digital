@@ -1,4 +1,4 @@
-import { map } from '../main.js';
+import { map } from '../map/map.js'; // Importa o mapa do arquivo principal
 import { markers } from '../core/varGlobals.js';
 import { adjustMapWithLocation } from '../map/map.js';
 import { clearMarkers } from '../map/map.js';
@@ -639,13 +639,11 @@ function displayCustomTours() {
 /**
  * 1. fetchOSMData - Busca dados do OSM utilizando a Overpass API.
  */
-export async function fetchOSMData(query) {
+async function fetchOSMData(query) {
   try {
-    // Monta URL para Overpass
     const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
     console.log('[fetchOSMData] Iniciando busca no Overpass-API:', overpassUrl);
 
-    // Faz a requisição
     const response = await fetch(overpassUrl);
     if (!response.ok) {
       console.error(
@@ -660,7 +658,6 @@ export async function fetchOSMData(query) {
       return null;
     }
 
-    // Tenta parsear JSON
     const data = await response.json();
     if (!data.elements || data.elements.length === 0) {
       console.warn('[fetchOSMData] Nenhum dado encontrado (elements vazio).');
@@ -668,10 +665,22 @@ export async function fetchOSMData(query) {
       return null;
     }
 
-    console.log(
-      `[fetchOSMData] Retornados ${data.elements.length} elementos do OSM.`
-    );
-    return data;
+    // Filtra apenas os dados essenciais
+    const filteredData = data.elements.map((element) => ({
+      lat: element.lat,
+      lon: element.lon,
+      name: element.tags.name || 'Sem nome',
+      description: element.tags.description || 'Descrição não disponível',
+      images: element.tags.images || [],
+      feature:
+        element.tags.tourism ||
+        element.tags.amenity ||
+        element.tags.natural ||
+        'Desconhecido',
+    }));
+
+    console.log(`[fetchOSMData] Dados filtrados:`, filteredData);
+    return filteredData;
   } catch (error) {
     console.error('[fetchOSMData] Erro geral ao buscar dados do OSM:', error);
     showNotification(
@@ -681,7 +690,6 @@ export async function fetchOSMData(query) {
     return null;
   }
 }
-
 /**
  * Exibe dados do OSM no mapa e interface
  * @param {Object} data - Dados retornados pela API Overpass
@@ -689,48 +697,36 @@ export async function fetchOSMData(query) {
  * @param {string} feature - Tipo de feature
  */
 function displayOSMData(data, subMenuId, feature) {
-  // Limpa o conteúdo do submenu
   const subMenu = document.getElementById(subMenuId);
   subMenu.innerHTML = '';
 
-  // Cria botões dinamicamente
-  data.elements.forEach((element) => {
-    if (element.type === 'node' && element.tags.name) {
+  data.forEach((element) => {
+    if (element.lat && element.lon && element.name) {
       const btn = document.createElement('button');
       btn.className = 'submenu-item submenu-button';
-      btn.textContent = element.tags.name;
-      btn.setAttribute('data-destination', element.tags.name);
-
-      const description =
-        element.tags.description || 'Descrição não disponível';
+      btn.textContent = element.name;
+      btn.setAttribute('data-destination', element.name);
 
       btn.onclick = () => {
         handleSubmenuButtons(
           element.lat,
           element.lon,
-          element.tags.name,
-          description,
-          element.tags.images || [],
+          element.name,
+          element.description,
+          element.images,
           feature
         );
       };
 
       subMenu.appendChild(btn);
 
-      // Adiciona marcador
       const marker = L.marker([element.lat, element.lon])
         .addTo(map)
-        .bindPopup(`<b>${element.tags.name}</b><br>${description}`);
+        .bindPopup(`<b>${element.name}</b><br>${element.description}`);
       markers.push(marker);
+    } else {
+      console.warn('[displayOSMData] Elemento com dados incompletos:', element);
     }
-  });
-
-  // Configura evento de clique
-  document.querySelectorAll('.submenu-button').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      const destination = this.getAttribute('data-destination');
-      console.log(`Destination selected: ${destination}`);
-    });
   });
 }
 
@@ -953,24 +949,45 @@ export function handleSubmenuButtonsTips(lat, lon, name, description) {
  * Atualiza o destino global e executa uma função de controle.
  */
 
-function handleSubmenuButtons(lat, lon, name, description, images, feature) {
+export function handleSubmenuButtons(
+  lat,
+  lon,
+  name,
+  description,
+  images,
+  feature
+) {
+  if (!lat || !lon) {
+    console.error('[handleSubmenuButtons] Coordenadas inválidas:', {
+      lat,
+      lon,
+    });
+    return;
+  }
   // 1. Obtém URLs adicionais relacionados ao local
-  const url = getUrlsForLocation(name);
-
   // 2. Limpa os marcadores existentes no mapa e ajusta para a localização selecionada
   clearMarkers();
   adjustMapWithLocation(lat, lon, name, description, 15, -10);
 
   // 3. Atualiza o estado global e salva o destino selecionado no cache
-  selectedDestination = { name, description, lat, lon, images, feature, url };
+  selectedDestination = { name, description, lat, lon, images, feature };
+  console.log(
+    '[handleSubmenuButtons] Destino atualizado:',
+    selectedDestination
+  );
+
   saveDestinationToCache(selectedDestination)
     .then(() => {
       // 4. Envia o destino para o Service Worker e limpa rotas atuais
+      console.log('[handleSubmenuButtons] Destino salvo no cache com sucesso.');
       sendDestinationToServiceWorker(selectedDestination);
       clearCurrentRoute();
     })
     .catch((error) => {
-      console.error('Erro ao salvar destino no cache:', error);
+      console.error(
+        '[handleSubmenuButtons] Erro ao salvar destino no cache:',
+        error
+      );
     });
 
   // 5. Exibe botões de controle específicos com base na funcionalidade

@@ -1,47 +1,75 @@
-import {
-  selectedDestination,
-  lastSelectedFeature,
-} from '../core/varGlobals.js';
 import { tutorialIsActive, currentStep } from '../core/varGlobals.js';
-import {
-  showTutorialStep,
-  nextTutorialStep,
-  endTutorial,
-} from '../tutorial/tutorial.js';
 import { closeCarouselModal } from '../ui/modals.js';
 import { closeSideMenu } from '../ui/menu.js';
 import { handleFeatureSelection } from '../ui/feature-selection.js';
-import { startCarousel } from '../ui/carousel.js'; // Importa a função startCarousel
-import { updateInterfaceLanguage } from '../i18n/language.js';
+import { startCarousel } from '../ui/carousel.js';
 import { setLanguage } from './config.js';
 import { hideAllControlButtons } from '../ui/buttons.js';
 import { startRouteCreation } from '../route/route.js';
+import { showNotification } from '../ui/notifications.js';
+
+// Função para restaurar o estado salvo no service worker
+function restoreState(state) {
+  console.log('Restaurando estado da aplicação:', state);
+  // Implementar restauração de estado conforme necessário
+}
+
+// Função para atualizar a posição do usuário no mapa
+function updateUserPositionOnMap(position) {
+  if (!window.map) {
+    console.warn(
+      'Mapa não inicializado ao tentar atualizar posição do usuário'
+    );
+    return;
+  }
+  console.log('Atualizando posição do usuário no mapa:', position);
+  // Implementar atualização da posição conforme necessário
+}
 
 /**
- * 2. setupEventListeners - Configura os event listeners (já implementado em parte no DOMContentLoaded).
+ * setupEventListeners - Configura todos os event listeners da aplicação.
+ * Esta função é chamada após o carregamento do DOM.
  */
 export function setupEventListeners() {
-  // Configura o evento de mudança de idioma com integração ao tutorial do assistente
+  console.log('Configurando event listeners da aplicação...');
+
+  // CONFIGURAÇÃO DE BOTÕES DE IDIOMA
   document.querySelectorAll('.lang-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const lang = button.dataset.lang;
-
-      // Define o idioma globalmente
       setLanguage(lang);
-      updateInterfaceLanguage(lang);
       console.log(`Idioma alterado para: ${lang}`);
     });
   });
 
-  // event listeners para os botões do tutorial
+  // CONFIGURAÇÃO DE BOTÕES DO TUTORIAL
+  setupTutorialButtons();
 
-  // Configuração do botão de avançar do tutorial
+  // CONFIGURAÇÃO DE BOTÕES DE MAPA E NAVEGAÇÃO
+  setupMapButtons();
+
+  // CONFIGURAÇÃO DE BOTÕES DE MENU
+  setupMenuButtons();
+
+  // CONFIGURAÇÃO DE SERVICE WORKER
+  setupServiceWorker();
+
+  // CONFIGURAÇÃO DO ASSISTENTE VIRTUAL
+  setupAssistantEventListeners();
+
+  console.log('Event listeners configurados com sucesso!');
+}
+
+/**
+ * Configura os botões específicos do tutorial
+ */
+function setupTutorialButtons() {
+  // Botão Iniciar Tutorial
   const tutorialStartBtn = document.getElementById('tutorial-iniciar-btn');
   if (tutorialStartBtn) {
     tutorialStartBtn.addEventListener('click', () => {
       try {
         console.log('Botão Iniciar Tutorial clicado');
-        // Avança para o próximo passo
         nextTutorialStep();
       } catch (error) {
         console.error(
@@ -52,13 +80,12 @@ export function setupEventListeners() {
     });
   }
 
-  // Configuração do botão de finalizar o tutorial
+  // Botão Finalizar Tutorial
   const tutorialEndBtn = document.getElementById('tutorial-finalizar-btn');
   if (tutorialEndBtn) {
     tutorialEndBtn.addEventListener('click', () => {
       try {
         console.log('Botão Finalizar Tutorial clicado');
-        // Finaliza o tutorial
         endTutorial();
       } catch (error) {
         console.error(
@@ -68,20 +95,23 @@ export function setupEventListeners() {
       }
     });
   }
+}
 
-  // Configuração do botão de zoom in do mapa
+/**
+ * Configura os botões relacionados ao mapa e navegação
+ */
+function setupMapButtons() {
+  // Botão de Zoom In
   const zoomInBtn = document.querySelector('.menu-btn.zoom-in');
   if (zoomInBtn) {
     zoomInBtn.addEventListener('click', () => {
-      // Verificamos se o mapa existe antes de chamar zoomIn
       if (window.map) {
-        window.map.zoomIn(); // Aumenta o zoom do mapa
+        window.map.zoomIn();
       } else {
         console.warn('Mapa não inicializado ao tentar usar zoomIn');
       }
-      closeSideMenu(); // Fecha o menu lateral se estiver aberto
+      closeSideMenu();
 
-      // Se o tutorial estiver ativo e este for o passo atual, avança para o próximo
       if (
         tutorialIsActive &&
         allTutorialSteps[currentStep] &&
@@ -92,19 +122,17 @@ export function setupEventListeners() {
     });
   }
 
-  // Configuração do botão de zoom out do mapa
+  // Botão de Zoom Out
   const zoomOutBtn = document.querySelector('.menu-btn.zoom-out');
   if (zoomOutBtn) {
     zoomOutBtn.addEventListener('click', () => {
-      // Verificamos se o mapa existe antes de chamar zoomOut
       if (window.map) {
-        window.map.zoomOut(); // Reduz o zoom do mapa
+        window.map.zoomOut();
       } else {
         console.warn('Mapa não inicializado ao tentar usar zoomOut');
       }
-      closeSideMenu(); // Fecha o menu lateral se estiver aberto
+      closeSideMenu();
 
-      // Se o tutorial estiver ativo e este for o passo atual, avança para o próximo
       if (
         tutorialIsActive &&
         allTutorialSteps[currentStep] &&
@@ -115,8 +143,21 @@ export function setupEventListeners() {
     });
   }
 
-  // Configuração do botão de alternar o menu flutuante
-  const menuToggle = document.getElementById('menu-toggle-btn'); // ID correto
+  // Botão Criar Rota
+  const startCreateRouteBtn = document.getElementById('create-route-btn');
+  if (startCreateRouteBtn) {
+    startCreateRouteBtn.addEventListener('click', () => {
+      startRouteCreation();
+    });
+  }
+}
+
+/**
+ * Configura os botões relacionados aos menus
+ */
+function setupMenuButtons() {
+  // Botão Toggle Menu
+  const menuToggle = document.getElementById('menu-toggle-btn');
   if (menuToggle) {
     menuToggle.addEventListener('click', () => {
       const menu = document.getElementById('menu');
@@ -124,9 +165,8 @@ export function setupEventListeners() {
         menu.classList.toggle('hidden');
       }
 
-      showTutorialStep('ask-interest'); // Exibe o passo específico do tutorial (pergunta de interesses)
+      showTutorialStep('ask-interest');
 
-      // Se o tutorial estiver ativo e estiver no passo que requer interação com o menu toggle
       if (
         tutorialIsActive &&
         allTutorialSteps[currentStep] &&
@@ -137,22 +177,35 @@ export function setupEventListeners() {
     });
   }
 
-  // Configuração do botão de detalhes do menu
+  // Botão Details
   const menuDetailsBtn = document.getElementById('menu-details-btn');
   if (menuDetailsBtn) {
     menuDetailsBtn.addEventListener('click', () => {
       console.log("✅ Botão 'menu-details-btn' clicado!");
-      // Funções simplificadas para evitar erros
       console.log('Limpando marcadores de rota...');
       console.log('Escondendo banner de instruções...');
-      showTutorialStep('ask-interest'); // Exibe o passo específico do tutorial (pergunta de interesses)
+      showTutorialStep('ask-interest');
     });
   }
 
-  // Configuração dos botões do menu flutuante com identificador de feature
-  const floatingMenu = document.getElementById('floating-menu'); // Menu flutuante com opções principais
+  // Configuração do botão "about-more-btn"
+  const aboutMoreBtn = document.getElementById('about-more-btn');
+  if (aboutMoreBtn) {
+    aboutMoreBtn.addEventListener('click', () => {
+      if (window.selectedDestination && window.selectedDestination.name) {
+        startCarousel(window.selectedDestination.name);
+      } else {
+        showNotification(
+          'Por favor, selecione um destino primeiro.',
+          'warning'
+        );
+      }
+    });
+  }
+
+  // Botões do menu flutuante
+  const floatingMenu = document.getElementById('floating-menu');
   if (floatingMenu) {
-    // Evento para botões do menu flutuante
     document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
       btn.addEventListener('click', (event) => {
         const feature = btn.getAttribute('data-feature');
@@ -164,24 +217,7 @@ export function setupEventListeners() {
     });
   }
 
-  const startCreateRouteBtn = document.getElementById('create-route-btn');
-  if (startCreateRouteBtn) {
-    startCreateRouteBtn.addEventListener('click', () => {
-      startRouteCreation();
-    });
-  }
-
-  // Configuração do botão "carousel-modal-close"
-  const carouselModalCloseBtn = document.getElementById('carousel-modal-close');
-  if (carouselModalCloseBtn) {
-    carouselModalCloseBtn.addEventListener('click', () => {
-      closeCarouselModal(); // Chama a função para fechar o modal do carrossel
-      console.log('Modal do carrossel fechado.');
-    });
-  }
-
-  // Configuração dos botões de controle com identificador de feature
-  // Evento para botões de controle
+  // Botões de controle com identificador de feature
   document.querySelectorAll('.control-btn[data-feature]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
       const feature = btn.getAttribute('data-feature');
@@ -195,28 +231,20 @@ export function setupEventListeners() {
     });
   });
 
-  // Adiciona eventos de clique aos botões
-  /*
-document
-  .getElementById('start-navigation-rodape-btn')
-  .addEventListener('click', startNavigation);
-document
-  .getElementById('stop-navigation-rodape-btn')
-  .addEventListener('click', endNavigation);
-*/
-
-  // Configuração do botão "about-more-btn"
-  const aboutMoreBtn = document.getElementById('about-more-btn');
-  if (aboutMoreBtn) {
-    aboutMoreBtn.addEventListener('click', () => {
-      if (selectedDestination && selectedDestination.name) {
-        startCarousel(selectedDestination.name);
-      } else {
-        alert('Por favor, selecione um destino primeiro.');
-      }
+  // Botão de fechar modal do carrossel
+  const carouselModalCloseBtn = document.getElementById('carousel-modal-close');
+  if (carouselModalCloseBtn) {
+    carouselModalCloseBtn.addEventListener('click', () => {
+      closeCarouselModal();
+      console.log('Modal do carrossel fechado.');
     });
   }
+}
 
+/**
+ * Configura o Service Worker
+ */
+function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/service-worker.js')
@@ -248,3 +276,117 @@ document
     };
   }
 }
+
+/**
+ * Configura os event listeners do assistente virtual
+ */
+function setupAssistantEventListeners() {
+  // Botão toggle do assistente
+  const assistantToggle = document.getElementById('assistant-toggle');
+  if (!assistantToggle) {
+    console.warn('Elemento assistant-toggle não encontrado');
+    return;
+  }
+
+  // Containers do assistente
+  const assistantDialog = document.getElementById('assistant-dialog');
+  const headerContainer = document.getElementById('assistant-header-container');
+  const inputContainer = document.getElementById('assistant-input-container');
+  const closeAssistantDialog = document.getElementById(
+    'close-assistant-dialog'
+  );
+
+  // Verificar se os elementos existem
+  if (!assistantDialog) {
+    console.warn('Elemento assistant-dialog não encontrado');
+  }
+
+  // Botão toggle para abrir/fechar o diálogo
+  assistantToggle.addEventListener('click', () => {
+    console.log('Botão do assistente clicado');
+    if (assistantDialog) {
+      assistantDialog.classList.toggle('hidden');
+
+      // Ajustar visibilidade dos containers internos
+      if (!assistantDialog.classList.contains('hidden')) {
+        if (headerContainer) headerContainer.classList.add('visible');
+        if (inputContainer) inputContainer.classList.add('visible');
+
+        // Notificar API do assistente que foi aberto
+        if (
+          window.assistantApi &&
+          typeof window.assistantApi.notifyOpened === 'function'
+        ) {
+          window.assistantApi.notifyOpened();
+        }
+      } else {
+        if (headerContainer) headerContainer.classList.remove('visible');
+        if (inputContainer) inputContainer.classList.remove('visible');
+      }
+    }
+  });
+
+  // Botão de fechar o assistente
+  if (closeAssistantDialog) {
+    closeAssistantDialog.addEventListener('click', () => {
+      console.log('Botão fechar assistente clicado');
+      if (assistantDialog) {
+        assistantDialog.classList.add('hidden');
+      }
+      if (headerContainer) headerContainer.classList.remove('visible');
+      if (inputContainer) inputContainer.classList.remove('visible');
+    });
+  }
+
+  // Botão de envio de mensagem
+  const assistantSend = document.getElementById('assistant-send-btn');
+  const assistantInput = document.getElementById('assistant-input-field');
+
+  if (assistantSend && assistantInput) {
+    assistantSend.addEventListener('click', () => {
+      sendAssistantMessage(assistantInput);
+    });
+
+    // Permitir envio com Enter
+    assistantInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendAssistantMessage(assistantInput);
+      }
+    });
+  }
+
+  // Botão de entrada de voz
+  const assistantVoiceBtn = document.getElementById('assistant-voice-btn');
+  if (assistantVoiceBtn) {
+    assistantVoiceBtn.addEventListener('click', () => {
+      if (
+        window.assistantApi &&
+        typeof window.assistantApi.startVoiceInput === 'function'
+      ) {
+        window.assistantApi.startVoiceInput();
+      } else {
+        console.warn('Função de reconhecimento de voz não disponível');
+        showNotification('Reconhecimento de voz não disponível', 'warning');
+      }
+    });
+  }
+}
+
+/**
+ * Função auxiliar para enviar mensagem para o assistente
+ * @param {HTMLInputElement} inputElement - Campo de entrada de texto
+ */
+function sendAssistantMessage(inputElement) {
+  const message = inputElement.value.trim();
+  if (
+    message &&
+    window.assistantApi &&
+    typeof window.assistantApi.sendMessage === 'function'
+  ) {
+    window.assistantApi.sendMessage(message);
+    inputElement.value = '';
+  }
+}
+
+// Registrar os event listeners quando o DOM for carregado
+document.addEventListener('DOMContentLoaded', setupEventListeners);

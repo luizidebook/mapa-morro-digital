@@ -1,5 +1,57 @@
-import { map } from '../main.js';
-import { markers } from '../core/varGlobals.js';
+export let map; // Variável global para armazenar a instância do mapa
+
+/**
+ * Inicializa o mapa Leaflet e configura as camadas.
+ * @param {string} containerId - ID do elemento HTML que conterá o mapa.
+ * @returns {Object} Instância do mapa Leaflet.
+ */
+export function initializeMap() {
+  if (map) {
+    console.warn('Mapa já inicializado.');
+    return;
+  }
+
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    console.error('Elemento com ID "map" não encontrado no DOM.');
+    return;
+  }
+
+  map = L.map('map').setView([-13.3766787, -38.9172057], 13);
+  window.map = map; // Adicionar esta linha
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  console.log('Mapa inicializado com sucesso.');
+}
+
+/**
+ * Retorna a camada de tiles para o mapa.
+ * @returns {Object} Camada de tiles Leaflet.
+ */
+export function getTileLayer() {
+  return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+  });
+}
+
+/**
+ * Restaura a visualização original do mapa.
+ */
+export function resetMapView() {
+  const defaultView = {
+    lat: -13.4125,
+    lon: -38.9131,
+    zoom: 13,
+  };
+
+  if (map) {
+    map.setView([defaultView.lat, defaultView.lon], defaultView.zoom);
+    console.log('Visualização do mapa restaurada para o estado inicial.');
+  }
+}
 
 /**
  * Ajusta o mapa para a localização do usuário.
@@ -10,7 +62,7 @@ export function adjustMapWithLocationUser(lat, lon) {
   map.setView([lat, lon], 21);
   const marker = L.marker([lat, lon])
     .addTo(map)
-    .bindPopup(translations[selectedLanguage].youAreHere || 'Você está aqui!')
+    .bindPopup('Você está aqui!')
     .openPopup();
   markers.push(marker);
 }
@@ -27,38 +79,18 @@ export function adjustMapWithLocationUser(lat, lon) {
 export function adjustMapWithLocation(
   lat,
   lon,
-  name = '',
-  description = '',
+  name,
+  description,
   zoom = 15,
-  offsetYPercent = 10
+  offsetYPercent = 0
 ) {
-  try {
-    clearMarkers(); // Remove marcadores antigos
+  if (map) {
+    const offset = map.getSize().y * (offsetYPercent / 100);
+    const targetPoint = map.project([lat, lon], zoom).subtract([0, offset]);
+    const targetLatLng = map.unproject(targetPoint, zoom);
 
-    // Adiciona marcador no local especificado
-    const marker = L.marker([lat, lon])
-      .addTo(map)
-      .bindPopup(
-        `<b>${name}</b><br>${description || 'Localização selecionada'}`
-      )
-      .openPopup();
-
-    markers.push(marker); // Armazena marcador para referência futura
-
-    const mapSize = map.getSize();
-    const offsetY = (mapSize.y * Math.min(offsetYPercent, 100)) / 100;
-
-    const projectedPoint = map.project([lat, lon], zoom).subtract([0, offsetY]);
-    const adjustedLatLng = map.unproject(projectedPoint, zoom);
-
-    map.setView(adjustedLatLng, zoom, {
-      animate: true,
-      pan: { duration: 0.5 },
-    });
-
-    console.log(`Mapa ajustado para (${lat}, ${lon}) com zoom ${zoom}.`);
-  } catch (error) {
-    console.error('Erro ao ajustar o mapa:', error);
+    map.setView(targetLatLng, zoom);
+    console.log(`Mapa ajustado para: [${lat}, ${lon}] - ${name}`);
   }
 }
 
@@ -92,103 +124,14 @@ export function clearMapLayers() {
 }
 
 /**
- * Restaura a interface para a última feature selecionada.
+ * Recentraliza o mapa na localização do usuário.
+ * @param {number} lat - Latitude do usuário.
+ * @param {number} lon - Longitude do usuário.
+ * @param {number} zoom - Nível de zoom.
  */
-export function restoreFeatureUI(feature) {
-  console.log('Restaurando interface para a feature:', feature);
-
-  hideAllControlButtons();
-  closeCarouselModal();
-
-  if (
-    !selectedDestination ||
-    !selectedDestination.lat ||
-    !selectedDestination.lon
-  ) {
-    console.warn(
-      'Nenhum destino previamente selecionado. Abortando restoreFeatureUI.'
-    );
-    return;
-  }
-
-  adjustMapWithLocation(
-    selectedDestination.lat,
-    selectedDestination.lon,
-    selectedDestination.name,
-    selectedDestination.description,
-    15,
-    -10
-  );
-
-  showNotification(
-    `Último destino: ${selectedDestination.name || ''} restaurado no mapa.`,
-    'info'
-  );
-
-  switch (feature) {
-    case 'pontos-turisticos':
-      showControlButtonsTouristSpots();
-      displayCustomTouristSpots();
-      break;
-    case 'passeios':
-      showControlButtonsTour();
-      displayCustomTours();
-      break;
-    case 'praias':
-      showControlButtonsBeaches();
-      displayCustomBeaches();
-      break;
-    case 'festas':
-      showControlButtonsNightlife();
-      displayCustomNightlife();
-      break;
-    case 'restaurantes':
-      showControlButtonsRestaurants();
-      displayCustomRestaurants();
-      break;
-    case 'pousadas':
-      showControlButtonsInns();
-      displayCustomInns();
-      break;
-    case 'lojas':
-      showControlButtonsShops();
-      displayCustomShops();
-      break;
-    case 'emergencias':
-      showControlButtonsEmergencies();
-      displayCustomEmergencies();
-      break;
-    case 'ensino':
-      showControlButtonsEducation();
-      displayCustomEducation();
-      break;
-    default:
-      console.warn('Feature não reconhecida:', feature);
-      break;
-  }
-
-  const menuElement = document.getElementById('menu');
-  if (menuElement) {
-    menuElement.style.display = 'block';
-    console.log("restoreFeatureUI: Botão 'menu' reexibido.");
-  }
-}
-
-/**
- * Exibe a rota na pré-visualização.
- * @param {Object} route - Dados da rota.
- */
-export function visualizeRouteOnPreview(route) {
-  console.log('Rota exibida na pré-visualização:', route);
-}
-
-/**
- * Aplica zoom aos limites especificados.
- * @param {Object} bounds - Limites (bounds) para aplicar o zoom.
- */
-export function zoomToSelectedArea(bounds) {
+export function centerMapOnUser(lat, lon, zoom = 15) {
   if (map) {
-    map.fitBounds(bounds);
-    console.log('Zoom aplicado aos limites especificados.');
+    map.setView([lat, lon], zoom);
+    console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
   }
 }

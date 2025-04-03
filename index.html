@@ -22,6 +22,12 @@
 <!-- CSS Principal -->
   <link rel="stylesheet" href="./css/styles.css" />
 
+<!-- CSS do Assistente Virtual -->
+  <link rel="stylesheet" href="./css/assistant.css" />
+
+<!-- Adicione após a referência ao assistant.css -->
+<link rel="stylesheet" href="./css/weather-widget.css" />
+
 <!-- Leaflet (Mapa Interativo) -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -46,11 +52,25 @@
 </head> <!-- Fim do <head> -->
 
 <body> <!-- Início do <body> -->
+ 
   
 <!-- Contêiner principal do Mapa -->
 <div id="map-container">
     <div id="map"></div>
 </div>
+
+
+<div id="weather-widget" class="weather-widget hidden" style="display: none;">
+  <div class="weather-current">
+    <div class="weather-icon sunny"></div>
+    <div class="weather-temp">28°C</div>
+  </div>
+  <div class="weather-details">
+    <div class="weather-humidity">75%</div>
+    <div class="weather-wind">15 km/h</div>
+  </div>
+</div>
+
 
 <!-- #progress-bar: Barra de progresso opcional para exibir quando recursos estão carregando.
   - .hidden: classe que oculta até ser exibida dinamicamente. -->
@@ -222,8 +242,38 @@ Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
   </div>
 </div>
 
+<!-- Assistente Virtual Digital -->
+<div id="digital-assistant" class="digital-assistant hidden" style="display: none;">
+  <!-- Botão do assistente -->
+  <button id="assistant-toggle" class="assistant-toggle">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  <!-- Container do diálogo principal - conterá tanto o cabeçalho/mensagens quanto o input -->
+  <div id="assistant-dialog" class="assistant-dialog hidden">
+    <!-- Parte superior: Cabeçalho e Mensagens -->
+    <div id="assistant-header-container" class="assistant-header-container">
+      <div class="assistant-header">
+        <span data-i18n="assistant_title">Assistente Virtual</span>
+        <button id="close-assistant-dialog" class="close-btn">&times;</button>
+      </div>
+      <div id="assistant-messages" class="assistant-messages"></div>
+    </div>
+
+    <!-- Parte inferior: Input -->
+    <div id="assistant-input-container" class="assistant-input-container">
+      <div class="assistant-input">
+        <input type="text" id="assistant-input-field" placeholder="Pergunte algo..." data-i18n-placeholder="assistant_placeholder">
+        <button id="assistant-send-btn"><i class="fas fa-paper-plane"></i></button>
+        <button id="assistant-voice-btn"><i class="fas fa-microphone"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Script Principal -->
 <script type="module" src="./js/main.js"></script>
+
 
 </body>
 <!-- Fim do <body> -------------->
