@@ -17,7 +17,6 @@ import { setupEventListeners } from './core/event-listeners.js';
 import { showWelcomeMessage } from './ui/modals.js';
 import { autoAdjustTheme } from './ui/theme.js';
 import { initializeWeatherWidgets } from './ui/widgets.js';
-import { initializeAssistant } from './assistente/index.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   onDOMContentLoaded();
@@ -50,28 +49,49 @@ export function onDOMContentLoaded() {
     // Inicializar componentes relacionados ao clima, mas mantê-los ocultos
     initializeWeatherWidgets();
 
-    // Inicializar assistente com opções - ele ficará oculto no início
+    // Inicializar assistente com opções
     try {
-      const assistantAPI = initializeAssistant(window.map, {
-        autoShow: false,
-        enableVoice: true,
-        rememberHistory: true,
-      });
+      console.log('Inicializando assistente virtual com o mapa...');
+      // Importação dinâmica para garantir que o módulo correto seja usado
+      import('./assistente/assistente.js')
+        .then((module) => {
+          const assistantAPI = module.initializeAssistant(window.map, {
+            autoShow: false,
+            enableVoice: true,
+            firstTimeMessage:
+              'Olá, seja bem vindo a Morro Digital! É a sua primeira visita a Morro de São Paulo?',
+          });
 
-      window.assistantApi = assistantAPI;
-      console.log('Assistente virtual inicializado com sucesso');
+          window.assistantApi = assistantAPI;
+          console.log(
+            'Assistente virtual inicializado com sucesso:',
+            window.assistantApi
+          );
+
+          // Verificar se o assistente foi integrado corretamente
+          setTimeout(() => {
+            if (
+              window.assistantApi &&
+              typeof window.assistantApi.getState === 'function'
+            ) {
+              console.log(
+                'Estado do assistente após inicialização:',
+                window.assistantApi.getState()
+              );
+            } else {
+              console.warn(
+                'API do assistente não está completamente disponível'
+              );
+            }
+          }, 1000);
+        })
+        .catch((error) => {
+          console.error('Erro ao importar módulo do assistente:', error);
+          // Fallback para inicialização simples
+          // Use a implementação básica se necessário
+        });
     } catch (assistantError) {
       console.error('Erro ao inicializar assistente virtual:', assistantError);
-      // Criar API vazia para evitar erros cascata
-      window.assistantApi = {
-        showAssistant: () => false,
-        hideAssistant: () => false,
-        sendMessage: () => false,
-        isActive: () => false,
-        getState: () => ({}),
-        notifyOpened: () => false,
-        startVoiceInput: () => false,
-      };
     }
 
     // Registrar Service Worker

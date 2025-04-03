@@ -76,65 +76,35 @@ export function setLanguage(lang) {
       }, 500);
     }
 
+    // Atualizar idioma do assistente se estiver disponível
+    if (window.assistantApi) {
+      console.log('Atualizando idioma do assistente para:', lang);
+
+      // Verificar se o assistente tem função para atualizar idioma
+      if (typeof window.assistantApi.configure === 'function') {
+        window.assistantApi.configure({ language: lang });
+      }
+
+      // Exibir assistente com a mensagem no novo idioma
+      setTimeout(() => {
+        console.log('Exibindo assistente após mudança de idioma');
+        if (typeof window.assistantApi.showAssistant === 'function') {
+          window.assistantApi.showAssistant();
+        }
+      }, 500);
+    } else {
+      console.warn(
+        'Assistente não inicializado ainda, não foi possível atualizar o idioma'
+      );
+    }
+
     console.log(`Idioma definido para: ${lang}`);
+    return true;
   } catch (error) {
     console.error(getGeneralText('routeError', selectedLanguage), error);
     showNotification(getGeneralText('routeError', selectedLanguage), 'error');
+    return false;
   }
-}
-
-/**
- * Função para mostrar elementos de UI após o modal de boas-vindas
- */
-function showUIElementsAfterWelcome() {
-  // Mostrar o widget de tempo
-  const weatherWidget = document.getElementById('weather-widget');
-  if (weatherWidget) {
-    weatherWidget.style.display = '';
-    weatherWidget.classList.remove('hidden');
-    console.log('Widget de tempo exibido');
-  }
-
-  // Mostrar o assistente usando a API global
-  if (
-    window.assistantApi &&
-    typeof window.assistantApi.showAssistant === 'function'
-  ) {
-    window.assistantApi.showAssistant();
-    console.log('Assistente virtual exibido via API');
-
-    // Notificar que o assistente foi aberto
-    if (typeof window.assistantApi.notifyOpened === 'function') {
-      setTimeout(() => window.assistantApi.notifyOpened(), 300);
-    }
-  } else {
-    // Fallback caso a API não esteja disponível
-    const assistantContainer = document.getElementById('digital-assistant');
-    if (assistantContainer) {
-      assistantContainer.style.display = '';
-      assistantContainer.classList.remove('hidden');
-      console.log('Container do assistente exibido (fallback)');
-    }
-  }
-}
-
-// Implementar função addMessageToUI se não existir no escopo
-function addMessageToUI(message, type) {
-  const messagesContainer = document.getElementById('assistant-messages');
-  if (!messagesContainer) return;
-
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('assistant-message');
-
-  if (type === 'user') {
-    messageElement.classList.add('user-message');
-  }
-
-  messageElement.textContent = message;
-  messagesContainer.appendChild(messageElement);
-
-  // Rola para a mensagem mais recente
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // Adicionar ao app.js ou expandir a função existente

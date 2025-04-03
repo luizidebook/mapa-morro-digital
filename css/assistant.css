@@ -537,6 +537,12 @@
   border-color: #a0c0de;
 }
 
+/* Estilo especial para mensagens de tutorial */
+.tutorial-message {
+  background-color: #e1f5fe;
+  border-left: 3px solid #0288d1;
+}
+
 /* Estilos responsivos para telas pequenas */
 @media (max-width: 576px) {
   .digital-assistant {

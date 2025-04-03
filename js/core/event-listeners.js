@@ -281,45 +281,49 @@ function setupServiceWorker() {
  * Configura os event listeners do assistente virtual
  */
 function setupAssistantEventListeners() {
-  // Botão toggle do assistente
+  // Verificar se o DOM contém os elementos necessários
   const assistantToggle = document.getElementById('assistant-toggle');
   if (!assistantToggle) {
     console.warn('Elemento assistant-toggle não encontrado');
     return;
   }
 
-  // Containers do assistente
   const assistantDialog = document.getElementById('assistant-dialog');
   const headerContainer = document.getElementById('assistant-header-container');
   const inputContainer = document.getElementById('assistant-input-container');
   const closeAssistantDialog = document.getElementById(
     'close-assistant-dialog'
   );
+  const assistantSendBtn = document.getElementById('assistant-send-btn');
+  const assistantVoiceBtn = document.getElementById('assistant-voice-btn');
+  const assistantInputField = document.getElementById('assistant-input-field');
 
-  // Verificar se os elementos existem
-  if (!assistantDialog) {
-    console.warn('Elemento assistant-dialog não encontrado');
+  // Verificar se a API do assistente está disponível
+  if (!window.assistantApi) {
+    console.warn(
+      'API do assistente não disponível. Os eventos personalizados não serão configurados.'
+    );
+    return;
   }
 
   // Botão toggle para abrir/fechar o diálogo
   assistantToggle.addEventListener('click', () => {
     console.log('Botão do assistente clicado');
-    if (assistantDialog) {
-      assistantDialog.classList.toggle('hidden');
 
-      // Ajustar visibilidade dos containers internos
-      if (!assistantDialog.classList.contains('hidden')) {
+    if (assistantDialog) {
+      if (assistantDialog.classList.contains('hidden')) {
+        // Abrir assistente
+        assistantDialog.classList.remove('hidden');
         if (headerContainer) headerContainer.classList.add('visible');
         if (inputContainer) inputContainer.classList.add('visible');
 
         // Notificar API do assistente que foi aberto
-        if (
-          window.assistantApi &&
-          typeof window.assistantApi.notifyOpened === 'function'
-        ) {
+        if (typeof window.assistantApi.notifyOpened === 'function') {
           window.assistantApi.notifyOpened();
         }
       } else {
+        // Fechar assistente
+        assistantDialog.classList.add('hidden');
         if (headerContainer) headerContainer.classList.remove('visible');
         if (inputContainer) inputContainer.classList.remove('visible');
       }
@@ -339,53 +343,41 @@ function setupAssistantEventListeners() {
   }
 
   // Botão de envio de mensagem
-  const assistantSend = document.getElementById('assistant-send-btn');
-  const assistantInput = document.getElementById('assistant-input-field');
-
-  if (assistantSend && assistantInput) {
-    assistantSend.addEventListener('click', () => {
-      sendAssistantMessage(assistantInput);
+  if (assistantSendBtn && assistantInputField) {
+    assistantSendBtn.addEventListener('click', () => {
+      const message = assistantInputField.value.trim();
+      if (message) {
+        if (typeof window.assistantApi.sendMessage === 'function') {
+          window.assistantApi.sendMessage(message);
+          assistantInputField.value = '';
+        }
+      }
     });
+  }
 
-    // Permitir envio com Enter
-    assistantInput.addEventListener('keypress', (e) => {
+  // Tecla Enter para enviar mensagem
+  if (assistantInputField) {
+    assistantInputField.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        sendAssistantMessage(assistantInput);
+        const message = assistantInputField.value.trim();
+        if (message && typeof window.assistantApi.sendMessage === 'function') {
+          window.assistantApi.sendMessage(message);
+          assistantInputField.value = '';
+        }
       }
     });
   }
 
   // Botão de entrada de voz
-  const assistantVoiceBtn = document.getElementById('assistant-voice-btn');
   if (assistantVoiceBtn) {
     assistantVoiceBtn.addEventListener('click', () => {
-      if (
-        window.assistantApi &&
-        typeof window.assistantApi.startVoiceInput === 'function'
-      ) {
+      if (typeof window.assistantApi.startVoiceInput === 'function') {
         window.assistantApi.startVoiceInput();
-      } else {
-        console.warn('Função de reconhecimento de voz não disponível');
-        showNotification('Reconhecimento de voz não disponível', 'warning');
       }
     });
   }
-}
 
-/**
- * Função auxiliar para enviar mensagem para o assistente
- * @param {HTMLInputElement} inputElement - Campo de entrada de texto
- */
-function sendAssistantMessage(inputElement) {
-  const message = inputElement.value.trim();
-  if (
-    message &&
-    window.assistantApi &&
-    typeof window.assistantApi.sendMessage === 'function'
-  ) {
-    window.assistantApi.sendMessage(message);
-    inputElement.value = '';
-  }
+  console.log('Event listeners do assistente configurados com sucesso');
 }
 
 // Registrar os event listeners quando o DOM for carregado

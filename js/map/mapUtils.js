@@ -222,3 +222,30 @@ export function centerMapOnUser(lat, lon, zoom = 15) {
     console.log(`Mapa recentralizado no usuário: [${lat}, ${lon}]`);
   }
 }
+
+/**
+ * Adiciona marcadores de pontos de interesse ao mapa
+ * @param {Array} points - Pontos a serem adicionados
+ */
+export function addPointsOfInterest(points) {
+  // Código existente...
+
+  // Adicionar evento de clique
+  markers.forEach((marker) => {
+    marker.on('click', (e) => {
+      // Código existente que mostra popup
+
+      // Notificar assistente sobre ponto de interesse clicado
+      if (
+        window.assistantApi &&
+        typeof window.assistantApi.checkAutoShowAtPoint === 'function'
+      ) {
+        const point = e.target.options.data;
+        window.assistantApi.checkAutoShowAtPoint(
+          { lat: point.coordinates[0], lng: point.coordinates[1] },
+          point.name
+        );
+      }
+    });
+  });
+}
