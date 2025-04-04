@@ -1,3 +1,0 @@
-export function initializeUI(mapInstance) {
-  // ...UI initialization logic...
-}

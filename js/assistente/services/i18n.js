@@ -1,3 +1,0 @@
-export function translate(key, language = 'pt-BR') {
-  // ...translation logic...
-}

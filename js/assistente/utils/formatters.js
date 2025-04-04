@@ -1,3 +1,0 @@
-export function formatDate(date) {
-  // ...date formatting logic...
-}

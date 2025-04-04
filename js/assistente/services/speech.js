@@ -1,3 +1,0 @@
-export function startSpeechRecognition() {
-  // ...speech recognition logic...
-}

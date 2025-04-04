@@ -1,3 +1,0 @@
-export function generateResponse(input) {
-  // ...response generation logic...
-}

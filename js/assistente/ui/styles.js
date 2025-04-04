@@ -1,3 +1,0 @@
-export function applyTheme(themeName) {
-  // ...theme application logic...
-}

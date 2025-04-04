@@ -1,3 +1,0 @@
-export function determineNextStep(currentState) {
-  // ...conversation flow logic...
-}
