@@ -13,7 +13,6 @@
  */
 // Importações do módulo core/config.js
 import { initializeMap } from './map/map.js';
-import { setupEventListeners } from './core/event-listeners.js';
 import { showWelcomeMessage } from './ui/modals.js';
 import { autoAdjustTheme } from './ui/theme.js';
 import { initializeWeatherWidgets } from './ui/widgets.js';
@@ -68,16 +67,35 @@ export function onDOMContentLoaded() {
             window.assistantApi
           );
 
+          // MODIFICADO: Configurar event listeners DEPOIS da inicialização do assistente
+          import('./core/event-listeners.js').then((module) => {
+            if (typeof module.setupEventListeners === 'function') {
+              module.setupEventListeners();
+              console.log(
+                'Event listeners configurados após inicialização do assistente'
+              );
+            }
+          });
+
           // Verificar se o assistente foi integrado corretamente
           setTimeout(() => {
             if (
               window.assistantApi &&
               typeof window.assistantApi.getState === 'function'
             ) {
-              console.log(
-                'Estado do assistente após inicialização:',
-                window.assistantApi.getState()
-              );
+              const state = window.assistantApi.getState();
+              console.log('Estado do assistente após inicialização:', state);
+
+              // CORRIGIDO: Forçar o estado de inicialização
+              if (!state.initialized) {
+                console.warn('Forçando inicialização do assistente...');
+                if (
+                  window.assistantApi.initialize &&
+                  typeof window.assistantApi.initialize === 'function'
+                ) {
+                  window.assistantApi.initialize();
+                }
+              }
             } else {
               console.warn(
                 'API do assistente não está completamente disponível'
@@ -87,8 +105,6 @@ export function onDOMContentLoaded() {
         })
         .catch((error) => {
           console.error('Erro ao importar módulo do assistente:', error);
-          // Fallback para inicialização simples
-          // Use a implementação básica se necessário
         });
     } catch (assistantError) {
       console.error('Erro ao inicializar assistente virtual:', assistantError);
@@ -100,9 +116,6 @@ export function onDOMContentLoaded() {
     // Por último, mostrar a mensagem de boas-vindas
     // Os widgets e o assistente serão mostrados após o usuário selecionar o idioma
     showWelcomeMessage();
-
-    // Configurar event listeners
-    setupEventListeners();
 
     console.log('Aplicação inicializada com sucesso!');
   } catch (error) {

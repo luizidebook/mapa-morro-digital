@@ -1,0 +1,3 @@
+export function highlightLocation(location) {
+  // ...map interaction logic...
+}

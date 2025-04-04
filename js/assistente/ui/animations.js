@@ -1,0 +1,3 @@
+export function playAnimation(animationName) {
+  // ...animation logic...
+}

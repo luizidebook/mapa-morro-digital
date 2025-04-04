@@ -288,6 +288,55 @@ function setupAssistantEventListeners() {
     return;
   }
 
+  // CORRIGIDO: Verificar se a API do assistente está disponível
+  if (!window.assistantApi) {
+    console.warn(
+      'API do assistente não disponível. Aguardando inicialização...'
+    );
+
+    // Escutar o evento personalizado para quando o assistente estiver pronto
+    document.addEventListener(
+      'assistantReady',
+      () => {
+        console.log(
+          'Evento assistantReady recebido, configurando event listeners do assistente'
+        );
+        setupAssistantEventListenersInternal();
+      },
+      { once: true }
+    ); // Use {once: true} para garantir que o handler seja executado apenas uma vez
+
+    // Manter o retry como fallback
+    const checkAssistantInterval = setInterval(() => {
+      if (window.assistantApi) {
+        console.log(
+          'API do assistente detectada via polling, configurando event listeners'
+        );
+        clearInterval(checkAssistantInterval);
+        setupAssistantEventListenersInternal();
+      }
+    }, 2000); // Aumentado para 2 segundos para reduzir sobrecarga
+
+    // Definir um timeout maior
+    setTimeout(() => {
+      if (!window.assistantApi) {
+        clearInterval(checkAssistantInterval);
+        console.error(
+          'Timeout: API do assistente não foi inicializada após 20 segundos'
+        );
+      }
+    }, 20000);
+
+    return;
+  }
+
+  setupAssistantEventListenersInternal();
+}
+
+/**
+ * Configura os event listeners internos do assistente após a API estar disponível
+ */
+function setupAssistantEventListenersInternal() {
   const assistantDialog = document.getElementById('assistant-dialog');
   const headerContainer = document.getElementById('assistant-header-container');
   const inputContainer = document.getElementById('assistant-input-container');
@@ -297,14 +346,7 @@ function setupAssistantEventListeners() {
   const assistantSendBtn = document.getElementById('assistant-send-btn');
   const assistantVoiceBtn = document.getElementById('assistant-voice-btn');
   const assistantInputField = document.getElementById('assistant-input-field');
-
-  // Verificar se a API do assistente está disponível
-  if (!window.assistantApi) {
-    console.warn(
-      'API do assistente não disponível. Os eventos personalizados não serão configurados.'
-    );
-    return;
-  }
+  const assistantToggle = document.getElementById('assistant-toggle');
 
   // Botão toggle para abrir/fechar o diálogo
   assistantToggle.addEventListener('click', () => {
@@ -377,8 +419,8 @@ function setupAssistantEventListeners() {
     });
   }
 
+  // ADICIONADO: Marcar que os listeners foram configurados
+  window.assistantListenersConfigured = true;
+
   console.log('Event listeners do assistente configurados com sucesso');
 }
-
-// Registrar os event listeners quando o DOM for carregado
-document.addEventListener('DOMContentLoaded', setupEventListeners);

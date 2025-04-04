@@ -4,12 +4,128 @@
  * Versão integrada com funcionalidades avançadas
  */
 
-import { showNotification } from '../ui/notifications.js';
+// MODIFICADO: Mover importações para o início
 import { selectedLanguage } from '../core/config.js';
 import { getGeneralText } from '../i18n/language.js';
 
+// Adicionar após a importação no início do arquivo
+
+// MODIFICADO: Implementar fallback para showNotification antes de importá-la
+// Implementação de fallback para showNotification
+function showNotificationFallback(message, type = 'info') {
+  console.log(`Notification (${type}): ${message}`);
+
+  try {
+    // Verificar se já existe um contêiner de notificações
+    let notificationContainer = document.getElementById(
+      'notification-container'
+    );
+    // Criar container se não existir
+    if (!notificationContainer) {
+      notificationContainer = document.createElement('div');
+      notificationContainer.id = 'notification-container';
+      notificationContainer.style.position = 'fixed';
+      notificationContainer.style.top = '10px';
+      notificationContainer.style.right = '10px';
+      notificationContainer.style.zIndex = '10000';
+      document.body.appendChild(notificationContainer);
+    }
+
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `<p>${message}</p>`;
+
+    // Estilizar notificação
+    notification.style.backgroundColor =
+      type === 'error'
+        ? '#ff5252'
+        : type === 'warning'
+          ? '#ffab40'
+          : type === 'success'
+            ? '#4caf50'
+            : '#2196f3';
+    notification.style.color = '#fff';
+    notification.style.padding = '12px 16px';
+    notification.style.margin = '8px 0';
+    notification.style.borderRadius = '4px';
+    notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    notification.style.transition = 'all 0.3s ease';
+
+    // Adicionar ao container
+    notificationContainer.appendChild(notification);
+
+    // Remover após 5 segundos
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        notification.remove();
+
+        // Remover container se não tiver mais notificações
+        if (notificationContainer.children.length === 0) {
+          notificationContainer.remove();
+        }
+      }, 300);
+    }, 5000);
+  } catch (e) {
+    console.error('Erro ao mostrar notificação fallback:', e);
+  }
+}
+
+// MODIFICADO: Tentar importar showNotification, com fallback
+let showNotification;
+try {
+  // Tentar importar a função original
+  import('../ui/notifications.js')
+    .then((module) => {
+      showNotification = module.showNotification;
+      console.log('Módulo de notificações carregado com sucesso');
+    })
+    .catch((error) => {
+      console.warn(
+        'Não foi possível importar o módulo de notificações, usando fallback:',
+        error
+      );
+      showNotification = showNotificationFallback;
+    });
+} catch (e) {
+  console.warn(
+    'Erro ao importar notificações, usando implementação de fallback'
+  );
+  showNotification = showNotificationFallback;
+}
+
+// Definir fallback caso a importação falhe
+const currentLanguage =
+  typeof selectedLanguage !== 'undefined' ? selectedLanguage : 'pt';
+
+// Verificar se as dependências estão disponíveis
+function checkDependencies() {
+  // MODIFICADO: Verificar funções de forma mais segura, sem acessar this
+  console.log('Verificando dependências do assistente...');
+
+  // Adicionando explicitamente showNotification se ainda não estiver definido
+  if (typeof showNotification !== 'function') {
+    console.warn('Definindo showNotification como fallback');
+    showNotification = showNotificationFallback;
+  }
+
+  // Verificar getGeneralText
+  if (typeof getGeneralText !== 'function') {
+    console.warn(
+      'Função getGeneralText não encontrada. Funcionalidade de idiomas pode ser limitada.'
+    );
+  }
+
+  return true;
+}
+
+// Verificar dependências ao inicializar
+setTimeout(checkDependencies, 100); // Pequeno delay para garantir que as importações tenham tempo
+
 // Pontos turísticos de onde o assistente pode "sair"
 const LOCAIS_MORRO = [
+  // ... o resto do código permanece igual ...
   {
     nome: 'Segunda Praia',
     coords: { lat: -13.3825, lng: -38.9138 },
@@ -539,6 +655,27 @@ function createAssistantAPI() {
       }
       return true;
     },
+
+    /**
+     * Inicializa/reinicializa o assistente com parâmetros corretos
+     */
+    initialize: function () {
+      console.log('Inicialização explícita do assistente');
+
+      // Definir estado de inicialização
+      assistantStateManager.set('initialized', true);
+
+      // Atualizar objeto de compatibilidade
+      if (window.assistantState) {
+        window.assistantState.initialized = true;
+      }
+
+      // Persistir mudança no estado
+      assistantStateManager.save();
+
+      console.log('Assistente inicializado com sucesso');
+      return true;
+    },
   };
 }
 
@@ -679,332 +816,254 @@ function escolherLocalAleatorio() {
   return localEscolhido;
 }
 
+// Adicionar esta função antes de showGreeting()
+
+// Adicionar estas funções antes de showWelcomeMessage()
+
 /**
- * Processa mensagem do usuário
- * @param {string} message - Mensagem enviada pelo usuário
+ * Mostra indicador de digitação
  */
-function processUserMessage(message) {
-  // Verificar mensagem vazia
-  if (!message || typeof message !== 'string') {
-    console.warn('Mensagem inválida para processamento');
-    return '';
+function showTypingIndicator() {
+  try {
+    const messagesContainer = document.getElementById('assistant-messages');
+    if (!messagesContainer) return;
+
+    // Remover indicador anterior se existir
+    hideTypingIndicator();
+
+    // Criar indicador
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+
+    // Estilizar indicador
+    typingIndicator.style.display = 'inline-block';
+    typingIndicator.style.padding = '10px 15px';
+    typingIndicator.style.backgroundColor = '#f1f1f1';
+    typingIndicator.style.borderRadius = '15px';
+    typingIndicator.style.margin = '5px 0';
+
+    // Estilizar os pontos animados
+    const dots = typingIndicator.querySelectorAll('span');
+    dots.forEach((dot, index) => {
+      dot.style.display = 'inline-block';
+      dot.style.width = '8px';
+      dot.style.height = '8px';
+      dot.style.borderRadius = '50%';
+      dot.style.backgroundColor = '#333';
+      dot.style.margin = '0 3px';
+      dot.style.animation = `typingAnimation 1.5s infinite ${index * 0.2}s`;
+    });
+
+    // Adicionar ao container
+    messagesContainer.appendChild(typingIndicator);
+
+    // Rolar para o final
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Atualizar estado
+    assistantStateManager.set('isTyping', true);
+  } catch (error) {
+    console.error('Erro ao mostrar indicador de digitação:', error);
   }
+}
 
-  console.log('Processando mensagem do usuário:', message);
+/**
+ * Esconde indicador de digitação
+ */
+function hideTypingIndicator() {
+  try {
+    const typingIndicator = document.querySelector('.typing-indicator');
 
-  // Resposta baseada em palavras-chave simples
-  let response = '';
-  const messageLower = message.toLowerCase();
-
-  // Verificar contexto atual
-  const currentContext = assistantStateManager.get('currentContext');
-  if (currentContext !== 'general') {
-    // Processar mensagem baseada no contexto
-    const contextResponse = processContextualMessage(message, currentContext);
-    return contextResponse;
-  }
-
-  // Processar mensagem geral
-  if (messageLower.includes('clima')) {
-    response =
-      'O clima em Morro de São Paulo está ensolarado hoje! A temperatura é de aproximadamente 28°C, perfeito para curtir as praias.';
-  } else if (messageLower.includes('praia')) {
-    if (messageLower.includes('segunda')) {
-      response = {
-        text: 'A Segunda Praia é o coração de Morro de São Paulo! Tem águas calmas, bares, restaurantes e muita agitação. É perfeita para quem quer curtir a praia com estrutura completa e boa vida noturna.',
-        action: {
-          type: 'show_location',
-          name: 'Segunda Praia',
-          coordinates: { lat: -13.3825, lng: -38.9138 },
-        },
-      };
-    } else if (messageLower.includes('terceira')) {
-      response = {
-        text: 'A Terceira Praia tem águas tranquilas e cristalinas, perfeitas para banho! É mais familiar e relaxante, com excelentes pousadas e restaurantes. Daqui saem muitos barcos para passeios.',
-        action: {
-          type: 'show_location',
-          name: 'Terceira Praia',
-          coordinates: { lat: -13.3865, lng: -38.9088 },
-        },
-      };
-    } else if (messageLower.includes('quarta')) {
-      response = {
-        text: 'A Quarta Praia é extensa e mais deserta, ideal para quem busca tranquilidade! Tem piscinas naturais na maré baixa e é ótima para longas caminhadas.',
-        action: {
-          type: 'show_location',
-          name: 'Quarta Praia',
-          coordinates: { lat: -13.3915, lng: -38.9046 },
-        },
-      };
-    } else {
-      response =
-        'Morro de São Paulo tem 5 praias principais, cada uma com seu charme! A Primeira é ótima para surf, a Segunda é a mais animada com bares e restaurantes, a Terceira tem águas calmas perfeitas para banho, a Quarta é mais tranquila e a Quinta é quase deserta. Qual delas você gostaria de conhecer?';
-      // Definir contexto para praias
-      assistantStateManager.set('currentContext', 'beaches');
+    if (typingIndicator) {
+      typingIndicator.remove();
     }
-  } else if (
-    messageLower.includes('restaurante') ||
-    messageLower.includes('comer')
-  ) {
-    response =
-      'Morro de São Paulo tem uma gastronomia incrível! Você prefere frutos do mar, comida regional baiana ou culinária internacional?';
-    // Definir contexto para comida
-    assistantStateManager.set('currentContext', 'food');
-  } else if (
-    messageLower.includes('hotel') ||
-    messageLower.includes('pousada') ||
-    messageLower.includes('hospedagem')
-  ) {
-    response =
-      'Em Morro temos opções para todos os bolsos! Pousadas econômicas como Porto do Zimbo na Vila, pousadas medianas como Pousada Natureza na Segunda Praia, e opções de luxo como a Villa dos Corais na Terceira Praia. Qual tipo de hospedagem você procura?';
-    // Definir contexto para hospedagem
-    assistantStateManager.set('currentContext', 'accommodation');
-  } else if (
-    messageLower.includes('transporte') ||
-    messageLower.includes('como chegar')
-  ) {
-    response =
-      'Para chegar a Morro de São Paulo, você pode pegar um catamarã de Salvador (2h) ou vir de carro até Valença e depois de barco (45min). Não há carros na ilha, exceto veículos de serviço.';
-  } else if (
-    messageLower.includes('mapa') ||
-    messageLower.includes('localização')
-  ) {
-    response =
-      'Você pode ver as principais localizações navegando pelo mapa. Clique no menu para filtrar pontos de interesse. Gostaria que eu mostrasse algum lugar específico?';
-  } else if (
-    messageLower.includes('olá') ||
-    messageLower.includes('oi') ||
-    messageLower.includes('ola')
-  ) {
-    response = 'Olá! Como posso ajudar você a explorar Morro de São Paulo?';
-  } else if (
-    messageLower.includes('obrigado') ||
-    messageLower.includes('obrigada') ||
-    messageLower.includes('valeu')
-  ) {
-    response =
-      'Por nada! Estou aqui para ajudar. Há mais alguma coisa que você gostaria de saber sobre Morro de São Paulo?';
-  } else {
-    response =
-      'Posso ajudá-lo a encontrar informações sobre Morro de São Paulo. Pergunte sobre praias, restaurantes, hospedagem, transporte ou atrações. O que você gostaria de saber?';
-  }
 
-  return response;
-}
-
-/**
- * Processa mensagem baseada no contexto atual
- * @param {string} message - Mensagem do usuário
- * @param {string} context - Contexto atual
- * @returns {string|Object} - Resposta ao usuário
- */
-function processContextualMessage(message, context) {
-  const lowerMessage = message.toLowerCase();
-
-  switch (context) {
-    case 'food':
-      if (
-        lowerMessage.includes('frutos do mar') ||
-        lowerMessage.includes('peixe') ||
-        lowerMessage.includes('camarão')
-      ) {
-        return {
-          text: 'Para frutos do mar, recomendo o restaurante Sambass na Terceira Praia. Eles têm uma moqueca de camarão incrível e pratos de peixes frescos. O Ponta do Morro na Segunda Praia também é excelente.',
-          action: {
-            type: 'show_location',
-            name: 'Restaurante Sambass',
-            coordinates: { lat: -13.3865, lng: -38.908 },
-          },
-        };
-      } else if (
-        lowerMessage.includes('regional') ||
-        lowerMessage.includes('baiana')
-      ) {
-        return {
-          text: 'Para comida baiana autêntica, visite o Restaurante Maria na Vila. O acarajé da Maria é famoso, assim como a moqueca e o bobó de camarão. Os preços são justos e o ambiente é charmoso.',
-          action: {
-            type: 'show_location',
-            name: 'Restaurante Maria',
-            coordinates: { lat: -13.3805, lng: -38.9125 },
-          },
-        };
-      } else if (
-        lowerMessage.includes('internacional') ||
-        lowerMessage.includes('italia')
-      ) {
-        return {
-          text: 'O restaurante "Pasta & Vino" oferece excelente comida italiana, enquanto o "Thai Cuisine" serve deliciosos pratos tailandeses com vista para o mar.',
-          action: {
-            type: 'show_location',
-            name: 'Pasta & Vino',
-            coordinates: { lat: -13.3775, lng: -38.9148 },
-          },
-        };
-      } else {
-        // Reset contexto se a mensagem não for clara
-        assistantStateManager.set('currentContext', 'general');
-        return 'Há opções para todos os gostos em Morro de São Paulo. Você prefere frutos do mar, comida regional baiana ou culinária internacional?';
-      }
-
-    case 'beaches':
-      if (lowerMessage.includes('primeira')) {
-        return {
-          text: 'A Primeira Praia é a mais próxima da Vila e ótima para surfistas! Tem ondas fortes e é menos indicada para banho. É uma praia pequena, com uma vista linda para o Farol e alguns estabelecimentos.',
-          action: {
-            type: 'show_location',
-            name: 'Primeira Praia',
-            coordinates: { lat: -13.3795, lng: -38.9165 },
-          },
-        };
-      } else if (lowerMessage.includes('segunda')) {
-        return {
-          text: 'A Segunda Praia é o coração da vida social em Morro! Tem águas mais calmas, muitos restaurantes, bares e hotéis. Durante o dia é movimentada e à noite se transforma no centro da vida noturna!',
-          action: {
-            type: 'show_location',
-            name: 'Segunda Praia',
-            coordinates: { lat: -13.3825, lng: -38.9138 },
-          },
-        };
-      } else if (lowerMessage.includes('terceira')) {
-        return {
-          text: 'A Terceira Praia tem águas tranquilas e cristalinas, perfeitas para banho! É mais familiar e relaxante, com excelentes pousadas e restaurantes.',
-          action: {
-            type: 'show_location',
-            name: 'Terceira Praia',
-            coordinates: { lat: -13.3865, lng: -38.9088 },
-          },
-        };
-      } else if (lowerMessage.includes('quarta')) {
-        return {
-          text: 'A Quarta Praia é extensa e mais deserta, ideal para quem busca tranquilidade! Tem piscinas naturais na maré baixa e é ótima para longas caminhadas.',
-          action: {
-            type: 'show_location',
-            name: 'Quarta Praia',
-            coordinates: { lat: -13.3915, lng: -38.9046 },
-          },
-        };
-      } else if (lowerMessage.includes('quinta')) {
-        return {
-          text: 'A Quinta Praia (ou Praia do Encanto) é a mais isolada e preservada. É perfeita para quem busca completa tranquilidade. O mar é calmo com águas cristalinas. É necessário caminhar bastante para chegar lá, mas vale a pena!',
-          action: {
-            type: 'show_location',
-            name: 'Quinta Praia',
-            coordinates: { lat: -13.3965, lng: -38.9 },
-          },
-        };
-      } else {
-        // Reset contexto se a mensagem não for clara
-        assistantStateManager.set('currentContext', 'general');
-        return 'Morro de São Paulo tem 5 praias principais, numeradas de 1 a 5. Você pode escolher entre a Primeira (surf), Segunda (movimentada), Terceira (águas calmas), Quarta (tranquila) ou Quinta Praia (isolada).';
-      }
-
-    case 'accommodation':
-      if (lowerMessage.includes('econôm') || lowerMessage.includes('barat')) {
-        return 'Para opções econômicas, recomendo as pousadas na Vila como Porto do Zimbo ou Che Lagarto Hostel. Na alta temporada, reserve com antecedência pois lotam rapidamente.';
-      } else if (
-        lowerMessage.includes('média') ||
-        lowerMessage.includes('intermediár')
-      ) {
-        return {
-          text: 'Na faixa intermediária, a Pousada Natureza na Segunda Praia tem ótimo custo-benefício, assim como a Pousada Bahia Inn. Ambas oferecem café da manhã e estão bem localizadas.',
-          action: {
-            type: 'show_location',
-            name: 'Pousada Natureza',
-            coordinates: { lat: -13.3825, lng: -38.913 },
-          },
-        };
-      } else if (lowerMessage.includes('luxo')) {
-        return {
-          text: 'Para hospedagem de luxo, a Villa dos Corais na Terceira Praia é excepcional. O Patachocas Beach Resort também oferece ótima estrutura com piscina e vista para o mar.',
-          action: {
-            type: 'show_location',
-            name: 'Villa dos Corais',
-            coordinates: { lat: -13.386, lng: -38.9075 },
-          },
-        };
-      } else {
-        // Reset contexto se a mensagem não for clara
-        assistantStateManager.set('currentContext', 'general');
-        return 'Morro de São Paulo oferece hospedagem para todos os perfis e bolsos. Você procura algo econômico, de categoria média ou de luxo?';
-      }
-
-    default:
-      // Reset para contexto geral
-      assistantStateManager.set('currentContext', 'general');
-      return processUserMessage(message); // Processa como mensagem geral
+    // Atualizar estado
+    assistantStateManager.set('isTyping', false);
+  } catch (error) {
+    console.error('Erro ao esconder indicador de digitação:', error);
   }
 }
 
 /**
- * Envia uma mensagem para o assistente
- * @param {string} message - Mensagem do usuário
+ * Mostra indicador de escuta
  */
-function sendMessage(message) {
-  if (!message) return;
+function showListeningIndicator() {
+  try {
+    const messagesContainer = document.getElementById('assistant-messages');
+    if (!messagesContainer) return;
 
-  // Limpar fluxo de conversação anterior
-  conversationFlow.reset();
+    // Criar indicador
+    const listeningIndicator = document.createElement('div');
+    listeningIndicator.className = 'listening-indicator';
 
-  // Adicionar mensagem do usuário
-  addMessageToDOM(message, 'user');
+    // Obter texto traduzido ou usar fallback
+    const listeningText =
+      typeof getGeneralText === 'function'
+        ? getGeneralText(
+            'assistant_listening',
+            assistantStateManager.get('selectedLanguage')
+          )
+        : 'Escutando...';
 
-  // Adicionar ao histórico
-  addMessageToHistory(message, 'user');
+    listeningIndicator.textContent = listeningText;
 
-  // Mostrar indicador de digitação
-  showTypingIndicator();
+    // Estilizar indicador
+    listeningIndicator.style.padding = '10px 15px';
+    listeningIndicator.style.backgroundColor = '#e6f7ff';
+    listeningIndicator.style.borderRadius = '15px';
+    listeningIndicator.style.margin = '5px 0';
+    listeningIndicator.style.color = '#0066cc';
+    listeningIndicator.style.fontStyle = 'italic';
 
-  // Processar a mensagem após um pequeno delay
-  setTimeout(
-    () => {
+    // Adicionar ao container
+    messagesContainer.appendChild(listeningIndicator);
+
+    // Rolar para o final
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  } catch (error) {
+    console.error('Erro ao mostrar indicador de escuta:', error);
+  }
+}
+
+/**
+ * Esconde indicador de escuta
+ */
+function hideListeningIndicator() {
+  const listeningIndicator = document.querySelector('.listening-indicator');
+
+  if (listeningIndicator) {
+    listeningIndicator.remove();
+  }
+
+  // Atualizar estado
+  assistantStateManager.set('isListening', false);
+}
+/**
+ * Mostra a mensagem de boas-vindas no assistente
+ */
+function showWelcomeMessage() {
+  try {
+    console.log('Exibindo mensagem de boas-vindas do assistente');
+
+    // Verificar se temos o container de mensagens
+    const messagesContainer = document.getElementById('assistant-messages');
+    if (!messagesContainer) {
+      console.warn('Container de mensagens não encontrado');
+      return false;
+    }
+
+    // Verificar se já temos mensagens (para evitar duplicação)
+    if (messagesContainer.children.length > 0) {
+      console.log('Container já possui mensagens, ignorando boas-vindas');
+      return true;
+    }
+
+    // Escolher mensagem com base no idioma e status de primeira visita
+    let welcomeMessage;
+    const language = assistantStateManager.get('selectedLanguage') || 'pt';
+
+    // Usar textos apropriados baseados no idioma
+    if (assistantStateManager.get('firstTimeVisitor')) {
+      // Tentar obter texto traduzido, com fallback para português
+      welcomeMessage = getWelcomeText(language, true);
+    } else {
+      welcomeMessage = getWelcomeText(language, false);
+    }
+
+    // Mostrar indicador de digitação
+    showTypingIndicator();
+
+    // Exibir mensagem após um pequeno delay
+    setTimeout(() => {
       hideTypingIndicator();
+      addMessageToDOM(welcomeMessage, 'assistant');
 
-      // Processa a mensagem do usuário
-      const response = processUserMessage(message);
+      // Adicionar ao histórico
+      addMessageToHistory(welcomeMessage, 'assistant');
 
-      // Verificar se a resposta tem ação associada
-      if (typeof response === 'object' && response.action) {
-        // Adicionar mensagem ao DOM
-        addMessageToDOM(response.text, 'assistant');
-
-        // Adicionar ao histórico
-        addMessageToHistory(response.text, 'assistant');
-
-        // Executar ação associada
-        if (
-          response.action.type === 'show_location' &&
-          response.action.coordinates
-        ) {
-          setTimeout(() => {
-            showLocationOnMap(
-              response.action.coordinates,
-              response.action.name
-            );
-          }, 1000);
-        }
-      } else {
-        // Adicionar mensagem simples ao DOM
-        addMessageToDOM(response, 'assistant');
-
-        // Adicionar ao histórico
-        addMessageToHistory(response, 'assistant');
+      // Se for primeiro acesso, mostrar botões de escolha
+      if (assistantStateManager.get('firstTimeVisitor')) {
+        setTimeout(showFirstTimeOptions, 500);
       }
 
-      // Mostrar opções de sugestão para alguns contextos
-      const context = assistantStateManager.get('currentContext');
-      if (context === 'food') {
-        setTimeout(showFoodOptions, 500);
-      } else if (context === 'beaches') {
-        setTimeout(showBeachOptions, 500);
-      } else if (context === 'accommodation') {
-        setTimeout(showAccommodationOptions, 500);
-      }
-
-      // Salvar estado para persistir o histórico
+      // Salvar estado
       assistantStateManager.save();
-    },
-    1000 + Math.random() * 500
-  ); // Delay variável entre 1000ms e 1500ms
+    }, 1000);
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao exibir mensagem de boas-vindas:', error);
+    return false;
+  }
+}
+
+/**
+ * Obtém o texto de boas-vindas no idioma correto
+ * @param {string} language - Código do idioma
+ * @param {boolean} isFirstTime - Se é a primeira visita
+ * @returns {string} Mensagem de boas-vindas
+ */
+function getWelcomeText(language, isFirstTime) {
+  // Mensagens padrão em português
+  const defaultFirstTime =
+    'Olá! Seja bem-vindo a Morro de São Paulo! Como posso ajudar você a explorar nosso paraíso?';
+  const defaultWelcomeBack =
+    'Olá novamente! Bem-vindo de volta a Morro de São Paulo. Como posso ajudar você hoje?';
+
+  try {
+    if (typeof getGeneralText === 'function') {
+      const key = isFirstTime ? 'welcome_first_time' : 'welcome_back';
+      const text = getGeneralText(key, language);
+
+      // Se a função retornar a própria chave, significa que não encontrou tradução
+      if (text !== key) {
+        return text;
+      }
+    }
+
+    // Caso não consiga obter pela função getGeneralText, usar o mapeamento interno
+    const welcomeTexts = {
+      pt: {
+        firstTime:
+          'Olá! Seja bem-vindo a Morro de São Paulo! Como posso ajudar você a explorar nosso paraíso?',
+        welcomeBack:
+          'Olá novamente! Bem-vindo de volta a Morro de São Paulo. Como posso ajudar você hoje?',
+      },
+      en: {
+        firstTime:
+          'Hello! Welcome to Morro de São Paulo! How can I help you explore our paradise?',
+        welcomeBack:
+          'Hello again! Welcome back to Morro de São Paulo. How can I help you today?',
+      },
+      es: {
+        firstTime:
+          '¡Hola! ¡Bienvenido a Morro de São Paulo! ¿Cómo puedo ayudarte a explorar nuestro paraíso?',
+        welcomeBack:
+          '¡Hola de nuevo! Bienvenido de vuelta a Morro de São Paulo. ¿Cómo puedo ayudarte hoy?',
+      },
+      he: {
+        firstTime:
+          'שלום! ברוך הבא למורו דה סאו פאולו! איך אני יכול לעזור לך לחקור את גן העדן שלנו?',
+        welcomeBack:
+          'שלום שוב! ברוך הבא בחזרה למורו דה סאו פאולו. איך אני יכול לעזור לך היום?',
+      },
+    };
+
+    // Verificar se o idioma existe no mapeamento
+    if (welcomeTexts[language]) {
+      return isFirstTime
+        ? welcomeTexts[language].firstTime
+        : welcomeTexts[language].welcomeBack;
+    }
+
+    // Fallback para português
+    return isFirstTime ? defaultFirstTime : defaultWelcomeBack;
+  } catch (error) {
+    console.error('Erro ao obter texto de boas-vindas:', error);
+    return isFirstTime ? defaultFirstTime : defaultWelcomeBack;
+  }
 }
 
 /**
@@ -1630,80 +1689,6 @@ function hideAssistantDialog() {
   if (!assistantDialog) return;
 
   assistantDialog.classList.add('hidden');
-}
-
-/**
- * Mostra indicador de digitação
- */
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('assistant-messages');
-  if (!messagesContainer) return;
-
-  // Verificar se já existe um indicador
-  let typingIndicator = document.querySelector('.typing-indicator');
-
-  if (!typingIndicator) {
-    typingIndicator = document.createElement('div');
-    typingIndicator.className = 'typing-indicator';
-    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
-    messagesContainer.appendChild(typingIndicator);
-  }
-
-  // Rolar para o final
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-  // Atualizar estado
-  assistantStateManager.set('isTyping', true);
-}
-
-/**
- * Esconde indicador de digitação
- */
-function hideTypingIndicator() {
-  const typingIndicator = document.querySelector('.typing-indicator');
-
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
-
-  // Atualizar estado
-  assistantStateManager.set('isTyping', false);
-}
-
-/**
- * Mostra indicador de escuta para entrada de voz
- */
-function showListeningIndicator() {
-  const messagesContainer = document.getElementById('assistant-messages');
-  if (!messagesContainer) return;
-
-  // Verificar se já existe um indicador
-  let listeningIndicator = document.querySelector('.listening-indicator');
-
-  if (!listeningIndicator) {
-    listeningIndicator = document.createElement('div');
-    listeningIndicator.className = 'listening-indicator';
-    listeningIndicator.innerHTML =
-      '<div class="listening-pulse"></div>Ouvindo...';
-    messagesContainer.appendChild(listeningIndicator);
-  }
-
-  // Rolar para o final
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-/**
- * Esconde indicador de escuta
- */
-function hideListeningIndicator() {
-  const listeningIndicator = document.querySelector('.listening-indicator');
-
-  if (listeningIndicator) {
-    listeningIndicator.remove();
-  }
-
-  // Atualizar estado
-  assistantStateManager.set('isListening', false);
 }
 
 /**

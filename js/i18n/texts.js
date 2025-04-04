@@ -17,6 +17,7 @@ export const texts = {
     route_distance: 'Distância:',
     route_eta: 'Tempo Estimado:',
     instructions_title: 'Instruções de Navegação',
+    call: 'Ligar',
 
     // Chaves já existentes
     close_modal: 'X',
@@ -296,6 +297,7 @@ export const texts = {
     route_distance: 'Distance:',
     route_eta: 'Estimated Time:',
     instructions_title: 'Navigation Instructions',
+    call: 'Call',
 
     close_modal: 'X',
     close_modal_carousel: 'X',
@@ -571,6 +573,7 @@ export const texts = {
     route_distance: 'Distancia:',
     route_eta: 'Tiempo Estimado:',
     instructions_title: 'Instrucciones de Navegación',
+    call: 'Llamar',
 
     close_modal: 'X',
     close_modal_carousel: 'X',
@@ -847,6 +850,7 @@ export const texts = {
     route_distance: 'מרחק:',
     route_eta: 'זמן משוער:',
     instructions_title: 'הוראות ניווט',
+    call: 'התקשר',
 
     close_modal: 'X',
     close_modal_carousel: 'X',

@@ -1,0 +1,3 @@
+export function updateContext(context) {
+  // ...context handling logic...
+}

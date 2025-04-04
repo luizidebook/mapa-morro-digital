@@ -1,0 +1,3 @@
+export function processMessage(message) {
+  // ...message processing logic...
+}
