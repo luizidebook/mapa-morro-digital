@@ -1,10 +1,11 @@
+// Importações necessárias
+import { showModal } from '../ui/modals.js';
+import { getUrlsForLocation } from '../utils/utils.js';
+
 console.log(
   'Swiper:',
   typeof Swiper !== 'undefined' ? 'Disponível' : 'Indisponível'
 );
-// Importações necessárias
-import { showModal } from '../ui/modals.js';
-import { getUrlsForLocation } from '../utils/utils.js';
 
 // Variável global para gerenciar o carrossel
 let swiperInstance = null;

@@ -26,13 +26,20 @@ export function setUserLanguage(lang) {
       texts[lang].languageChanged || `Idioma alterado para ${lang}`;
     showNotification(message, 'info');
 
-    // NOVO: Mostrar o assistente após a seleção de idioma (com delay)
+    // MODIFICADO: Atualizar idioma do assistente
     setTimeout(() => {
-      if (
-        window.assistantApi &&
-        typeof window.assistantApi.showAssistant === 'function'
-      ) {
-        window.assistantApi.showAssistant();
+      if (window.assistantApi) {
+        // Atualizar idioma do assistente
+        if (typeof window.assistantApi.setLanguage === 'function') {
+          window.assistantApi.setLanguage(lang);
+        }
+
+        // Mostrar assistente com boas-vindas no novo idioma
+        if (typeof window.assistantApi.showWithWelcome === 'function') {
+          window.assistantApi.showWithWelcome();
+        } else if (typeof window.assistantApi.showAssistant === 'function') {
+          window.assistantApi.showAssistant();
+        }
       } else {
         console.warn(
           'API do assistente não encontrada após seleção de idioma.'
