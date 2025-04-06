@@ -127,6 +127,12 @@ export async function startNavigation() {
     // 🔟.2 Inicia o monitoramento contínuo da posição do usuário.
     startPositionWatcher();
 
+    // Adicionar evento para notificar o assistente
+    const event = new CustomEvent('navigationStarted', {
+      detail: { destination: selectedDestination },
+    });
+    window.dispatchEvent(event);
+
     console.log('[startNavigation] Navegação iniciada com sucesso.');
   } catch (error) {
     console.error('[startNavigation] Erro:', error);
@@ -230,6 +236,10 @@ export function endNavigation() {
   navigationState.isActive = false;
   navigationState.isPaused = false;
   console.log('[stopNavigation] Navegação finalizada.');
+
+  // Adicionar evento para notificar o assistente
+  const event = new CustomEvent('navigationEnded');
+  window.dispatchEvent(event);
 }
 
 /**

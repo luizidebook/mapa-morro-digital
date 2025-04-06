@@ -24,6 +24,22 @@ export function initializeMap() {
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
+  // Adicionar detecção de clique em recursos
+  map.on('click', function (e) {
+    // Verificar se clicou em um marcador ou feature
+    const features = map.queryRenderedFeatures(e.point);
+
+    if (features.length > 0) {
+      const feature = features[0];
+
+      // Disparar evento para notificar o assistente
+      const event = new CustomEvent('mapClickedFeature', {
+        detail: { feature, latlng: e.latlng },
+      });
+      window.dispatchEvent(event);
+    }
+  });
+
   console.log('Mapa inicializado com sucesso.');
 }
 

@@ -4,7 +4,6 @@
  */
 
 // Importações necessárias
-import { assistantStateManager } from '../../state/state.js';
 import { showLocationOnMap } from '../../integration/integration.js';
 // Corrigir o caminho de importação do getAssistantText
 import { getAssistantText } from '../../language/translations.js';
@@ -47,6 +46,13 @@ export function setConversationFlow(instance) {
 export function showWelcomeMessage() {
   console.log('Exibindo mensagem de boas-vindas do assistente...');
 
+  // Verificação única e confiável se a mensagem já foi mostrada
+  // Usar estado do assistente como fonte única de verdade
+  if (assistantStateManager.hasShownWelcome()) {
+    console.log('Mensagem de boas-vindas já exibida anteriormente, ignorando.');
+    return false;
+  }
+
   // Verificar se o container existe
   const messagesContainer = document.getElementById('assistant-messages');
   if (!messagesContainer) {
@@ -54,25 +60,17 @@ export function showWelcomeMessage() {
     return false;
   }
 
-  // Limpar mensagens existentes
+  // Limpar mensagens existentes para garantir que não haja duplicatas
   messagesContainer.innerHTML = '';
 
   // Mostrar indicador de digitação
   showTypingIndicator();
 
   // Obter idioma atual - PRIORIZAR o estado do assistente
-  let currentLanguage;
-  if (
-    assistantStateManager &&
-    typeof assistantStateManager.get === 'function'
-  ) {
-    currentLanguage = assistantStateManager.get('selectedLanguage');
-  }
-
-  // Fallback para localStorage
-  if (!currentLanguage) {
-    currentLanguage = localStorage.getItem('preferredLanguage') || 'pt';
-  }
+  const currentLanguage =
+    assistantStateManager.get('selectedLanguage') ||
+    localStorage.getItem('preferredLanguage') ||
+    'pt';
 
   console.log(`Exibindo boas-vindas no idioma: ${currentLanguage}`);
 
@@ -82,19 +80,25 @@ export function showWelcomeMessage() {
 
     // Exibir mensagem após delay
     setTimeout(() => {
-      try {
-        removeTypingIndicator();
-        addMessageToUI(welcomeText, 'assistant');
+      removeTypingIndicator();
 
-        // Tentar falar a mensagem
-        if (
-          window.assistantApi &&
-          typeof window.assistantApi.speak === 'function'
-        ) {
-          window.assistantApi.speak(welcomeText);
-        }
-      } catch (innerError) {
-        console.error('Erro ao exibir mensagem de boas-vindas:', innerError);
+      // Verificar novamente se o container ainda existe
+      const container = document.getElementById('assistant-messages');
+      if (!container) return;
+
+      // Adicionar mensagem à UI
+      addMessageToUI(welcomeText, 'assistant');
+
+      // IMPORTANTE: Marcar a mensagem como mostrada DEPOIS de exibi-la
+      assistantStateManager.markWelcomeAsShown();
+      window.welcomeMessageShown = true;
+
+      // Tentar falar a mensagem
+      if (
+        window.assistantApi &&
+        typeof window.assistantApi.speak === 'function'
+      ) {
+        window.assistantApi.speak(welcomeText);
       }
     }, 1500);
 
@@ -110,6 +114,11 @@ export function showWelcomeMessage() {
         : 'Olá! Eu sou seu assistente virtual!';
 
     addMessageToUI(fallbackMessage, 'assistant');
+
+    // Marcar mensagem como exibida mesmo no caso de erro
+    assistantStateManager.markWelcomeAsShown();
+    window.welcomeMessageShown = true;
+
     return false;
   }
 }
@@ -119,100 +128,274 @@ export function showWelcomeMessage() {
  * @param {string} text - Texto da mensagem
  */
 function processUserMessage(text) {
-  const lowerText = text.toLowerCase();
-  // Obter o idioma atual
-  const currentLanguage = localStorage.getItem('preferredLanguage') || 'pt';
+  // Importar módulos necessários
+  import('../nlp/entityExtractor.js').then((nlpModule) => {
+    const { extractEntities, detectIntent } = nlpModule;
 
-  // Mostrar indicador de digitação
-  showTypingIndicator();
+    // Obter idioma atual
+    const currentLanguage =
+      assistantStateManager.get('selectedLanguage') || 'pt';
 
-  // Calcular tempo de resposta proporcional ao tamanho da mensagem
-  const responseTime = Math.min(1200 + text.length * 30, 3000);
+    // Extrair entidades e detectar intenção
+    const entities = extractEntities(text, currentLanguage);
+    const intent = detectIntent(text, currentLanguage);
 
-  setTimeout(() => {
-    removeTypingIndicator();
+    // Armazenar mensagem no histórico
+    const conversations = assistantStateManager.get('conversations') || [];
+    conversations.push({
+      text,
+      sender: 'user',
+      timestamp: Date.now(),
+      entities,
+      intent,
+    });
 
-    // Verificar contexto atual
-    if (assistantStateManager.get('currentContext') !== 'general') {
-      // Processar mensagem baseada no contexto
-      const contextResponse = processContextualMessage(
-        text,
-        assistantStateManager.get('currentContext'),
-        currentLanguage
-      );
-      addMessageToUI(contextResponse, 'assistant');
+    // Limitar tamanho do histórico
+    if (conversations.length > 10) {
+      conversations.shift();
+    }
 
-      // Mostrar opções relacionadas, se aplicável
-      if (assistantStateManager.get('currentContext') === 'food') {
-        setTimeout(() => showFoodOptions(currentLanguage), 500);
+    assistantStateManager.set('conversations', conversations);
+
+    // Mostrar indicador de digitação
+    showTypingIndicator();
+
+    // Calcular tempo de resposta contextual
+    const responseTime = determineResponseTime(text, intent);
+
+    // Gerar resposta baseada na intenção e entidades
+    setTimeout(() => {
+      removeTypingIndicator();
+
+      // Verificar se há contexto ativo
+      const currentContext = assistantStateManager.get('currentContext');
+      let response;
+
+      if (currentContext !== 'general') {
+        // Processar com base no contexto atual
+        response = processContextualMessage(
+          text,
+          currentContext,
+          currentLanguage
+        );
+      } else {
+        // Processar com base na intenção detectada
+        response = processIntentMessage(
+          text,
+          intent,
+          entities,
+          currentLanguage
+        );
       }
-      return;
-    }
 
-    // Processar mensagem geral
-    let response;
+      // Adicionar resposta à interface
+      addMessageToUI(response, 'assistant');
 
-    // Verificar se está perguntando sobre locais específicos
-    if (lowerText.includes('segunda praia')) {
-      response = {
-        text:
-          getAssistantText('second_beach', currentLanguage) ||
-          'A Segunda Praia é o coração de Morro de São Paulo! Tem águas calmas, bares, restaurantes e muita agitação. É perfeita para quem quer curtir a praia com estrutura completa e boa vida noturna.',
-        action: {
-          type: 'show_location',
-          name:
-            getAssistantText('second_beach_name', currentLanguage) ||
-            'Segunda Praia',
-          coordinates: { lat: -13.3825, lng: -38.9138 },
-        },
-      };
-    } else if (lowerText.includes('terceira praia')) {
-      response = {
-        text:
-          getAssistantText('third_beach', currentLanguage) ||
-          'A Terceira Praia tem águas tranquilas e cristalinas, perfeitas para banho! É mais familiar e relaxante, com excelentes pousadas e restaurantes. Daqui saem muitos barcos para passeios.',
-        action: {
-          type: 'show_location',
-          name:
-            getAssistantText('third_beach_name', currentLanguage) ||
-            'Terceira Praia',
-          coordinates: { lat: -13.3865, lng: -38.9088 },
-        },
-      };
-    } else if (
-      lowerText.includes('comida') ||
-      lowerText.includes('restaurante') ||
-      lowerText.includes('comer') ||
-      lowerText.includes('food') ||
-      lowerText.includes('restaurant') ||
-      lowerText.includes('eat')
-    ) {
-      response =
-        getAssistantText('food_options', currentLanguage) ||
-        'Morro de São Paulo tem uma gastronomia incrível! Você prefere frutos do mar, comida regional baiana ou culinária internacional?';
+      // Armazenar resposta no histórico
+      conversations.push({
+        text: typeof response === 'object' ? response.text : response,
+        sender: 'assistant',
+        timestamp: Date.now(),
+        intent: intent,
+      });
+      assistantStateManager.set('conversations', conversations);
+
+      // Mostrar botões de sugestão contextual se aplicável
+      showSuggestionsByIntent(intent, entities, currentLanguage);
+    }, responseTime);
+  });
+}
+
+// Nova função para determinar o tempo de resposta
+function determineResponseTime(text, intent) {
+  // Responder mais rapidamente a saudações e agradecimentos
+  if (intent === 'greeting' || intent === 'thanks' || intent === 'farewell') {
+    return 800;
+  }
+
+  // Respostas mais lentas para perguntas complexas
+  if (intent === 'location_info' || intent === 'general_question') {
+    return Math.min(1500 + text.length * 20, 3000);
+  }
+
+  // Tempo padrão
+  return Math.min(1200 + text.length * 15, 2500);
+}
+
+// Nova função para processar mensagens baseadas em intenção
+function processIntentMessage(text, intent, entities, language) {
+  switch (intent) {
+    case 'greeting':
+      return getAssistantText('greeting_response', language);
+
+    case 'farewell':
+      return (
+        getAssistantText('farewell_response', language) ||
+        'Até logo! Estou aqui se precisar de mais informações sobre Morro de São Paulo!'
+      );
+
+    case 'thanks':
+      return getAssistantText('thanks_response', language);
+
+    case 'location_info':
+      if (entities.locations.length > 0) {
+        const location = entities.locations[0];
+        return processLocationInfo(location, language);
+      }
+      break;
+
+    case 'food_info':
+      // Definir contexto para alimentação
       assistantStateManager.set('currentContext', 'food');
-    } else {
-      // Resposta padrão
-      response = getSimpleResponse(text, currentLanguage);
-    }
+      return getAssistantText('food_options', language);
 
-    addMessageToUI(response, 'assistant');
+    case 'accommodation_info':
+      // Definir contexto para hospedagem
+      assistantStateManager.set('currentContext', 'accommodation');
+      return (
+        getAssistantText('accommodation_options', language) ||
+        'Morro de São Paulo tem opções de hospedagem para todos os gostos e bolsos. Você procura algo mais econômico, confortável ou luxuoso?'
+      );
 
-    // Mostrar botões de sugestão após a resposta
-    if (
-      lowerText.includes('praia') ||
-      lowerText.includes('beach') ||
-      lowerText.includes('playa') ||
-      lowerText.includes('חוף') ||
-      (typeof response === 'string' &&
-        (response.toLowerCase().includes('praia') ||
-          response.toLowerCase().includes('beach') ||
-          response.toLowerCase().includes('playa') ||
-          response.includes('חוף')))
-    ) {
-      setTimeout(() => showBeachOptions(currentLanguage), 500);
-    }
-  }, responseTime);
+    case 'activity_info':
+      // Definir contexto para atividades
+      assistantStateManager.set('currentContext', 'activities');
+      return (
+        getAssistantText('activity_options', language) ||
+        'Há muitas atividades em Morro de São Paulo! Você pode fazer passeios de barco, mergulho, caminhadas, ou apenas relaxar nas praias. O que você prefere?'
+      );
+
+    case 'weather_info':
+      return getAssistantText('weather_response', language);
+
+    case 'help':
+      return (
+        getAssistantText('help_response', language) ||
+        'Posso ajudar com informações sobre praias, restaurantes, hospedagem, passeios, clima e muito mais em Morro de São Paulo. O que você gostaria de saber?'
+      );
+
+    case 'general_question':
+    case 'general_chat':
+    default:
+      return getSimpleResponse(text, language);
+  }
+}
+
+// Nova função para processar informações de locais
+function processLocationInfo(location, language) {
+  const locationMap = {
+    'primeira praia': {
+      text:
+        getAssistantText('first_beach_info', language) ||
+        'A Primeira Praia é a mais próxima do centro histórico, com águas agitadas, ideal para surf. Tem menos estrutura que as outras praias, mas é uma boa opção para quem quer ficar perto da vila.',
+      coordinates: { lat: -13.3795, lng: -38.9157 },
+    },
+    'segunda praia': {
+      text:
+        getAssistantText('second_beach_info', language) ||
+        'A Segunda Praia é o coração de Morro de São Paulo! Tem águas calmas, bares, restaurantes e muita agitação. É perfeita para quem quer curtir a praia com estrutura completa e boa vida noturna.',
+      coordinates: { lat: -13.3825, lng: -38.9138 },
+    },
+    'terceira praia': {
+      text:
+        getAssistantText('third_beach_info', language) ||
+        'A Terceira Praia tem águas tranquilas e cristalinas, perfeitas para banho! É mais familiar e relaxante, com excelentes pousadas e restaurantes. Daqui saem muitos barcos para passeios.',
+      coordinates: { lat: -13.3865, lng: -38.9088 },
+    },
+    'quarta praia': {
+      text:
+        getAssistantText('fourth_beach_info', language) ||
+        'A Quarta Praia é a mais extensa e tranquila. Suas águas são cristalinas com piscinas naturais na maré baixa. É ideal para quem busca relaxamento e contato com a natureza.',
+      coordinates: { lat: -13.3915, lng: -38.9046 },
+    },
+    'quinta praia': {
+      text:
+        getAssistantText('fifth_beach_info', language) ||
+        'A Quinta Praia, também conhecida como Praia do Encanto, é a mais preservada e deserta. Perfeita para quem busca privacidade e natureza intocada.',
+      coordinates: { lat: -13.3975, lng: -38.899 },
+    },
+    // Adicionar mais locais...
+  };
+
+  // Verificar se o local é reconhecido
+  if (locationMap[location.name]) {
+    return {
+      text: locationMap[location.name].text,
+      action: {
+        type: 'show_location',
+        name: location.name,
+        coordinates: locationMap[location.name].coordinates,
+      },
+    };
+  }
+
+  // Se o local não for reconhecido
+  return (
+    getAssistantText('unknown_location', language) ||
+    `Não tenho informações específicas sobre ${location.name}, mas posso falar sobre as principais praias e pontos turísticos de Morro de São Paulo.`
+  );
+}
+
+// Nova função para mostrar sugestões com base na intenção
+function showSuggestionsByIntent(intent, entities, language) {
+  switch (intent) {
+    case 'location_info':
+    case 'show_location':
+      if (entities.locations.some((loc) => loc.type === 'beach')) {
+        setTimeout(() => showBeachOptions(language), 500);
+      }
+      break;
+
+    case 'food_info':
+      setTimeout(() => showFoodOptions(language), 500);
+      break;
+
+    case 'activity_info':
+      setTimeout(() => showActivityOptions(language), 500);
+      break;
+
+    case 'accommodation_info':
+      setTimeout(() => showAccommodationOptions(language), 500);
+      break;
+  }
+}
+
+// Nova função para mostrar opções de atividades
+function showActivityOptions(language = 'pt') {
+  const messagesContainer = document.getElementById('assistant-messages');
+  if (!messagesContainer) return;
+
+  const choicesElement = document.createElement('div');
+  choicesElement.className = 'assistant-choices';
+
+  choicesElement.innerHTML = `
+    <button class="assistant-choice-btn" data-choice="passeio_barco">${getAssistantText('boat_tour', language) || 'Passeio de Barco'}</button>
+    <button class="assistant-choice-btn" data-choice="mergulho">${getAssistantText('diving', language) || 'Mergulho'}</button>
+    <button class="assistant-choice-btn" data-choice="trilhas">${getAssistantText('trails', language) || 'Trilhas'}</button>
+  `;
+
+  messagesContainer.appendChild(choicesElement);
+
+  // Adicionar eventos...
+}
+
+// Nova função para mostrar opções de hospedagem
+function showAccommodationOptions(language = 'pt') {
+  const messagesContainer = document.getElementById('assistant-messages');
+  if (!messagesContainer) return;
+
+  const choicesElement = document.createElement('div');
+  choicesElement.className = 'assistant-choices';
+
+  choicesElement.innerHTML = `
+    <button class="assistant-choice-btn" data-choice="economico">${getAssistantText('budget', language) || 'Econômico'}</button>
+    <button class="assistant-choice-btn" data-choice="conforto">${getAssistantText('comfort', language) || 'Confortável'}</button>
+    <button class="assistant-choice-btn" data-choice="luxo">${getAssistantText('luxury', language) || 'Luxo'}</button>
+  `;
+
+  messagesContainer.appendChild(choicesElement);
+
+  // Adicionar eventos...
 }
 
 /**
@@ -551,50 +734,73 @@ export function removeTypingIndicator() {
 function processContextualMessage(text, context, language) {
   const lowerText = text.toLowerCase();
 
+  // Obter o histórico de conversa para contexto
+  const conversations = assistantStateManager.get('conversations') || [];
+
   // Contexto de alimentação/gastronomia
   if (context === 'food') {
     // Restaurantes de frutos do mar
     if (
       lowerText.includes(getAssistantText('seafood', language).toLowerCase())
     ) {
-      return (
-        getAssistantText('seafood_response', language) ||
-        'Os melhores restaurantes de frutos do mar são o Sambass na Terceira Praia e o Ponto do Marisco na Segunda Praia. Ambos têm pratos frescos e deliciosos, com destaque para a moqueca de camarão e lagosta grelhada.'
-      );
+      // Adicionar resposta estruturada com ação para mostrar no mapa
+      return {
+        text:
+          getAssistantText('seafood_response', language) ||
+          'Os melhores restaurantes de frutos do mar são o Sambass na Terceira Praia e o Ponto do Marisco na Segunda Praia. Ambos têm pratos frescos e deliciosos, com destaque para a moqueca de camarão e lagosta grelhada.',
+        action: {
+          type: 'show_location',
+          name: 'Sambass',
+          coordinates: { lat: -13.3865, lng: -38.9088 },
+        },
+      };
     }
-    // Comida baiana
-    else if (
-      lowerText.includes(
-        getAssistantText('bahian_food', language).toLowerCase()
-      )
-    ) {
-      return (
-        getAssistantText('bahian_food_response', language) ||
-        'Para comida baiana autêntica, recomendo o Maria Mata Fome e o Dendê & Cia. O acarajé da Dora na praça central é imperdível! Experimente também o vatapá e o bobó de camarão.'
-      );
-    }
-    // Culinária internacional
-    else if (
-      lowerText.includes(
-        getAssistantText('international_food', language).toLowerCase()
-      )
-    ) {
-      return (
-        getAssistantText('international_food_response', language) ||
-        'Para culinária internacional, o Pasta & Vino serve autêntica comida italiana, o Namastê tem ótimas opções vegetarianas e indianas, e o Café das Artes oferece pratos mediterrâneos deliciosos.'
-      );
-    }
-    // Resposta genérica para comida
-    else {
-      assistantStateManager.set('currentContext', 'general');
-      return (
-        getAssistantText('general_food_response', language) ||
-        'Morro de São Paulo tem opções gastronômicas para todos os gostos. Há restaurantes na vila e em todas as praias. Os preços variam bastante, mas a qualidade geralmente é boa. Alguma culinária específica que você procura?'
-      );
-    }
+    // Adicionar mais opções de comida...
   }
 
-  // Adicionar mais contextos conforme necessário
+  // Novo contexto: acomodações/hospedagem
+  else if (context === 'accommodation') {
+    if (
+      lowerText.includes('barato') ||
+      lowerText.includes('econômic') ||
+      lowerText.includes('budget') ||
+      lowerText.includes('cheap')
+    ) {
+      return {
+        text:
+          getAssistantText('budget_accommodation_response', language) ||
+          'Para hospedagem econômica, recomendo a Pousada Bahia Inn na vila ou o Hostel Morro de São Paulo, ambos oferecem bom custo-benefício e estão bem localizados.',
+        action: {
+          type: 'show_poi_category',
+          category: 'budget_inns',
+        },
+      };
+    }
+    // Adicionar mais opções de acomodação...
+  }
+
+  // Novo contexto: atividades/passeios
+  else if (context === 'activities') {
+    if (
+      lowerText.includes('mergulho') ||
+      lowerText.includes('diving') ||
+      lowerText.includes('buceo')
+    ) {
+      return {
+        text:
+          getAssistantText('diving_response', language) ||
+          'Há excelentes pontos para mergulho em Morro! A Piscina Natural é perfeita para snorkeling e é acessível mesmo para iniciantes. Para mergulho com cilindro, recomendo a Náutica Diving School na Segunda Praia.',
+        action: {
+          type: 'show_location',
+          name: 'Piscina Natural',
+          coordinates: { lat: -13.3841, lng: -38.9112 },
+        },
+      };
+    }
+    // Adicionar mais opções de atividades...
+  }
+
+  // Continuar com outros contextos...
 
   // Se não houver resposta específica, voltar ao contexto geral
   assistantStateManager.set('currentContext', 'general');

@@ -7,7 +7,8 @@ import {
   showTypingIndicator,
   removeTypingIndicator,
 } from './message/message.js';
-import { assistantStateManager } from '../state/state.js';
+import { extractEntities } from '../nlp/entityExtractor.js';
+import { getAssistantText } from '../language/translations.js';
 
 export class ConversationFlow {
   constructor() {
@@ -428,4 +429,528 @@ function addMessageToUI(message, type, requireInteraction = false) {
     .catch((error) => {
       console.error('Erro ao importar módulo de mensagens:', error);
     });
+}
+
+/**
+ * Configura o gerenciador de diálogo do assistente
+ */
+export function setupDialogManager(config) {
+  const { language, stateManager, onResponse } = config;
+  let currentLanguage = language || 'pt';
+
+  // Histórico de conversa
+  const conversationHistory = [];
+
+  // Intenções básicas
+  const intentPatterns = {
+    find_location: [
+      {
+        lang: 'pt',
+        patterns: [
+          'onde fica',
+          'como chegar',
+          'onde é',
+          'localização de',
+          'me mostre',
+        ],
+      },
+      {
+        lang: 'en',
+        patterns: ['where is', 'how to get to', 'location of', 'show me'],
+      },
+      {
+        lang: 'es',
+        patterns: ['dónde está', 'cómo llegar a', 'ubicación de', 'muéstrame'],
+      },
+      {
+        lang: 'he',
+        patterns: [
+          'איפה נמצא',
+          'איך להגיע ל',
+          'איפה זה',
+          'מיקום של',
+          'הראה לי',
+        ],
+      },
+    ],
+    create_route: [
+      {
+        lang: 'pt',
+        patterns: [
+          'crie uma rota',
+          'traçar rota',
+          'me leve até',
+          'caminho para',
+        ],
+      },
+      {
+        lang: 'en',
+        patterns: ['create a route', 'route to', 'take me to', 'path to'],
+      },
+      {
+        lang: 'es',
+        patterns: ['crear ruta', 'llévame a', 'ruta hacia', 'camino a'],
+      },
+      {
+        lang: 'he',
+        patterns: ['צור מסלול', 'סלול דרך', 'קח אותי ל', 'דרך אל'],
+      },
+    ],
+    beach_info: [
+      { lang: 'pt', patterns: ['praia', 'praias', 'melhor praia', 'areia'] },
+      { lang: 'en', patterns: ['beach', 'beaches', 'best beach', 'sand'] },
+      { lang: 'es', patterns: ['playa', 'playas', 'mejor playa', 'arena'] },
+      {
+        lang: 'he',
+        patterns: ['חוף', 'חופים', 'החוף הטוב ביותר', 'חול'],
+      },
+    ],
+    restaurant_info: [
+      {
+        lang: 'pt',
+        patterns: ['restaurante', 'onde comer', 'comida', 'refeição'],
+      },
+      { lang: 'en', patterns: ['restaurant', 'where to eat', 'food', 'meal'] },
+      {
+        lang: 'es',
+        patterns: ['restaurante', 'dónde comer', 'comida', 'alimentación'],
+      },
+      {
+        lang: 'he',
+        patterns: ['מסעדה', 'היכן לאכול', 'אוכל', 'ארוחה'],
+      },
+    ],
+    tour_info: [
+      {
+        lang: 'pt',
+        patterns: ['passeio', 'tour', 'excursão', 'visita guiada'],
+      },
+      {
+        lang: 'en',
+        patterns: ['tour', 'excursion', 'guided visit', 'sightseeing'],
+      },
+      { lang: 'es', patterns: ['paseo', 'tour', 'excursión', 'visita guiada'] },
+      {
+        lang: 'he',
+        patterns: ['טיול', 'סיור', 'אטרקציה', 'סיור מודרך'],
+      },
+    ],
+    help: [
+      {
+        lang: 'pt',
+        patterns: ['ajuda', 'o que você faz', 'como funciona', 'me ajude'],
+      },
+      {
+        lang: 'en',
+        patterns: ['help', 'what do you do', 'how it works', 'help me'],
+      },
+      {
+        lang: 'es',
+        patterns: ['ayuda', 'qué haces', 'cómo funciona', 'ayúdame'],
+      },
+      {
+        lang: 'he',
+        patterns: ['עזרה', 'מה אתה עושה', 'איך זה עובד', 'עזור לי'],
+      },
+    ],
+  };
+
+  // Respostas padrão para mensagens do sistema
+  const systemMessages = {
+    welcome: {
+      pt: 'Olá! Sou o assistente virtual de Morro de São Paulo. Como posso ajudar a tornar sua visita especial?',
+      en: "Hello! I'm the Morro de São Paulo virtual assistant. How can I help make your visit special?",
+      es: '¡Hola! Soy el asistente virtual de Morro de São Paulo. ¿Cómo puedo ayudar a hacer su visita especial?',
+      he: 'שלום! אני העוזר הווירטואלי של מורו דה סאו פאולו. איך אני יכול לעזור?',
+    },
+    error: {
+      pt: 'Desculpe, ocorreu um erro. Poderia tentar novamente?',
+      en: 'Sorry, an error occurred. Could you try again?',
+      es: 'Lo siento, ocurrió un error. ¿Podría intentarlo de nuevo?',
+      he: 'מצטער, אירעה שגיאה. האם תוכל לנסות שוב?',
+    },
+    location_reached: {
+      pt: 'Você chegou a {location}!',
+      en: 'You have reached {location}!',
+      es: '¡Has llegado a {location}!',
+      he: 'הגעת אל {location}!',
+    },
+    attraction_nearby: {
+      pt: 'Ei! Você está perto de {name}, a apenas {distance}m. Gostaria de saber mais?',
+      en: 'Hey! You are near {name}, just {distance}m away. Would you like to know more?',
+      es: '¡Oye! Estás cerca de {name}, a solo {distance}m. ¿Te gustaría saber más?',
+      he: 'היי! אתה קרוב ל {name}, במרחק {distance}מ בלבד. האם תרצה לדעת עוד?',
+    },
+  };
+
+  // Função para detectar intenção
+  function detectIntent(text) {
+    const normalizedText = text.toLowerCase();
+
+    // Encontrar a intenção com melhor correspondência
+    let bestIntent = 'general_info';
+    let bestScore = 0;
+
+    Object.entries(intentPatterns).forEach(([intent, langPatterns]) => {
+      // Encontrar padrões para o idioma atual
+      const languagePatterns =
+        langPatterns.find((lp) => lp.lang === currentLanguage) ||
+        langPatterns.find((lp) => lp.lang === 'pt'); // fallback para português
+
+      if (!languagePatterns) return;
+
+      languagePatterns.patterns.forEach((pattern) => {
+        if (normalizedText.includes(pattern)) {
+          const score = pattern.length / normalizedText.length;
+          if (score > bestScore) {
+            bestScore = score;
+            bestIntent = intent;
+          }
+        }
+      });
+    });
+
+    return { intent: bestIntent, confidence: bestScore };
+  }
+
+  // Função para extrair entidades (locais, etc.)
+  function extractEntities(text) {
+    // Implementação simples - na prática seria mais complexa
+    const entities = {
+      locations: [],
+      time: null,
+      date: null,
+    };
+
+    // Lista de locais conhecidos em Morro de São Paulo
+    const knownLocations = [
+      { name: 'primeira praia', aliases: ['praia 1', '1ª praia'] },
+      { name: 'segunda praia', aliases: ['praia 2', '2ª praia'] },
+      { name: 'terceira praia', aliases: ['praia 3', '3ª praia'] },
+      { name: 'quarta praia', aliases: ['praia 4', '4ª praia'] },
+      {
+        name: 'quinta praia',
+        aliases: ['praia 5', '5ª praia', 'praia do encanto'],
+      },
+      { name: 'farol', aliases: ['lighthouse'] },
+      { name: 'fonte grande', aliases: ['great spring'] },
+      { name: 'toca do morcego', aliases: ['bat cave'] },
+    ];
+
+    // Verificar se o texto menciona algum local conhecido
+    const textLower = text.toLowerCase();
+    knownLocations.forEach((location) => {
+      if (textLower.includes(location.name.toLowerCase())) {
+        entities.locations.push({ name: location.name });
+      } else {
+        // Verificar aliases
+        location.aliases.some((alias) => {
+          if (textLower.includes(alias.toLowerCase())) {
+            entities.locations.push({ name: location.name });
+            return true;
+          }
+          return false;
+        });
+      }
+    });
+
+    return entities;
+  }
+
+  // Função para gerar resposta
+  function generateResponse(intent, entities, userMessage) {
+    console.log('Assistente: Gerando resposta para intenção', intent, entities);
+
+    switch (intent) {
+      case 'find_location':
+        if (entities.locations.length > 0) {
+          const location = entities.locations[0].name;
+          return {
+            text: getTranslation(
+              'findLocationResponse',
+              currentLanguage
+            ).replace('{location}', location),
+            action: {
+              type: 'SHOW_LOCATION',
+              payload: location,
+            },
+            shouldSpeak: true,
+          };
+        } else {
+          return {
+            text: getTranslation('askLocationName', currentLanguage),
+            shouldSpeak: true,
+          };
+        }
+
+      case 'create_route':
+        if (entities.locations.length > 0) {
+          const location = entities.locations[0].name;
+          return {
+            text: getTranslation(
+              'createRouteResponse',
+              currentLanguage
+            ).replace('{location}', location),
+            action: {
+              type: 'CREATE_ROUTE',
+              payload: location,
+            },
+            shouldSpeak: true,
+          };
+        } else {
+          return {
+            text: getTranslation('askRouteDestination', currentLanguage),
+            shouldSpeak: true,
+          };
+        }
+
+      case 'beach_info':
+        return {
+          text: getTranslation('beachInfoResponse', currentLanguage),
+          action: {
+            type: 'SHOW_CATEGORY',
+            payload: 'beaches',
+          },
+          shouldSpeak: true,
+        };
+
+      case 'restaurant_info':
+        return {
+          text: getTranslation('restaurantInfoResponse', currentLanguage),
+          action: {
+            type: 'SHOW_CATEGORY',
+            payload: 'restaurants',
+          },
+          shouldSpeak: true,
+        };
+
+      case 'tour_info':
+        return {
+          text: getTranslation('tourInfoResponse', currentLanguage),
+          action: {
+            type: 'SHOW_CATEGORY',
+            payload: 'tours',
+          },
+          shouldSpeak: true,
+        };
+
+      case 'help':
+        return {
+          text: getTranslation('helpResponse', currentLanguage),
+          shouldSpeak: true,
+        };
+
+      default:
+        // Intenção não reconhecida
+        return {
+          text: getTranslation('generalResponse', currentLanguage),
+          shouldSpeak: true,
+        };
+    }
+  }
+
+  // Função para obter tradução
+  function getTranslation(key, lang) {
+    // Mapear chaves para textos traduzidos
+    const translations = {
+      findLocationResponse: {
+        pt: 'Encontrei {location} no mapa. Veja os detalhes:',
+        en: 'I found {location} on the map. See the details:',
+        es: 'Encontré {location} en el mapa. Mira los detalles:',
+      },
+      askLocationName: {
+        pt: 'Qual local você gostaria de encontrar?',
+        en: 'Which place would you like to find?',
+        es: '¿Qué lugar te gustaría encontrar?',
+      },
+      createRouteResponse: {
+        pt: 'Criando rota para {location}. Posso iniciar a navegação quando estiver pronto.',
+        en: "Creating route to {location}. I can start navigation when you're ready.",
+        es: 'Creando ruta para {location}. Puedo iniciar la navegación cuando estés listo.',
+      },
+      askRouteDestination: {
+        pt: 'Para onde você gostaria de ir?',
+        en: 'Where would you like to go?',
+        es: '¿Dónde te gustaría ir?',
+      },
+      beachInfoResponse: {
+        pt: 'Morro de São Paulo tem 5 praias principais. A Primeira Praia é mais agitada, a Segunda tem muitos bares e restaurantes, a Terceira é mais tranquila, a Quarta é menos movimentada e a Quinta (Praia do Encanto) é a mais isolada. Qual delas gostaria de conhecer?',
+        en: 'Morro de São Paulo has 5 main beaches. First Beach is busier, Second Beach has many bars and restaurants, Third Beach is calmer, Fourth Beach is less crowded, and Fifth Beach (Enchantment Beach) is the most isolated. Which one would you like to know?',
+        es: 'Morro de São Paulo tiene 5 playas principales. La Primera Playa es más animada, la Segunda tiene muchos bares y restaurantes, la Tercera es más tranquila, la Cuarta es menos concurrida y la Quinta (Playa del Encanto) es la más aislada. ¿Cuál te gustaría conocer?',
+      },
+      restaurantInfoResponse: {
+        pt: 'Morro de São Paulo oferece diversos restaurantes, de pratos típicos baianos a culinária internacional. Vou mostrar alguns dos mais populares no mapa.',
+        en: "Morro de São Paulo offers various restaurants, from typical Bahian dishes to international cuisine. I'll show some of the most popular ones on the map.",
+        es: 'Morro de São Paulo ofrece varios restaurantes, desde platos típicos bahianos hasta cocina internacional. Te mostraré algunos de los más populares en el mapa.',
+      },
+      tourInfoResponse: {
+        pt: 'Existem diversos passeios disponíveis em Morro de São Paulo, como visitas às piscinas naturais, mergulho, passeio de barco, etc. Gostaria que eu mostrasse as opções?',
+        en: 'There are several tours available in Morro de São Paulo, such as visits to natural pools, diving, boat trips, etc. Would you like me to show the options?',
+        es: 'Hay varios recorridos disponibles en Morro de São Paulo, como visitas a piscinas naturales, buceo, paseos en barco, etc. ¿Te gustaría que te mostrara las opciones?',
+      },
+      helpResponse: {
+        pt: 'Posso ajudar você a encontrar locais, criar rotas de navegação, fornecer informações sobre praias, restaurantes e passeios. Basta me dizer o que você procura!',
+        en: "I can help you find places, create navigation routes, provide information about beaches, restaurants and tours. Just tell me what you're looking for!",
+        es: '¡Puedo ayudarte a encontrar lugares, crear rutas de navegación, proporcionar información sobre playas, restaurantes y tours. Solo dime lo que buscas!',
+      },
+      generalResponse: {
+        pt: 'Como posso ajudar você em Morro de São Paulo hoje?',
+        en: 'How can I help you in Morro de São Paulo today?',
+        es: '¿Cómo puedo ayudarte en Morro de São Paulo hoy?',
+      },
+    };
+
+    // Buscar tradução para a chave e língua solicitadas
+    if (translations[key] && translations[key][lang]) {
+      return translations[key][lang];
+    }
+
+    // Fallback para português se não encontrar
+    if (translations[key] && translations[key]['pt']) {
+      return translations[key]['pt'];
+    }
+
+    // Último recurso
+    return `[Tradução não encontrada: ${key}]`;
+  }
+
+  // Função para processar mensagens do sistema
+  function processSystemMessage(messageType, data = {}) {
+    console.log(
+      'Assistente: Processando mensagem do sistema',
+      messageType,
+      data
+    );
+
+    // Obter o idioma atual
+    const currentLanguage = localStorage.getItem('preferredLanguage') || 'pt';
+
+    // Criar resposta
+    let response = null;
+
+    // Buscar tradução diretamente do sistema de traduções
+    if (messageType === 'welcome') {
+      const welcomeText = getAssistantText('welcome', currentLanguage);
+      if (welcomeText) {
+        response = {
+          text: welcomeText,
+          shouldSpeak: true,
+        };
+      }
+    } else if (messageType === 'location_reached') {
+      // Obter texto base e substituir parâmetros
+      let text = getAssistantText('location_reached', currentLanguage);
+
+      // Substituir parâmetros se existirem
+      if (text && data.location) {
+        text = text.replace('{location}', data.location);
+      }
+
+      response = {
+        text: text,
+        shouldSpeak: true,
+      };
+    } else if (messageType === 'attraction_nearby') {
+      // Similar para outras mensagens do sistema
+      let text = getAssistantText('attraction_nearby', currentLanguage);
+
+      if (text) {
+        // Substituir múltiplos parâmetros
+        Object.keys(data).forEach((key) => {
+          text = text.replace(`{${key}}`, data[key]);
+        });
+      }
+
+      response = {
+        text: text,
+        shouldSpeak: true,
+      };
+    }
+
+    // Se não tiver resposta específica, usar resposta genérica
+    if (!response) {
+      response = {
+        text:
+          getAssistantText('generic_response_1', currentLanguage) ||
+          'Como posso ajudar você em Morro de São Paulo hoje?',
+        shouldSpeak: true,
+      };
+    }
+
+    // Notificar sobre a resposta
+    if (typeof onResponse === 'function') {
+      onResponse(response);
+    }
+
+    return response;
+  }
+
+  // Função para processar entrada do usuário
+  function processInput(text, inputType = 'text') {
+    console.log('Assistente: Processando entrada do usuário', text, inputType);
+
+    // Detectar intenção
+    const { intent, confidence } = detectIntent(text);
+
+    // Extrair entidades
+    const entities = extractEntities(text);
+
+    // Gerar resposta
+    const response = generateResponse(intent, entities, text);
+
+    // Adicionar ao histórico
+    conversationHistory.push({
+      text,
+      sender: 'user',
+      timestamp: new Date(),
+      inputType,
+    });
+
+    conversationHistory.push({
+      text: response.text,
+      sender: 'assistant',
+      timestamp: new Date(),
+      intent,
+      entities,
+    });
+
+    // Notificar sobre a resposta
+    if (typeof onResponse === 'function') {
+      onResponse(response);
+    }
+
+    return response;
+  }
+
+  // Atualizar idioma
+  function setLanguage(lang) {
+    currentLanguage = lang;
+    console.log('Assistente: Idioma do diálogo alterado para', lang);
+  }
+
+  // API pública
+  return {
+    processInput,
+    processSystemMessage,
+    setLanguage,
+    getConversationHistory: () => [...conversationHistory],
+  };
+}
+
+// Classe auxiliar para mensagens
+class Message {
+  constructor(data) {
+    this.text = data.text || '';
+    this.sender = data.sender || 'user';
+    this.timestamp = data.timestamp || new Date();
+    this.intent = data.intent || null;
+    this.entities = data.entities || null;
+    this.inputType = data.inputType || 'text';
+  }
+}
+
+// Função auxiliar para obter traduções
+function getTranslation(key, language) {
+  // Implementação do sistema de traduções
+  // ...
 }

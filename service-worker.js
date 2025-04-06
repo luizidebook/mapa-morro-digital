@@ -13,13 +13,14 @@
  *  - Eventos de mensagem para iniciar e parar rastreamento (se quiser).
  */
 
-const CACHE_NAME = 'my-site-cache-v3'; // Nome que você já usava
-const urlsToCache = [
+const CACHE_NAME = 'morro-digital-cache-v1';
+const RESOURCES_TO_CACHE = [
   '/',
-  '/styles.css',
-  '/scripts.js',
-  '/images/logo.png', // Ajuste conforme seus assets
-  '/offline.html',
+  '/index.html',
+  '/manifest.json',
+  '/css/styles.css',
+  '/js/main.js',
+  // ... outros recursos essenciais
 ];
 
 // Variáveis que você usava no SW
@@ -32,15 +33,10 @@ let trackingActive = false; // Indica se o rastreamento está ativo
  */
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      try {
-        await cache.addAll(urlsToCache);
-        console.log('Recursos armazenados em cache com sucesso.');
-      } catch (error) {
-        console.error('Erro ao armazenar recursos em cache:', error);
-      }
-    })()
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Cacheando recursos');
+      return cache.addAll(RESOURCES_TO_CACHE);
+    })
   );
 });
 
@@ -50,18 +46,16 @@ self.addEventListener('install', (event) => {
  */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    (async () => {
-      const cacheNames = await caches.keys();
-      const cacheWhitelist = [CACHE_NAME];
-      await Promise.all(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Removendo cache antigo', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-      console.log('Caches antigos limpos.');
-    })()
+    })
   );
 });
 
@@ -71,17 +65,57 @@ self.addEventListener('activate', (event) => {
  * caso contrário, tenta buscar da rede e, se falhar, volta para /offline.html.
  */
 self.addEventListener('fetch', (event) => {
+  // Estratégia stale-while-revalidate para mapas e API
+  if (
+    event.request.url.includes('tile.openstreetmap.org') ||
+    event.request.url.includes('api.openrouteservice.org')
+  ) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        return fetch(event.request)
+          .then((response) => {
+            // Guardar cópia no cache
+            cache.put(event.request, response.clone());
+            return response;
+          })
+          .catch(() => {
+            // Retornar do cache se falhar
+            return caches.match(event.request);
+          });
+      })
+    );
+    return;
+  }
+
+  // Estratégia cache-primeiro para recursos estáticos
+  if (
+    event.request.url.endsWith('.css') ||
+    event.request.url.endsWith('.js') ||
+    event.request.url.endsWith('.png') ||
+    event.request.url.endsWith('.jpg') ||
+    event.request.url.endsWith('.svg')
+  ) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then((response) => {
+          // Guardar no cache
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.put(event.request, response.clone()));
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Estratégia rede com fallback para cache
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return (
-        cachedResponse ||
-        fetch(event.request).catch(() => {
-          // Verifica se a requisição espera um conteúdo HTML
-          if (event.request.headers.get('accept').includes('text/html')) {
-            return caches.match('/offline.html');
-          }
-        })
-      );
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
@@ -92,10 +126,12 @@ self.addEventListener('fetch', (event) => {
  * você pode usar essa parte se quiser iniciar/parar rastreamento (GPS) ou algo similar.
  */
 self.addEventListener('message', (event) => {
-  const { action, payload } = event.data;
-
-  if (action === 'saveDestination') {
-    console.log('[Service Worker] Salvando destino:', payload);
-    self.selectedDestination = payload;
+  if (event.data && event.data.type === 'CACHE_LOCATION_DATA') {
+    // Cachear dados de localização para uso offline
+    caches.open(CACHE_NAME).then((cache) => {
+      const data = event.data.payload;
+      const locationKey = `location-${data.id}`;
+      cache.put(locationKey, new Response(JSON.stringify(data)));
+    });
   }
 });

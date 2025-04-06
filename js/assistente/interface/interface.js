@@ -1,277 +1,334 @@
-/**
- * Módulo de interface do assistente virtual
- * Responsável pelos elementos visuais e interação com o usuário
- */
+// Criar módulo interface.js para gerenciar a interface do assistente
 
-// Importações necessárias
-import { ensureCorrectPosition } from '../state/state.js';
-import {
-  showTypingIndicator,
-  removeTypingIndicator,
-} from '../dialog/message/message.js';
+export function createAssistantInterface(config) {
+  const { onUserInput, onToggleVoice, onClose, onOpen, initialState } = config;
+  let isVisible = initialState === 'visible';
+  let isListening = false;
 
-/**
- * Configura a interface do assistente
- */
-export function setupAssistantUI() {
-  console.log('Configurando interface do assistente...');
+  // Container principal do assistente
+  let assistantContainer = null;
+  let assistantIcon = null;
+  let assistantPanel = null;
+  let messagesList = null;
+  let inputField = null;
 
-  // Verificar se o elemento já existe
-  if (document.getElementById('digital-assistant')) {
-    console.log('Interface do assistente já configurada');
-    return true;
-  }
+  // Inicializar a interface do assistente
+  function initInterface() {
+    // Verificar se já existe um container
+    const existingContainer = document.getElementById('digital-assistant');
+    if (existingContainer) {
+      assistantContainer = existingContainer;
+    } else {
+      // Criar container principal
+      assistantContainer = document.createElement('div');
+      assistantContainer.id = 'digital-assistant';
+      assistantContainer.className = 'assistant-container';
 
-  try {
-    // Criar elementos HTML necessários
-    const assistantContainer = document.createElement('div');
-    assistantContainer.id = 'digital-assistant';
-    assistantContainer.className = 'digital-assistant hidden';
-
-    // Estrutura básica do assistente
-    assistantContainer.innerHTML = `
-      <div id="assistant-toggle" class="assistant-toggle">
-        <span>?</span>
-      </div>
-      <div id="assistant-dialog" class="assistant-dialog hidden">
-        <div id="assistant-header-container" class="assistant-header-container">
+      // Estrutura HTML básica
+      assistantContainer.innerHTML = `
+        <div id="assistant-toggle" class="assistant-icon" aria-label="Assistente Virtual">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div id="assistant-dialog" class="assistant-panel">
           <div class="assistant-header">
-            <div class="assistant-title">Assistente Virtual</div>
-            <button id="close-assistant-dialog" class="close-assistant-dialog">×</button>
+            <h3 id="assistant-title">Assistente Morro Digital</h3>
+            <div class="assistant-controls">
+              <button id="assistant-minimize-btn" class="assistant-btn" aria-label="Minimizar">
+                <i class="fas fa-minus"></i>
+              </button>
+              <button id="close-assistant-dialog" class="assistant-btn" aria-label="Fechar">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div id="assistant-messages" class="assistant-messages">
+            <ul class="messages-list"></ul>
+          </div>
+          <div class="assistant-input">
+            <input id="assistant-input-field" type="text" placeholder="Pergunte algo sobre Morro de São Paulo..." />
+            <button id="assistant-send-btn" class="assistant-btn send-btn" aria-label="Enviar">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+            <button id="assistant-voice-btn" class="assistant-btn voice-btn" aria-label="Entrada de voz">
+              <i class="fas fa-microphone"></i>
+            </button>
+          </div>
+          <div class="assistant-suggestions">
+            <button class="suggestion-btn">Praias próximas</button>
+            <button class="suggestion-btn">Onde comer?</button>
+            <button class="suggestion-btn">Passeios recomendados</button>
           </div>
         </div>
-        <div class="assistant-body">
-          <div id="assistant-messages" class="assistant-messages"></div>
-        </div>
-        <div id="assistant-input-container" class="assistant-input-container">
-          <textarea id="assistant-text-input" class="assistant-text-input" 
-                   placeholder="Digite sua mensagem..." rows="1"></textarea>
-          <button id="assistant-voice-input" class="assistant-voice-input">
-            <i class="fa fa-microphone"></i>
-          </button>
-          <button id="assistant-send" class="assistant-send">
-            <i class="fa fa-paper-plane"></i>
-          </button>
-        </div>
+      `;
+
+      // Adicionar ao DOM
+      document.body.appendChild(assistantContainer);
+    }
+
+    // Capturar referências dos elementos
+    assistantIcon = assistantContainer.querySelector('#assistant-toggle');
+    assistantPanel = assistantContainer.querySelector('#assistant-dialog');
+    messagesList = assistantContainer.querySelector('.messages-list');
+    inputField = assistantContainer.querySelector('#assistant-input-field');
+
+    // Configurar eventos da interface
+    setupEvents();
+
+    // Configurar visibilidade inicial
+    if (isVisible) {
+      assistantPanel.classList.remove('hidden');
+    } else {
+      assistantPanel.classList.add('hidden');
+    }
+
+    // Adicionar classe para suporte mobile
+    assistantContainer.classList.add('mobile-friendly');
+
+    console.log('Assistente: Interface inicializada');
+  }
+
+  // Configurar eventos da interface
+  function setupEvents() {
+    // Botão de toggle/ícone do assistente
+    assistantIcon.addEventListener('click', () => {
+      toggleAssistant();
+    });
+
+    // Botão de fechar
+    const closeBtn = assistantContainer.querySelector(
+      '#close-assistant-dialog'
+    );
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        hideAssistant();
+      });
+    }
+
+    // Botão de minimizar
+    const minimizeBtn = assistantContainer.querySelector(
+      '#assistant-minimize-btn'
+    );
+    if (minimizeBtn) {
+      minimizeBtn.addEventListener('click', () => {
+        hideAssistant();
+      });
+    }
+
+    // Campo de input e botão de envio
+    const sendBtn = assistantContainer.querySelector('#assistant-send-btn');
+    if (sendBtn && inputField) {
+      // Envio por clique no botão
+      sendBtn.addEventListener('click', () => {
+        const text = inputField.value.trim();
+        if (text) {
+          addMessage(text, 'user');
+          onUserInput(text, 'text');
+          inputField.value = '';
+        }
+      });
+
+      // Envio por Enter
+      inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const text = inputField.value.trim();
+          if (text) {
+            addMessage(text, 'user');
+            onUserInput(text, 'text');
+            inputField.value = '';
+          }
+        }
+      });
+    }
+
+    // Botão de voz
+    const voiceBtn = assistantContainer.querySelector('#assistant-voice-btn');
+    if (voiceBtn) {
+      voiceBtn.addEventListener('click', () => {
+        const newState = onToggleVoice();
+        setListening(newState);
+      });
+    }
+
+    // Botões de sugestão
+    const suggestionBtns =
+      assistantContainer.querySelectorAll('.suggestion-btn');
+    suggestionBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const text = btn.textContent.trim();
+        addMessage(text, 'user');
+        onUserInput(text, 'suggestion');
+      });
+    });
+  }
+
+  // Adicionar mensagem à lista
+  function addMessage(text, sender) {
+    // Buscar a lista de mensagens mais robusta
+    const messagesList =
+      document.querySelector('.messages-list') ||
+      document.querySelector('#assistant-messages ul') ||
+      document.querySelector('#assistant-messages');
+
+    if (!messagesList) {
+      console.error('Assistente: Lista de mensagens não encontrada');
+
+      // Criar o elemento se não existir
+      const assistantMessages =
+        document.querySelector('#assistant-messages') ||
+        document.querySelector('.assistant-messages');
+
+      if (assistantMessages) {
+        // Tentar criar a lista se o container existir
+        const newList = document.createElement('ul');
+        newList.className = 'messages-list';
+        assistantMessages.appendChild(newList);
+
+        // Usar a nova lista
+        addMessage(text, sender);
+        return;
+      }
+
+      console.error(
+        'Assistente: Container de mensagens não encontrado, impossível mostrar mensagem'
+      );
+      return;
+    }
+
+    // Resto do código permanece igual
+    const messageItem = document.createElement('li');
+    messageItem.className = `message ${sender}-message`;
+
+    const avatar =
+      sender === 'user'
+        ? '<div class="avatar user-avatar"><i class="fas fa-user"></i></div>'
+        : '<div class="avatar assistant-avatar"><i class="fas fa-robot"></i></div>';
+
+    messageItem.innerHTML = `
+      ${avatar}
+      <div class="message-bubble">
+        <div class="message-text">${text}</div>
+        <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
       </div>
     `;
 
-    // Adicionar ao DOM
-    document.body.appendChild(assistantContainer);
-
-    // Tornar o assistente arrastável
-    makeAssistantDraggable();
-
-    console.log('Interface do assistente configurada com sucesso');
-    return true;
-  } catch (error) {
-    console.error('Erro ao configurar interface do assistente:', error);
-    return false;
-  }
-}
-
-/**
- * Torna o assistente arrastável pelo usuário
- */
-export function makeAssistantDraggable() {
-  const assistantToggle = document.getElementById('assistant-toggle');
-  const assistantDialog = document.getElementById('assistant-dialog');
-
-  if (!assistantToggle || !assistantDialog) return false;
-
-  let isDragging = false;
-  let offsetX, offsetY;
-
-  assistantToggle.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - assistantToggle.getBoundingClientRect().left;
-    offsetY = e.clientY - assistantToggle.getBoundingClientRect().top;
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    const x = e.clientX - offsetX;
-    const y = e.clientY - offsetY;
-
-    const assistantContainer = document.getElementById('digital-assistant');
-    assistantContainer.style.position = 'fixed';
-    assistantContainer.style.left = `${x}px`;
-    assistantContainer.style.top = `${y}px`;
-    assistantContainer.style.transform = 'none';
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (isDragging) {
-      isDragging = false;
-      ensureCorrectPosition(document.getElementById('digital-assistant'));
-    }
-  });
-
-  return true;
-}
-
-/**
- * Mostra o assistente
- */
-export function showAssistant() {
-  const assistantContainer = document.getElementById('digital-assistant');
-  const assistantDialog = document.getElementById('assistant-dialog');
-
-  if (!assistantContainer || !assistantDialog) {
-    console.error('Elementos do assistente não encontrados');
-    return false;
+    messagesList.appendChild(messageItem);
+    messagesList.scrollTop = messagesList.scrollHeight;
   }
 
-  assistantContainer.classList.remove('hidden');
-  assistantDialog.classList.remove('hidden');
-
-  return true;
-}
-
-/**
- * Esconde o assistente
- */
-export function hideAssistant() {
-  const assistantContainer = document.getElementById('digital-assistant');
-
-  if (!assistantContainer) {
-    console.error('Elemento digital-assistant não encontrado');
-    return false;
+  // Mostrar assistente
+  function showAssistant() {
+    // Implementação que não chama o assistente de volta
+    _showAssistant();
   }
 
-  assistantContainer.classList.add('hidden');
-
-  return true;
-}
-
-/**
- * Mostra o assistente com animação
- */
-export function showAssistantWithAnimation() {
-  // Implementar animação de entrada
-  const assistantContainer = document.getElementById('digital-assistant');
-
-  if (!assistantContainer) {
-    console.error('Elemento digital-assistant não encontrado');
-    return showAssistant(); // Fallback para exibição regular
-  }
-
-  assistantContainer.classList.remove('hidden');
-  assistantContainer.classList.add('animate__animated', 'animate__bounceIn');
-
-  setTimeout(() => {
-    showAssistant();
-    assistantContainer.classList.remove(
-      'animate__animated',
-      'animate__bounceIn'
+  // Método interno que realiza as operações DOM
+  function _showAssistant() {
+    // Buscar todos os seletores possíveis para maior robustez
+    const containers = document.querySelectorAll(
+      '.digital-assistant, #digital-assistant'
     );
-  }, 1000);
+    const dialogs = document.querySelectorAll(
+      '.assistant-dialog, #assistant-dialog, .assistant-panel, #assistant-panel'
+    );
 
-  return true;
-}
+    containers.forEach((container) => container.classList.remove('hidden'));
+    dialogs.forEach((dialog) => dialog.classList.remove('hidden'));
 
-/**
- * Alterna a visibilidade do diálogo do assistente
- */
-export function toggleAssistantDialog() {
-  const assistantDialog = document.getElementById('assistant-dialog');
-
-  if (!assistantDialog) {
-    console.error('Elemento do diálogo não encontrado!');
-    return;
+    isVisible = true;
   }
 
-  // Se estiver oculto, mostrar
-  if (assistantDialog.classList.contains('hidden')) {
-    assistantDialog.classList.remove('hidden');
+  // Ocultar assistente
+  function hideAssistant() {
+    if (!assistantPanel) return;
 
-    // Se primeira vez mostrando diálogo e não mostrou saudação ainda
-    if (!assistantStateManager.get('hasGreeted')) {
-      const localEscolhido = escolherLocalAleatorio();
-      showGreeting(localEscolhido);
-      assistantStateManager.set('hasGreeted', true);
+    assistantPanel.classList.add('hidden');
+    assistantContainer.classList.remove('active');
+    isVisible = false;
+
+    // Disparar evento
+    if (typeof onClose === 'function') {
+      onClose();
     }
-  } else {
-    // Se visível, ocultar (permite fechar ao clicar no botão novamente)
-    assistantDialog.classList.add('hidden');
-  }
-}
-
-/**
- * Esconde o diálogo do assistente
- */
-function hideAssistantDialog() {
-  const assistantDialog = document.getElementById('assistant-dialog');
-
-  if (!assistantDialog) return;
-
-  assistantDialog.classList.add('hidden');
-}
-
-/**
- * Mostra a saudação inicial do assistente
- * @param {Object} local - Local de onde o assistente "saiu"
- */
-function showGreeting(local) {
-  // Escolher um contexto aleatório
-  const contextoIndex = Math.floor(Math.random() * local.contextos.length);
-  const contexto = local.contextos[contextoIndex];
-
-  // Construir mensagem
-  let mensagemBase;
-  if (assistantStateManager.get('firstTimeVisitor')) {
-    mensagemBase = `Olá! Seja bem-vindo a Morro de São Paulo! ${contexto} Morro é um paraíso com muitas praias paradisíacas e atividades para fazer. É a sua primeira vez em Morro de São Paulo?`;
-    assistantStateManager.set('awaitingFirstTimeResponse', true);
-  } else {
-    mensagemBase = `Olá novamente! ${contexto} Legal te ver de volta a Morro de São Paulo! Precisa de ajuda para encontrar alguma coisa?`;
   }
 
-  // Mostrar mensagem com efeito de digitação
-  showTypingIndicator();
-
-  setTimeout(() => {
-    removeTypingIndicator();
-    addMessageToUI(mensagemBase, 'assistant');
-
-    // Se for primeiro acesso, mostrar botões de escolha
-    if (assistantStateManager.get('firstTimeVisitor')) {
-      setTimeout(showFirstTimeOptions, 500);
+  // Alternar visibilidade
+  function toggleAssistant() {
+    if (isVisible) {
+      hideAssistant();
+    } else {
+      showAssistant();
     }
-  }, 1500);
-}
-
-/**
- * Exibe indicador de digitação para simular o assistente escrevendo
- */
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('assistant-messages');
-  if (!messagesContainer || assistantStateManager.get('isTyping')) return;
-
-  assistantStateManager.set('isTyping', true);
-
-  // Limpar container
-  messagesContainer.innerHTML = '';
-
-  // Criar indicador de digitação
-  const typingIndicator = document.createElement('div');
-  typingIndicator.className = 'assistant-message typing-indicator';
-  typingIndicator.innerHTML = '<span>•</span><span>•</span><span>•</span>';
-
-  messagesContainer.appendChild(typingIndicator);
-}
-
-/**
- * Remove o indicador de digitação
- */
-function removeTypingIndicator() {
-  assistantStateManager.set('isTyping', false);
-
-  const messagesContainer = document.getElementById('assistant-messages');
-  if (!messagesContainer) return;
-
-  const typingIndicator = messagesContainer.querySelector('.typing-indicator');
-  if (typingIndicator) {
-    messagesContainer.removeChild(typingIndicator);
   }
+
+  // Atualizar sugestões
+  function updateSuggestions(suggestions) {
+    const suggestionsContainer = assistantContainer.querySelector(
+      '.assistant-suggestions'
+    );
+    if (!suggestionsContainer) return;
+
+    // Limpar sugestões atuais
+    suggestionsContainer.innerHTML = '';
+
+    // Adicionar novas sugestões
+    suggestions.forEach((suggestion) => {
+      const button = document.createElement('button');
+      button.className = 'suggestion-btn';
+      button.textContent = suggestion;
+      button.addEventListener('click', () => {
+        addMessage(suggestion, 'user');
+        onUserInput(suggestion, 'suggestion');
+      });
+
+      suggestionsContainer.appendChild(button);
+    });
+  }
+
+  // Definir estado de escuta
+  function setListening(listening) {
+    isListening = listening;
+
+    const voiceBtn = assistantContainer.querySelector('#assistant-voice-btn i');
+    if (voiceBtn) {
+      if (listening) {
+        voiceBtn.className = 'fas fa-microphone-alt';
+        voiceBtn.parentElement.classList.add('listening');
+      } else {
+        voiceBtn.className = 'fas fa-microphone';
+        voiceBtn.parentElement.classList.remove('listening');
+      }
+    }
+  }
+
+  // Exibir notificação
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `assistant-notification ${type}`;
+    notification.textContent = message;
+
+    assistantContainer.appendChild(notification);
+
+    // Remover após 5 segundos
+    setTimeout(() => {
+      notification.classList.add('fade-out');
+      setTimeout(() => {
+        assistantContainer.removeChild(notification);
+      }, 500);
+    }, 5000);
+  }
+
+  // Inicializar a interface
+  initInterface();
+
+  // Retornar API pública
+  return {
+    addMessage,
+    showAssistant,
+    hideAssistant,
+    toggleAssistant,
+    updateSuggestions,
+    setListening,
+    showNotification,
+    _showAssistant, // Expor método interno para uso pelo assistente.js
+  };
 }

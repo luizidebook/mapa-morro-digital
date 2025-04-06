@@ -1,7 +1,9 @@
 /**
  * Módulo de integração do assistente com o mapa
- * Responsável por conectar o assistente com as funcionalidades do mapa
  */
+
+// Armazenar referência aos marcadores ativos
+let activeMarkers = [];
 
 /**
  * Mostra uma localização no mapa
@@ -10,110 +12,213 @@
  * @param {Object} options - Opções adicionais
  */
 export function showLocationOnMap(coordinates, name, options = {}) {
-  console.log(`Mostrando local no mapa: ${name}`, coordinates);
+  console.log(`Mostrando localização no mapa: ${name}`, coordinates);
 
-  if (!coordinates || !coordinates.lat || !coordinates.lng) {
-    console.error('Coordenadas inválidas para mostrar no mapa');
+  if (!window.map) {
+    console.error('Mapa não disponível para mostrar localização');
     return false;
   }
 
   try {
-    // Verificar se o mapa está disponível
-    if (!window.map) {
-      console.error('Mapa não disponível');
-      return false;
+    // Remover marcadores anteriores
+    clearActiveMarkers();
+
+    // Configurar ícone
+    let markerIcon = null;
+    if (options.icon) {
+      markerIcon = L.icon(options.icon);
+    } else {
+      // Ícone padrão
+      markerIcon = L.icon({
+        iconUrl: '/img/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+      });
     }
 
-    // Centralizar o mapa na localização
-    window.map.setView([coordinates.lat, coordinates.lng], options.zoom || 16);
+    // Criar marcador
+    const marker = L.marker([coordinates.lat, coordinates.lng], {
+      icon: markerIcon || L.Icon.Default,
+      title: name,
+    }).addTo(window.map);
 
-    // Adicionar marcador se não existir
-    const markerId = `marker-${name.replace(/\s+/g, '-').toLowerCase()}`;
+    // Adicionar popup
+    const popupContent = options.description
+      ? `<strong>${name}</strong><br>${options.description}`
+      : `<strong>${name}</strong>`;
 
-    // Verificar se já existe um marcador para este local
-    let marker = window.mapMarkers && window.mapMarkers[markerId];
+    marker.bindPopup(popupContent);
 
-    if (!marker) {
-      // Criar novo marcador
-      marker = L.marker([coordinates.lat, coordinates.lng])
-        .addTo(window.map)
-        .bindPopup(`<strong>${name}</strong>`)
-        .openPopup();
+    // Armazenar marcador
+    activeMarkers.push(marker);
 
-      // Armazenar referência ao marcador
-      if (!window.mapMarkers) window.mapMarkers = {};
-      window.mapMarkers[markerId] = marker;
-    } else {
-      // Usar marcador existente
+    // Centralizar mapa
+    window.map.setView([coordinates.lat, coordinates.lng], options.zoom || 15);
+
+    // Abrir popup se solicitado
+    if (options.openPopup) {
       marker.openPopup();
     }
 
-    console.log(`Local "${name}" mostrado no mapa com sucesso`);
+    // Armazenar no estado
+    assistantStateManager.set('lastLocation', {
+      name,
+      coordinates,
+      timestamp: Date.now(),
+    });
+    assistantStateManager.save();
+
     return true;
   } catch (error) {
-    console.error('Erro ao mostrar local no mapa:', error);
+    console.error('Erro ao mostrar localização no mapa:', error);
     return false;
   }
 }
 
 /**
- * Configura os listeners para eventos do mapa
+ * Mostra múltiplos pontos no mapa por categoria
+ * @param {string} category - Categoria de POIs
  */
-export function setupMapEventListeners() {
+export function showPoiCategory(category) {
+  const categoryMap = {
+    beaches: [
+      { name: 'Primeira Praia', coordinates: { lat: -13.3795, lng: -38.9157 } },
+      { name: 'Segunda Praia', coordinates: { lat: -13.3825, lng: -38.9138 } },
+      { name: 'Terceira Praia', coordinates: { lat: -13.3865, lng: -38.9088 } },
+      { name: 'Quarta Praia', coordinates: { lat: -13.3915, lng: -38.9046 } },
+      { name: 'Quinta Praia', coordinates: { lat: -13.3975, lng: -38.899 } },
+    ],
+    restaurants: [
+      {
+        name: 'Ponto do Marisco',
+        coordinates: { lat: -13.3824, lng: -38.9133 },
+      },
+      { name: 'Sambass', coordinates: { lat: -13.3865, lng: -38.9082 } },
+      { name: 'Maria Mata Fome', coordinates: { lat: -13.383, lng: -38.9125 } },
+    ],
+    inns: [
+      {
+        name: 'Pousada Bahia Inn',
+        coordinates: { lat: -13.381, lng: -38.9145 },
+      },
+      {
+        name: 'Pousada Praia do Encanto',
+        coordinates: { lat: -13.387, lng: -38.908 },
+      },
+      { name: 'Vila dos Corais', coordinates: { lat: -13.3845, lng: -38.91 } },
+    ],
+    // Adicionar mais categorias conforme necessário
+  };
+
+  if (!categoryMap[category]) {
+    console.error(`Categoria de POI não encontrada: ${category}`);
+    return false;
+  }
+
   try {
-    // Verificar se o mapa está disponível
-    if (!window.map) {
-      console.error('Mapa não disponível para configurar event listeners');
-      return false;
-    }
+    // Limpar marcadores anteriores
+    clearActiveMarkers();
 
-    // Configurar evento de clique no mapa
-    window.map.on('click', function (e) {
-      console.log('Clique no mapa detectado:', e.latlng);
+    // Adicionar todos os marcadores da categoria
+    const bounds = L.latLngBounds();
 
-      // Se o assistente tiver um modo de seleção de destino ativo
-      if (window.assistantState && window.assistantState.selectingDestination) {
-        const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
+    categoryMap[category].forEach((poi) => {
+      const marker = L.marker([poi.coordinates.lat, poi.coordinates.lng], {
+        title: poi.name,
+      }).addTo(window.map);
 
-        // Notificar o assistente sobre a seleção
-        if (
-          window.assistantApi &&
-          typeof window.assistantApi.onMapSelection === 'function'
-        ) {
-          window.assistantApi.onMapSelection(coords);
-        }
-      }
+      marker.bindPopup(`<strong>${poi.name}</strong>`);
+      activeMarkers.push(marker);
+
+      // Expandir os limites para incluir este ponto
+      bounds.extend([poi.coordinates.lat, poi.coordinates.lng]);
     });
 
-    // Configurar evento para quando um marcador for clicado
-    if (window.mapMarkers) {
-      Object.values(window.mapMarkers).forEach((marker) => {
-        marker.on('click', function (e) {
-          const markerPosition = marker.getLatLng();
-          console.log('Marcador clicado:', markerPosition);
+    // Ajustar o mapa para mostrar todos os pontos
+    window.map.fitBounds(bounds, { padding: [50, 50] });
 
-          // Notificar o assistente sobre o clique no marcador
-          if (
-            window.assistantApi &&
-            typeof window.assistantApi.onMarkerClick === 'function'
-          ) {
-            window.assistantApi.onMarkerClick({
-              lat: markerPosition.lat,
-              lng: markerPosition.lng,
-              name: marker
-                .getPopup()
-                .getContent()
-                .replace(/<[^>]*>/g, ''),
-            });
-          }
-        });
-      });
-    }
-
-    console.log('Event listeners do mapa configurados com sucesso');
     return true;
   } catch (error) {
-    console.error('Erro ao configurar event listeners do mapa:', error);
+    console.error('Erro ao mostrar categoria no mapa:', error);
     return false;
   }
 }
+
+/**
+ * Mostra uma rota entre dois pontos
+ * @param {Object} start - Ponto inicial {lat, lng}
+ * @param {Object} end - Ponto final {lat, lng}
+ * @param {string} mode - Modo de transporte (foot, bike)
+ */
+export function showRoute(start, end, mode = 'foot') {
+  // Implementar apenas se tiver a biblioteca de roteamento instalada
+  console.log('Função showRoute chamada, mas não implementada totalmente');
+
+  // Exemplo de implementação usando Leaflet Routing Machine
+  if (window.L && window.L.Routing) {
+    try {
+      // Remover rotas anteriores
+      if (window.currentRoute) {
+        window.map.removeControl(window.currentRoute);
+      }
+
+      // Criar nova rota
+      window.currentRoute = L.Routing.control({
+        waypoints: [L.latLng(start.lat, start.lng), L.latLng(end.lat, end.lng)],
+        routeWhileDragging: false,
+        lineOptions: {
+          styles: [{ color: '#6FA1EC', weight: 4 }],
+        },
+        createMarker: function () {
+          return null;
+        }, // Não criar marcadores adicionais
+      }).addTo(window.map);
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao mostrar rota:', error);
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Limpa todos os marcadores ativos do mapa
+ */
+function clearActiveMarkers() {
+  activeMarkers.forEach((marker) => {
+    if (window.map) {
+      window.map.removeLayer(marker);
+    }
+  });
+
+  activeMarkers = [];
+}
+
+/**
+ * Reseta a visualização do mapa para a posição padrão
+ */
+export function resetMapView() {
+  if (!window.map) return false;
+
+  const defaultView = {
+    lat: -13.3825,
+    lng: -38.9138,
+    zoom: 13,
+  };
+
+  window.map.setView([defaultView.lat, defaultView.lng], defaultView.zoom);
+  return true;
+}
+
+// Exportar todas as funções públicas
+export default {
+  showLocationOnMap,
+  showPoiCategory,
+  showRoute,
+  resetMapView,
+  clearActiveMarkers,
+};

@@ -7,114 +7,127 @@ import { handleVoiceInput } from '../voice/voice.js';
 import { makeAssistantDraggable } from './config.js';
 
 /**
- * Configura todos os listeners de eventos do assistente
+ * Configura os event listeners do assistente
  */
-export function setupEventListeners() {
-  console.log('Configurando event listeners do assistente...');
+export function setupEventListeners(config) {
+  const {
+    stateManager,
+    interfaceManager,
+    dialogManager,
+    voiceManager,
+    mapIntegration,
+  } = config;
 
-  // Verificar se o DOM está pronto
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      configureListeners();
-    });
-  } else {
-    // DOM já está pronto
-    configureListeners();
-  }
-}
+  // Listener para mudança de idioma
+  window.addEventListener('languageChanged', (event) => {
+    const newLanguage = event.detail.language;
+    console.log(`Evento de mudança de idioma detectado: ${newLanguage}`);
 
-/**
- * Função que realmente configura os listeners depois que o DOM está pronto
- */
-function configureListeners() {
-  // Elementos do assistente
-  let assistantToggle = document.getElementById('assistant-toggle');
-  const assistantDialog = document.getElementById('assistant-dialog');
-  const closeBtn = document.getElementById('close-assistant-dialog');
-  const sendBtn = document.getElementById('assistant-send');
-  const voiceBtn = document.getElementById('assistant-voice-input');
-  const textInput = document.getElementById('assistant-text-input');
+    // Atualizar idioma no assistente
+    stateManager.setLanguage(newLanguage);
+    dialogManager.setLanguage(newLanguage);
+    voiceManager.setLanguage(newLanguage);
 
-  // Verificar elementos críticos de forma mais robusta
-  if (!assistantToggle) {
-    console.warn(
-      'Botão de toggle do assistente não encontrado, verificando alternativas...'
+    // Notificar o usuário
+    interfaceManager.updateAssistantMessage(
+      `Idioma alterado para ${getLanguageName(newLanguage)}`
     );
-    // Verificar alternativas ou criar dinamicamente
-    const alternativeToggle = document.querySelector('.assistant-toggle-btn');
-    if (alternativeToggle) {
-      console.log('Alternativa para botão de toggle encontrada, usando...');
-      assistantToggle = alternativeToggle;
-    } else {
-      console.warn('Nenhuma alternativa encontrada para o botão de toggle');
-      // Não retornar false aqui para permitir que o resto da configuração continue
+  });
+
+  // Listener para eventos de navegação
+  window.addEventListener('navigationStarted', () => {
+    stateManager.updateMapState({ isNavigating: true });
+    dialogManager.processSystemMessage('navigation_started');
+  });
+
+  window.addEventListener('navigationEnded', () => {
+    stateManager.updateMapState({ isNavigating: false });
+    dialogManager.processSystemMessage('navigation_ended');
+  });
+
+  // Listener para alertas de clima
+  window.addEventListener('weatherAlert', (event) => {
+    const condition = event.detail.condition;
+    dialogManager.processSystemMessage('weather_alert', { condition });
+  });
+
+  // Listener para chegada ao destino
+  window.addEventListener('destinationReached', (event) => {
+    const location = event.detail.location;
+    dialogManager.processSystemMessage('location_reached', { location });
+  });
+
+  // Listener para eventos do mapa
+  window.addEventListener('mapClickedFeature', (event) => {
+    const feature = event.detail.feature;
+    stateManager.setActiveFeature(feature.type);
+
+    // Proativamente oferecer informações
+    if (stateManager.getCurrentState().userPreferences.proactiveMode) {
+      dialogManager.processSystemMessage('feature_selected', { feature });
     }
-  }
+  });
 
-  if (!assistantDialog) {
-    console.error('Diálogo do assistente não encontrado!');
-    // Não retorne false para permitir que o resto da inicialização continue
-  }
+  // Listener para atualizações da localização do usuário
+  window.addEventListener('userLocationUpdated', (event) => {
+    const userLocation = event.detail.location;
+    stateManager.updateMapState({ userLocation });
 
-  // Configurar apenas os elementos que existem
-  if (assistantToggle) {
-    assistantToggle.addEventListener('click', () => {
-      console.log('Botão do assistente clicado');
-      if (typeof toggleAssistantDialog === 'function') {
-        toggleAssistantDialog();
+    // Se estiver em modo proativo, verificar lugares interessantes por perto
+    if (stateManager.getCurrentState().userPreferences.proactiveMode) {
+      checkNearbyInterestingPlaces(userLocation);
+    }
+  });
+
+  // Delegação de ações do UI para o assistente
+  document.querySelectorAll('.menu-btn[data-feature]').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      const feature = btn.getAttribute('data-feature');
+
+      // Se o assistente estiver disponível, delegar a ação
+      if (window.assistantApi) {
+        window.assistantApi.handleFeatureSelection(feature);
+        event.stopPropagation();
+      } else {
+        // Fallback para comportamento original
+        handleFeatureSelection(feature);
       }
     });
-  }
+  });
 
-  // Botão para fechar o diálogo
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      console.log('Botão fechar clicado');
-      if (typeof hideAssistantDialog === 'function') {
-        hideAssistantDialog();
+  /**
+   * Verifica lugares interessantes próximos à localização do usuário
+   */
+  function checkNearbyInterestingPlaces(userLocation) {
+    // Implementação simulada para exemplificar
+    // Em um sistema real, faria uma consulta ao banco de dados ou API
+
+    // Exemplo: após 20 segundos, simular detecção de um lugar próximo
+    setTimeout(() => {
+      if (Math.random() > 0.7) {
+        // 30% de chance para não ser invasivo demais
+        dialogManager.processSystemMessage('nearby_place', {
+          placeName: 'Segunda Praia',
+          distance: '150m',
+        });
       }
-    });
+    }, 20000);
   }
 
-  // Botão de envio de mensagem
-  if (sendBtn && textInput) {
-    sendBtn.addEventListener('click', () => {
-      const message = textInput.value.trim();
-      if (message && typeof sendMessage === 'function') {
-        sendMessage(message);
-        textInput.value = '';
-      }
-    });
+  /**
+   * Retorna o nome do idioma com base no código
+   */
+  function getLanguageName(langCode) {
+    const languages = {
+      'pt-BR': 'Português',
+      'en-US': 'English',
+      'es-ES': 'Español',
+      'fr-FR': 'Français',
+      'de-DE': 'Deutsch',
+    };
+
+    return languages[langCode] || langCode;
   }
 
-  // Envio de mensagem com Enter
-  if (textInput) {
-    textInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const message = textInput.value.trim();
-        if (message && typeof sendMessage === 'function') {
-          sendMessage(message);
-          textInput.value = '';
-        }
-      }
-    });
-  }
-
-  // Botão de entrada de voz
-  if (voiceBtn) {
-    voiceBtn.addEventListener('click', () => {
-      if (typeof handleVoiceInput === 'function') {
-        handleVoiceInput();
-      }
-    });
-  }
-
-  // Tornar o assistente arrastável se a função existir
-  if (typeof makeAssistantDraggable === 'function') {
-    makeAssistantDraggable();
-  } else {
-    console.warn('Função makeAssistantDraggable não encontrada');
-  }
-
-  console.log('Event listeners do assistente configurados com sucesso');
+  console.log('Event listeners do assistente configurados');
 }

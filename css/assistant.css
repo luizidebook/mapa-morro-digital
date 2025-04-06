@@ -548,13 +548,269 @@
   .digital-assistant {
     width: 90vw;
     right: 5vw;
+    bottom: 60px; /* Espaço para a barra de navegação em dispositivos móveis */
   }
 
   .assistant-dialog {
     width: 90vw;
+    max-height: 80vh;
+    border-radius: 12px;
+  }
+
+  .assistant-toggle {
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .assistant-icon {
+    bottom: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    z-index: 1001;
+    background-color: #006ec5;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .assistant-messages {
+    max-height: 50vh;
+  }
+
+  .assistant-input {
+    padding: 8px;
+  }
+
+  .assistant-input input {
+    font-size: 16px; /* Tamanho de fonte que evita zoom automático em iOS */
+    padding: 8px 10px;
+  }
+
+  .assistant-buttons {
+    display: flex;
+    gap: 5px;
   }
 
   .action-button {
     font-size: 11px;
+    padding: 4px 8px;
   }
+
+  .assistant-header h3 {
+    font-size: 16px;
+  }
+
+  /* Estilos para assistente minimizado */
+  .assistant-panel.minimized {
+    height: 40px;
+    overflow: hidden;
+  }
+
+  /* Melhorar a visibilidade de botões para toque */
+  .assistant-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Estilos para idiomas RTL como hebraico */
+.rtl-language {
+  direction: rtl;
+  text-align: right;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Arial,
+    sans-serif;
+}
+
+.rtl-language .assistant-message {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .user-message {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rtl-language .assistant-message {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.rtl-language .message-content {
+  text-align: right;
+}
+
+.rtl-language .assistant-header {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .assistant-controls {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rtl-language .assistant-input {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .assistant-input button {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+.rtl-language .assistant-choice-btn {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+/* Ajustes para mobile em RTL */
+@media (max-width: 576px) {
+  .rtl-language .assistant-dialog {
+    left: 5vw;
+    right: 5vw;
+  }
+
+  .rtl-language .assistant-icon {
+    left: 15px;
+    right: auto;
+  }
+}
+
+/* Estilos melhorados para idiomas RTL */
+.rtl-language {
+  direction: rtl;
+  text-align: right;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Arial,
+    sans-serif;
+}
+
+/* Inverter layout do assistente */
+.rtl-language.digital-assistant,
+.rtl-language .assistant-dialog {
+  right: auto;
+  left: 20px;
+}
+
+/* Inverter elementos de mensagem */
+.rtl-language .message {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .user-message {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rtl-language .assistant-message {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.rtl-language .message-bubble {
+  text-align: right;
+  margin-right: 10px;
+  margin-left: 0;
+}
+
+/* Inverter cabeçalho do assistente */
+.rtl-language .assistant-header {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .assistant-controls {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* Inverter botões do chat */
+.rtl-language .assistant-input {
+  flex-direction: row-reverse;
+}
+
+.rtl-language .assistant-input button {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+.rtl-language .assistant-input input {
+  text-align: right;
+  padding-right: 15px;
+  padding-left: 5px;
+}
+
+/* Sugestões em RTL */
+.rtl-language .assistant-suggestions {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.rtl-language .suggestion-btn {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+/* Avatar em RTL */
+.rtl-language .avatar {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+/* Suporte a fonte hebraica */
+[lang='he'],
+.rtl-language * {
+  font-family: 'Segoe UI', Arial, 'Arial Hebrew', 'David', sans-serif;
+}
+
+/* Adicionar transições suaves ao trocar de direção */
+.digital-assistant,
+.assistant-dialog,
+.assistant-header,
+.assistant-input {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Animação de entrada para RTL */
+@keyframes enterRTL {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animação de entrada para LTR */
+@keyframes enterLTR {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.rtl-language .message {
+  animation: enterRTL 0.3s ease-out;
+}
+
+.message:not(.rtl-language) {
+  animation: enterLTR 0.3s ease-out;
 }

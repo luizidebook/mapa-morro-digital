@@ -1,5 +1,4 @@
 import { selectedLanguage } from '../core/varGlobals.js';
-import { setLanguage } from '../core/config.js';
 import { showNotification } from '../ui/notifications.js';
 import { texts } from '../i18n/texts.js';
 
@@ -84,4 +83,34 @@ export function getGeneralText(key, lang = selectedLanguage) {
   }
 
   return key; // Retorna a própria chave se não encontrar tradução
+}
+
+/**
+ * Define o idioma da aplicação
+ */
+export function setLanguage(lang) {
+  if (!isValidLanguage(lang)) {
+    console.warn(
+      `Idioma inválido: ${lang}. Usando padrão: ${DEFAULT_LANGUAGE}`
+    );
+    lang = DEFAULT_LANGUAGE;
+  }
+
+  try {
+    localStorage.setItem('selectedLanguage', lang);
+    window.selectedLanguage = lang;
+    updateInterfaceLanguage(lang);
+
+    // Disparar evento para notificar componentes (incluindo o assistente)
+    const event = new CustomEvent('languageChanged', {
+      detail: { language: lang },
+    });
+    window.dispatchEvent(event);
+
+    console.log(`Idioma definido: ${lang}`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao definir idioma:', error);
+    return false;
+  }
 }

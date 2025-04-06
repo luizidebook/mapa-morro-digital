@@ -25,99 +25,69 @@ export function setLanguage(lang) {
     localStorage.setItem('preferredLanguage', lang);
     selectedLanguage = lang;
 
-    // Traduz tudo
+    // Configurar direção RTL para hebraico
+    const isRTL = lang === 'he';
+    document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+    document.body.classList.toggle('rtl-language', isRTL);
+
+    // Aplicar classe RTL a todos os elementos do assistente
+    const assistantElements = document.querySelectorAll(
+      '.digital-assistant, #digital-assistant, .assistant-dialog, #assistant-dialog, ' +
+        '.assistant-panel, #assistant-messages, .assistant-input'
+    );
+
+    assistantElements.forEach((el) => {
+      el.classList.toggle('rtl-language', isRTL);
+      el.style.direction = isRTL ? 'rtl' : 'ltr';
+    });
+
+    // Traduzir todo o conteúdo
     translatePageContent(lang);
 
-    // Referência global para controlar exibição da mensagem de boas-vindas
-    if (typeof window.welcomeMessageShown === 'undefined') {
-      window.welcomeMessageShown = false;
-    }
-
-    // Inicializar e configurar o assistente de forma síncrona
-    const initAssistant = async () => {
+    // Função simplificada para inicializar o assistente uma única vez
+    const initAssistantSafely = async () => {
       try {
-        // Verificar se o assistente já está disponível globalmente
-        if (window.assistantApi) {
+        // Se o assistente já estiver inicializado, apenas atualize o idioma
+        if (
+          window.assistantApi &&
+          typeof window.assistantApi.setLanguage === 'function'
+        ) {
           console.log(
             'Assistente já inicializado, atualizando idioma para:',
             lang
           );
-
-          // Garantir que a função existe antes de chamar
-          if (typeof window.assistantApi.setLanguage === 'function') {
-            try {
-              await window.assistantApi.setLanguage(lang);
-              // NÃO mostrar boas-vindas aqui - apenas atualizar idioma
-            } catch (e) {
-              console.error('Erro ao definir idioma do assistente:', e);
-            }
-          }
-
-          // Verificar e mostrar boas-vindas APENAS se não foi mostrada ainda
-          // E APENAS se o diálogo estiver atualmente visível
-          if (
-            !window.welcomeMessageShown &&
-            typeof window.assistantApi.showWithWelcome === 'function'
-          ) {
-            const assistantDialog = document.getElementById('assistant-dialog');
-            if (
-              assistantDialog &&
-              !assistantDialog.classList.contains('hidden')
-            ) {
-              window.assistantApi.showWithWelcome();
-              window.welcomeMessageShown = true; // Marcar que já mostrou boas-vindas
-            }
-          }
-          return;
+          await window.assistantApi.setLanguage(lang);
+          return true;
         }
 
-        // Se não estiver inicializado, carregar módulo e inicializar
+        // Se não estiver inicializado, carregue e inicialize
         console.log('Assistente não inicializado. Inicializando...');
-        try {
-          const assistanteModule = await import('../assistente/assistente.js');
 
-          if (!assistanteModule || !assistanteModule.initializeAssistant) {
-            throw new Error(
-              'Módulo do assistente carregado, mas função initializeAssistant não encontrada'
-            );
-          }
+        // Importar módulo do assistente
+        const assistanteModule = await import('../assistente/assistente.js');
 
-          // Inicializar assistente com mapa, mas SEM mostrar mensagem inicial
-          // Vamos controlar isso explicitamente
-          const api = assistanteModule.initializeAssistant(window.map, false);
-
-          // Verificar se a API foi corretamente criada
-          if (!api) {
-            throw new Error('API do assistente não foi criada corretamente');
-          }
-
-          // Garantir que a API está disponível globalmente
-          window.assistantApi = api;
-
-          // Definir idioma e mostrar assistente
-          if (typeof api.setLanguage === 'function') {
-            await api.setLanguage(lang);
-          }
-
-          // APENAS mostrar boas-vindas se o diálogo estiver visível E não tiver sido mostrado ainda
-          const assistantDialog = document.getElementById('assistant-dialog');
-          if (
-            !window.welcomeMessageShown &&
-            assistantDialog &&
-            !assistantDialog.classList.contains('hidden') &&
-            typeof api.showWithWelcome === 'function'
-          ) {
-            api.showWithWelcome();
-            window.welcomeMessageShown = true;
-          }
-        } catch (importError) {
-          console.error(
-            'Erro ao importar/inicializar módulo do assistente:',
-            importError
-          );
+        if (!assistanteModule.initializeAssistant) {
+          throw new Error('Função initializeAssistant não encontrada');
         }
+
+        // Inicializar o assistente com o mapa
+        const api = assistanteModule.initializeAssistant(window.map, {
+          language: lang,
+          autoShow: true,
+          enableVoice: true,
+        });
+
+        if (!api) {
+          throw new Error('API do assistente não foi criada corretamente');
+        }
+
+        // Armazenar API globalmente
+        window.assistantApi = api;
+
+        return true;
       } catch (error) {
-        console.error('Erro geral na inicialização do assistente:', error);
+        console.error('Erro ao inicializar/configurar assistente:', error);
+        return false;
       }
     };
 
@@ -126,7 +96,7 @@ export function setLanguage(lang) {
     if (welcomeModal) {
       welcomeModal.style.display = 'none';
 
-      // Mostrar elementos UI e inicializar assistente
+      // Mostrar elementos UI e inicializar assistente após fechar o modal
       setTimeout(() => {
         // Mostrar widget de tempo
         const weatherWidget = document.getElementById('weather-widget');
@@ -148,12 +118,26 @@ export function setLanguage(lang) {
           assistantDialog.classList.remove('hidden');
         }
 
-        // Inicializar assistente de forma assíncrona
-        initAssistant();
+        // Inicializar o assistente ou atualizar o idioma
+        initAssistantSafely().then((success) => {
+          if (
+            success &&
+            window.assistantApi &&
+            typeof window.assistantApi.showWithWelcome === 'function'
+          ) {
+            // Verificar se a mensagem de boas-vindas já foi mostrada
+            const welcomeShown =
+              localStorage.getItem('welcomeMessageShown') === 'true';
+            if (!welcomeShown) {
+              window.assistantApi.showWithWelcome();
+              localStorage.setItem('welcomeMessageShown', 'true');
+            }
+          }
+        });
       }, 500);
     } else {
       // Se não houver modal, inicializar assistente imediatamente
-      initAssistant();
+      initAssistantSafely();
     }
 
     console.log(`Idioma definido para: ${lang}`);
@@ -164,7 +148,6 @@ export function setLanguage(lang) {
     return false;
   }
 }
-
 // Adicionar ao app.js ou expandir a função existente
 function processMessage(message) {
   const lowerMessage = message.toLowerCase();
