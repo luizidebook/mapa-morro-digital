@@ -55,6 +55,7 @@ export async function startNavigation() {
 
     // 2️⃣ Valida o destino selecionado.
     if (!validateDestination(selectedDestination)) {
+      console.error('Destino inválido. Selecione um destino válido.');
       hideRouteLoadingIndicator();
       return;
     }

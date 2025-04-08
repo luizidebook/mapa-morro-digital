@@ -5,6 +5,10 @@ import { setupMapIntegration } from './integration/map-control.js';
 import { setupStateManager } from './state/state.js';
 import { updateAssistantUITexts } from './language/translations.js';
 import { EnhancedVoiceSystem } from './voice/enhancedVoice.js';
+import { startNavigation, endNavigation, pauseNavigation, resumeNavigation } from '../navigation/navigation.js';
+import { createRoute} from '../route/route.js';
+import { handleFeatureSelection, handleSubmenuButtons } from '../ui/feature-selection.js';
+import { OSMDataProvider } from './integration/osm-data.js';
 
 // assistente.js - Ponto de entrada do módulo do assistente
 export function initializeAssistant(map, options = {}) {
@@ -99,47 +103,12 @@ export function initializeAssistant(map, options = {}) {
           console.log(`[Fallback] Idioma definido: ${lang}`),
         speak: (text) => {
           console.log(`[Fallback] Texto para falar: ${text}`);
-          // Implementar feedback visual já que a síntese falhou
-          showTextFeedback(text);
+
           return Promise.resolve(false);
         },
         stop: () => console.log('[Fallback] Parou a fala'),
       };
     }
-  }
-
-  // Função auxiliar para feedback visual quando a síntese falha completamente
-  function showTextFeedback(text) {
-    // Remover feedback existente
-    const existingFeedback = document.getElementById('tts-text-feedback');
-    if (existingFeedback) {
-      existingFeedback.remove();
-    }
-
-    // Criar elemento de feedback
-    const feedback = document.createElement('div');
-    feedback.id = 'tts-text-feedback';
-    feedback.className = 'tts-text-feedback';
-    feedback.textContent = text;
-
-    // Adicionar à interface
-    document.body.appendChild(feedback);
-
-    // Animar entrada
-    setTimeout(() => {
-      feedback.classList.add('visible');
-    }, 10);
-
-    // Remover após um tempo
-    setTimeout(
-      () => {
-        feedback.classList.remove('visible');
-        setTimeout(() => {
-          feedback.remove();
-        }, 300);
-      },
-      Math.max(2000, text.length * 40)
-    ); // Tempo proporcional ao tamanho do texto
   }
 
   // Implementação das funções ausentes
@@ -198,7 +167,6 @@ export function initializeAssistant(map, options = {}) {
     // Verificar novamente após inicialização
     if (!voiceSystem) {
       console.warn('Sistema de voz não inicializado. Usando fallback visual.');
-      showTextFeedback(text);
       return false;
     }
 
@@ -220,17 +188,10 @@ export function initializeAssistant(map, options = {}) {
       // Usar a primeira promessa que resolver/rejeitar
       const result = await Promise.race([speakPromise, timeoutPromise]);
 
-      // Se falhar e não mostrar feedback visual, mostrar com nossa implementação
-      if (!result) {
-        showTextFeedback(text);
-      }
-
       return result;
     } catch (error) {
       console.error('Erro ao sintetizar voz:', error);
 
-      // Implementar feedback visual como fallback
-      showTextFeedback(text);
 
       return false;
     }
@@ -559,12 +520,17 @@ export function initializeAssistant(map, options = {}) {
       return true;
     },
     // Métodos para integração com o fluxo existente
-    handleFeatureSelection: (feature) =>
-      mapIntegration.handleFeatureSelection(feature),
-    createRoute: (destination) => mapIntegration.createRoute(destination),
-    startNavigation: mapIntegration.startNavigation,
-    cancelNavigation: mapIntegration.cancelNavigation,
+    handleFeatureSelection: (feature) => handleFeatureSelection(feature),
+    handleSubmenuButtons: (lat, lon, name, description) =>
+      handleSubmenuButtons(lat, lon, name, description),
+    createRoute: (destination) => createRoute(destination),
+    startNavigation: () => startNavigation(),
+    pauseNavigation: () => pauseNavigation(),
+    resumeNavigation: () => resumeNavigation(),
+    endNavigation: () => endNavigation(),
     reset,
+    fetchPOIsByCategory: (category, bounds) => fetchPOIsByCategory(category, bounds),
+    fetchPOIDetails: (osmId, osmType) => fetchPOIDetails(osmId, osmType),
   };
 }
 

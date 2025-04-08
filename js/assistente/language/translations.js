@@ -742,7 +742,7 @@ function setupRTLSupport(language) {
   const assistantElements = document.querySelectorAll(
     '.digital-assistant, #digital-assistant, .assistant-dialog, #assistant-dialog, ' +
       '.assistant-panel, #assistant-panel, #assistant-messages, .assistant-messages, ' +
-      '.assistant-input, .message-bubble, .tts-text-feedback'
+      '.assistant-input, .message-bubble, '
   );
 
   assistantElements.forEach((el) => {

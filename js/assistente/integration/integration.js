@@ -15,7 +15,7 @@ export function showLocationOnMap(coordinates, name, options = {}) {
   console.log(`Mostrando localização no mapa: ${name}`, coordinates);
 
   if (!window.map) {
-    console.error('Mapa não disponível para mostrar localização');
+    showNotification('Erro: O mapa não está disponível. Tente novamente mais tarde.', 'error');
     return false;
   }
 
@@ -38,17 +38,10 @@ export function showLocationOnMap(coordinates, name, options = {}) {
     }
 
     // Criar marcador
-    const marker = L.marker([coordinates.lat, coordinates.lng], {
+    const marker = addMarkerToMap(coordinates.lat, coordinates.lng, name, {
       icon: markerIcon || L.Icon.Default,
       title: name,
-    }).addTo(window.map);
-
-    // Adicionar popup
-    const popupContent = options.description
-      ? `<strong>${name}</strong><br>${options.description}`
-      : `<strong>${name}</strong>`;
-
-    marker.bindPopup(popupContent);
+    });
 
     // Armazenar marcador
     activeMarkers.push(marker);
@@ -124,11 +117,7 @@ export function showPoiCategory(category) {
     const bounds = L.latLngBounds();
 
     categoryMap[category].forEach((poi) => {
-      const marker = L.marker([poi.coordinates.lat, poi.coordinates.lng], {
-        title: poi.name,
-      }).addTo(window.map);
-
-      marker.bindPopup(`<strong>${poi.name}</strong>`);
+      const marker = addMarkerToMap(poi.coordinates.lat, poi.coordinates.lng, poi.name);
       activeMarkers.push(marker);
 
       // Expandir os limites para incluir este ponto
@@ -156,7 +145,7 @@ export function showRoute(start, end, mode = 'foot') {
   console.log('Função showRoute chamada, mas não implementada totalmente');
 
   // Exemplo de implementação usando Leaflet Routing Machine
-  if (window.L && window.L.Routing) {
+  if (window.L && window.L.Routing && window.map) {
     try {
       // Remover rotas anteriores
       if (window.currentRoute) {
@@ -180,6 +169,8 @@ export function showRoute(start, end, mode = 'foot') {
       console.error('Erro ao mostrar rota:', error);
       return false;
     }
+  } else {
+    console.error('Leaflet Routing Machine ou mapa não disponível.');
   }
 
   return false;
@@ -212,6 +203,20 @@ export function resetMapView() {
 
   window.map.setView([defaultView.lat, defaultView.lng], defaultView.zoom);
   return true;
+}
+
+/**
+ * Adiciona um marcador ao mapa
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ * @param {string} name - Nome do local
+ * @param {Object} options - Opções adicionais
+ * @returns {Object} Marker criado
+ */
+function addMarkerToMap(lat, lon, name, options = {}) {
+  const marker = L.marker([lat, lon], options).addTo(window.map);
+  marker.bindPopup(`<strong>${name}</strong>`);
+  return marker;
 }
 
 // Exportar todas as funções públicas

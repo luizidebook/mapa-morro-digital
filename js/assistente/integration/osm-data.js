@@ -358,6 +358,7 @@ export class OSMDataProvider {
       data: data,
       timestamp: Date.now(),
     });
+    setTimeout(() => this.cache.delete(key), this.cacheExpiration);
   }
 
   _getFromCache(key) {

@@ -274,6 +274,10 @@ function processIntentMessage(text, intent, entities, language) {
         'Posso ajudar com informações sobre praias, restaurantes, hospedagem, passeios, clima e muito mais em Morro de São Paulo. O que você gostaria de saber?'
       );
 
+    case 'start_navigation':
+      startNavigation();
+      return 'Iniciando navegação para o destino selecionado.';
+
     case 'general_question':
     case 'general_chat':
     default:
@@ -350,12 +354,12 @@ function showSuggestionsByIntent(intent, entities, language) {
       setTimeout(() => showFoodOptions(language), 500);
       break;
 
-    case 'activity_info':
-      setTimeout(() => showActivityOptions(language), 500);
-      break;
-
     case 'accommodation_info':
       setTimeout(() => showAccommodationOptions(language), 500);
+      break;
+
+    case 'activity_info':
+      setTimeout(() => showActivityOptions(language), 500);
       break;
   }
 }

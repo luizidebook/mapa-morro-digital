@@ -654,6 +654,10 @@ export function setupDialogManager(config) {
       }
     });
 
+    if (entities.navigation) {
+      return 'start_navigation';
+    }
+
     return entities;
   }
 

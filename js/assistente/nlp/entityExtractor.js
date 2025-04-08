@@ -20,6 +20,7 @@ export function extractEntities(text, language = 'pt') {
     greeting: false,
     question: false,
     farewell: false,
+    navigation: false,
   };
 
   // Extrair locais
@@ -156,6 +157,14 @@ export function extractEntities(text, language = 'pt') {
       break;
     }
   }
+
+  // Detectar navegação
+  const navigationKeywords = ['rota', 'navegar', 'como chegar', 'direção', 'criar rota'];
+  navigationKeywords.forEach((keyword) => {
+    if (lowerText.includes(keyword)) {
+      entities.navigation = true;
+    }
+  });
 
   return entities;
 }

@@ -9,13 +9,9 @@ export const ORS_API_KEY =
 // Importações de funções externas
 import { showNotification } from '../ui/notifications.js';
 import { finalizeRouteMarkers } from '../ui/routeMarkers.js';
-import { hideAllControlButtons } from '../ui/buttons.js';
-import { closeSideMenu } from '../ui/menu.js';
 import { plotRouteOnMap } from './routeUi/plotRouteOnMap.js';
-import { getGeneralText } from '../i18n/language.js';
 // Importações de variáveis globais
 import { getCurrentLocation } from '../geolocation/tracking.js';
-import { showMenuFooter } from '../route/routeUi/menuFooter.js';
 import { showRouteSummary } from '../route/routeUi/routeSummary.js';
 // Exemplo de chaves e constantes
 export const apiKey =
