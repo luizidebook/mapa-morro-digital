@@ -114,7 +114,7 @@ header {
   top: 0%;
   left: 0%;
   width: 100%;
-  height: 25%;
+  height: 15%;
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.7) 0%,
@@ -150,13 +150,14 @@ header h1 {
 /* Quick Action Buttons */
 .quick-actions {
   position: absolute;
-  bottom: 100px;
+  bottom: 50px;
   left: 0;
   width: 100%;
   display: flex;
   justify-content: space-around;
   padding: 0 0.5rem;
   z-index: 10;
+  border-radius: var(--radius-lg);
 }
 
 .action-button {
@@ -164,7 +165,7 @@ header h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.8); /* Fundo semi-transparente */
   border: none;
   border-radius: 50%;
   width: 56px;
@@ -452,7 +453,8 @@ header h1 {
 
 .control-button {
   padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.2); /* Fundo quase transparente */
+  backdrop-filter: blur(10px); /* Efeito de vidro fosco */
   color: var(--gray-800);
   border: none;
   border-radius: var(--radius-lg);
@@ -465,32 +467,18 @@ header h1 {
 }
 
 .control-button:hover {
-  background-color: white;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.4
+  ); /* Fundo mais visível ao passar o mouse */
   box-shadow: var(--shadow-lg);
 }
 
 .control-button.active {
   background-color: var(--accent);
   color: white;
-}
-
-/* Botões dinâmicos no submenu */
-.control-button {
-  padding: 0.5rem 1rem;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-}
-
-.control-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
 }
 
 /* Submenu flutuante com design moderno */
@@ -503,9 +491,10 @@ header h1 {
   max-width: 400px;
   max-height: 70%;
   padding: 0;
-  background: white;
+  background: rgba(255, 255, 255, 0.2); /* Fundo quase transparente */
+  backdrop-filter: blur(10px); /* Efeito de vidro fosco */
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 15;
   overflow: hidden;
 }
@@ -546,6 +535,29 @@ header h1 {
   padding: 0.5rem 1rem 1rem;
   overflow-y: auto;
   max-height: calc(70vh - 56px);
+  background: rgba(255, 255, 255, 0.2); /* Fundo quase transparente */
+  backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  scrollbar-width: thin; /* Para navegadores compatíveis com scrollbar-width */
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent; /* Cor da barra e do fundo */
+}
+
+#submenuContainer::-webkit-scrollbar {
+  width: 8px; /* Largura da barra de rolagem */
+}
+
+#submenuContainer::-webkit-scrollbar-track {
+  background: transparent; /* Fundo da barra de rolagem */
+}
+
+#submenuContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4); /* Cor da barra de rolagem */
+  border-radius: 4px; /* Bordas arredondadas */
+}
+
+#submenuContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6); /* Cor ao passar o mouse */
 }
 
 #submenuContainer ul {
@@ -555,18 +567,26 @@ header h1 {
 
 .submenu-item {
   padding: 0.75rem;
-  background: var(--gray-100);
+  background: rgba(255, 255, 255, 0.2); /* Fundo quase transparente */
+  backdrop-filter: blur(10px); /* Efeito de vidro fosco */
   margin-bottom: 0.75rem;
   border-radius: var(--radius);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
   align-items: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .submenu-item:hover {
-  background-color: var(--gray-200);
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.4
+  ); /* Fundo mais visível ao passar o mouse */
   transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .submenu-item-icon {

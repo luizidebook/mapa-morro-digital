@@ -15,10 +15,18 @@ import { initAnalytics } from "./analytics.js";
 import { initPerformanceOptimizations } from "./performance.js";
 import { setupAssistantInteractions } from "./interface.js";
 import { processUserInput } from "./dialog.js";
-import { createSubmenuButtons } from "./submenu.js";
+import { createSubmenuButtons, setupQuickActionButtons } from "./submenu.js";
+
+let map;
+let userLocationMarker = null;
+let userPopup = null;
+
+// Configura os botões de ação rápida
+document.addEventListener("DOMContentLoaded", () => {
+  setupQuickActionButtons();
+});
 
 // Variáveis globais
-let map;
 let language;
 
 // Função para detectar o idioma do navegador e definir o idioma da página
@@ -36,17 +44,6 @@ function setupUIElements() {
   if (assistantButton) {
     assistantButton.addEventListener("click", showAssistant);
   }
-
-  // Configurar botões de ações rápidas
-  const actionButtons = document.querySelectorAll(
-    ".action-button:not(.primary)"
-  );
-  actionButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const category = this.querySelector("span").textContent.toLowerCase();
-      handleCategorySelection(category);
-    });
-  });
 
   // Configurar botão de fechamento do submenu
   const closeButton = document.querySelector(".close-button");
@@ -144,6 +141,75 @@ function handleCategorySelection(category) {
   }
 }
 
+/**
+ * Solicita permissão de GPS e rastreia a posição do usuário em tempo real.
+ */
+function requestAndTrackUserLocation() {
+  if (!navigator.geolocation) {
+    alert("Seu navegador não suporta geolocalização.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+
+      // Inicializa o mapa focado na localização do usuário
+      map = initializeMap("map");
+      map.setView([latitude, longitude], 16);
+
+      // Adiciona o marcador de localização do usuário
+      userLocationMarker = window.L.marker([latitude, longitude], {
+        icon: window.L.divIcon({
+          html: `<i class="fas fa-location-arrow" style="font-size: 24px; color: red; transform: rotate(45deg);"></i>`,
+          className: "custom-user-marker",
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        }),
+      }).addTo(map);
+
+      // Adiciona o popup "Você está aqui!"
+      userPopup = userLocationMarker.bindPopup("Você está aqui!").openPopup();
+
+      // Rastreia a posição do usuário em tempo real
+      trackUserLocation();
+    },
+    (error) => {
+      console.error("Erro ao obter localização:", error);
+      alert(
+        "Não foi possível acessar sua localização. Verifique as permissões."
+      );
+    }
+  );
+}
+
+/**
+ * Rastreia a posição do usuário em tempo real.
+ */
+function trackUserLocation() {
+  navigator.geolocation.watchPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+
+      // Atualiza o marcador e o popup para a nova posição
+      if (userLocationMarker) {
+        userLocationMarker.setLatLng([latitude, longitude]);
+        userPopup.setLatLng([latitude, longitude]);
+      }
+
+      // Centraliza o mapa na nova posição do usuário
+      map.setView([latitude, longitude], 16);
+    },
+    (error) => {
+      console.error("Erro ao rastrear localização:", error);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+    }
+  );
+}
+
 // Função principal de inicialização da aplicação
 function initApp() {
   // Define o idioma
@@ -188,6 +254,9 @@ function initApp() {
   initFavorites();
   initAnalytics();
   initPerformanceOptimizations();
+
+  // Solicita permissão de GPS e rastreia a posição do usuário
+  requestAndTrackUserLocation();
 }
 
 // Aguarda o carregamento completo do DOM
@@ -201,4 +270,5 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   createSubmenuButtons(); // Cria os botões dinâmicos
+  setupQuickActionButtons(); // Configura os botões de ação rápida
 });

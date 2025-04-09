@@ -11,21 +11,21 @@ export const OVERPASS_API_URL = "https://overpass-api.de/api/interpreter";
 // Queries Overpass
 export const queries = {
   "touristSpots-submenu":
-    '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.913);out body;',
+    '[out:json];node["tourism"="attraction"](around:10000,-13.376,-38.917);out body;',
   "tours-submenu":
-    '[out:json];node["tourism"="information"](around:10000,-13.376,-38.913);out body;',
+    '[out:json];node["tourism"="information"](around:10000,-13.376,-38.917);out body;',
   "beaches-submenu":
-    '[out:json];node["natural"="beach"](around:15000,-13.376,-38.913);out body;',
+    '[out:json];node["natural"="beach"](around:15000,-13.376,-38.917);out body;',
   "nightlife-submenu":
-    '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.913);out body;',
+    '[out:json];node["amenity"="nightclub"](around:10000,-13.376,-38.917);out body;',
   "restaurants-submenu":
-    '[out:json];node["amenity"="restaurant"](around:15000,-13.376,-38.913);out body;',
+    '[out:json];node["amenity"="restaurant"](around:15000,-13.376,-38.917);out body;',
   "inns-submenu":
-    '[out:json];node["tourism"="hotel"](around:15000,-13.376,-38.913);out body;',
+    '[out:json];node["tourism"="hotel"](around:15000,-13.376,-38.917);out body;',
   "shops-submenu":
-    '[out:json];node["shop"](around:15000,-13.376,-38.913);out body;',
+    '[out:json];node["shop"](around:15000,-13.376,-38.917);out body;',
   "emergencies-submenu":
-    '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.913);out body;',
+    '[out:json];node["amenity"~"hospital|police"](around:10000,-13.376,-38.917);out body;',
   "tips-submenu":
     '[out:json];node["tips"](around:10000,-13.376,-38.913);out body;',
   "about-submenu":

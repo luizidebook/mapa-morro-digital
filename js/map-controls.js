@@ -12,7 +12,7 @@ Adiciona controle de geolocalização para o usuário encontrar sua localizaçã
 export let mapInstance;
 let markers = [];
 let routeLayer;
-export let map; // Variável global para armazenar a instância do mapa
+let map; // Variável global para armazenar a instância do mapa
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
@@ -20,9 +20,9 @@ export let map; // Variável global para armazenar a instância do mapa
  * @returns {Object} Instância do mapa Leaflet.
  */
 export function initializeMap(containerId) {
-  if (map) {
+  if (mapInstance) {
     console.warn("Mapa já inicializado.");
-    return map;
+    return mapInstance;
   }
 
   const mapElement = document.getElementById(containerId);
@@ -31,7 +31,6 @@ export function initializeMap(containerId) {
     return null;
   }
 
-  // Verificar se o Leaflet está disponível globalmente
   if (typeof window.L === "undefined") {
     console.error(
       "Leaflet (L) não está definido. Certifique-se de incluir a biblioteca Leaflet no HTML."
@@ -39,17 +38,17 @@ export function initializeMap(containerId) {
     return null;
   }
 
-  // Usar window.L explicitamente para evitar o erro de referência
-  map = window.L.map(containerId).setView([-13.3766787, -38.9172057], 13);
+  mapInstance = window.L.map(containerId).setView(
+    [-13.3766787, -38.9172057],
+    13
+  );
   window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
-
-  mapInstance = map; // Definindo a instância mapInstance
+  }).addTo(mapInstance);
 
   console.log("Mapa inicializado com sucesso.");
-  return map;
+  return mapInstance;
 }
 
 /**
@@ -66,93 +65,106 @@ export function clearMarkers() {
 }
 
 /**
- * Mostra uma localização no mapa com base no nome do local.
+ * Mostra uma localização no mapa com base no nome do local e coordenadas.
  * @param {string} locationName - Nome descritivo (ex: 'Praia do Encanto')
- * @param {object} map - Instância do mapa Leaflet
+ * @param {number} lat - Latitude da localização
+ * @param {number} lon - Longitude da localização
  */
-export function showLocationOnMap(locationName, map = mapInstance) {
+export function showLocationOnMap(locationName, lat, lon) {
   clearMarkers();
 
-  // Base de dados expandida de localizações
-  const locations = {
-    // Praias
-    "praia do encanto": [-13.392, -38.91],
-    "segunda praia": [-13.3782, -38.9134],
-    "terceira praia": [-13.381, -38.9102],
-    "quarta praia": [-13.384, -38.908],
-    "primeira praia": [-13.376, -38.916],
-    "praia do porto": [-13.373, -38.918],
-
-    // Pontos turísticos
-    "farol do morro": [-13.3772, -38.9155],
-    tirolesa: [-13.3775, -38.914],
-    "fonte do morro": [-13.376, -38.9145],
-    "fortaleza do morro": [-13.3767, -38.9175],
-    "mirante do farol": [-13.3771, -38.9154],
-
-    // Restaurantes
-    "restaurante farol": [-13.3778, -38.9138],
-    "sabores da ilha": [-13.3787, -38.913],
-    "punto divino": [-13.3785, -38.9132],
-    "restaurante do porto": [-13.3735, -38.9175],
-
-    // Hospedagem
-    "pousada mar azul": [-13.3782, -38.9136],
-    "vila dos coqueiros": [-13.3798, -38.912],
-    "hotel morro": [-13.3777, -38.9142],
-    "pousada da praia": [-13.3786, -38.9128],
-  };
-
-  const key = locationName.toLowerCase();
-  const coords = locations[key];
-
-  if (!coords) {
-    console.warn("Localização não encontrada:", locationName);
+  if (!lat || !lon) {
+    console.warn("Coordenadas inválidas para a localização:", locationName);
     return;
   }
 
-  // Personalizar marcadores por categoria
-  let icon = window.L.icon({
-    iconUrl: getMarkerIconForLocation(key),
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
+  const icon = getMarkerIconForLocation(locationName.toLowerCase());
 
-  const marker = window.L.marker(coords, { icon }).addTo(map);
-  marker.bindPopup(createPopupContent(locationName, key)).openPopup();
+  const marker = window.L.marker([lat, lon], { icon }).addTo(mapInstance);
+  marker.bindPopup(createPopupContent(locationName)).openPopup();
   markers.push(marker);
 
-  map.setView(coords, 16);
+  // Animação suave ao centralizar o mapa
+  mapInstance.flyTo([lat, lon], 16, {
+    animate: true,
+    duration: 1.5, // Duração da animação em segundos
+  });
 }
 
 /**
- * Seleciona o ícone apropriado com base no tipo de localização
+ * Exibe todos os marcadores de uma categoria no mapa.
+ * @param {Array} locations - Lista de locais com nome, latitude e longitude.
+ */
+export function showAllLocationsOnMap(locations) {
+  clearMarkers();
+
+  if (!locations || locations.length === 0) {
+    console.warn("Nenhuma localização encontrada para exibir.");
+    return;
+  }
+
+  const bounds = window.L.latLngBounds();
+
+  locations.forEach((location) => {
+    const { name, lat, lon } = location;
+    if (!lat || !lon) return;
+
+    const icon = getMarkerIconForLocation(name.toLowerCase());
+    const marker = window.L.marker([lat, lon], { icon }).addTo(mapInstance);
+    marker.bindPopup(createPopupContent(name));
+    markers.push(marker);
+
+    bounds.extend([lat, lon]);
+  });
+
+  // Centraliza o mapa em Morro de São Paulo com zoom 15
+  mapInstance.setView([-13.3766787, -38.9172057], 15);
+}
+
+/**
+ * Seleciona o ícone apropriado com base no tipo de localização usando Font Awesome.
+ * @param {string} name - Nome do local.
+ * @returns {Object} Configuração do ícone.
  */
 function getMarkerIconForLocation(name) {
+  let iconClass = "fa-map-marker-alt"; // Ícone padrão
+
   if (name.includes("praia")) {
-    return "/images/markers/beach-marker.png";
+    iconClass = "fa-umbrella-beach";
   } else if (name.includes("restaurante") || name.includes("sabores")) {
-    return "/images/markers/food-marker.png";
+    iconClass = "fa-utensils";
   } else if (
     name.includes("pousada") ||
     name.includes("hotel") ||
     name.includes("vila")
   ) {
-    return "/images/markers/hotel-marker.png";
-  } else {
-    return "/images/markers/attraction-marker.png";
+    iconClass = "fa-bed";
+  } else if (name.includes("atração") || name.includes("farol")) {
+    iconClass = "fa-mountain";
+  } else if (name.includes("loja") || name.includes("mercado")) {
+    iconClass = "fa-shopping-bag";
+  } else if (name.includes("hospital") || name.includes("polícia")) {
+    iconClass = "fa-ambulance";
   }
+
+  // Retorna um ícone do Leaflet com Font Awesome
+  return window.L.divIcon({
+    html: `<i class="fas ${iconClass}" style="font-size: 24px; color: #3b82f6;"></i>`,
+    className: "custom-marker-icon",
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24],
+  });
 }
 
 /**
  * Cria conteúdo HTML personalizado para os popups
  */
-function createPopupContent(name, key) {
+function createPopupContent(name) {
   return `<div class="custom-popup">
     <h3>${name}</h3>
-    <p>${getLocationDescription(key)}</p>
-    <button class="popup-button" onclick="window.navigateTo('${key}')">Mais detalhes</button>
+    <p>${getLocationDescription(name.toLowerCase())}</p>
+    <button class="popup-button" onclick="window.navigateTo('${name.toLowerCase()}')">Mais detalhes</button>
   </div>`;
 }
 
@@ -179,8 +191,8 @@ function getLocationDescription(key) {
  */
 export function setupGeolocation(map = mapInstance) {
   let userLocationMarker = null;
+  let accuracyCircle = null;
 
-  // Adiciona botão de geolocalização personalizado
   const geolocateControl = document.createElement("div");
   geolocateControl.className = "geolocate-control";
   geolocateControl.innerHTML = '<i class="fas fa-location-arrow"></i>';
@@ -197,12 +209,13 @@ export function setupGeolocation(map = mapInstance) {
             position.coords.longitude,
           ];
 
-          // Remove o marcador anterior se existir
           if (userLocationMarker) {
             map.removeLayer(userLocationMarker);
           }
+          if (accuracyCircle) {
+            map.removeLayer(accuracyCircle);
+          }
 
-          // Criar marcador com efeito pulsante
           userLocationMarker = window.L.circleMarker(userLatLng, {
             radius: 8,
             color: "#3b82f6",
@@ -211,11 +224,7 @@ export function setupGeolocation(map = mapInstance) {
             weight: 2,
           }).addTo(map);
 
-          // Adiciona efeito pulsante via CSS
-          userLocationMarker._icon?.classList.add("pulse");
-
-          // Adiciona círculo para mostrar precisão
-          const accuracyCircle = window.L.circle(userLatLng, {
+          accuracyCircle = window.L.circle(userLatLng, {
             radius: position.coords.accuracy,
             color: "rgba(59, 130, 246, 0.3)",
             fillColor: "rgba(59, 130, 246, 0.1)",
