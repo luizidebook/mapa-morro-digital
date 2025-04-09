@@ -17,11 +17,11 @@ let selectedFeature = null;
  * Cria botões dinâmicos para cada query no submenu.
  */
 export function createSubmenuButtons() {
-  const container = document.getElementById("buttonGroup");
-  if (!container) return console.error("Elemento #buttonGroup não encontrado.");
-
-  // Limpa os botões existentes
-  container.innerHTML = "";
+  const container = document.getElementById("submenuContainer"); // Certifique-se de que o elemento existe
+  if (!container) {
+    console.error("Elemento 'submenuContainer' não encontrado.");
+    return;
+  }
 
   // Cria um botão para cada query
   Object.keys(queries).forEach((key) => {
