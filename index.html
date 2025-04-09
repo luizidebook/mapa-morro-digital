@@ -1,287 +1,194 @@
-<!-- Morro Digital - index.html -->
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head> <!-- Inicio do <head> -->
-
-<!-- Metatags básicas de SEO e viewport -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<!-- SEO e Metatags -->
-  <title data-i18n="title">Morro de São Paulo Digital</title>
-  <meta name="description" content="Descrição do site Morro Digital." />
-  <meta name="keywords" content="turismo, morro, digital, viagens, pontos turísticos" />
-  <meta name="author" content="Morro Digital" />
-  <meta property="og:title" content="Morro Digital" />
-  <meta property="og:description" content="Descrição do site Morro Digital." />
-  <meta property="og:image" content="link_da_imagem" />
-  <meta property="og:url" content="URL do site" />
-
-<!-- CSS Principal -->
-  <link rel="stylesheet" href="./css/styles.css" />
-
-<!-- CSS do Assistente Virtual -->
-  <link rel="stylesheet" href="./css/assistant.css" />
-  <link rel="stylesheet" href="./css/rtl-support.css" />
-<!-- Adicionar na seção <head> -->
-<!-- Adicione após a referência ao assistant.css -->
-<link rel="stylesheet" href="./css/weather-widget.css" />
-
-<!-- Dentro da tag <head>, após os outros CSS -->
-<link rel="stylesheet" href="css/voice-selector.css">
-<link rel="stylesheet" href="css/speaking-indicator.css">
-
-<!-- Leaflet (Mapa Interativo) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin="" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Leaflet Routing Machine (Roteamento) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-  
-<!-- Awesomplete (Autocomplete) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css" />
-
-<!-- Swiper (Carrossel de Imagens) -->
-  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-
-<!-- Font Awesome (Ícones) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-<!-- Fuse.js (Busca Inteligente) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.min.js"></script>
-
-</head> <!-- Fim do <head> -->
-
-<body> <!-- Início do <body> -->
- 
-  
-<!-- Contêiner principal do Mapa -->
-<div id="map-container">
-    <div id="map"></div>
-</div>
-
-
-<div id="weather-widget" class="weather-widget hidden" style="display: none;">
-  <div class="weather-current">
-    <div class="weather-icon sunny"></div>
-    <div class="weather-temp">28°C</div>
-  </div>
-  <div class="weather-details">
-    <div class="weather-humidity">75%</div>
-    <div class="weather-wind">15 km/h</div>
-  </div>
-</div>
-
-
-<!-- #progress-bar: Barra de progresso opcional para exibir quando recursos estão carregando.
-  - .hidden: classe que oculta até ser exibida dinamicamente. -->
-<div id="progress-bar" class="progress-bar hidden" style="display:none;">0% completo</div>
-
-<!-- Loader visual -->
-<div id="route-loader" class="loader hidden">
-    <div class="spinner"></div>
-    <p>Carregando rota...</p>
-</div>
-
-<!-- #notification-container: Contêiner de notificações (ex.: alerts, toasts). 
-  - Manipulado por showNotification() em scripts.js. -->
-<div id="notification-container" class="notification-container"></div>
-
-
-<!-- MODAIS / OVERLAYS -->
-
-<!-- #assistant-modal: Modal do Assistente Virtual (ex.: chat ou voz).
-  - Botão X (#close-assistant-btn) fecha via closeAssistantModal() em scripts.js. -->
-  <div id="assistant-modal" class="modal">
-    <div class="modal-content assistant-modal-content">
-      <span id="close-assistant-btn" class="close-btn">&times;</span>
-      <div id="assistant-message" class="assistant-message"></div>
-    </div>
-  </div>
-
-<!-- #welcome-modal: Modal de Boas-Vindas e seleção de idioma.
-  - #language-selection: botões com data-lang para trocar idioma (setLanguage() em scripts.js).-->
-  <div id="welcome-modal" class="welcome-modal">
-    <div class="modal-content">
-        <p id="welcome-message" data-i18n="welcome">Bem-vindo ao nosso site!</p>
-        <h1 data-i18n="welcomeTitle">BEM-VINDO!</h1>
-        <p data-i18n="chooseLanguage">Escolha seu idioma:</p>
-        <div id="language-selection">
-            <!-- Botões de idioma (Brasil, Espanha, Estados Unidos, Israel) -->
-            <button class="lang-btn" data-lang="pt" title="Português - Brasil">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" alt="Bandeira do Brasil" style="width:30px;height:20px;">
-            </button>
-            <button class="lang-btn" data-lang="es" title="Español">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Bandeira da Espanha" style="width:30px;height:20px;">
-            </button>
-            <button class="lang-btn" data-lang="en" title="English">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg" alt="Bandeira dos Estados Unidos" style="width:30px;height:20px;">
-            </button>
-            <button class="lang-btn" data-lang="he" title="Hebrew">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg" alt="Bandeira de Israel" style="width:30px;height:20px;">
-            </button>
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#3b82f6" />
+    <meta
+      name="description"
+      content="Guia digital interativo de Morro de São Paulo"
+    />
+    <title>Morro Digital</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+    />
+  </head>
+  <body>
+    <!-- App Shell -->
+    <div class="app-shell">
+      <!-- Cabeçalho -->
+      <header>
+        <div class="header-content">
+          <h1 data-i18n="welcome_message">Morro Digital</h1>
+          <p class="tagline" data-i18n="ask_first_time">Descubra o paraíso</p>
         </div>
-    </div>
-</div>
+      </header>
 
-<!-- MENUS -->
-<!-- Menu Toggle -->
-<button id="menu-toggle" class="menu-toggle hidden" aria-label="Abrir menu">
-  <i class="fas fa-bars"></i>
-</button>
+      <!-- Mapa -->
+      <section id="map-section">
+        <div id="map" aria-label="Mapa de Morro de São Paulo"></div>
+      </section>
 
-<!-- #floating-menu: Menu lateral flutuante contendo botões como zoom-in, zoom-out, pesquisar, etc.
-  .hidden => só é exibido quando ativado em scripts.js. -->
-<div id="floating-menu" class="floating-menu hidden">
-    <button class="menu-btn zoom-in"  aria-label="Aumentar Zoom"><i class="fas fa-plus"></i></button>
-    <button class="menu-btn zoom-out" aria-label="Diminuir Zoom"><i class="fas fa-minus"></i></button>
-    <button class="menu-btn" data-feature="pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
-</div>
+      <!-- Submenu dinâmico -->
+      <section id="submenu" class="hidden">
+        <div class="submenu-header">
+          <h3 class="submenu-title">Explorar Locais</h3>
+          <button class="close-button" aria-label="Fechar menu">×</button>
+        </div>
+        <div id="submenuContainer" aria-live="polite"></div>
+      </section>
 
-<!-- #menu: Menu lateral expansível que exibe submenus:
-- #touristSpots-submenu, #tours-submenu, #beaches-submenu, etc. -->
-<div id="menu" class="menu">
-  <!-- Botão para fechar o menu lateral -->
-  <button id="close-menu-btn" class="close-side-menu-btn" onclick="closeSideMenu()" data-i18n="close_menu">X</button>        
-    <div id="touristSpots-submenu" class="submenu" data-feature="touristSpots"></div>
-    <div id="tours-submenu" class="submenu" data-feature="tours"></div>
-    <div id="beaches-submenu" class="submenu" data-feature="beaches"></div>
-    <div id="nightlife-submenu" class="submenu" data-feature="nightlife"></div>
-    <div id="restaurants-submenu" class="submenu" data-feature="restaurants"></div>
-    <div id="inns-submenu" class="submenu" data-feature="inns"></div>
-    <div id="shops-submenu" class="submenu" data-feature="shops"></div>
-    <div id="emergencies-submenu" class="submenu" data-feature="emergencies"></div>
-    <div id="tips-submenu" class="submenu" data-feature="tips"></div>
-    <div id="about-submenu" class="submenu" data-feature="about"></div>
-    <div id="education-submenu" class="submenu" data-feature="education"></div>
-</div>
+      <!-- Quick Action Buttons -->
+      <div class="quick-actions">
+        <button id="btn-attractions" class="action-button" aria-label="Ver atrações">
+          <i class="fas fa-mountain"></i>
+          <span>Atrações</span>
+        </button>
+      
+        <button id="btn-tours" class="action-button" aria-label="Ver passeios">
+          <i class="fas fa-map-signs"></i>
+          <span>Passeios</span>
+        </button>
+      
+        <button id="btn-nightlife" class="action-button" aria-label="Vida Noturna">
+          <i class="fas fa-music"></i>
+          <span>Festas</span>
+        </button>
+      
+        <button id="btn-beaches" class="action-button" aria-label="Ver praias">
+          <i class="fas fa-umbrella-beach"></i>
+          <span>Praias</span>
+        </button>
+        <button class="action-button primary" aria-label="Abrir assistente">
+          <i class="fas fa-robot"></i>
+          <span>Ajuda</span>
+        </button>
+        <button id="btn-restaurants" class="action-button" aria-label="Ver restaurantes">
+          <i class="fas fa-utensils"></i>
+          <span>Comer</span>
+        </button>
+      
+        <button id="btn-inns" class="action-button" aria-label="Ver pousadas">
+          <i class="fas fa-bed"></i>
+          <span>Dormir</span>
+        </button>
+      
+        <button id="btn-shops" class="action-button" aria-label="Ver lojas">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Lojas</span>
+        </button>
+      
+        <button id="btn-emergencies" class="action-button" aria-label="Ver emergências">
+          <i class="fas fa-ambulance"></i>
+          <span>Emergências</span>
+        </button>
 
-<!--.control-buttons: Seção principal de botões que podem ser exibidos ou não (display:none) conforme a ação do usuário (scripts.js).
-Ex.: iniciar tutorial, iniciar rota, pausar rota, etc.-->
-<div class="control-buttons">
-
-<!-- Botões tutorial -->
-<button id="tutorial-iniciar-btn" class="control-btn" style="display:none;" data-action="next" data-i18n="tutorialStart">Sim</button>
-<button id="tutorial-finalizar-btn" class="control-btn" style="display:none;" data-action="end" data-i18n="tutorialEnd">Não</button>
-
-<!-- Botões interesses -->
-  <button id="pontos-turisticos-btn" class="control-btn" style="display:none" data-action="pontos-turisticos"  data-feature="pontos-turisticos" data-i18n="tourist_spots">Pontos Turísticos</button>
-  <button id="passeios-btn" class="control-btn" style="display:none"  data-feature="passeios" data-i18n="tours">Passeios</button>
-  <button id="praias-btn" class="control-btn" style="display:none" data-action="praias"  data-feature="praias" data-i18n="beaches">Praias</button>
-  <button id="festas-btn" class="control-btn" style="display:none"  data-feature="festas" data-i18n="parties">Festas</button>
-  <button id="restaurantes-btn" class="control-btn" style="display:none" data-action="restaurantes"  data-feature="restaurantes" data-i18n="restaurants">Restaurantes</button>
-  <button id="pousadas-btn" class="control-btn" style="display:none"  data-feature="pousadas" data-i18n="inns">Pousadas</button>
-  <button id="lojas-btn" class="control-btn" style="display:none"  data-feature="lojas" data-i18n="shops">Lojas</button>
-  <button id="emergencias-btn" class="control-btn" style="display:none"  data-feature="emergencias" data-i18n="emergencies">Emergências</button>
-  
-<!-- Botões adicionais que aparecem ao clicar em lugar específico do mapa, etc. -->
-  <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
-  <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" data-i18n="createRoute">Como Chegar</button>
-  <button class="control-btn" id="reserve-restaurants-btn" style="display: none;" data-i18n="reserveTable">Reservar Mesa</button>
-  <button class="control-btn" id="call-btn" style="display: none;" data-i18n="call">Ligar</button>
-  <button class="control-btn" id="reserve-inns-btn" style="display: none;" data-i18n="reserveRoom">Reservar Quarto</button>
-  <button class="control-btn" id="reserve-chairs-btn" style="display: none;" data-i18n="reserveChairs">Reservar Cadeiras</button>
-  <button class="control-btn" id="buy-ticket-btn" style="display: none;" data-i18n="buyTicket">Comprar Ingresso</button>
-  <button class="control-btn" id="tour-btn" style="display: none;" data-i18n="reserveTour">Reservar Passeio</button>
-  
-</div>
-
-    <button class="control-btn" id="about-more-btn" style="display: none;" data-i18n="aboutMore">Fotos</button>
-    <button class="control-btn" id="create-route-btn" style="display: none;" data-action="create-route" data-i18n="createRoute">Como Chegar</button>
-    <button class="control-btn" id="reserve-restaurants-btn" style="display: none;" data-i18n="reserveTable">Reservar Mesa</button>
-    <button class="control-btn" id="call-btn" style="display: none;" data-i18n="call">Ligar</button>
-    <button class="control-btn" id="reserve-inns-btn" style="display: none;" data-i18n="reserveRoom">Reservar Quarto</button>
-    <button class="control-btn" id="reserve-chairs-btn" style="display: none;" data-i18n="reserveChairs">Reservar Cadeiras</button>
-    <button class="control-btn" id="buy-ticket-btn" style="display: none;" data-i18n="buyTicket">Comprar Ingresso</button>
-    <button class="control-btn" id="tour-btn" style="display: none;" data-i18n="reserveTour">Reservar Passeio</button>
-    
-<!-- Botões para fluxo de navegação -->
-    <button id="start-navigation-button" class="control-btn" style="display:none;" data-i18n="startNavigation" tabindex="0" aria-label="Iniciar Navegação">Iniciar Navegação</button>
-    <button id="pause-navigation-button" class="control-btn" style="display:none;" data-i18n="pause">Pausar</button>
-
-</div>
-
-<!-- #carousel-modal: Modal do Carrossel de Imagens (usando Swiper).-->
-<div id="carousel-modal" class="carousel-modal">
-  <div class="modal-content">
-    <span id="carousel-modal-close" onclick="hideModal('carousel-modal')" class="modal-close" data-i18n="close_modal_carousel">X</span>
-    <!-- Swiper container -->
-    <div class="swiper-container">
-      <div class="swiper-wrapper"></div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
-      <div class="swiper-pagination"></div>
-    </div>
-  </div>
-</div>
-
-<!-- #route-summary: Mostra título "Resumo da Rota", distância e tempo estimado.-->
-<div id="route-summary" class="route-summary hidden">
-    <h3 data-i18n="route_summary_title">Resumo da Rota</h3>
-    <p id="route-distance" data-i18n="route_distance">Distância: </p>
-    <p id="route-eta" data-i18n="route_eta">Tempo Estimado: </p>
-</div>
-
-<!-- #instruction-banner: Banner fixo no topo, exibindo a próxima manobra e detalhes.-->
-<div id="instruction-banner" class="instruction-banner hidden">
-  <div class="instruction-icon">
-    <span id="instruction-arrow">⬅️</span>
-  </div>
-  <div class="instruction-text">
-    <h2 id="instruction-main">Turn left</h2>
-    <p id="instruction-details">200m - Rua Caminho do Farol</p>
-  </div>
-</div>
-
-
-<!-- #menu-footer: Rodapé com botões de ação ("Iniciar Navegação" "Encerrar e "Voltar").-->
-<div id="menu-footer" class="menu-footer hidden">
-  <div class="menu-footer-actions">
-    <button id="start-navigation-footer-btn" class="footer-btn">Iniciar Navegação</button>
-    <button id="stop-navigation-footer-btn" class="footer-btn">Parar Navegação</button>
-    <button id="back-footer-btn" class="footer-btn">Voltar</button>
-  </div>
-</div>
-
-<!-- Assistente Virtual Digital -->
-<div id="digital-assistant" class="digital-assistant hidden" style="display: none;">
-  <!-- Botão do assistente -->
-  <button id="assistant-toggle" class="assistant-toggle">
-    <i class="fas fa-robot"></i>
-  </button>
-
-  <!-- Container do diálogo principal - conterá tanto o cabeçalho/mensagens quanto o input -->
-  <div id="assistant-dialog" class="assistant-dialog hidden">
-    <!-- Parte superior: Cabeçalho e Mensagens -->
-    <div id="assistant-header-container" class="assistant-header-container">
-      <div class="assistant-header">
-        <span data-i18n="assistant_title">Assistente Virtual</span>
-        <button id="close-assistant-dialog" class="close-btn">&times;</button>
-      </div>
-      <div id="assistant-messages" class="assistant-messages"></div>
+      <!-- Assistente Virtual -->
+      <section id="assistant-wrapper" class="hidden">
+        <div class="assistant-handle">
+          <div class="handle-bar"></div>
+        </div>
+        <div id="digital-assistant" class="assistant">
+          <div id="assistant-header">
+            <h3>Assistente Digital</h3>
+            <button class="minimize-button" aria-label="Minimizar assistente">
+              x
+            </button>
+          </div>
+          <div id="assistant-messages"></div>
+          <div id="assistant-input-area">
+            <input
+              type="text"
+              id="assistantInput"
+              placeholder="Pergunte algo sobre Morro de São Paulo..."
+              aria-label="Campo de entrada do assistente"
+            />
+            <button id="sendButton" aria-label="Enviar mensagem">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+            <!-- Botão de microfone para enviar mensagem de voz -->
+            <button id="voiceButton" aria-label="Enviar mensagem de voz">
+              <i class="fas fa-microphone"></i>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Parte inferior: Input -->
-    <div id="assistant-input-container" class="assistant-input-container">
-      <div class="assistant-input">
-        <input type="text" id="assistant-input-field" placeholder="Pergunte algo..." data-i18n-placeholder="assistant_placeholder">
-        <button id="assistant-send-btn"><i class="fas fa-paper-plane"></i></button>
-        <button id="assistant-voice-btn"><i class="fas fa-microphone"></i></button>
+    <!-- Carousel Modal -->
+    <div id="carousel-modal" class="carousel-modal hidden">
+      <div class="modal-content">
+        <span id="carousel-modal-close" onclick="closeCarouselModal()" class="modal-close" data-i18n="close_modal_carousel">X</span>
+        <!-- Swiper container -->
+        <div class="swiper-container">
+          <div class="swiper-wrapper">
+            <!-- Slides serão adicionados dinamicamente -->
+          </div>
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-pagination"></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Script Principal -->
-<script type="module" src="./js/main.js"></script>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <p>Carregando Morro Digital...</p>
+      </div>
+    </div>
 
+    <!-- Scripts principais -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="./js/main.js"></script>
+    <script>
+      // Remove loading overlay when content loads
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          document.getElementById("loading-overlay").classList.add("fade-out");
+        }, 800);
+      });
 
-</body>
-<!-- Fim do <body> -------------->
-
+      // HTML gerado para o popup
+      function createPopupContent(name) {
+        return `<div class="custom-popup">
+          <h3>${name}</h3>
+          <p>${getLocationDescription(name.toLowerCase())}</p>
+          <div class="popup-buttons">
+            <button class="popup-button" onclick="window.navigateTo('${name.toLowerCase()}')">Mais detalhes</button>
+            <button class="popup-button" onclick="window.showPhotos('${name.toLowerCase()}')">Fotos</button>
+            <button class="popup-button" onclick="window.showDirections('${name.toLowerCase()}')">Como Chegar</button>
+          </div>
+        </div>`;
+      }
+    </script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  </body>
 </html>
-<!-- Fim do arquivo index.html -->
