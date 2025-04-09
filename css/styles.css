@@ -484,12 +484,12 @@ header h1 {
 /* Submenu flutuante com design moderno */
 #submenu {
   position: absolute;
-  top: 50%;
+  top: 70%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 400px;
-  max-height: 70%;
+  max-height: 30%;
   padding: 0;
   background: rgba(255, 255, 255, 0.2); /* Fundo quase transparente */
   backdrop-filter: blur(10px); /* Efeito de vidro fosco */
@@ -540,7 +540,7 @@ header h1 {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   scrollbar-width: thin; /* Para navegadores compatíveis com scrollbar-width */
-  scrollbar-color: rgba(255, 255, 255, 0.4) transparent; /* Cor da barra e do fundo */
+  scrollbar-color: rgba(0,0,0,0.4) transparent; /* Cor da barra e do fundo */
 }
 
 #submenuContainer::-webkit-scrollbar {
@@ -917,7 +917,7 @@ igital-test\css\styles.css */ .carousel-modal {
 /* Route Summary */
 .route-summary {
   position: fixed;
-  bottom: 20px;
+  bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
   background: white;

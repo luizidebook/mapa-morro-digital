@@ -90,3 +90,23 @@ export async function loadSubMenu(queryKey) {
     console.error("Erro no submenu:", err);
   }
 }
+
+/**
+ * Valida as coordenadas fornecidas usando a API Nominatim.
+ * @param {number} lat - Latitude.
+ * @param {number} lon - Longitude.
+ * @returns {Promise<Object>} Coordenadas validadas ou originais.
+ */
+export async function validateCoordinates(lat, lon) {
+  const url = `${NOMINATIM_URL}?format=json&lat=${lat}&lon=${lon}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    }
+  } catch (error) {
+    console.error("Erro ao validar coordenadas:", error);
+  }
+  return { lat, lon }; // Retorna as coordenadas originais se não houver correção
+}
