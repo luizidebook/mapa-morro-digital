@@ -12,7 +12,8 @@ Adiciona controle de geolocalização para o usuário encontrar sua localizaçã
 export let mapInstance;
 let markers = [];
 let routeLayer;
-let map; // Variável global para armazenar a instância do mapa
+let routingControl = null;
+let currentRoutePolyline = null;
 
 /**
  * Inicializa o mapa Leaflet e configura as camadas.
@@ -40,8 +41,8 @@ export function initializeMap(containerId) {
 
   mapInstance = window.L.map(containerId).setView(
     [-13.3766787, -38.9172057],
-    13
-  );
+    15
+  ); // Zoom inicial 15
   window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -62,6 +63,13 @@ export function clearMarkers() {
     mapInstance.removeLayer(routeLayer);
     routeLayer = null;
   }
+
+  if (routingControl) {
+    mapInstance.removeControl(routingControl);
+    routingControl = null;
+  }
+
+  clearCurrentRoute();
 }
 
 /**
@@ -164,7 +172,11 @@ function createPopupContent(name) {
   return `<div class="custom-popup">
     <h3>${name}</h3>
     <p>${getLocationDescription(name.toLowerCase())}</p>
-    <button class="popup-button" onclick="window.navigateTo('${name.toLowerCase()}')">Mais detalhes</button>
+    <div class="popup-buttons">
+      <button class="popup-button" onclick="window.navigateTo('${name.toLowerCase()}')">Mais detalhes</button>
+      <button class="popup-button" onclick="startCarousel('${name}')">Fotos</button>
+      <button class="popup-button" onclick="showRoute('${name}')">Como Chegar</button>
+    </div>
   </div>`;
 }
 
@@ -249,5 +261,175 @@ export function setupGeolocation(map = mapInstance) {
     } else {
       alert("Seu navegador não suporta geolocalização.");
     }
+  });
+}
+
+/**
+ * Exibe a rota entre a localização atual do usuário e o destino.
+ * @param {string} locationName - Nome do destino.
+ */
+export async function showRoute(locationName) {
+  try {
+    // Valida o destino selecionado
+    const location = markers.find((marker) =>
+      marker.getPopup().getContent().includes(locationName)
+    );
+    if (!location) {
+      alert("Localização não encontrada no mapa.");
+      return;
+    }
+
+    const { lat, lng } = location.getLatLng();
+
+    // Obtém a localização atual do usuário
+    const userLocation = await getCurrentLocation();
+
+    // Remove rota anterior, se existir
+    clearCurrentRoute();
+
+    // Cria a rota no mapa
+    const routeData = await plotRouteOnMap(
+      userLocation.latitude,
+      userLocation.longitude,
+      lat,
+      lng
+    );
+
+    if (!routeData) {
+      alert("Erro ao calcular a rota. Tente novamente.");
+      return;
+    }
+
+    // Exibe o resumo da rota
+    showRouteSummary(locationName, routeData.distance, routeData.duration);
+  } catch (error) {
+    console.error("[showRoute] Erro ao exibir rota:", error);
+    alert("Erro ao exibir a rota. Verifique sua conexão e tente novamente.");
+  }
+}
+
+/**
+ * Obtém a localização atual do usuário.
+ * @returns {Promise<Object>} Localização do usuário (latitude e longitude).
+ */
+async function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Seu navegador não suporta geolocalização."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        reject(new Error("Erro ao obter localização do usuário."));
+      }
+    );
+  });
+}
+
+/**
+ * Plota a rota no mapa usando a API OpenRouteService.
+ * @param {number} startLat - Latitude de partida.
+ * @param {number} startLon - Longitude de partida.
+ * @param {number} destLat - Latitude do destino.
+ * @param {number} destLon - Longitude do destino.
+ * @param {string} [profile="foot-walking"] - Perfil de navegação.
+ * @returns {Promise<Object|null>} Dados da rota ou null em caso de erro.
+ */
+async function plotRouteOnMap(
+  startLat,
+  startLon,
+  destLat,
+  destLon,
+  profile = "foot-walking"
+) {
+  const apiKey = "SUA_API_KEY_AQUI"; // Substitua pela sua chave da API OpenRouteService
+  const url =
+    `https://api.openrouteservice.org/v2/directions/${profile}?api_key=${apiKey}` +
+    `&start=${startLon},${startLat}&end=${destLon},${destLat}&instructions=false`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error("[plotRouteOnMap] Erro ao obter rota:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const coords = data.features[0].geometry.coordinates.map(([lon, lat]) => [
+      lat,
+      lon,
+    ]);
+
+    // Remove rota anterior, se existir
+    clearCurrentRoute();
+
+    // Cria e adiciona a polyline ao mapa
+    currentRoutePolyline = window.L.polyline(coords, {
+      color: "blue",
+      weight: 5,
+    }).addTo(mapInstance);
+    mapInstance.fitBounds(currentRoutePolyline.getBounds(), {
+      padding: [50, 50],
+    });
+
+    console.log("[plotRouteOnMap] Rota plotada com sucesso.");
+    return {
+      distance: data.features[0].properties.segments[0].distance,
+      duration: data.features[0].properties.segments[0].duration,
+    };
+  } catch (error) {
+    console.error("[plotRouteOnMap] Erro ao plotar rota:", error);
+    return null;
+  }
+}
+
+/**
+ * Remove a rota atual do mapa.
+ */
+function clearCurrentRoute() {
+  if (currentRoutePolyline) {
+    mapInstance.removeLayer(currentRoutePolyline);
+    currentRoutePolyline = null;
+    console.log("[clearCurrentRoute] Rota removida do mapa.");
+  }
+}
+
+/**
+ * Exibe o resumo da rota com os botões "Iniciar Navegação" e "Cancelar Navegação".
+ * @param {string} locationName - Nome do destino.
+ * @param {number} distance - Distância total da rota (em metros).
+ * @param {number} duration - Duração estimada da rota (em segundos).
+ */
+function showRouteSummary(locationName, distance, duration) {
+  const routeSummary = document.createElement("div");
+  routeSummary.id = "route-summary";
+  routeSummary.className = "route-summary";
+  routeSummary.innerHTML = `
+    <h3>Rota para ${locationName}</h3>
+    <p>Distância total: ${(distance / 1000).toFixed(2)} km</p>
+    <p>Tempo estimado: ${(duration / 60).toFixed(2)} minutos</p>
+    <div class="route-buttons">
+      <button id="start-navigation" class="route-button">Iniciar Navegação</button>
+      <button id="cancel-navigation" class="route-button">Cancelar Navegação</button>
+    </div>
+  `;
+
+  document.body.appendChild(routeSummary);
+
+  // Adiciona eventos aos botões
+  document.getElementById("start-navigation").addEventListener("click", () => {
+    alert("Navegação iniciada!");
+  });
+
+  document.getElementById("cancel-navigation").addEventListener("click", () => {
+    clearCurrentRoute();
+    document.body.removeChild(routeSummary);
   });
 }

@@ -1,21 +1,17 @@
 // main.js - Arquivo principal de inicialização do site Morro Digital
 
 // Importações de módulos
-import {
-  initializeMap,
-  showLocationOnMap,
-  setupGeolocation,
-} from "./map-controls.js";
+import { initializeMap, setupGeolocation } from "./map-controls.js";
 import { initializeAssistant, showAssistant } from "./assistant.js";
 import { translatePageContent } from "./translatePageContent.js";
 import { initVoice } from "./voiceSystem.js";
-import { initThemeManager } from "./theme-manager.js";
-import { initFavorites } from "./favorites.js";
 import { initAnalytics } from "./analytics.js";
 import { initPerformanceOptimizations } from "./performance.js";
 import { setupAssistantInteractions } from "./interface.js";
 import { processUserInput } from "./dialog.js";
 import { createSubmenuButtons, setupQuickActionButtons } from "./submenu.js";
+import { startCarousel } from "./carousel.js"; // Importe a função startCarousel
+import { showRoute } from "./map-controls.js";
 
 let map;
 let userLocationMarker = null;
@@ -156,7 +152,7 @@ function requestAndTrackUserLocation() {
 
       // Inicializa o mapa focado na localização do usuário
       map = initializeMap("map");
-      map.setView([latitude, longitude], 16);
+      map.setView([latitude, longitude], 15); // Zoom 15
 
       // Adiciona o marcador de localização do usuário
       userLocationMarker = window.L.marker([latitude, longitude], {
@@ -198,7 +194,7 @@ function trackUserLocation() {
       }
 
       // Centraliza o mapa na nova posição do usuário
-      map.setView([latitude, longitude], 16);
+      map.setView([latitude, longitude], 16); // Zoom 15
     },
     (error) => {
       console.error("Erro ao rastrear localização:", error);
@@ -217,6 +213,9 @@ function initApp() {
 
   // Inicializa o mapa no elemento com id="map"
   map = initializeMap("map");
+
+  // Solicita permissão de GPS e rastreia a posição do usuário
+  requestAndTrackUserLocation();
 
   // Adiciona recursos avançados ao mapa
   if (map) {
@@ -250,13 +249,9 @@ function initApp() {
   setupUIElements();
 
   // Inicializa recursos avançados
-  initThemeManager();
-  initFavorites();
+
   initAnalytics();
   initPerformanceOptimizations();
-
-  // Solicita permissão de GPS e rastreia a posição do usuário
-  requestAndTrackUserLocation();
 }
 
 // Aguarda o carregamento completo do DOM
@@ -271,4 +266,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   createSubmenuButtons(); // Cria os botões dinâmicos
   setupQuickActionButtons(); // Configura os botões de ação rápida
+
+  // Exponha a função globalmente
+  window.showRoute = showRoute;
+  window.startCarousel = startCarousel;
 });

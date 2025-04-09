@@ -745,3 +745,220 @@ header h1 {
 .leaflet-popup-tip {
   box-shadow: var(--shadow) !important;
 }
+
+/* Estilo para o marcador de localização do usuário */
+.custom-user-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Estilo para o popup personalizado */
+.custom-popup {
+  max-width: 300px; /* Aumente o tamanho máximo do popup */
+  padding: 1rem; /* Adicione mais espaçamento interno */
+  font-size: 1rem; /* Aumente o tamanho da fonte */
+  line-height: 1.5; /* Melhore o espaçamento entre linhas */
+}
+
+.custom-popup h3 {
+  font-size: 1.25rem; /* Aumente o tamanho do título */
+  margin-bottom: 0.5rem; /* Adicione espaçamento abaixo do título */
+}
+
+.custom-popup p {
+  font-size: 1rem; /* Ajuste o tamanho do texto */
+  margin-bottom: 1rem; /* Adicione espaçamento abaixo do texto */
+}
+
+.popup-buttons {
+  display: flex;
+  gap: 0.5rem; /* Espaçamento entre os botões */
+  justify-content: space-between; /* Distribua os botões uniformemente */
+}
+
+.popup-button {
+  flex: 1; /* Faça os botões ocuparem o mesmo espaço */
+  padding: 0.75rem; /* Aumente o espaçamento interno dos botões */
+  font-size: 0.9rem; /* Ajuste o tamanho da fonte dos botões */
+  border: none;
+  border-radius: var(--radius-sm); /* Bordas arredondadas */
+  background-color: var(--primary); /* Cor de fundo */
+  color: white; /* Cor do texto */
+  cursor: pointer;
+  transition: var(--transition); /* Adicione transição para hover */
+}
+
+.popup-button:hover {
+  background-color: var(--primary-dark); /* Cor de fundo ao passar o mouse */
+}
+
+igital-test\css\styles.css */ .carousel-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.carousel-modal .modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.carousel-modal .modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Estilo base para o modal do carrossel */
+.carousel-modal {
+  display: none;
+  position: fixed;
+  z-index: 1050;
+  left: 50%;
+  top: 25%;
+  width: 100%;
+  height: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 0px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Classe para mover o modal 30px à esquerda */
+.carousel-modal.shift-left {
+  transform: translate(-calc(50% + 30px), -50%);
+}
+
+/* Conteúdo do modal do carrossel */
+.carousel-modal .modal-content {
+  position: relative;
+  background-color: #fff;
+  margin: auto;
+  padding: 0;
+  border: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* Botão de fechar o modal do carrossel */
+.carousel-modal .modal-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.carousel-modal .modal-close:hover,
+.carousel-modal .modal-close:focus {
+  color: #000;
+  background: #fff;
+}
+
+/* Estilo base para o carrossel */
+.swiper-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Garante que a imagem ocupe todo o espaço do modal */
+}
+
+/* Route Summary */
+.route-summary {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  text-align: center;
+}
+
+.route-summary h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.route-summary p {
+  margin: 0 0 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+.route-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.route-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.route-button#start-navigation {
+  background: #3b82f6;
+  color: white;
+}
+
+.route-button#cancel-navigation {
+  background: #f87171;
+  color: white;
+}

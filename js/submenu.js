@@ -8,6 +8,7 @@ Adiciona eventos de clique que mostram o local no mapa via showLocationOnMap().*
 import { fetchOSMData } from "./osm-service.js";
 import { showLocationOnMap, showAllLocationsOnMap } from "./map-controls.js";
 import { queries } from "./osm-service.js";
+import { startCarousel } from "./carousel.js";
 
 let submenuData = {};
 let selectedFeature = null;
@@ -16,11 +17,11 @@ let selectedFeature = null;
  * Cria botões dinâmicos para cada query no submenu.
  */
 export function createSubmenuButtons() {
-  const container = document.getElementById("buttonGroup");
-  if (!container) return console.error("Elemento #buttonGroup não encontrado.");
-
-  // Limpa os botões existentes
-  container.innerHTML = "";
+  const container = document.getElementById("submenuContainer"); // Certifique-se de que o elemento existe
+  if (!container) {
+    console.error("Elemento 'submenuContainer' não encontrado.");
+    return;
+  }
 
   // Cria um botão para cada query
   Object.keys(queries).forEach((key) => {
@@ -137,6 +138,7 @@ export function handleSubmenuItemClick(index) {
 
   // Mostra a localização no mapa
   showLocationOnMap(item.name, item.lat, item.lon);
+
   console.log("[Submenu] Local selecionado:", item.name);
 
   // Fecha o submenu
