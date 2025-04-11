@@ -48,14 +48,14 @@
  */
 export async function startNavigation() {
   try {
-    console.log('[startNavigation] Iniciando navegação...');
+    console.log("[startNavigation] Iniciando navegação...");
 
     // 1️⃣ Exibe o indicador de carregamento da rota.
     showRouteLoadingIndicator();
 
     // 2️⃣ Valida o destino selecionado.
     if (!validateDestination(selectedDestination)) {
-      console.error('Destino inválido. Selecione um destino válido.');
+      console.error("Destino inválido. Selecione um destino válido.");
       hideRouteLoadingIndicator();
       return;
     }
@@ -63,8 +63,8 @@ export async function startNavigation() {
     // 3️⃣ Verifica se a localização do usuário está disponível.
     if (!userLocation) {
       showNotification(
-        'Localização não disponível. Permita o acesso à localização primeiro.',
-        'error'
+        "Localização não disponível. Permita o acesso à localização primeiro.",
+        "error"
       );
       hideRouteLoadingIndicator();
       return;
@@ -81,7 +81,7 @@ export async function startNavigation() {
       selectedDestination.lon
     );
     if (!routeOptions || routeOptions.length === 0) {
-      showNotification('Nenhuma rota disponível.', 'error');
+      showNotification("Nenhuma rota disponível.", "error");
       hideRouteLoadingIndicator();
       return;
     }
@@ -123,23 +123,50 @@ export async function startNavigation() {
     hideRouteLoadingIndicator();
 
     // 🔟.1 Fornece feedback por voz para indicar que a navegação começou.
-    giveVoiceFeedback('Navegação iniciada.');
+    giveVoiceFeedback("Navegação iniciada.");
 
     // 🔟.2 Inicia o monitoramento contínuo da posição do usuário.
-    startPositionWatcher();
+    trackUserLocation();
 
     // Adicionar evento para notificar o assistente
-    const event = new CustomEvent('navigationStarted', {
+    const event = new CustomEvent("navigationStarted", {
       detail: { destination: selectedDestination },
     });
     window.dispatchEvent(event);
 
-    console.log('[startNavigation] Navegação iniciada com sucesso.');
+    console.log("[startNavigation] Navegação iniciada com sucesso.");
   } catch (error) {
-    console.error('[startNavigation] Erro:', error);
-    showNotification('Erro ao iniciar navegação.', 'error');
+    console.error("[startNavigation] Erro:", error);
+    showNotification("Erro ao iniciar navegação.", "error");
     hideRouteLoadingIndicator();
   }
+}
+
+/**
+ * Rastreia a posição do usuário em tempo real.
+ */
+function trackUserLocation() {
+  navigator.geolocation.watchPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+
+      // Atualiza o marcador e o popup para a nova posição
+      if (userLocationMarker) {
+        userLocationMarker.setLatLng([latitude, longitude]);
+        userPopup.setLatLng([latitude, longitude]);
+      }
+
+      // Centraliza o mapa na nova posição do usuário
+      map.setView([latitude, longitude], 16); // Zoom 15
+    },
+    (error) => {
+      console.error("Erro ao rastrear localização:", error);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+    }
+  );
 }
 
 /////////////////////////////
@@ -155,7 +182,7 @@ function initNavigationState() {
   navigationState.isPaused = false;
   navigationState.currentStepIndex = 0;
   navigationState.instructions = [];
-  console.log('[initNavigationState] Estado de navegação inicializado.');
+  console.log("[initNavigationState] Estado de navegação inicializado.");
 }
 
 /**
@@ -200,8 +227,8 @@ function startPositionWatcher() {
       }
     },
     (error) => {
-      console.error('[startPositionWatcher] Erro:', error);
-      showNotification('Erro ao monitorar posição.', 'error');
+      console.error("[startPositionWatcher] Erro:", error);
+      showNotification("Erro ao monitorar posição.", "error");
     },
     { enableHighAccuracy: true }
   );
@@ -212,7 +239,7 @@ function startPositionWatcher() {
  * Notifica o usuário sobre um desvio do trajeto e dispara o recálculo da rota.
  */
 function notifyDeviation() {
-  showNotification('Você se desviou da rota. Recalculando...', 'warning');
+  showNotification("Você se desviou da rota. Recalculando...", "warning");
   recalculateRoute(
     userLocation.latitude,
     userLocation.longitude,
@@ -236,10 +263,10 @@ export function endNavigation() {
   }
   navigationState.isActive = false;
   navigationState.isPaused = false;
-  console.log('[stopNavigation] Navegação finalizada.');
+  console.log("[stopNavigation] Navegação finalizada.");
 
   // Adicionar evento para notificar o assistente
-  const event = new CustomEvent('navigationEnded');
+  const event = new CustomEvent("navigationEnded");
   window.dispatchEvent(event);
 }
 
@@ -249,11 +276,11 @@ export function endNavigation() {
  */
 export function pauseNavigation() {
   if (!navigationState.isActive) {
-    console.warn('[pauseNavigation] Navegação não está ativa.');
+    console.warn("[pauseNavigation] Navegação não está ativa.");
     return;
   }
   navigationState.isPaused = true;
-  console.log('[pauseNavigation] Navegação pausada.');
+  console.log("[pauseNavigation] Navegação pausada.");
 }
 
 /**
@@ -262,9 +289,9 @@ export function pauseNavigation() {
  */
 export function resumeNavigation() {
   if (!navigationState.isPaused) {
-    console.warn('[resumeNavigation] Navegação não está pausada.');
+    console.warn("[resumeNavigation] Navegação não está pausada.");
     return;
   }
   navigationState.isPaused = false;
-  console.log('[resumeNavigation] Navegação retomada.');
+  console.log("[resumeNavigation] Navegação retomada.");
 }

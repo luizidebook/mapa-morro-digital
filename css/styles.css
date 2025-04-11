@@ -209,7 +209,7 @@ header h1 {
 /* Assistente Virtual flutuante com design moderno */
 #assistant-wrapper {
   position: absolute;
-  bottom: 0;
+  bottom: 150%;
   left: 0;
   width: 100%;
   background: white;

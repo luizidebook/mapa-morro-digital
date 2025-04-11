@@ -168,40 +168,13 @@ function requestAndTrackUserLocation() {
       userPopup = userLocationMarker.bindPopup("Você está aqui!").openPopup();
 
       // Rastreia a posição do usuário em tempo real
-      trackUserLocation();
+      // trackUserLocation();
     },
     (error) => {
       console.error("Erro ao obter localização:", error);
       alert(
         "Não foi possível acessar sua localização. Verifique as permissões."
       );
-    }
-  );
-}
-
-/**
- * Rastreia a posição do usuário em tempo real.
- */
-function trackUserLocation() {
-  navigator.geolocation.watchPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-
-      // Atualiza o marcador e o popup para a nova posição
-      if (userLocationMarker) {
-        userLocationMarker.setLatLng([latitude, longitude]);
-        userPopup.setLatLng([latitude, longitude]);
-      }
-
-      // Centraliza o mapa na nova posição do usuário
-      map.setView([latitude, longitude], 16); // Zoom 15
-    },
-    (error) => {
-      console.error("Erro ao rastrear localização:", error);
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
     }
   );
 }
@@ -248,6 +221,8 @@ function initApp() {
   // Configura elementos da interface
   setupUIElements();
 
+  showAssistant(); // Mostra o assistente
+
   // Inicializa recursos avançados
 
   initAnalytics();
@@ -266,7 +241,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   createSubmenuButtons(); // Cria os botões dinâmicos
   setupQuickActionButtons(); // Configura os botões de ação rápida
-
   // Exponha a função globalmente
   window.showRoute = showRoute;
   window.startCarousel = startCarousel;
