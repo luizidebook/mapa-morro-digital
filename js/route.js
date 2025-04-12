@@ -8,7 +8,6 @@ Remove rotas anteriores ao traçar uma nova.*/
 import { clearMarkers } from "./map-control.js";
 
 let currentRoute = null;
-let gpsWatcher = null;
 
 /**
  * Obtém a localização atual do usuário.

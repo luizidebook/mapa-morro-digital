@@ -53,7 +53,7 @@ export function setupQuickActionButtons() {
   Object.entries(buttonMappings).forEach(([buttonId, queryKey]) => {
     const button = document.getElementById(buttonId);
     if (button) {
-      button.addEventListener("click", () => loadSubMenu(queryKey));
+      button.addEventListener("click", () => openSubmenu(queryKey));
     } else {
       console.warn(`Botão com ID "${buttonId}" não encontrado.`);
     }
@@ -155,4 +155,27 @@ export function handleSubmenuItemClick(index) {
  */
 function formatButtonLabel(key) {
   return key.replace("-submenu", "").replace(/-/g, " ").toUpperCase();
+}
+
+/**
+ * Abre o submenu correspondente à chave fornecida.
+ * @param {string} queryKey - Chave do submenu a ser aberto (ex: 'beaches-submenu').
+ */
+export function openSubmenu(queryKey) {
+  const container = document.getElementById("submenuContainer");
+  if (!container) {
+    console.error("Elemento 'submenuContainer' não encontrado.");
+    return;
+  }
+
+  // Atualiza o submenu com base na queryKey
+  loadSubMenu(queryKey);
+
+  // Remove a classe 'hidden' para exibir o submenu
+  const submenu = document.getElementById("submenu");
+  if (submenu) {
+    submenu.classList.remove("hidden");
+  } else {
+    console.warn("Elemento 'submenu' não encontrado.");
+  }
 }

@@ -122,8 +122,7 @@ export function showAllLocationsOnMap(locations) {
     bounds.extend([lat, lon]);
   });
 
-  // Centraliza o mapa em Morro de São Paulo com zoom 15
-  mapInstance.setView([-13.3815787, -38.9159057], 15);
+  mapInstance.fitBounds(bounds); // Ajusta o mapa para mostrar todos os marcadores
 }
 
 /**
@@ -199,66 +198,24 @@ function getLocationDescription(key) {
  * Adicionar controle de geolocalização para o usuário encontrar sua localização no mapa
  */
 export function setupGeolocation(map = mapInstance) {
-  let userLocationMarker = null;
-  let accuracyCircle = null;
+  if (!navigator.geolocation) {
+    alert("Seu navegador não suporta geolocalização.");
+    return;
+  }
 
-  const geolocateControl = document.createElement("div");
-  geolocateControl.className = "geolocate-control";
-  geolocateControl.innerHTML = '<i class="fas fa-location-arrow"></i>';
-  document.getElementById("map-section").appendChild(geolocateControl);
-
-  geolocateControl.addEventListener("click", () => {
-    if (navigator.geolocation) {
-      geolocateControl.classList.add("loading");
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLatLng = [
-            position.coords.latitude,
-            position.coords.longitude,
-          ];
-
-          if (userLocationMarker) {
-            map.removeLayer(userLocationMarker);
-          }
-          if (accuracyCircle) {
-            map.removeLayer(accuracyCircle);
-          }
-
-          userLocationMarker = window.L.circleMarker(userLatLng, {
-            radius: 8,
-            color: "#3b82f6",
-            fillColor: "#60a5fa",
-            fillOpacity: 0.7,
-            weight: 2,
-          }).addTo(map);
-
-          accuracyCircle = window.L.circle(userLatLng, {
-            radius: position.coords.accuracy,
-            color: "rgba(59, 130, 246, 0.3)",
-            fillColor: "rgba(59, 130, 246, 0.1)",
-            fillOpacity: 0.4,
-            weight: 1,
-          }).addTo(map);
-
-          markers.push(userLocationMarker, accuracyCircle);
-
-          map.setView(userLatLng, 16);
-          geolocateControl.classList.remove("loading");
-          geolocateControl.classList.add("active");
-        },
-        (error) => {
-          console.error("Erro ao obter localização:", error);
-          geolocateControl.classList.remove("loading");
-          alert(
-            "Não foi possível obter sua localização. Verifique as permissões do navegador."
-          );
-        }
-      );
-    } else {
-      alert("Seu navegador não suporta geolocalização.");
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const userLatLng = [position.coords.latitude, position.coords.longitude];
+      const marker = window.L.marker(userLatLng, {
+        title: "Sua localização",
+      }).addTo(map);
+      map.flyTo(userLatLng, 16);
+    },
+    (error) => {
+      console.error("Erro ao obter localização:", error);
+      alert("Não foi possível acessar sua localização.");
     }
-  });
+  );
 }
 
 /**
@@ -356,4 +313,19 @@ function showRouteSummary(locationName, totalDistance, totalTime) {
     }
     document.body.removeChild(routeSummary);
   });
+}
+
+/**
+ * Destaca um marcador no mapa com base no nome da localização.
+ * @param {string} locationName - Nome da localização.
+ */
+export function highlightMarker(locationName) {
+  const marker = markers.find((m) =>
+    m.getPopup().getContent().includes(locationName)
+  );
+  if (marker) {
+    marker.openPopup();
+    marker.setZIndexOffset(1000); // Destaca o marcador
+    mapInstance.flyTo(marker.getLatLng(), 16, { animate: true });
+  }
 }

@@ -12,6 +12,7 @@ import { processUserInput } from "./dialog.js";
 import { createSubmenuButtons, setupQuickActionButtons } from "./submenu.js";
 import { startCarousel } from "./carousel.js"; // Importe a função startCarousel
 import { showRoute } from "./map-controls.js";
+import { appendMessage } from "./assistant.js"; // Importe a função appendMessage
 
 let map;
 let userLocationMarker = null;

@@ -7,6 +7,14 @@ let assistantConfig = {
   lang: "pt",
 };
 
+export let conversationState = {
+  lastTopic: null,
+  preferences: {
+    favoriteBeach: null,
+    favoriteRestaurant: null,
+  },
+};
+
 /**
  * Inicializa o assistente virtual e configura eventos
  * @param {Object} config - Configurações do assistente
@@ -129,8 +137,9 @@ function setupAssistantEvents() {
  * Adiciona uma nova mensagem no painel de mensagens.
  * @param {string} sender - 'user' ou 'assistant'
  * @param {string} text - Texto da mensagem
+ * @param {Array} quickReplies - Respostas rápidas
  */
-function appendMessage(sender, text) {
+export function appendMessage(sender, text, quickReplies = []) {
   const messagesContainer = document.getElementById("assistant-messages");
   if (!messagesContainer) return;
 
@@ -139,7 +148,18 @@ function appendMessage(sender, text) {
   messageElement.textContent = text;
   messagesContainer.appendChild(messageElement);
 
-  // Scroll para a mensagem mais recente
+  if (quickReplies.length > 0) {
+    const quickReplyContainer = document.createElement("div");
+    quickReplyContainer.classList.add("quick-replies");
+    quickReplies.forEach((reply) => {
+      const button = document.createElement("button");
+      button.textContent = reply;
+      button.addEventListener("click", () => processUserInput(reply));
+      quickReplyContainer.appendChild(button);
+    });
+    messagesContainer.appendChild(quickReplyContainer);
+  }
+
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
